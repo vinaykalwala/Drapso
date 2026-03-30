@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+font-family:'Inter',sans-serif;
+}
+
+/* HERO BACKGROUND */
+
+.hero-bg{
+
+background-image: url("{% static 'images/bg.avif' %}");
+background-size: cover;
+background-position: center;
+background-repeat: no-repeat;
+
+padding:120px 0;
+color:white;
+position:relative;
+overflow:hidden;
+
+}
+
+/* floating shapes */
+
+.hero-bg::before{
+content:"";
+position:absolute;
+width:700px;
+height:700px;
+background:rgba(255,255,255,.06);
+border-radius:50%;
+top:-200px;
+right:-120px;
+}
+
+.hero-bg::after{
+content:"";
+position:absolute;
+width:500px;
+height:500px;
+background:rgba(255,255,255,.05);
+border-radius:50%;
+bottom:-180px;
+left:-120px;
+}
+
+/* CONTAINER */
+
+.hero-container{
+width:1200px;
+max-width:94%;
+margin:auto;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:40px;
+}
+
+/* LEFT */
+
+.hero-left{
+max-width:560px;
+}
+
+.hero-left h1{
+font-size:44px;
+font-weight:700;
+line-height:1.2;
+margin-bottom:18px;
+}
+
+.hero-left p{
+font-size:16px;
+opacity:.9;
+margin-bottom:28px;
+}
+
+/* BUTTONS */
+
+.hero-btns{
+display:flex;
+gap:14px;
+flex-wrap:wrap;
+}
+
+.btn-primary{
+background:linear-gradient(135deg,#34D399,#10B981);
+border:none;
+padding:13px 24px;
+color:white;
+font-size:15px;
+border-radius:8px;
+font-weight:600;
+cursor:pointer;
+box-shadow:0 10px 25px rgba(16,185,129,.35);
+}
+
+.btn-secondary{
+background:white;
+color:#5b5bd6;
+border:none;
+padding:13px 22px;
+font-size:15px;
+border-radius:8px;
+font-weight:600;
+cursor:pointer;
+}
+
+/* SMALL TEXT */
+
+.hero-small{
+margin-top:22px;
+font-size:14px;
+opacity:.85;
+}
+
+/* RIGHT IMAGE */
+
+.hero-right img{
+width:520px;
+max-width:100%;
+display:block;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:900px){
+
+.hero-container{
+flex-direction:column;
+text-align:center;
+}
+
+.hero-left{
+max-width:100%;
+}
+
+.hero-left h1{
+font-size:32px;
+}
+
+.hero-btns{
+justify-content:center;
+}
+
+.hero-right img{
+width:90%;
+margin-top:30px;
+}
+
+}
+
+</style>
+
+
+
+<div class="hero-bg">
+
+<div class="hero-container">
+
+<!-- LEFT TEXT -->
+
+<div class="hero-left">
+
+<h1>
+Start Your Online Business <br>
+Without Inventory
+</h1>
+
+<p>
+Create your store, add products in one click, and start earning — no stock, no risk.
+</p>
+
+<div class="hero-btns">
+
+<button class="btn-primary">
+Start Selling Now
+</button>
+
+<button class="btn-secondary">
+Become a Wholeseller
+</button>
+
+</div>
+
+<div class="hero-small">
+
+No Investment • No Inventory • Weekly Payouts
+
+</div>
+
+</div>
+
+
+
+<!-- RIGHT IMAGE -->
+
+<div class="hero-right">
+
+<img src="{% static 'images/hero-mockup.png' %}" alt="dashboard">
+
+</div>
+
+</div>
+
+</div>
+
+
+{% endblock %}

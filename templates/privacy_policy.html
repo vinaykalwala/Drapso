@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+
+/* hero banner */
+
+.hero-bg{
+
+background-image: url("{% static 'images/bg.avif' %}");
+background-size: cover;
+background-position: center;
+background-repeat: no-repeat;
+
+padding:140px 0 90px;
+color:white;
+position:relative;
+overflow:hidden;
+text-align:center;
+}
+
+/* dark overlay for better text visibility */
+
+.hero-bg::before{
+content:"";
+position:absolute;
+inset:0;
+background:rgba(0,0,0,0.15);
+}
+
+/* heading */
+
+.hero-title{
+position:relative;
+font-size:42px;
+font-weight:600;
+letter-spacing:.3px;
+font-family:Inter,sans-serif;
+}
+
+/* page content */
+
+.page{
+max-width:900px;
+margin:60px auto;
+padding:0 20px;
+font-family:Inter, sans-serif;
+color:#374151;
+line-height:1.7;
+}
+
+.page h1{
+font-size:30px;
+margin-bottom:5px;
+color:#111827;
+}
+
+.page h2{
+font-size:20px;
+margin-top:35px;
+margin-bottom:8px;
+color:#111827;
+}
+
+.page p{
+font-size:15px;
+margin-bottom:12px;
+}
+
+.page ul{
+margin-left:18px;
+margin-bottom:15px;
+}
+
+.page li{
+margin-bottom:6px;
+}
+
+.update{
+font-size:13px;
+color:#6b7280;
+margin-bottom:30px;
+}
+
+/* responsive */
+
+@media(max-width:768px){
+
+.hero-title{
+font-size:30px;
+}
+
+.hero-bg{
+padding:120px 0 70px;
+}
+
+}
+
+</style>
+
+
+
+<!-- Banner -->
+
+<div class="hero-bg">
+
+<div class="hero-title">
+Privacy Policy
+</div>
+
+</div>
+
+
+
+<!-- Content -->
+
+<div class="page">
+
+<div class="update">
+Last updated: 2026
+</div>
+
+<p>
+We respect your privacy and are committed to protecting your personal information.
+This Privacy Policy explains how we collect, use, and safeguard your data when you use our platform.
+</p>
+
+
+<h2>Information We Collect</h2>
+
+<p>We may collect the following information:</p>
+
+<ul>
+<li>Name and contact details</li>
+<li>Email address</li>
+<li>Payment information</li>
+<li>Account activity</li>
+<li>Device and browser information</li>
+</ul>
+
+
+<h2>How We Use Your Information</h2>
+
+<p>Your information is used to:</p>
+
+<ul>
+<li>Create and manage your account</li>
+<li>Process payments</li>
+<li>Improve our services</li>
+<li>Provide customer support</li>
+<li>Send important updates</li>
+</ul>
+
+
+<h2>Data Protection</h2>
+
+<p>
+We implement appropriate security measures to protect your personal data.
+Your information is stored securely and is not shared with third parties without consent.
+</p>
+
+
+<h2>Cookies</h2>
+
+<p>
+We may use cookies to improve your browsing experience and analyze website traffic.
+You can disable cookies through your browser settings.
+</p>
+
+
+<h2>Third-Party Services</h2>
+
+<p>
+We may use trusted third-party services for payment processing and analytics.
+These providers follow their own privacy policies.
+</p>
+
+
+<h2>Your Rights</h2>
+
+<p>You have the right to:</p>
+
+<ul>
+<li>Access your data</li>
+<li>Update your information</li>
+<li>Request account deletion</li>
+</ul>
+
+
+<h2>Contact Us</h2>
+
+<p>
+If you have any questions about this Privacy Policy, please contact us.
+</p>
+
+</div>
+
+{% endblock %}
