@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'general',
 ]
 
 MIDDLEWARE = [
@@ -121,7 +122,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-AUTH_USER_MODEL = "QehsCalculators.CustomUser"
 
 RAZORPAY_KEY_ID = 'rzp_test_KdiESTDcHPC74B'
 RAZORPAY_KEY_SECRET = 'F8aPdLzdQKLt3RmgTWFcnYBG'
