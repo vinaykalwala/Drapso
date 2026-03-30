@@ -1,0 +1,87 @@
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-user me-2"></i>My Profile</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="form-section">
+                        <h5><i class="fas fa-user-circle me-2"></i>Personal Information</h5>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">First Name</label>
+                                <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Middle Name</label>
+                                <input type="text" name="middle_name" class="form-control" value="{{ user.middle_name|default:'' }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone</label>
+                                <input type="text" name="phone" class="form-control" value="{{ user.phone }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" name="email" class="form-control" value="{{ user.email }}" readonly disabled>
+                                <small class="text-muted">Email cannot be changed</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Username</label>
+                                <input type="text" name="username" class="form-control" value="{{ user.username }}" readonly disabled>
+                                <small class="text-muted">Username cannot be changed</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Role-specific profile editing -->
+                    {% if user.role == 'wholeseller' %}
+                    <div class="form-section">
+                        <h5><i class="fas fa-building me-2"></i>Business Information</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Business Name</label>
+                                <input type="text" name="business_name" class="form-control" value="{{ profile.business_name }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Business Phone</label>
+                                <input type="text" name="business_phone" class="form-control" value="{{ profile.business_phone }}">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Business Address</label>
+                            <textarea name="business_address" class="form-control" rows="3">{{ profile.business_address }}</textarea>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Update Profile
+                        </button>
+                        <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
