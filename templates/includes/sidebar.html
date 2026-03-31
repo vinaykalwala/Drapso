@@ -1,0 +1,338 @@
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+{% load static %}
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Inter,sans-serif;
+}
+
+/* mobile header */
+
+.topbar{
+display:none;
+position:fixed;
+top:0;
+left:0;
+right:0;
+height:60px;
+background:white;
+border-bottom:1px solid #eef2f7;
+align-items:center;
+justify-content:space-between;
+padding:0 18px;
+z-index:2100;
+}
+
+/* mobile logo */
+
+.brand img{
+height:26px;
+}
+
+/* sidebar */
+
+.sidebar{
+width:240px;
+background:#ffffff;
+border-right:1px solid #eef2f7;
+position:fixed;
+top:0;
+left:0;
+height:100vh;
+display:flex;
+flex-direction:column;
+z-index:2000;
+
+/* black side shadow */
+box-shadow: 4px 0 18px rgba(0,0,0,0.12);
+}
+
+/* logo top */
+
+.logo-box{
+display:flex;
+align-items:center;
+justify-content:center;
+padding:12px 0;
+border-bottom:1px solid #eef2f7;
+}
+
+.logo-box img{
+height:45px;
+}
+
+/* menu */
+
+.menu{
+flex:1;
+overflow-y:auto;
+padding:18px 14px;
+display:flex;
+flex-direction:column;
+gap:6px;
+}
+
+/* neat scrollbar */
+
+.menu::-webkit-scrollbar{
+width:4px;
+}
+
+.menu::-webkit-scrollbar-thumb{
+background:#e5e7eb;
+border-radius:10px;
+}
+
+/* menu links */
+
+.menu a{
+display:flex;
+align-items:center;
+gap:12px;
+padding:11px 14px;
+text-decoration:none;
+color:#374151;
+border-radius:10px;
+font-size:14px;
+transition:.2s;
+}
+
+.menu i{
+font-size:16px;
+width:20px;
+}
+
+/* hover */
+
+.menu a:hover{
+background:#f5f5f5;
+color:#111827;
+}
+
+/* active */
+
+.menu a.active{
+background:#ecfdf5;
+color:#059669;
+font-weight:500;
+}
+
+/* profile bottom */
+
+.profile-box{
+border-top:1px solid #eef2f7;
+padding:14px;
+display:flex;
+align-items:center;
+gap:10px;
+background:#fafafa;
+}
+
+.profile-img{
+width:36px;
+height:36px;
+border-radius:8px;
+background:#f1f5f9;
+display:flex;
+align-items:center;
+justify-content:center;
+color:#374151;
+}
+
+.profile-info{
+display:flex;
+flex-direction:column;
+}
+
+.profile-name{
+font-size:13px;
+font-weight:500;
+color:#111827;
+}
+
+.profile-role{
+font-size:11px;
+color:#6b7280;
+}
+
+/* content */
+
+.content{
+margin-left:240px;
+padding:20px;
+}
+
+/* toggle */
+
+.toggle-btn{
+border:1px solid #e2e8f0;
+background:white;
+padding:6px 11px;
+border-radius:8px;
+cursor:pointer;
+font-size:18px;
+}
+
+/* overlay */
+
+.overlay{
+position:fixed;
+inset:0;
+background:rgba(15,23,42,.35);
+display:none;
+z-index:1500;
+}
+
+/* mobile */
+
+@media(max-width:900px){
+
+.topbar{
+display:flex;
+}
+
+.sidebar{
+left:-260px;
+top:60px;
+height:calc(100vh - 60px);
+}
+
+.sidebar.active{
+left:0;
+}
+
+.overlay.active{
+display:block;
+}
+
+.content{
+margin-left:0;
+margin-top:70px;
+padding:15px;
+}
+
+.logo-box{
+display:none;
+}
+
+}
+
+</style>
+
+
+
+<!-- mobile header -->
+
+<div class="topbar">
+
+<div class="brand">
+<img src="{% static 'images/drapsologo.jpg' %}">
+</div>
+
+<button class="toggle-btn" onclick="toggleSidebar()">
+☰
+</button>
+
+</div>
+
+
+
+<!-- sidebar -->
+
+<div class="sidebar" id="sidebar">
+
+
+<!-- django logo -->
+
+<div class="logo-box">
+
+<img src="{% static 'images/drapsologo.jpg' %}">
+
+</div>
+
+
+
+<!-- menu -->
+
+<div class="menu">
+
+<a href="#" class="active">
+<i class="fa-solid fa-chart-line"></i>
+Dashboard
+</a>
+
+<a href="#">
+<i class="fa-solid fa-store"></i>
+My Store
+</a>
+
+<a href="#">
+<i class="fa-solid fa-box"></i>
+Products
+</a>
+
+<a href="#">
+<i class="fa-solid fa-bag-shopping"></i>
+Orders
+</a>
+
+<a href="#">
+<i class="fa-solid fa-users"></i>
+Wholeseller
+</a>
+
+<a href="#">
+<i class="fa-solid fa-building-columns"></i>
+Bank Details
+</a>
+
+</div>
+
+
+
+<!-- profile fixed bottom -->
+
+<div class="profile-box">
+
+<div class="profile-img">
+<i class="fa-solid fa-user"></i>
+</div>
+
+<div class="profile-info">
+<div class="profile-name">Your Profile</div>
+<div class="profile-role">Seller</div>
+</div>
+
+</div>
+
+
+</div>
+
+
+
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+
+
+<div class="content">
+
+
+</div>
+
+
+
+<script>
+
+function toggleSidebar(){
+
+document.getElementById("sidebar").classList.toggle("active");
+
+document.getElementById("overlay").classList.toggle("active");
+
+}
+
+</script>
