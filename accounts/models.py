@@ -18,15 +18,20 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
     
-    def create_superuser(self, email, username, password=None, **extra_fields):
+    def create_superuser(self, username, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
         extra_fields.setdefault('is_verified', True)
         extra_fields.setdefault('role', User.Role.ADMIN)
-        
-        return self.create_user(email, username, password, **extra_fields)
 
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(email=email, username=username, password=password, **extra_fields)
+        
 class User(AbstractBaseUser, PermissionsMixin):
     class Role(models.TextChoices):
         CUSTOMER = 'customer', 'Customer'
@@ -207,11 +212,6 @@ class AdminProfile(models.Model):
     state = models.CharField(max_length=100)
     country = models.CharField(max_length=100, default='India')
     postal_code = models.CharField(max_length=20)
-    permissions_level = models.IntegerField(default=1)
-    can_manage_users = models.BooleanField(default=False)
-    can_manage_products = models.BooleanField(default=False)
-    can_manage_orders = models.BooleanField(default=False)
-    can_view_reports = models.BooleanField(default=True)
     id_proof = models.FileField(upload_to='admin/documents/', blank=True)
     avatar = models.ImageField(upload_to='admin/avatars/', blank=True, null=True)
     joining_date = models.DateField(auto_now_add=True)

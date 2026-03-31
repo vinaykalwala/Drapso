@@ -126,15 +126,6 @@ class AdminSignupForm(BaseSignupForm):
     country = forms.CharField(max_length=100, initial='India', widget=forms.TextInput(attrs={'class': 'form-control'}))
     postal_code = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'class': 'form-control'}))
     
-    # Permissions
-    permissions_level = forms.ChoiceField(
-        choices=[(1, 'Basic Admin'), (2, 'Manager'), (3, 'Super Admin')],
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    can_manage_users = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
-    can_manage_products = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
-    can_manage_orders = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
-    can_view_reports = forms.BooleanField(initial=True, required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
     
     def clean_employee_id(self):
         emp_id = self.cleaned_data.get('employee_id')
@@ -169,3 +160,107 @@ class ResetPasswordForm(forms.Form):
             raise forms.ValidationError("Password must be at least 8 characters")
         
         return cleaned_data
+
+
+# In forms.py - Add these forms
+
+class UserProfileForm(forms.ModelForm):
+    """Form for editing base user information"""
+    class Meta:
+        model = User
+        fields = ['first_name', 'middle_name', 'last_name', 'phone']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'middle_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make all fields optional for display
+        for field in self.fields:
+            self.fields[field].required = False
+
+class WholesellerFullProfileForm(forms.ModelForm):
+    """Complete form for wholeseller profile"""
+    class Meta:
+        model = WholesellerProfile
+        exclude = ['user', 'created_at', 'updated_at', 'is_approved', 'approved_at']
+        widgets = {
+            'business_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'business_type': forms.Select(attrs={'class': 'form-control'}),
+            'business_registration_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'tax_id': forms.TextInput(attrs={'class': 'form-control'}),
+            'gst_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'business_phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'business_email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'website': forms.URLInput(attrs={'class': 'form-control'}),
+            'business_address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'city': forms.TextInput(attrs={'class': 'form-control'}),
+            'state': forms.TextInput(attrs={'class': 'form-control'}),
+            'country': forms.TextInput(attrs={'class': 'form-control'}),
+            'postal_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'years_in_business': forms.NumberInput(attrs={'class': 'form-control'}),
+            'number_of_employees': forms.NumberInput(attrs={'class': 'form-control'}),
+            'annual_turnover': forms.NumberInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'avatar': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make all fields optional for display
+        for field in self.fields:
+            self.fields[field].required = False
+
+class ResellerFullProfileForm(forms.ModelForm):
+    """Complete form for reseller profile"""
+    class Meta:
+        model = ResellerProfile
+        exclude = ['user', 'created_at', 'updated_at', 'is_approved', 'approved_at', 'reseller_code']
+        widgets = {
+            'company_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'reseller_type': forms.Select(attrs={'class': 'form-control'}),
+            'tax_id': forms.TextInput(attrs={'class': 'form-control'}),
+            'business_phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'business_email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'business_address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'city': forms.TextInput(attrs={'class': 'form-control'}),
+            'state': forms.TextInput(attrs={'class': 'form-control'}),
+            'country': forms.TextInput(attrs={'class': 'form-control'}),
+            'postal_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'commission_rate': forms.NumberInput(attrs={'class': 'form-control'}),
+            'avatar': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make all fields optional for display
+        for field in self.fields:
+            self.fields[field].required = False
+
+class AdminFullProfileForm(forms.ModelForm):
+    """Complete form for admin profile"""
+    class Meta:
+        model = AdminProfile
+        exclude = ['user', 'created_at', 'updated_at', 'joining_date']
+        widgets = {
+            'employee_id': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'department': forms.TextInput(attrs={'class': 'form-control'}),
+            'designation': forms.TextInput(attrs={'class': 'form-control'}),
+            'office_phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'emergency_contact': forms.TextInput(attrs={'class': 'form-control'}),
+            'office_address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'city': forms.TextInput(attrs={'class': 'form-control'}),
+            'state': forms.TextInput(attrs={'class': 'form-control'}),
+            'country': forms.TextInput(attrs={'class': 'form-control'}),
+            'postal_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'avatar': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make all fields optional for display
+        for field in self.fields:
+            self.fields[field].required = False

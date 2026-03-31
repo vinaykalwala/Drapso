@@ -1,203 +1,58 @@
 
 
-{% block title %}Dashboard{% endblock %}
-
 {% block content %}
 <div class="row">
     <div class="col-md-12">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header bg-primary text-white">
                 <h4 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h4>
             </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="stat-card text-center">
-                            <i class="fas fa-user-circle stat-icon"></i>
-                            <h3 class="mt-2">{{ user.full_name }}</h3>
-                            <p class="text-muted">{{ user.get_role_display }}</p>
-                            <span class="badge bg-success">{{ user.username }}</span>
-                        </div>
-                    </div>
-                    <div class="col-md-8">
-                        <div class="stat-card">
-                            <h5><i class="fas fa-info-circle me-2"></i>Account Information</h5>
-                            <table class="table table-borderless">
-                                <tr>
-                                    <th width="30%">Email:</th>
-                                    <td>{{ user.email }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Phone:</th>
-                                    <td>{{ user.phone }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Member Since:</th>
-                                    <td>{{ user.date_joined|date:"F d, Y" }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Verified:</th>
-                                    <td>
-                                        {% if user.is_verified %}
-                                            <span class="badge bg-success">Yes</span>
-                                        {% else %}
-                                            <span class="badge bg-warning">No</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                {% if user.role == 'wholeseller' %}
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="stat-card">
-                            <h5><i class="fas fa-building me-2"></i>Business Information</h5>
-                            <table class="table table-borderless">
-                                <tr>
-                                    <th width="30%">Business Name:</th>
-                                    <td>{{ profile.business_name }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Business Type:</th>
-                                    <td>{{ profile.get_business_type_display }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Registration Number:</th>
-                                    <td>{{ profile.business_registration_number }}</td>
-                                </tr>
-                                <tr>
-                                    <th>GST Number:</th>
-                                    <td>{{ profile.gst_number|default:"N/A" }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Years in Business:</th>
-                                    <td>{{ profile.years_in_business }} years</td>
-                                </tr>
-                                <tr>
-                                    <th>Status:</th>
-                                    <td>
-                                        {% if profile.is_approved %}
-                                            <span class="badge bg-success">Approved</span>
-                                        {% else %}
-                                            <span class="badge bg-warning">Pending Approval</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if user.role == 'reseller' %}
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="stat-card">
-                            <h5><i class="fas fa-chart-line me-2"></i>Reseller Statistics</h5>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="text-center">
-                                        <h6>Total Sales</h6>
-                                        <h4 class="text-primary">${{ profile.total_sales|default:"0" }}</h4>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="text-center">
-                                        <h6>Commission Earned</h6>
-                                        <h4 class="text-success">${{ profile.total_commission_earned|default:"0" }}</h4>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="text-center">
-                                        <h6>Referrals</h6>
-                                        <h4 class="text-info">{{ profile.number_of_referrals|default:"0" }}</h4>
-                                    </div>
-                                </div>
+            <div class="card-body text-center py-5">
+                <div class="welcome-section">
+                    <!-- Avatar Display -->
+                    <div class="mb-4">
+                        {% if user.role == 'wholeseller' and user.wholeseller_profile.avatar %}
+                            <img src="{{ user.wholeseller_profile.avatar.url }}" 
+                                 alt="{{ user.full_name }}" 
+                                 class="rounded-circle img-fluid" 
+                                 style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #007bff;">
+                        {% elif user.role == 'reseller' and user.reseller_profile.avatar %}
+                            <img src="{{ user.reseller_profile.avatar.url }}" 
+                                 alt="{{ user.full_name }}" 
+                                 class="rounded-circle img-fluid" 
+                                 style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #007bff;">
+                        {% elif user.role == 'admin' and user.admin_profile.avatar %}
+                            <img src="{{ user.admin_profile.avatar.url }}" 
+                                 alt="{{ user.full_name }}" 
+                                 class="rounded-circle img-fluid" 
+                                 style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #007bff;">
+                        {% elif user.role == 'customer' and user.customer_profile.avatar %}
+                            <img src="{{ user.customer_profile.avatar.url }}" 
+                                 alt="{{ user.full_name }}" 
+                                 class="rounded-circle img-fluid" 
+                                 style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #007bff;">
+                        {% else %}
+                            <!-- Default Avatar -->
+                            <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center" 
+                                 style="width: 120px; height: 120px; border: 3px solid #007bff;">
+                                <i class="fas fa-user fa-4x text-white"></i>
                             </div>
-                            <hr>
-                            <table class="table table-borderless">
-                                <tr>
-                                    <th width="30%">Reseller Code:</th>
-                                    <td><code>{{ profile.reseller_code }}</code></td>
-                                </tr>
-                                <tr>
-                                    <th>Commission Rate:</th>
-                                    <td>{{ profile.commission_rate }}%</td>
-                                </tr>
-                                <tr>
-                                    <th>Status:</th>
-                                    <td>
-                                        {% if profile.is_approved %}
-                                            <span class="badge bg-success">Active</span>
-                                        {% else %}
-                                            <span class="badge bg-warning">Pending Approval</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
+                        {% endif %}
                     </div>
-                </div>
-                {% endif %}
-
-                {% if user.role == 'admin' %}
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="stat-card">
-                            <h5><i class="fas fa-user-shield me-2"></i>Admin Permissions</h5>
-                            <table class="table table-borderless">
-                                <tr>
-                                    <th width="30%">Employee ID:</th>
-                                    <td>{{ profile.employee_id }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Department:</th>
-                                    <td>{{ profile.department }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Designation:</th>
-                                    <td>{{ profile.designation }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Permission Level:</th>
-                                    <td>
-                                        {% if profile.permissions_level == 1 %}
-                                            Basic Admin
-                                        {% elif profile.permissions_level == 2 %}
-                                            Manager
-                                        {% else %}
-                                            Super Admin
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Permissions:</th>
-                                    <td>
-                                        {% if profile.can_manage_users %}<span class="badge bg-primary me-1">Manage Users</span>{% endif %}
-                                        {% if profile.can_manage_products %}<span class="badge bg-info me-1">Manage Products</span>{% endif %}
-                                        {% if profile.can_manage_orders %}<span class="badge bg-success me-1">Manage Orders</span>{% endif %}
-                                        {% if profile.can_view_reports %}<span class="badge bg-warning me-1">View Reports</span>{% endif %}
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{% url 'accounts:profile' %}" class="btn btn-info me-md-2">
-                                <i class="fas fa-user-edit me-2"></i>Edit Profile
-                            </a>
-                            <a href="{% url 'accounts:change_password' %}" class="btn btn-warning">
-                                <i class="fas fa-key me-2"></i>Change Password
-                            </a>
-                        </div>
+                    
+                    <i class="fas fa-user-circle fa-5x text-primary mb-3" style="display: none;"></i>
+                    <h2 class="display-4">Welcome, {{ user.first_name|default:user.username }}!</h2>
+                    <p class="lead text-muted">You are logged in as a <strong>{{ user.get_role_display }}</strong></p>
+                    
+                    <hr class="my-4 w-50 mx-auto">
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-info btn-lg me-2">
+                            <i class="fas fa-user-edit me-2"></i>My Profile
+                        </a>
+                        <a href="{% url 'accounts:change_password' %}" class="btn btn-warning btn-lg">
+                            <i class="fas fa-key me-2"></i>Change Password
+                        </a>
                     </div>
                 </div>
             </div>

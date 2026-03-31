@@ -125,6 +125,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 AUTH_USER_MODEL = 'accounts.User'
 
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.EmailOrUsernameBackend',
+]
 RAZORPAY_KEY_ID = 'rzp_test_KdiESTDcHPC74B'
 RAZORPAY_KEY_SECRET = 'F8aPdLzdQKLt3RmgTWFcnYBG'
 RAZORPAY_CURRENCY = 'INR'
@@ -142,3 +145,10 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'durgaprakash1102@gmail.com'
 EMAIL_HOST_PASSWORD = 'aqrj iljs kdph okgm '
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "otp-rate-limit",
+    }
+}
