@@ -2,199 +2,264 @@
 {% load static %}
 
 {% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
 
 <style>
-
-/* hero banner */
-
-.hero-bg{
-
-background-image: url("{% static 'images/bg.avif' %}");
-background-size: cover;
-background-position: center;
-background-repeat: no-repeat;
-
-padding:140px 0 90px;
-color:white;
-position:relative;
-overflow:hidden;
-text-align:center;
+:root {
+    --primary-dark: #111827;
+    --secondary-gray: #374151;
+    --accent-blue: #6366f1; /* A deep indigo that pairs well with dark themes */
+    --glass-bg: rgba(255, 255, 255, 0.95);
 }
 
-/* dark overlay for better text visibility */
-
-.hero-bg::before{
-content:"";
-position:absolute;
-inset:0;
-background:rgba(0,0,0,0.15);
+body {
+    background-color: #f8fafc;
+    scroll-behavior: smooth;
 }
 
-/* heading */
-
-.hero-title{
-position:relative;
-font-size:42px;
-font-weight:600;
-letter-spacing:.3px;
-font-family:Inter,sans-serif;
+/* Hero Section with Parallax & Mesh Gradient */
+.hero-bg {
+    background: linear-gradient(135deg, rgba(17, 24, 39, 0.8), rgba(17, 24, 39, 0.4)), url("{% static 'images/bg.avif' %}");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    height: 450px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    position: relative;
+    text-align: center;
 }
 
-/* page content */
-
-.page{
-max-width:900px;
-margin:60px auto;
-padding:0 20px;
-font-family:Inter, sans-serif;
-color:#374151;
-line-height:1.7;
+.hero-content {
+    z-index: 2;
 }
 
-.page h1{
-font-size:30px;
-margin-bottom:5px;
-color:#111827;
+.hero-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 56px;
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    margin-bottom: 10px;
+    text-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
 
-.page h2{
-font-size:20px;
-margin-top:35px;
-margin-bottom:8px;
-color:#111827;
+/* The "Floating" Card Design */
+.page-wrapper {
+    max-width: 1000px;
+    margin: -100px auto 100px;
+    padding: 0 20px;
+    position: relative;
+    z-index: 10;
 }
 
-.page p{
-font-size:15px;
-margin-bottom:12px;
+.content-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    padding: 80px;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.page ul{
-margin-left:18px;
-margin-bottom:15px;
+/* Content Aesthetics */
+.update-info {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent-blue);
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: block;
 }
 
-.page li{
-margin-bottom:6px;
+.page h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--primary-dark);
+    margin-top: 60px;
+    margin-bottom: 25px;
+    position: relative;
 }
 
-.update{
-font-size:13px;
-color:#6b7280;
-margin-bottom:30px;
+/* Animated underline for headers */
+.page h2::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 40px;
+    height: 4px;
+    background: var(--accent-blue);
+    border-radius: 2px;
+    transition: width 0.3s ease;
 }
 
-/* responsive */
-
-@media(max-width:768px){
-
-.hero-title{
-font-size:30px;
+.page h2:hover::after {
+    width: 80px;
 }
 
-.hero-bg{
-padding:120px 0 70px;
+.page p {
+    font-family: 'Inter', sans-serif;
+    font-size: 17px;
+    line-height: 1.8;
+    color: var(--secondary-gray);
+    margin-bottom: 20px;
 }
 
+/* Interactive List Items */
+.page ul {
+    list-style: none;
+    padding: 0;
 }
 
+.page li {
+    background: #ffffff;
+    padding: 15px 20px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    border: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.page li:hover {
+    transform: translateX(10px);
+    border-color: var(--accent-blue);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.page li::before {
+    content: "✓";
+    margin-right: 15px;
+    color: var(--accent-blue);
+    font-weight: bold;
+}
+
+/* Highlight Box for Platform Rules */
+.highlight-box {
+    background: linear-gradient(to right, #f8fafc, #ffffff);
+    border-left: 5px solid var(--primary-dark);
+    padding: 30px;
+    border-radius: 0 15px 15px 0;
+    margin: 40px 0;
+}
+
+/* Responsive Fixes */
+@media(max-width: 768px) {
+    .content-card { padding: 40px 20px; }
+    .hero-title { font-size: 38px; }
+    .page-wrapper { margin-top: -50px; }
+}
 </style>
 
-
-
-<!-- Banner -->
-
 <div class="hero-bg">
-
-<div class="hero-title">
-Privacy Policy
+    <div class="hero-content" data-aos="fade-up">
+        <h1 class="hero-title">Privacy & Platform Policy</h1>
+        <p style="font-size: 20px; opacity: 0.9;">Transparency and Trust for Wholesellers & Resellers</p>
+    </div>
 </div>
 
+<div class="page-wrapper">
+    <article class="content-card page" data-aos="fade-up" data-aos-delay="200">
+        
+        <span class="update-info">Last Revised: 2026</span>
+
+        <div class="highlight-box">
+            <p style="font-weight: 600; color: #111827; margin-bottom: 0;">
+                By logging into and using the Drapso platform as a Wholeseller or Reseller, you agree to the terms of this Privacy Policy, including our platform rules, payment structure, and data practices. If you do not agree with any part of these terms, you must not use the platform.
+            </p>
+        </div>
+
+        <p>
+            We respect your privacy and are committed to protecting your personal information.
+            This Privacy Policy explains how we collect, use, and safeguard your data when you use our platform.
+        </p>
+
+        <h2 data-aos="fade-right">Drapso Ecosystem</h2>
+        <p>
+            Drapso operates as a marketplace platform connecting wholesellers and resellers. Wholesellers are allowed to upload and manage products, including setting base prices, stock levels, warehouse addresses, and providing bank account and GST details where applicable. Resellers are allowed to create their own online stores using a Drapso-provided subdomain (such as storename.drapso.com), import products from wholesellers with one click, set their own selling prices, and provide bank details for receiving payouts.
+        </p>
+
+        <h2 data-aos="fade-right">Information We Collect</h2>
+        <p>In order to operate the platform effectively, Drapso collects certain information from users:</p>
+        <ul>
+            <li data-aos="fade-up"><strong>For Wholesellers:</strong> Business information, product details, warehouse address, bank account details, and GST details if required.</li>
+            <li data-aos="fade-up"><strong>For Resellers:</strong> Personal details, store information, and bank account details.</li>
+            <li data-aos="fade-up">Name, Contact details, and Email address</li>
+            <li data-aos="fade-up">Payment information and Account activity</li>
+            <li data-aos="fade-up">Device and browser information</li>
+        </ul>
+        <p>This information is used to manage user accounts, enable product listings and store functionality, process payments, track orders, confirm deliveries through OTP verification, and prevent fraud or misuse of the platform.</p>
+
+        <h2 data-aos="fade-right">Financial Structure & Payouts</h2>
+        <p>
+            All payments made by customers are received and processed by Drapso. These funds are securely held until the order is successfully delivered and verified through OTP confirmation. Once delivery is confirmed, the corresponding earnings are credited to the wallets of the respective wholesellers and resellers.
+        </p>
+        <p>
+            Users can withdraw their wallet balance either weekly or through automatic weekly transfers to their registered bank accounts. Only orders that are successfully delivered are eligible for payouts. Cancelled, failed, or returned orders will not be considered for payment.
+        </p>
+
+        <h2 data-aos="fade-right">Commission & Revenue Sharing</h2>
+        <p>
+            Drapso charges a commission of approximately 5% on each product sale. The remaining amount is distributed among the wholeseller, reseller, and delivery charges based on the platform’s internal structure. Payment gateway charges, such as those from Razorpay, are deducted from Drapso’s commission. By using the platform, you acknowledge and agree to this revenue-sharing and commission structure.
+        </p>
+
+        <h2 data-aos="fade-right">Operational Responsibilities</h2>
+        <p>Users are responsible for maintaining accurate and truthful information on the platform:</p>
+        <ul>
+            <li data-aos="fade-up"><strong>Wholesellers:</strong> Must ensure correct product details, pricing, stock availability, and timely dispatch of orders.</li>
+            <li data-aos="fade-up"><strong>Resellers:</strong> Must maintain fair pricing, avoid misleading customers, and ensure proper use of imported products.</li>
+        </ul>
+
+        <h2 data-aos="fade-right">Monitoring & Enforcement</h2>
+        <p>
+            Drapso reserves the right to monitor activity on the platform and take appropriate action in case of violations. This may include account suspension, wallet freezing, withholding of payments, or permanent termination of the account. In cases of suspected fraud, disputes, or policy violations, Drapso may temporarily hold payouts for investigation.
+        </p>
+
+        <h2 data-aos="fade-right">Data Security & Third Parties</h2>
+        <p>
+            We implement appropriate security measures to protect your personal data. User data may be shared with trusted third parties such as payment gateways, delivery partners, and government authorities if required by law. However, Drapso does not sell or misuse user data.
+        </p>
+
+        <h2 data-aos="fade-right">Cookies & Analytics</h2>
+        <p>
+            We may use cookies to improve your browsing experience and analyze website traffic. You can disable cookies through your browser settings.
+        </p>
+
+        <h2 data-aos="fade-right">Intermediary Disclaimer</h2>
+        <p>
+            Drapso acts solely as an intermediary platform facilitating transactions between wholesellers and resellers. Drapso is not responsible for product quality, delivery delays caused by sellers or logistics partners, or disputes between users.
+        </p>
+
+        <h2 data-aos="fade-right">Your Rights</h2>
+        <ul>
+            <li data-aos="fade-up">Access and verify your personal data</li>
+            <li data-aos="fade-up">Update your bank and contact information</li>
+            <li data-aos="fade-up">Request account deletion</li>
+        </ul>
+
+        <h2 data-aos="fade-right">Contact & Support</h2>
+        <p>
+            Drapso reserves the right to update or modify this Privacy Policy and User Agreement at any time. Continued use of the platform after such updates constitutes acceptance of the revised terms.
+        </p>
+        <p>
+            If you have any questions about this Privacy Policy, please contact us through the official communication channels provided on the platform.
+        </p>
+
+    </article>
 </div>
 
-
-
-<!-- Content -->
-
-<div class="page">
-
-<div class="update">
-Last updated: 2026
-</div>
-
-<p>
-We respect your privacy and are committed to protecting your personal information.
-This Privacy Policy explains how we collect, use, and safeguard your data when you use our platform.
-</p>
-
-
-<h2>Information We Collect</h2>
-
-<p>We may collect the following information:</p>
-
-<ul>
-<li>Name and contact details</li>
-<li>Email address</li>
-<li>Payment information</li>
-<li>Account activity</li>
-<li>Device and browser information</li>
-</ul>
-
-
-<h2>How We Use Your Information</h2>
-
-<p>Your information is used to:</p>
-
-<ul>
-<li>Create and manage your account</li>
-<li>Process payments</li>
-<li>Improve our services</li>
-<li>Provide customer support</li>
-<li>Send important updates</li>
-</ul>
-
-
-<h2>Data Protection</h2>
-
-<p>
-We implement appropriate security measures to protect your personal data.
-Your information is stored securely and is not shared with third parties without consent.
-</p>
-
-
-<h2>Cookies</h2>
-
-<p>
-We may use cookies to improve your browsing experience and analyze website traffic.
-You can disable cookies through your browser settings.
-</p>
-
-
-<h2>Third-Party Services</h2>
-
-<p>
-We may use trusted third-party services for payment processing and analytics.
-These providers follow their own privacy policies.
-</p>
-
-
-<h2>Your Rights</h2>
-
-<p>You have the right to:</p>
-
-<ul>
-<li>Access your data</li>
-<li>Update your information</li>
-<li>Request account deletion</li>
-</ul>
-
-
-<h2>Contact Us</h2>
-
-<p>
-If you have any questions about this Privacy Policy, please contact us.
-</p>
-
-</div>
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>
+    AOS.init({
+        duration: 800,
+        offset: 100,
+        once: true
+    });
+</script>
 
 {% endblock %}
