@@ -1,0 +1,293 @@
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-circle me-2"></i>My Profile
+                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-light btn-sm float-end">
+                            <i class="fas fa-edit me-1"></i>Edit Profile
+                        </a>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Profile Picture Section -->
+                        <div class="col-md-3 text-center">
+                            {% if profile and profile.avatar %}
+                                <img src="{{ profile.avatar.url }}" alt="Avatar" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 150px; height: 150px;">
+                                    <i class="fas fa-user fa-4x text-white"></i>
+                                </div>
+                            {% endif %}
+                            <h4>{{ user.full_name }}</h4>
+                            <p class="text-muted">{{ role }}</p>
+                            {% if is_superuser %}
+                                <span class="badge bg-danger">Superuser</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Personal Information -->
+                        <div class="col-md-9">
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>Personal Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Username:</strong> {{ user.username|default:"No data available" }}</p>
+                                            <p><strong>First Name:</strong> {{ user.first_name|default:"No data available" }}</p>
+                                            <p><strong>Middle Name:</strong> {{ user.middle_name|default:"No data available" }}</p>
+                                            <p><strong>Last Name:</strong> {{ user.last_name|default:"No data available" }}</p>
+                                            <p><strong>Email:</strong> {{ user.email|default:"No data available" }}</p>
+                                            <p><strong>Phone:</strong> {{ user.phone|default:"No data available" }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Role:</strong> {{ user.get_role_display|default:"No data available" }}</p>
+                                            <p><strong>Member Since:</strong> {{ user.date_joined|date:"F d, Y H:i"|default:"No data available" }}</p>
+                                            <p><strong>Last Login:</strong> {{ user.last_login|date:"F d, Y H:i"|default:"Never" }}</p>
+                                            <p><strong>Status:</strong> 
+                                                {% if user.is_active %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Inactive</span>
+                                                {% endif %}
+                                            </p>
+                                            <p><strong>Verified:</strong> 
+                                                {% if user.is_verified %}
+                                                    <span class="badge bg-success">Yes</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">No</span>
+                                                {% endif %}
+                                            </p>
+                                            <p><strong>Staff Access:</strong> 
+                                                {% if user.is_staff %}
+                                                    <span class="badge bg-info">Yes</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">No</span>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Wholeseller Profile - ALL FIELDS with file display -->
+                            {% if user.role == 'wholeseller' and profile %}
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0"><i class="fas fa-building me-2"></i>Business Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Business Name:</strong> {{ profile.business_name|default:"No data available" }}</p>
+                                            <p><strong>Business Type:</strong> {{ profile.get_business_type_display|default:"No data available" }}</p>
+                                            <p><strong>Registration Number:</strong> {{ profile.business_registration_number|default:"No data available" }}</p>
+                                            <p><strong>Tax ID:</strong> {{ profile.tax_id|default:"No data available" }}</p>
+                                            <p><strong>GST Number:</strong> {{ profile.gst_number|default:"No data available" }}</p>
+                                            <p><strong>Business Phone:</strong> {{ profile.business_phone|default:"No data available" }}</p>
+                                            <p><strong>Business Email:</strong> {{ profile.business_email|default:"No data available" }}</p>
+                                            <p><strong>Website:</strong> 
+                                                {% if profile.website %}
+                                                    <a href="{{ profile.website }}" target="_blank">{{ profile.website }}</a>
+                                                {% else %}
+                                                    No data available
+                                                {% endif %}
+                                            </p>
+                                            <p><strong>Years in Business:</strong> 
+                                                {% if profile.years_in_business %}
+                                                    {{ profile.years_in_business }} years
+                                                {% else %}
+                                                    No data available
+                                                {% endif %}
+                                            </p>
+                                            <p><strong>Number of Employees:</strong> 
+                                                {% if profile.number_of_employees %}
+                                                    {{ profile.number_of_employees }}
+                                                {% else %}
+                                                    No data available
+                                                {% endif %}
+                                            </p>
+                                            <p><strong>Annual Turnover:</strong> 
+                                                {% if profile.annual_turnover %}
+                                                    ₹{{ profile.annual_turnover }}
+                                                {% else %}
+                                                    No data available
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Business Address:</strong> {{ profile.business_address|default:"No data available" }}</p>
+                                            <p><strong>City:</strong> {{ profile.city|default:"No data available" }}</p>
+                                            <p><strong>State:</strong> {{ profile.state|default:"No data available" }}</p>
+                                            <p><strong>Country:</strong> {{ profile.country|default:"No data available" }}</p>
+                                            <p><strong>Postal Code:</strong> {{ profile.postal_code|default:"No data available" }}</p>
+                                            <p><strong>Registration Certificate:</strong>
+                                                {% if profile.registration_certificate %}
+                                                    <a href="{{ profile.registration_certificate.url }}" target="_blank" class="btn btn-sm btn-info">
+                                                        <i class="fas fa-download me-1"></i>Download Certificate
+                                                    </a>
+                                                {% else %}
+                                                    <span class="text-muted">No file uploaded</span>
+                                                {% endif %}
+                                            </p>
+                                            <p><strong>Approval Status:</strong>
+                                                {% if profile.is_approved %}
+                                                    <span class="badge bg-success">Approved</span>
+                                                    {% if profile.approved_at %}
+                                                        <small>({{ profile.approved_at|date:"F d, Y" }})</small>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge bg-warning">Pending Approval</span>
+                                                {% endif %}
+                                            </p>
+                                            <p><strong>Description:</strong> {{ profile.description|default:"No data available" }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-12">
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>Created: {{ profile.created_at|date:"F d, Y H:i"|default:"No data available" }} | 
+                                                Last Updated: {{ profile.updated_at|date:"F d, Y H:i"|default:"No data available" }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Reseller Profile - ALL FIELDS with file display -->
+                            {% if user.role == 'reseller' and profile %}
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Reseller Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Company Name:</strong> {{ profile.company_name|default:"No data available" }}</p>
+                                            <p><strong>Reseller Type:</strong> {{ profile.get_reseller_type_display|default:"No data available" }}</p>
+                                            <p><strong>Reseller Code:</strong> <code>{{ profile.reseller_code|default:"No data available" }}</code></p>
+                                            <p><strong>Tax ID:</strong> {{ profile.tax_id|default:"No data available" }}</p>
+                                            <p><strong>Business Phone:</strong> {{ profile.business_phone|default:"No data available" }}</p>
+                                            <p><strong>Business Email:</strong> {{ profile.business_email|default:"No data available" }}</p>
+                                            <p><strong>Commission Rate:</strong> 
+                                                {% if profile.commission_rate %}
+                                                    {{ profile.commission_rate }}%
+                                                {% else %}
+                                                    No data available
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Business Address:</strong> {{ profile.business_address|default:"No data available" }}</p>
+                                            <p><strong>City:</strong> {{ profile.city|default:"No data available" }}</p>
+                                            <p><strong>State:</strong> {{ profile.state|default:"No data available" }}</p>
+                                            <p><strong>Country:</strong> {{ profile.country|default:"No data available" }}</p>
+                                            <p><strong>Postal Code:</strong> {{ profile.postal_code|default:"No data available" }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-4">
+                                            <div class="card bg-light">
+                                                <div class="card-body text-center">
+                                                    <h6 class="text-muted">Total Sales</h6>
+                                                    <h4 class="text-primary">₹{{ profile.total_sales|default:"0" }}</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="card bg-light">
+                                                <div class="card-body text-center">
+                                                    <h6 class="text-muted">Commission Earned</h6>
+                                                    <h4 class="text-success">₹{{ profile.total_commission_earned|default:"0" }}</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="card bg-light">
+                                                <div class="card-body text-center">
+                                                    <h6 class="text-muted">Number of Referrals</h6>
+                                                    <h4 class="text-info">{{ profile.number_of_referrals|default:"0" }}</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-12">
+                                            <p><strong>Approval Status:</strong>
+                                                {% if profile.is_approved %}
+                                                    <span class="badge bg-success">Approved</span>
+                                                    {% if profile.approved_at %}
+                                                        <small>({{ profile.approved_at|date:"F d, Y" }})</small>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge bg-warning">Pending Approval</span>
+                                                {% endif %}
+                                            </p>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>Created: {{ profile.created_at|date:"F d, Y H:i"|default:"No data available" }} | 
+                                                Last Updated: {{ profile.updated_at|date:"F d, Y H:i"|default:"No data available" }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Admin Profile - ALL FIELDS with file display -->
+                            {% if user.role == 'admin' and profile %}
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0"><i class="fas fa-user-shield me-2"></i>Admin Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Employee ID:</strong> {{ profile.employee_id|default:"No data available" }}</p>
+                                            <p><strong>Department:</strong> {{ profile.department|default:"No data available" }}</p>
+                                            <p><strong>Designation:</strong> {{ profile.designation|default:"No data available" }}</p>
+                                            <p><strong>Office Phone:</strong> {{ profile.office_phone|default:"No data available" }}</p>
+                                            <p><strong>Emergency Contact:</strong> {{ profile.emergency_contact|default:"No data available" }}</p>
+                                            <p><strong>Joining Date:</strong> {{ profile.joining_date|date:"F d, Y"|default:"No data available" }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Office Address:</strong> {{ profile.office_address|default:"No data available" }}</p>
+                                            <p><strong>City:</strong> {{ profile.city|default:"No data available" }}</p>
+                                            <p><strong>State:</strong> {{ profile.state|default:"No data available" }}</p>
+                                            <p><strong>Country:</strong> {{ profile.country|default:"No data available" }}</p>
+                                            <p><strong>Postal Code:</strong> {{ profile.postal_code|default:"No data available" }}</p>
+                                            <p><strong>ID Proof:</strong>
+                                                {% if profile.id_proof %}
+                                                    <a href="{{ profile.id_proof.url }}" target="_blank" class="btn btn-sm btn-info">
+                                                        <i class="fas fa-download me-1"></i>Download ID Proof
+                                                    </a>
+                                                {% else %}
+                                                    <span class="text-muted">No file uploaded</span>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-12">
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>Created: {{ profile.created_at|date:"F d, Y H:i"|default:"No data available" }} | 
+                                                Last Updated: {{ profile.updated_at|date:"F d, Y H:i"|default:"No data available" }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

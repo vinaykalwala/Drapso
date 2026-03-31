@@ -673,3 +673,81 @@ def logout_view(request):
     messages.info(request, 'You have been logged out.')
     return redirect('accounts:login')
 
+@login_required
+def profile_view(request):
+    """View user profile - READ ONLY"""
+    user = request.user
+    profile = None
+    clear_messages(request)
+    
+    if user.role == User.Role.WHOLESELLER:
+        profile = getattr(user, 'wholeseller_profile', None)
+    elif user.role == User.Role.RESELLER:
+        profile = getattr(user, 'reseller_profile', None)
+    elif user.role == User.Role.ADMIN:
+        profile = getattr(user, 'admin_profile', None)
+    
+    context = {
+        'user': user,
+        'profile': profile,
+        'role': user.get_role_display(),
+        'is_superuser': user.is_superuser
+    }
+    return render(request, 'accounts/profile.html', context)
+
+@login_required
+def edit_profile(request):
+    """Edit user profile - EDITABLE"""
+    user = request.user
+    
+    # Get or create profile based on role
+    if user.role == User.Role.WHOLESELLER:
+        profile, created = WholesellerProfile.objects.get_or_create(user=user)
+        form_class = WholesellerFullProfileForm
+    elif user.role == User.Role.RESELLER:
+        profile, created = ResellerProfile.objects.get_or_create(user=user)
+        form_class = ResellerFullProfileForm
+    elif user.role == User.Role.ADMIN:
+        profile, created = AdminProfile.objects.get_or_create(user=user)
+        form_class = AdminFullProfileForm
+    else:
+        messages.error(request, 'Invalid user role.')
+        return redirect('accounts:dashboard')
+    
+    if request.method == 'POST':
+        clear_messages(request)
+        
+        # Handle forms
+        user_form = UserProfileForm(request.POST, instance=user)
+        profile_form = form_class(request.POST, request.FILES, instance=profile)
+        
+        if user_form.is_valid() and profile_form.is_valid():
+            try:
+                user_form.save()
+                profile_form.save()
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('accounts:profile')
+            except Exception as e:
+                logger.error(f"Error updating profile: {e}")
+                messages.error(request, 'Error updating profile. Please try again.')
+        else:
+            # Show form errors
+            for field, errors in user_form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+            for field, errors in profile_form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+    else:
+        # GET request - populate forms with current data
+        user_form = UserProfileForm(instance=user)
+        profile_form = form_class(instance=profile)
+    
+    context = {
+        'user': user,
+        'user_form': user_form,
+        'profile_form': profile_form,
+        'role': user.get_role_display(),
+        'is_superuser': user.is_superuser
+    }
+    return render(request, 'accounts/edit_profile.html', context)
