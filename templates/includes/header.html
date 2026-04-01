@@ -196,6 +196,8 @@ display:block;
 
 <!-- menu -->
 
+<!-- menu -->
+
 <div class="menu" id="menu">
 
 <a href="{% url 'home' %}">Home</a>
@@ -208,7 +210,15 @@ display:block;
 
 <!-- mobile only -->
 
+{% if user.is_authenticated %}
+
+<a href="{% url 'accounts:dashboard' %}" class="login-mobile">Dashboard</a>
+
+{% else %}
+
 <a href="{% url 'accounts:login' %}" class="login-mobile">Login</a>
+
+{% endif %}
 
 <button class="btn btn-mobile">
 Start Selling
@@ -217,11 +227,20 @@ Start Selling
 </div>
 
 
+
 <!-- desktop right -->
 
 <div class="right">
 
+{% if user.is_authenticated %}
+
+<a href="{% url 'accounts:dashboard' %}" class="login">Dashboard</a>
+
+{% else %}
+
 <a href="{% url 'accounts:login' %}" class="login">Login</a>
+
+{% endif %}
 
 <button class="btn">Start Selling</button>
 

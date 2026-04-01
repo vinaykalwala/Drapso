@@ -7,38 +7,7 @@
             <div class="card-header bg-primary text-white">
                 <h4 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h4>
             </div>
-            <div class="card-body text-center py-5">
-                <div class="welcome-section">
-                    <!-- Avatar Display -->
-                    <div class="mb-4">
-                        {% if user.role == 'wholeseller' and user.wholeseller_profile.avatar %}
-                            <img src="{{ user.wholeseller_profile.avatar.url }}" 
-                                 alt="{{ user.full_name }}" 
-                                 class="rounded-circle img-fluid" 
-                                 style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #007bff;">
-                        {% elif user.role == 'reseller' and user.reseller_profile.avatar %}
-                            <img src="{{ user.reseller_profile.avatar.url }}" 
-                                 alt="{{ user.full_name }}" 
-                                 class="rounded-circle img-fluid" 
-                                 style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #007bff;">
-                        {% elif user.role == 'admin' and user.admin_profile.avatar %}
-                            <img src="{{ user.admin_profile.avatar.url }}" 
-                                 alt="{{ user.full_name }}" 
-                                 class="rounded-circle img-fluid" 
-                                 style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #007bff;">
-                        {% elif user.role == 'customer' and user.customer_profile.avatar %}
-                            <img src="{{ user.customer_profile.avatar.url }}" 
-                                 alt="{{ user.full_name }}" 
-                                 class="rounded-circle img-fluid" 
-                                 style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #007bff;">
-                        {% else %}
-                            <!-- Default Avatar -->
-                            <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center" 
-                                 style="width: 120px; height: 120px; border: 3px solid #007bff;">
-                                <i class="fas fa-user fa-4x text-white"></i>
-                            </div>
-                        {% endif %}
-                    </div>
+          
                     
                     <i class="fas fa-user-circle fa-5x text-primary mb-3" style="display: none;"></i>
                     <h2 class="display-4">Welcome, {{ user.first_name|default:user.username }}!</h2>
