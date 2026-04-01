@@ -5,3 +5,9 @@ def home(request):
 
 def privacy_policy(request):
     return render(request, 'privacy_policy.html')
+
+def terms(request):
+    return render(request, 'terms.html')
+
+def about(request):
+    return render(request, 'about.html')

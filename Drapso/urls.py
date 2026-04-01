@@ -11,6 +11,11 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('', views.home, name='home'),
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+    path('terms/', views.terms, name='terms'),
+    path('about/', views.about, name='about'),
+
+
+
 
 ]
 if settings.DEBUG:
