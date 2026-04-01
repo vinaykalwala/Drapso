@@ -1,35 +1,467 @@
-<form method="post">
-    {% csrf_token %}
+{% load static %}
+<!DOCTYPE html>
+<html>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
+<head>
 
-    <div class="mb-3">
-        <label class="form-label required-field">Username or Email</label>
-        <input type="text" name="username" class="form-control" required>
-    </div>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <div class="mb-3">
-        <label class="form-label required-field">Password</label>
-        <input type="password" name="password" class="form-control" required>
-    </div>
+<style>
 
-    <div class="mb-3 form-check">
-        <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
-        <label class="form-check-label">Remember Me</label>
-    </div>
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+font-family:Inter,sans-serif
+}
 
-    <div class="d-grid">
-        <button type="submit" class="btn btn-primary btn-lg">Login</button>
-    </div>
-</form>
-<div class="text-center mt-3">
-    <a href="{% url 'accounts:forgot_password' %}" class="text-decoration-none">
-        Forgot Password?
-    </a>
+/* background */
+
+.login-wrapper{
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:40px;
+
+background-image:url("{% static 'images/bg.avif' %}");
+background-size:cover;
+background-position:center;
+position:relative
+}
+
+.login-wrapper::before{
+content:"";
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:linear-gradient(120deg,rgba(15,23,42,.15),rgba(19,21,26,.25))
+}
+
+/* layout */
+
+.login-container{
+position:relative;
+width:1100px;
+max-width:95%;
+display:grid;
+grid-template-columns:1.1fr 480px;
+gap:60px;
+align-items:center
+}
+
+/* left */
+
+.login-left{
+color:white;
+display:flex;
+flex-direction:column;
+height:100%
+}
+
+.back-home{
+font-size:14px;
+margin-bottom:18px;
+opacity:.85;
+color:white;
+text-decoration:none
+}
+
+.login-left h1{
+font-size:42px;
+font-weight:700;
+line-height:1.2;
+margin-bottom:14px
+}
+
+.login-left p{
+opacity:.9;
+font-size:15px;
+line-height:1.6;
+margin-bottom:25px
+}
+
+/* features */
+
+.login-features{
+margin-bottom:30px;
+max-width:450px
+}
+
+.feature{
+display:flex;
+align-items:center;
+gap:10px;
+padding:12px 0;
+border-bottom:1px solid rgba(255,255,255,.25);
+font-size:14px
+}
+
+/* create buttons */
+
+.create-title{
+font-size:14px;
+margin-bottom:10px;
+opacity:.85
+}
+
+.left-create{
+display:flex;
+gap:12px
+}
+
+.btn-create{
+flex:1;
+text-align:center;
+padding:12px;
+border-radius:10px;
+font-size:14px;
+font-weight:600;
+text-decoration:none;
+transition:.25s
+}
+
+.btn-wholesale{
+background:linear-gradient(135deg,#6366f1,#8b5cf6);
+color:white
+}
+
+.btn-reseller{
+background:rgba(255,255,255,.15);
+border:1px solid rgba(255,255,255,.35);
+color:white
+}
+
+/* login card */
+
+.login-card{
+background:rgba(255,255,255,.12);
+backdrop-filter:blur(20px);
+border-radius:22px;
+padding:42px 36px;
+border:1px solid rgba(255,255,255,.25);
+box-shadow:0 25px 70px rgba(0,0,0,.45);
+color:white
+}
+
+.login-title{
+font-size:20px;
+font-weight:600;
+margin-bottom:6px
+}
+
+.login-sub{
+font-size:13px;
+opacity:.85;
+margin-bottom:20px
+}
+
+/* form */
+
+.field{
+margin-bottom:16px
+}
+
+.field label{
+font-size:12px;
+opacity:.85;
+display:block;
+margin-bottom:6px
+}
+
+.field input{
+width:100%;
+padding:14px;
+border-radius:12px;
+border:1px solid rgba(255,255,255,.35);
+background:rgba(255,255,255,.18);
+color:white;
+font-size:14px
+}
+
+.field input:focus{
+outline:none;
+background:rgba(255,255,255,.25);
+border-color:white
+}
+
+/* checkbox */
+
+.checkbox{
+display:flex;
+align-items:flex-start;
+gap:8px;
+font-size:13px;
+margin-bottom:14px
+}
+
+.checkbox a{
+color:white;
+text-decoration:underline
+}
+
+/* button */
+
+.login-btn{
+width:100%;
+padding:14px;
+border:none;
+border-radius:12px;
+font-weight:600;
+font-size:15px;
+background:linear-gradient(135deg,#8A67B3,#438DBC);
+color:white;
+cursor:pointer
+}
+
+.login-btn:hover{
+transform:translateY(-2px);
+box-shadow:0 15px 35px rgba(0,0,0,.4)
+}
+
+/* error */
+
+.form-error{
+background:rgba(255,0,0,.12);
+border:1px solid rgba(255,0,0,.35);
+color:#ffd6d6;
+padding:10px;
+border-radius:8px;
+font-size:13px;
+margin-bottom:12px
+}
+
+/* forgot */
+
+.forgot{
+text-align:right;
+font-size:12px;
+margin-top:8px
+}
+
+.forgot a{
+color:white;
+opacity:.9;
+text-decoration:none
+}
+
+/* mobile */
+
+@media(max-width:900px){
+
+.login-wrapper{
+padding:25px 18px
+}
+
+.login-container{
+grid-template-columns:1fr;
+gap:35px;
+text-align:center
+}
+
+.login-left{
+align-items:center
+}
+
+.login-left h1{
+font-size:26px
+}
+
+.login-card{
+padding:26px 22px
+}
+
+}
+.checkbox{
+
+display:flex;
+align-items:flex-start;
+gap:10px;
+
+font-size:13px;
+margin-bottom:14px;
+
+line-height:1.5;
+
+flex-wrap:wrap;
+
+}
+
+.checkbox input{
+
+margin-top:3px;
+flex-shrink:0;
+
+}
+
+.checkbox a{
+
+color:white;
+text-decoration:underline;
+
+word-break:break-word;
+
+}
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="login-wrapper">
+
+<div class="login-container">
+
+
+<!-- LEFT SIDE -->
+
+<div class="login-left">
+
+<a href="/" class="back-home">
+← Back to home
+</a>
+
+<h1>
+Grow your business <br>
+with Drapso
+</h1>
+
+<p>
+Start selling online without inventory and earn weekly profit.
+</p>
+
+
+<div class="login-features">
+
+<div class="feature">
+No inventory required
 </div>
+
+<div class="feature">
+Simple product management
+</div>
+
+<div class="feature">
+Weekly profit payouts
+</div>
+
+</div>
+
+
+<div class="create-title">
+Don't have an account?
+</div>
+
+
+<div class="left-create">
+
+<a href="{% url 'accounts:wholeseller_signup' %}" class="btn-create btn-wholesale">
+Wholeseller
+</a>
+
+<a href="{% url 'accounts:reseller_signup' %}" class="btn-create btn-reseller">
+Reseller
+</a>
+
+</div>
+
+</div>
+
+
+
+<!-- RIGHT SIDE LOGIN -->
+
+<div class="login-card">
+
+<div class="login-title">
+Login Account
+</div>
+
+<div class="login-sub">
+Enter your details to continue
+</div>
+
+
+<form method="post">
+
+{% csrf_token %}
+
+
+{% if messages %}
+{% for message in messages %}
+<div class="form-error">
+{{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
+
+<div class="field">
+<label>Username or Email</label>
+<input type="text" name="username" required>
+</div>
+
+
+<div class="field">
+<label>Password</label>
+<input type="password" name="password" required>
+</div>
+
+
+<div class="checkbox">
+<input type="checkbox" name="remember_me">
+Remember me
+</div>
+
+
+<!-- REQUIRED TERMS CHECKBOX -->
+
+<div class="checkbox">
+
+<input type="checkbox" required>
+
+I agree to
+
+<a href="{% url 'terms' %}">
+Terms of Use
+</a>
+
+and
+
+<a href="{% url 'privacy_policy' %}">
+Privacy Policy
+</a>
+
+</div>
+
+
+<button type="submit" class="login-btn">
+Login
+</button>
+
+
+<div class="forgot">
+<a href="{% url 'accounts:forgot_password' %}">
+Forgot Password?
+</a>
+</div>
+
+
+</form>
+
+</div>
+
+
+
+</div>
+
+</div>
+
+
+</body>
+
+</html>

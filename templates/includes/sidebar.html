@@ -1,6 +1,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
 {% load static %}
+
 <style>
 
 *{
@@ -27,8 +29,6 @@ padding:0 18px;
 z-index:2100;
 }
 
-/* mobile logo */
-
 .brand img{
 height:26px;
 }
@@ -47,17 +47,17 @@ display:flex;
 flex-direction:column;
 z-index:2000;
 
-/* black side shadow */
-box-shadow: 4px 0 18px rgba(0,0,0,0.12);
+/* softer professional shadow */
+box-shadow:2px 0 8px rgba(0,0,0,0.04);
 }
 
-/* logo top */
+/* logo */
 
 .logo-box{
 display:flex;
 align-items:center;
 justify-content:center;
-padding:12px 0;
+padding:14px 0;
 border-bottom:1px solid #eef2f7;
 }
 
@@ -76,20 +76,10 @@ flex-direction:column;
 gap:6px;
 }
 
-/* neat scrollbar */
+/* links */
 
-.menu::-webkit-scrollbar{
-width:4px;
-}
-
-.menu::-webkit-scrollbar-thumb{
-background:#e5e7eb;
-border-radius:10px;
-}
-
-/* menu links */
-
-.menu a{
+.menu a,
+.logout-box a{
 display:flex;
 align-items:center;
 gap:12px;
@@ -101,7 +91,8 @@ font-size:14px;
 transition:.2s;
 }
 
-.menu i{
+.menu i,
+.logout-box i{
 font-size:16px;
 width:20px;
 }
@@ -121,42 +112,58 @@ color:#059669;
 font-weight:500;
 }
 
-/* profile bottom */
+/* modern sticky logout */
 
-.profile-box{
-border-top:1px solid #eef2f7;
-padding:14px;
+.logout-box{
+padding:16px;
+border-top:1px solid #f1f5f9;
+background:#ffffff;
+}
+
+/* modern logout button */
+
+.logout-box a{
 display:flex;
 align-items:center;
-gap:10px;
-background:#fafafa;
+gap:12px;
+padding:13px 14px;
+border-radius:14px;
+text-decoration:none;
+font-size:14px;
+font-weight:600;
+color:#ef4444;
+
+/* soft gradient */
+background:linear-gradient(180deg,#fff,#fff5f5);
+
+border:1px solid #ffe4e6;
+
+transition:.2s ease;
 }
 
-.profile-img{
-width:36px;
-height:36px;
-border-radius:8px;
-background:#f1f5f9;
-display:flex;
-align-items:center;
-justify-content:center;
-color:#374151;
+/* hover effect */
+
+.logout-box a:hover{
+
+background:linear-gradient(180deg,#fff1f2,#ffe4e6);
+
+border-color:#fecdd3;
+
+transform:translateY(-1px);
+
+box-shadow:0 6px 14px rgba(239,68,68,.12);
+
+color:#dc2626;
 }
 
-.profile-info{
-display:flex;
-flex-direction:column;
-}
+/* click */
 
-.profile-name{
-font-size:13px;
-font-weight:500;
-color:#111827;
-}
+.logout-box a:active{
 
-.profile-role{
-font-size:11px;
-color:#6b7280;
+transform:scale(.98);
+
+box-shadow:none;
+
 }
 
 /* content */
@@ -245,13 +252,8 @@ display:none;
 
 <div class="sidebar" id="sidebar">
 
-
-<!-- django logo -->
-
 <div class="logo-box">
-
 <img src="{% static 'images/drapsologo.jpg' %}">
-
 </div>
 
 
@@ -290,22 +292,24 @@ Wholeseller
 Bank Details
 </a>
 
-</div>
-
-
-
-<!-- profile fixed bottom -->
-
-<div class="profile-box">
-
-<div class="profile-img">
+<a href="#">
 <i class="fa-solid fa-user"></i>
+Profile
+</a>
+
 </div>
 
-<div class="profile-info">
-<div class="profile-name">Your Profile</div>
-<div class="profile-role">Seller</div>
-</div>
+
+
+<!-- sticky modern logout -->
+
+<div class="logout-box">
+
+<a href="#">
+<i class="fa-solid fa-right-from-bracket"></i>
+Logout
+
+</a>
 
 </div>
 
@@ -320,6 +324,7 @@ Bank Details
 
 <div class="content">
 
+<!-- page content -->
 
 </div>
 
