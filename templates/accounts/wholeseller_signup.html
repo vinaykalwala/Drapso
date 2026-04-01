@@ -1,249 +1,393 @@
-
-
-{% block title %}Wholeseller Registration{% endblock %}
+{% load static %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0"><i class="fas fa-wholesale me-2"></i>Wholeseller Registration</h4>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        overflow-x: hidden;
+        background: linear-gradient(135deg, #eef2ff, #f8fafc);
+        padding: 10px;
+    }
+
+    .split-register {
+        display: flex;
+        min-height: 95vh;
+        width: 94%;
+        margin: 20px auto;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        background: #fff;
+    }
+
+    /* LEFT PANEL */
+    .left-hero {
+        flex: 1.2;
+        position: relative;
+        background: #eef2ff url("{% static 'images/wholeseller.png' %}") center / contain no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        filter: brightness(1.05);
+    }
+
+    .info-overlay {
+        position: relative;
+        z-index: 2;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 32px;
+        padding: 1.8rem 2rem;
+        width: 85%;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        display: flex;
+        justify-content: space-around;
+        gap: 15px;
+    }
+
+    .info-item { text-align: center; flex: 1; }
+    .info-icon {
+        font-size: 1.8rem;
+        background: rgba(102, 126, 234, 0.1);
+        width: 50px; height: 50px;
+        display: inline-flex;
+        align-items: center; justify-content: center;
+        border-radius: 15px;
+        margin-bottom: 0.8rem;
+        color: #667eea;
+    }
+
+    .info-item h3 { font-size: 1.1rem; color: #1e2a3e; margin-bottom: 4px; }
+    .info-item p { font-size: 0.75rem; color: #5a6e8a; font-weight: 500; }
+
+    /* RIGHT PANEL */
+    .right-form {
+        flex: 1;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        padding: 2.5rem;
+        overflow-y: auto;
+        max-height: 100vh;
+    }
+
+    /* CINEMATIC HEADER (Integrated) */
+    .ws-reg-header {
+        text-align: center;
+        margin-bottom: 30px;
+        animation: fadeInDown 0.8s ease;
+    }
+
+    .ws-reg-header h1 {
+        font-size: clamp(28px, 4vw, 42px);
+        font-weight: 800;
+        letter-spacing: -1.5px;
+        background: linear-gradient(to right, #0F172A, #667eea);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+    }
+
+    /* STEPPER */
+    .step-indicators {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+    .step { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; z-index: 2; }
+    .step-circle {
+        width: 38px; height: 38px;
+        background: #eef2f6;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; color: #6c7a8e;
+        transition: all 0.3s;
+        margin-bottom: 8px;
+    }
+
+    .step.active .step-circle { background: #667eea; color: white; box-shadow: 0 8px 18px rgba(102, 126, 234, 0.2); }
+    .step.completed .step-circle { background: #667eea; color: white; }
+    .step-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; color: #5a6e8a; }
+
+    .progress-line {
+        position: absolute; top: 19px; left: 0; right: 0;
+        height: 2px; background: #e0e7ed; z-index: 1;
+    }
+    .progress-fill { height: 100%; width: 0%; background: #667eea; transition: width 0.3s ease; }
+
+    /* FORM STYLES */
+    .form-step { display: none; animation: fadeSlide 0.3s ease-out; }
+    .form-step.active-step { display: block; }
+
+    @keyframes fadeSlide {
+        from { opacity: 0; transform: translateX(10px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    .form-section h5 {
+        font-size: 1.1rem; font-weight: 700; color: #1e2a3e;
+        border-left: 4px solid #667eea; padding-left: 12px; margin-bottom: 1.5rem;
+    }
+
+    .form-label { font-weight: 700; font-size: 0.7rem; margin-bottom: 6px; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-group { margin-bottom: 1.2rem; display: flex; flex-direction: column; }
+
+    input, select, textarea {
+        width: 100%; border-radius: 12px; border: 1.5px solid #e2e8f0;
+        padding: 12px 16px; font-size: 0.9rem; transition: all 0.2s;
+        background-color: #f8fafc;
+    }
+
+    input:focus, select:focus { border-color: #667eea; background-color: #fff; outline: none; box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1); }
+
+    /* NAVIGATION BUTTONS */
+    .btn-group-nav { display: flex; justify-content: space-between; margin-top: 2rem; gap: 1rem; }
+    .btn-prev, .btn-next, .btn-submit {
+        padding: 12px 24px; border-radius: 50px; font-weight: 700;
+        transition: 0.2s; border: none; cursor: pointer; font-size: 0.9rem;
+    }
+    .btn-prev { background: #f1f5f9; color: #475569; }
+    .btn-next, .btn-submit { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; flex: 1; }
+
+    .alert-danger { background: #fef2f2; border: 1px solid #fee2e2; color: #dc2626; padding: 12px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 1rem; }
+
+    /* Grid helpers */
+    .row { display: flex; flex-wrap: wrap; margin: 0 -8px; }
+    .col { flex: 1; padding: 0 8px; min-width: 200px; }
+
+    @media (max-width: 992px) {
+        .split-register { flex-direction: column; }
+        .left-hero { display: none; }
+    }
+    /* Style for inputs that have errors */
+    .field-error + input, 
+    .field-error + select, 
+    .field-error + textarea {
+        border-color: #fca5a5 !important;
+        background-color: #fff1f1 !important;
+    }
+
+    .field-error {
+        animation: headShake 0.5s; /* Using animate.css which you already linked */
+    }
+</style>
+
+<div class="split-register">
+    <div class="left-hero">
+        <!-- <div class="info-overlay">
+            <div class="info-item">
+                <div class="info-icon"><i class="fas fa-shield-halved"></i></div>
+                <h3>Verified</h3>
+                <p>Wholesale Network</p>
             </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    
-                    <div class="form-section">
-                        <h5><i class="fas fa-user me-2"></i>Personal Information</h5>
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.first_name.id_for_label }}" class="form-label required-field">First Name</label>
-                                {{ form.first_name }}
-                                {% if form.first_name.errors %}
-                                    <div class="text-danger small">{{ form.first_name.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.middle_name.id_for_label }}" class="form-label">Middle Name</label>
-                                {{ form.middle_name }}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.last_name.id_for_label }}" class="form-label required-field">Last Name</label>
-                                {{ form.last_name }}
-                                {% if form.last_name.errors %}
-                                    <div class="text-danger small">{{ form.last_name.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.phone.id_for_label }}" class="form-label required-field">Phone Number</label>
-                                {{ form.phone }}
-                                {% if form.phone.errors %}
-                                    <div class="text-danger small">{{ form.phone.errors }}</div>
-                                {% endif %}
-                                <small class="text-muted">Format: +1234567890</small>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.email.id_for_label }}" class="form-label required-field">Email Address</label>
-                                {{ form.email }}
-                                {% if form.email.errors %}
-                                    <div class="text-danger small">{{ form.email.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.username.id_for_label }}" class="form-label required-field">Username</label>
-                                {{ form.username }}
-                                {% if form.username.errors %}
-                                    <div class="text-danger small">{{ form.username.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.password.id_for_label }}" class="form-label required-field">Password</label>
-                                {{ form.password }}
-                                {% if form.password.errors %}
-                                    <div class="text-danger small">{{ form.password.errors }}</div>
-                                {% endif %}
-                                <small class="text-muted">Minimum 8 characters</small>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.confirm_password.id_for_label }}" class="form-label required-field">Confirm Password</label>
-                                {{ form.confirm_password }}
-                                {% if form.confirm_password.errors %}
-                                    <div class="text-danger small">{{ form.confirm_password.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h5><i class="fas fa-building me-2"></i>Business Information</h5>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.business_name.id_for_label }}" class="form-label required-field">Business Name</label>
-                                {{ form.business_name }}
-                                {% if form.business_name.errors %}
-                                    <div class="text-danger small">{{ form.business_name.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.business_type.id_for_label }}" class="form-label required-field">Business Type</label>
-                                {{ form.business_type }}
-                                {% if form.business_type.errors %}
-                                    <div class="text-danger small">{{ form.business_type.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.business_registration_number.id_for_label }}" class="form-label required-field">Registration Number</label>
-                                {{ form.business_registration_number }}
-                                {% if form.business_registration_number.errors %}
-                                    <div class="text-danger small">{{ form.business_registration_number.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.gst_number.id_for_label }}" class="form-label">GST Number</label>
-                                {{ form.gst_number }}
-                                {% if form.gst_number.errors %}
-                                    <div class="text-danger small">{{ form.gst_number.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.business_phone.id_for_label }}" class="form-label required-field">Business Phone</label>
-                                {{ form.business_phone }}
-                                {% if form.business_phone.errors %}
-                                    <div class="text-danger small">{{ form.business_phone.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.business_email.id_for_label }}" class="form-label required-field">Business Email</label>
-                                {{ form.business_email }}
-                                {% if form.business_email.errors %}
-                                    <div class="text-danger small">{{ form.business_email.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.website.id_for_label }}" class="form-label">Website</label>
-                            {{ form.website }}
-                            {% if form.website.errors %}
-                                <div class="text-danger small">{{ form.website.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h5><i class="fas fa-map-marker-alt me-2"></i>Address Information</h5>
-                        <div class="mb-3">
-                            <label for="{{ form.business_address.id_for_label }}" class="form-label required-field">Business Address</label>
-                            {{ form.business_address }}
-                            {% if form.business_address.errors %}
-                                <div class="text-danger small">{{ form.business_address.errors }}</div>
-                            {% endif %}
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.city.id_for_label }}" class="form-label required-field">City</label>
-                                {{ form.city }}
-                                {% if form.city.errors %}
-                                    <div class="text-danger small">{{ form.city.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.state.id_for_label }}" class="form-label required-field">State</label>
-                                {{ form.state }}
-                                {% if form.state.errors %}
-                                    <div class="text-danger small">{{ form.state.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.country.id_for_label }}" class="form-label required-field">Country</label>
-                                {{ form.country }}
-                                {% if form.country.errors %}
-                                    <div class="text-danger small">{{ form.country.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.postal_code.id_for_label }}" class="form-label required-field">Postal Code</label>
-                                {{ form.postal_code }}
-                                {% if form.postal_code.errors %}
-                                    <div class="text-danger small">{{ form.postal_code.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h5><i class="fas fa-chart-line me-2"></i>Business Details</h5>
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.years_in_business.id_for_label }}" class="form-label required-field">Years in Business</label>
-                                {{ form.years_in_business }}
-                                {% if form.years_in_business.errors %}
-                                    <div class="text-danger small">{{ form.years_in_business.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.number_of_employees.id_for_label }}" class="form-label required-field">Number of Employees</label>
-                                {{ form.number_of_employees }}
-                                {% if form.number_of_employees.errors %}
-                                    <div class="text-danger small">{{ form.number_of_employees.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.annual_turnover.id_for_label }}" class="form-label">Annual Turnover</label>
-                                {{ form.annual_turnover }}
-                                {% if form.annual_turnover.errors %}
-                                    <div class="text-danger small">{{ form.annual_turnover.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.description.id_for_label }}" class="form-label">Business Description</label>
-                            {{ form.description }}
-                            {% if form.description.errors %}
-                                <div class="text-danger small">{{ form.description.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-user-check me-2"></i>Register as Wholeseller
-                        </button>
-                        <p class="text-center mt-3 mb-0">
-                            Already have an account? <a href="{% url 'accounts:login' %}">Login here</a>
-                        </p>
-                    </div>
-                </form>
+            <div class="info-item">
+                <div class="info-icon"><i class="fas fa-bolt"></i></div>
+                <h3>Fast</h3>
+                <p>Quick Approval</p>
             </div>
+        </div> -->
+    </div>
+
+    <div class="right-form">
+        <div class="ws-reg-header">
+            <h1>Wholeseller Registration</h1>
+            <p style="color: #64748b; font-weight: 500; font-size: 0.9rem;">Join our premium wholesale network</p>
         </div>
+
+        <div class="step-indicators">
+            <div class="step active" id="step1Ind">
+                <div class="step-circle">1</div>
+                <div class="step-label">Personal</div>
+            </div>
+            <div class="step" id="step2Ind">
+                <div class="step-circle">2</div>
+                <div class="step-label">Business</div>
+            </div>
+            <div class="step" id="step3Ind">
+                <div class="step-circle">3</div>
+                <div class="step-label">Address</div>
+            </div>
+            <div class="step" id="step4Ind">
+                <div class="step-circle">4</div>
+                <div class="step-label">Operations</div>
+            </div>
+            <div class="progress-line"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" id="partnerForm">
+            {% csrf_token %}
+
+            <div class="form-step active-step" id="step1">
+                <div class="form-section">
+                    <h5><i class="fas fa-user-circle me-2"></i> Personal Details</h5>
+                    <div class="row">
+                        <div class="col"><div class="form-group"><label class="form-label">First Name <span style="color: #dc3545;">*</span></label>{{ form.first_name }}</div></div>
+                        <div class="col"><div class="form-group"><label class="form-label">Middle Name</label>{{ form.middle_name }}</div></div>
+                    </div>
+                    <div class="row">
+                        <div class="col"><div class="form-group"><label class="form-label">Last Name <span style="color: #dc3545;">*</span></label>{{ form.last_name }}</div></div>
+                        <div class="col"><div class="form-group"><label class="form-label">Phone <span style="color: #dc3545;">*</span></label>{{ form.phone }}</div></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Email Address <span style="color: #dc3545;">*</span></label>{{ form.email }}</div>
+                    <div class="form-group"><label class="form-label">Username <span style="color: #dc3545;">*</span></label>{{ form.username }}</div>
+                    <div class="row">
+                        <div class="col"><div class="form-group"><label class="form-label">Password <span style="color: #dc3545;">*</span></label>{{ form.password }}</div></div>
+                        <div class="col"><div class="form-group"><label class="form-label">Confirm <span style="color: #dc3545;">*</span></label>{{ form.confirm_password }}</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-step" id="step2">
+                <div class="form-section">
+                    <h5><i class="fas fa-briefcase me-2"></i> Business Profile</h5>
+                    <div class="form-group"><label class="form-label">Business Name <span style="color: #dc3545;">*</span></label>{{ form.business_name }}</div>
+                    <div class="row">
+                        <div class="col"><div class="form-group"><label class="form-label">Type <span style="color: #dc3545;">*</span></label>{{ form.business_type }}</div></div>
+                        <div class="col"><div class="form-group"><label class="form-label">Reg No. <span style="color: #dc3545;">*</span></label>{{ form.business_registration_number }}</div></div>
+                    </div>
+                    <div class="row">
+                        <div class="col"><div class="form-group"><label class="form-label">GST Number</label>{{ form.gst_number }}</div></div>
+                        <div class="col"><div class="form-group"><label class="form-label">Website</label>{{ form.website }}</div></div>
+                    </div>
+                    <div class="row">
+                        <div class="col"><div class="form-group"><label class="form-label">Business Phone <span style="color: #dc3545;">*</span></label>{{ form.business_phone }}</div></div>
+                        <div class="col"><div class="form-group"><label class="form-label">Business Email <span style="color: #dc3545;">*</span></label>{{ form.business_email }}</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-step" id="step3">
+                <div class="form-section">
+                    <h5><i class="fas fa-map-marker-alt me-2"></i> Location Details</h5>
+                    <div class="form-group"><label class="form-label">Full Address <span style="color: #dc3545;">*</span></label>{{ form.business_address }}</div>
+                    <div class="row">
+                        <div class="col"><div class="form-group"><label class="form-label">City <span style="color: #dc3545;">*</span></label>{{ form.city }}</div></div>
+                        <div class="col"><div class="form-group"><label class="form-label">State <span style="color: #dc3545;">*</span></label>{{ form.state }}</div></div>
+                    </div>
+                    <div class="row">
+                        <div class="col"><div class="form-group"><label class="form-label">Country <span style="color: #dc3545;">*</span></label>{{ form.country }}</div></div>
+                        <div class="col"><div class="form-group"><label class="form-label">Postal Code <span style="color: #dc3545;">*</span></label>{{ form.postal_code }}</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-step" id="step4">
+                <div class="form-section">
+                    <h5><i class="fas fa-chart-line me-2"></i> Operations</h5>
+                    <div class="row">
+                        <div class="col"><div class="form-group"><label class="form-label">Years Active <span style="color: #dc3545;">*</span></label>{{ form.years_in_business }}</div></div>
+                        <div class="col"><div class="form-group"><label class="form-label">Employees <span style="color: #dc3545;">*</span></label>{{ form.number_of_employees }}</div></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Annual Revenue</label>{{ form.annual_turnover }}</div>
+                    <div class="form-group"><label class="form-label">Business Description</label>{{ form.description }}</div>
+                </div>
+            </div>
+            {% if form.errors %}
+            <div class="alert-danger" id="errorSummary" style="margin-top: 1.5rem;">
+                <h6 style="font-weight: 800; margin-bottom: 5px;">PLEASE FIX THE FOLLOWING:</h6>
+                <ul style="list-style: none; padding-left: 0;">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}<li>• {{ field|title }}: {{ error }}</li>{% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            <div class="btn-group-nav">
+                <button type="button" class="btn-prev" id="prevBtn" style="display: none;"><i class="fas fa-arrow-left"></i> Previous</button>
+                <button type="button" class="btn-next" id="nextBtn">Next Step <i class="fas fa-arrow-right"></i></button>
+                <button type="submit" class="btn-submit" id="submitBtn" style="display: none;">Complete Registration <i class="fas fa-rocket"></i></button>
+            </div>
+
+            <p style="text-align:center; margin-top: 1.5rem; font-size: 0.85rem; color: #64748b;">
+                Already a partner? <a href="{% url 'accounts:login' %}" style="color: #667eea; font-weight: 700; text-decoration: none;">Login here</a>
+            </p>
+        </form>
     </div>
 </div>
+
+<script>
+    const steps = document.querySelectorAll('.form-step');
+    const stepInd = document.querySelectorAll('.step');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const progressFill = document.getElementById('progressFill');
+
+    let currentStep = 0;
+
+    function updateStep() {
+        steps.forEach((step, i) => step.classList.toggle('active-step', i === currentStep));
+        stepInd.forEach((ind, i) => {
+            ind.classList.toggle('active', i === currentStep);
+            ind.classList.toggle('completed', i < currentStep);
+            const circle = ind.querySelector('.step-circle');
+            if(i < currentStep) circle.innerHTML = '<i class="fas fa-check"></i>';
+            else circle.innerHTML = i + 1;
+        });
+
+        progressFill.style.width = (currentStep / (steps.length - 1)) * 100 + '%';
+        
+        prevBtn.style.display = currentStep === 0 ? 'none' : 'block';
+        if (currentStep === steps.length - 1) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'block';
+        } else {
+            nextBtn.style.display = 'block';
+            submitBtn.style.display = 'none';
+        }
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (currentStep < steps.length - 1) {
+            currentStep++;
+            updateStep();
+            // Scroll to top of form on mobile
+            document.querySelector('.right-form').scrollTop = 0;
+        }
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentStep > 0) {
+            currentStep--;
+            updateStep();
+            document.querySelector('.right-form').scrollTop = 0;
+        }
+    });
+
+    // This handles the error jumping automatically when the page reloads
+    window.addEventListener('DOMContentLoaded', () => {
+        // 1. Find the first error message on the page
+        const firstError = document.querySelector('.field-error, .errorlist');
+        
+        if (firstError) {
+            // 2. Identify which step contains that error
+            const errorStep = firstError.closest('.form-step');
+            if (errorStep) {
+                const stepId = errorStep.id; 
+                currentStep = parseInt(stepId.replace('step', '')) - 1;
+                updateStep(); // Jump to that step
+            }
+        }
+
+        // 3. Apply the red border class to the actual input boxes that have errors
+        document.querySelectorAll('.field-error, .errorlist').forEach(err => {
+            const input = err.parentElement.querySelector('input, select, textarea');
+            if(input) input.classList.add('is-invalid');
+        });
+    });
+</script>
 {% endblock %}
