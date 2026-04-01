@@ -131,7 +131,7 @@
 
         .profile-box {
 
-          background-image:url("{% static 'images/bg.avif' %}");
+            background-image:url("{% static 'images/bg.avif' %}");
 
             padding: 18px;
 
@@ -471,9 +471,9 @@
         <!-- logo -->
 
         <div class="logo">
-             <a href="{% url 'home' %}">
-            <img src="{% static 'images/drapsologo.jpg' %}">
-             </a>
+            <a href="{% url 'home' %}">
+                <img src="{% static 'images/drapsologo.jpg' %}">
+            </a>
         </div>
 
 
@@ -506,50 +506,83 @@
 
         <!-- menu -->
 
-        <div class="menu">
+      <div class="menu">
 
-            <a href="{% url 'accounts:dashboard' %}" class="active">
-                <i class="fa-solid fa-chart-line"></i>
-                Dashboard
-            </a>
-            {% if request.user.is_superuser %}
-<a href="{% url 'contact_list' %}">
-    <i class="fa-solid fa-envelope"></i>
-    Contact Messages
-</a>
-{% endif %}
-            <a href="#">
-                <i class="fa-solid fa-store"></i>
-                My Store
-            </a>
+    <!-- COMMON FOR ALL USERS -->
 
-            <a href="#">
-                <i class="fa-solid fa-box"></i>
-                Products
-            </a>
+    <a href="{% url 'accounts:dashboard' %}" class="active">
+        <i class="fa-solid fa-chart-line"></i>
+        Dashboard
+    </a>
 
-            <a href="#">
-                <i class="fa-solid fa-bag-shopping"></i>
-                Orders
-            </a>
+    <a href="{% url 'accounts:profile' %}">
+        <i class="fa-solid fa-user"></i>
+        My Profile
+    </a>
 
-            <a href="#">
-                <i class="fa-solid fa-users"></i>
-                Wholeseller
-            </a>
 
-            <a href="#">
-                <i class="fa-solid fa-building-columns"></i>
-                Bank Details
-            </a>
+    <!-- ADMIN / SUPERADMIN ONLY -->
 
-            <a href="{% url 'accounts:profile' %}">
-                <i class="fa-solid fa-user"></i>
-                Profile
-            </a>
+    {% if request.user.role == "admin" %}
+    
+    <a href="{% url 'contact_list' %}">
+        <i class="fa-solid fa-envelope"></i>
+        Contact Messages
+    </a>
 
-        </div>
+    
+    {% endif %}
 
+
+
+    <!-- WHOLESELLER ONLY -->
+
+    {% if request.user.role == "wholeseller" %}
+
+    
+
+    <a href="{% url 'accounts:bank_accounts' %}">
+        <i class="fa-solid fa-building-columns"></i>
+        Bank Details
+    </a>
+     <a href="{% url 'accounts:wholeseller_addresses' %}">
+        <i class="fa-solid fa-building-columns"></i>
+        Shipping Adresses
+    </a>
+
+    {% endif %}
+
+
+
+    <!-- RESELLER ONLY -->
+
+    {% if request.user.role == "reseller" %}
+
+   
+
+    <a href="{% url 'accounts:bank_accounts' %}">
+        <i class="fa-solid fa-building-columns"></i>
+        Bank Details
+    </a>
+     <a href="{% url 'accounts:reseller_addresses' %}">
+        <i class="fa-solid fa-building-columns"></i>
+        Billing Adresses
+    </a>
+
+   
+
+    {% endif %}
+
+
+
+    <!-- COMMON FOR ALL USERS -->
+
+    <a href="{% url 'accounts:change_password' %}">
+        <i class="fa-solid fa-key"></i>
+        Change Password
+    </a>
+
+</div>
 
 
         <!-- logout -->
