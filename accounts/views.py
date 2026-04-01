@@ -676,11 +676,12 @@ def logout_view(request):
 
 @login_required
 def profile_view(request):
-    """View user profile - READ ONLY"""
+    """View user profile - READ ONLY with bank accounts and addresses"""
     user = request.user
     profile = None
     clear_messages(request)
     
+    # Get role-specific profile
     if user.role == User.Role.WHOLESELLER:
         profile = getattr(user, 'wholeseller_profile', None)
     elif user.role == User.Role.RESELLER:
@@ -688,14 +689,27 @@ def profile_view(request):
     elif user.role == User.Role.ADMIN:
         profile = getattr(user, 'admin_profile', None)
     
+    # Get primary bank account (for all users)
+    primary_bank = user.bank_accounts.filter(is_primary=True).first()
+    
+    # Get role-specific primary address
+    primary_address = None
+    if user.role == User.Role.WHOLESELLER:
+        primary_address = user.wholeseller_addresses.filter(is_primary=True).first()
+    elif user.role == User.Role.RESELLER:
+        primary_address = user.reseller_addresses.filter(is_primary=True).first()
+    # Admin doesn't need address
+    
     context = {
         'user': user,
         'profile': profile,
         'role': user.get_role_display(),
-        'is_superuser': user.is_superuser
+        'is_superuser': user.is_superuser,
+        'primary_bank': primary_bank,
+        'primary_address': primary_address,
     }
     return render(request, 'accounts/profile.html', context)
-
+    
 @login_required
 def edit_profile(request):
     """Edit user profile - EDITABLE"""
