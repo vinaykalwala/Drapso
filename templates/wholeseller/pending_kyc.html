@@ -1,0 +1,70 @@
+
+{% load static %}
+
+{% block title %}Pending KYC Verifications - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Pending KYC Verifications</h2>
+        <span class="badge bg-warning fs-6 px-3 py-2">{{ total_pending }} Pending</span>
+    </div>
+    
+    {% if pending_kyc %}
+        <div class="row">
+            {% for kyc in pending_kyc %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-semibold">{{ kyc.wholeseller.inventory.business_name }}</h6>
+                                <span class="badge bg-warning">Pending</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <p class="mb-1">
+                                    <i class="fas fa-user text-success me-2"></i>
+                                    <strong>{{ kyc.wholeseller.get_full_name|default:kyc.wholeseller.username }}</strong>
+                                </p>
+                                <p class="mb-1 text-muted small">
+                                    <i class="fas fa-envelope me-2"></i>{{ kyc.wholeseller.email }}
+                                </p>
+                                <p class="mb-1 text-muted small">
+                                    <i class="fas fa-phone me-2"></i>{{ kyc.wholeseller.phone }}
+                                </p>
+                            </div>
+                            <hr>
+                            <div class="mb-2">
+                                <i class="fas fa-warehouse text-success me-2"></i>
+                                <strong>{{ kyc.wholeseller.inventory.warehouse_name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ kyc.wholeseller.inventory.city }}, {{ kyc.wholeseller.inventory.state }}</small>
+                            </div>
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-info">📄 {{ kyc.get_documents_count }}/5 Documents</span>
+                                    <span class="badge bg-secondary">📅 {{ kyc.submitted_at|date:"d M Y" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-0">
+                            <a href="{% url 'wholesellers:admin_review_kyc' kyc.id %}" class="btn btn-primary btn-sm w-100">
+                                Review Application <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                <h4>No Pending Verifications</h4>
+                <p class="text-muted">All wholeseller applications have been reviewed.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

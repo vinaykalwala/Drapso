@@ -1,0 +1,148 @@
+
+{% load static %}
+
+{% block title %}Review KYC - {{ inventory.business_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0">KYC Documents Review</h5>
+                    <p class="text-muted mb-0">{{ inventory.business_name }} - {{ kyc.wholeseller.get_full_name }}</p>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Document Type</th>
+                                    <th>Document Number</th>
+                                    <th>File</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doc_name, doc_info in documents.items %}
+                                <tr>
+                                    <td>
+                                        <i class="{{ doc_info.icon }} me-2"></i>
+                                        {{ doc_name }}
+                                    </td>
+                                    <td>{{ doc_info.number|default:"—" }}</td>
+                                    <td>
+                                        {% if doc_info.file %}
+                                            <a href="{{ doc_info.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                        {% else %}
+                                            <span class="text-danger">Not Uploaded</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if doc_info.file %}
+                                            <span class="badge bg-success">Uploaded</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Missing</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0">Business Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="text-muted small text-uppercase">Business Name</label>
+                        <p class="mb-0 fw-semibold">{{ inventory.business_name }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted small text-uppercase">Business Type</label>
+                        <p class="mb-0">{{ inventory.get_business_type_display }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted small text-uppercase">Years in Business</label>
+                        <p class="mb-0">{{ kyc.years_in_business }} years</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted small text-uppercase">Annual Turnover</label>
+                        <p class="mb-0">₹ {{ kyc.annual_turnover|default:"Not specified" }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted small text-uppercase">Warehouse</label>
+                        <p class="mb-0">{{ inventory.warehouse_name }}</p>
+                        <p class="text-muted small mb-0">{{ inventory.full_address }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted small text-uppercase">Contact</label>
+                        <p class="mb-0">{{ inventory.contact_person }}</p>
+                        <p class="mb-0">{{ inventory.contact_phone }}</p>
+                        <p class="mb-0">{{ inventory.contact_email }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0">Verification Action</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Decision</label>
+                            <div class="d-grid gap-2">
+                                <button type="submit" name="action" value="approve" class="btn btn-success">
+                                    <i class="fas fa-check-circle"></i> Approve
+                                </button>
+                                <button type="button" class="btn btn-danger" onclick="showRejectForm()">
+                                    <i class="fas fa-times-circle"></i> Reject
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="rejectForm" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Rejection Reason *</label>
+                                <textarea name="rejection_reason" class="form-control" rows="3" placeholder="Please provide reason for rejection..."></textarea>
+                                <small class="text-muted">This will be sent to the wholeseller via email</small>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" name="action" value="reject" class="btn btn-danger">
+                                    Confirm Rejection
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showRejectForm() {
+    document.getElementById('rejectForm').style.display = 'block';
+}
+</script>
+
+<style>
+    .table th {
+        border-top: none;
+    }
+    .card {
+        border-radius: 12px;
+    }
+</style>
+{% endblock %}

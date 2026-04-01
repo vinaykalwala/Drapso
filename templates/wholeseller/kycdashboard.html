@@ -1,0 +1,216 @@
+
+{% load static %}
+
+{% block title %}Wholeseller Dashboard - Drapso{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Display Django messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {% if message.tags == 'success' %}
+                    <i class="fas fa-check-circle"></i>
+                {% elif message.tags == 'error' %}
+                    <i class="fas fa-exclamation-circle"></i>
+                {% elif message.tags == 'warning' %}
+                    <i class="fas fa-exclamation-triangle"></i>
+                {% elif message.tags == 'info' %}
+                    <i class="fas fa-info-circle"></i>
+                {% endif %}
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center py-4">
+                    <div class="mb-3">
+                        {% if is_verified %}
+                            <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="fas fa-check-circle fa-3x"></i>
+                            </div>
+                            <h5 class="mt-3 text-success">Verified Account</h5>
+                        {% elif kyc_status == 'pending' %}
+                            <div class="rounded-circle bg-warning text-white d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="fas fa-clock fa-3x"></i>
+                            </div>
+                            <h5 class="mt-3 text-warning">Under Review</h5>
+                        {% elif kyc_status == 'rejected' %}
+                            <div class="rounded-circle bg-danger text-white d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="fas fa-times-circle fa-3x"></i>
+                            </div>
+                            <h5 class="mt-3 text-danger">Verification Failed</h5>
+                        {% else %}
+                            <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="fas fa-store fa-3x"></i>
+                            </div>
+                            <h5 class="mt-3">Pending Verification</h5>
+                        {% endif %}
+                    </div>
+                    
+                    <h5>{{ user.get_full_name|default:user.username }}</h5>
+                    <p class="text-muted small">{{ user.email }}</p>
+                    
+                    <hr>
+                    
+                    <div class="text-start">
+                        <p class="mb-1"><i class="fas fa-building me-2 text-success"></i> {{ inventory.business_name }}</p>
+                        <p class="mb-1"><i class="fas fa-map-marker-alt me-2 text-success"></i> {{ inventory.city }}, {{ inventory.state }}</p>
+                        <p class="mb-0"><i class="fas fa-phone me-2 text-success"></i> {{ inventory.contact_phone }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 fw-semibold">Verification Progress</h6>
+                </div>
+                <div class="card-body">
+                    <div class="progress mb-3" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: {{ progress }}%"></div>
+                    </div>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            {% if inventory %}
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                            {% else %}
+                                <i class="far fa-circle text-muted me-2"></i>
+                            {% endif %}
+                            Inventory Created
+                        </li>
+                        <li class="mb-2">
+                            {% if inventory.is_kyc_submitted %}
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                            {% else %}
+                                <i class="far fa-circle text-muted me-2"></i>
+                            {% endif %}
+                            KYC Submitted
+                        </li>
+                        <li class="mb-2">
+                            {% if is_verified %}
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                            {% elif kyc_status == 'pending' %}
+                                <i class="fas fa-clock text-warning me-2"></i>
+                            {% else %}
+                                <i class="far fa-circle text-muted me-2"></i>
+                            {% endif %}
+                            Account Verified
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0 fw-semibold">Business Information</h5>
+                    {% if not is_verified and inventory %}
+                        <a href="{% url 'wholesellers:edit_inventory' %}" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small text-uppercase">Business Name</label>
+                            <p class="mb-0 fw-semibold">{{ inventory.business_name }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small text-uppercase">Business Type</label>
+                            <p class="mb-0">{{ inventory.get_business_type_display }}</p>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="text-muted small text-uppercase">Warehouse Location</label>
+                            <p class="mb-0 fw-semibold">{{ inventory.warehouse_name }}</p>
+                            <p class="text-muted small mb-0">{{ inventory.full_address }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small text-uppercase">Contact Person</label>
+                            <p class="mb-0">{{ inventory.contact_person }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small text-uppercase">Contact Number</label>
+                            <p class="mb-0">{{ inventory.contact_phone }}</p>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="text-muted small text-uppercase">Email</label>
+                            <p class="mb-0">{{ inventory.contact_email }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Status Cards -->
+            {% if kyc_status == 'not_submitted' and inventory %}
+                <div class="card shadow-sm border-0 mt-4 bg-light">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-file-alt fa-4x text-success mb-3"></i>
+                        <h5>Complete KYC Verification</h5>
+                        <p class="text-muted">Submit your KYC documents to get verified and start selling</p>
+                        <a href="{% url 'wholesellers:submit_kyc' %}" class="btn btn-success btn-lg mt-2">
+                            Submit KYC Documents <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            {% elif kyc_status == 'pending' %}
+                <div class="card shadow-sm border-0 mt-4 bg-warning bg-opacity-10">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-hourglass-half fa-4x text-warning mb-3"></i>
+                        <h5 class="text-warning">Verification in Progress</h5>
+                        <p class="text-muted">Our team is reviewing your documents. You'll receive an email once verified.</p>
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-clock"></i> Estimated time: 24-48 hours
+                        </div>
+                    </div>
+                </div>
+            {% elif kyc_status == 'rejected' %}
+                <div class="card shadow-sm border-0 mt-4 border-danger">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-times-circle fa-4x text-danger mb-3"></i>
+                        <h5 class="text-danger">Verification Failed</h5>
+                        {% if kyc.rejection_reason %}
+                            <div class="alert alert-danger mt-3">
+                                <strong>Reason:</strong> {{ kyc.rejection_reason }}
+                            </div>
+                        {% endif %}
+                        <a href="{% url 'wholesellers:submit_kyc' %}" class="btn btn-warning mt-2">
+                            <i class="fas fa-redo"></i> Resubmit Documents
+                        </a>
+                    </div>
+                </div>
+            {% elif is_verified %}
+                <div class="card shadow-sm border-0 mt-4 bg-success text-white">
+                    <div class="card-body text-center py-4">
+                        <i class="fas fa-check-circle fa-4x mb-3"></i>
+                        <h5>Account Verified!</h5>
+                        <p>You can now start adding products to your inventory.</p>
+                        <a href="#" class="btn btn-light btn-lg mt-2">
+                            <i class="fas fa-plus-circle"></i> Add Products
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 12px;
+    }
+    .alert {
+        border-radius: 10px;
+    }
+    .progress-bar {
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
