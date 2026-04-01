@@ -795,6 +795,17 @@ def add_bank_account(request):
                 account.user = request.user
                 account.is_verified = False
                 account.verification_status = 'pending'
+                
+                # Check if this is the first account
+                is_first_account = BankAccount.objects.filter(user=request.user).count() == 0
+                
+                if is_first_account:
+                    # First account will become primary after verification
+                    account.is_primary = False  # Will be set after verification
+                elif account.is_primary:
+                    # If user manually set as primary, unset others
+                    BankAccount.objects.filter(user=request.user).update(is_primary=False)
+                
                 account.save()
                 
                 # Generate and send OTP
@@ -818,6 +829,10 @@ def add_bank_account(request):
                     """
                     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [request.user.email])
                     
+                    # Store in session that this is the first account
+                    if is_first_account:
+                        request.session['is_first_account'] = True
+                    
                     messages.success(request, 'Bank account added! Please verify with OTP sent to your email.')
                     return redirect('accounts:verify_bank_account_otp', account_id=account.id)
                     
@@ -840,7 +855,6 @@ def add_bank_account(request):
     
     return render(request, 'accounts/add_bank_account.html', {'form': form})
 
-
 @login_required
 def verify_bank_account_otp(request, account_id):
     """Verify bank account with OTP"""
@@ -859,14 +873,24 @@ def verify_bank_account_otp(request, account_id):
             return redirect('accounts:verify_bank_account_otp', account_id=account.id)
         
         if account.verify_otp(otp):
-            # If this is the first verified account, make it primary
-            if not BankAccount.objects.filter(user=request.user, is_verified=True).exists():
+            # Check if this is the first verified account
+            is_first_verified = not BankAccount.objects.filter(user=request.user, is_verified=True).exists()
+            
+            if is_first_verified:
+                # First verified account becomes primary automatically
                 account.is_primary = True
                 account.save()
+                messages.success(request, f'Bank account verified and set as primary successfully!')
             elif account.is_primary:
+                # If user selected this as primary during add, set as primary
                 BankAccount.objects.filter(user=request.user, is_verified=True).exclude(id=account.id).update(is_primary=False)
+                messages.success(request, f'Bank account verified and set as primary successfully!')
+            else:
+                messages.success(request, f'Bank account verified successfully!')
             
-            messages.success(request, f'Bank account {account.bank_name} (****{account.account_number[-4:]}) verified successfully!')
+            # Clear session flag
+            request.session.pop('is_first_account', None)
+            
             return redirect('accounts:bank_accounts')
         else:
             account.increment_attempts()
@@ -877,7 +901,6 @@ def verify_bank_account_otp(request, account_id):
                 return redirect('accounts:add_bank_account')
     
     return render(request, 'accounts/verify_bank_account_otp.html', {'account': account})
-
 
 @login_required
 def resend_bank_otp(request, account_id):
@@ -1100,7 +1123,7 @@ def set_primary_bank_account(request, account_id):
     
     messages.success(request, f'Primary account set to {account.bank_name} (****{account.account_number[-4:]})')
     return redirect('accounts:bank_accounts')
-
+    
 # ============ WHOLESELLER ADDRESS VIEWS ============
 
 @login_required
