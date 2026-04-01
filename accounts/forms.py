@@ -264,3 +264,85 @@ class AdminFullProfileForm(forms.ModelForm):
         # Make all fields optional for display
         for field in self.fields:
             self.fields[field].required = False
+
+from .models import BankAccount, WholesellerAddress, ResellerAddress
+
+class BankAccountForm(forms.ModelForm):
+    """Form for adding bank account"""
+    class Meta:
+        model = BankAccount
+        fields = ['account_holder_name', 'account_number', 'confirm_account_number', 
+                  'bank_name', 'ifsc_code', 'branch_name', 'account_type', 'upi_id', 'is_primary']
+        widgets = {
+            'account_holder_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name as in bank account'}),
+            'account_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Account number'}),
+            'confirm_account_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Confirm account number'}),
+            'bank_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank name'}),
+            'ifsc_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'IFSC code'}),
+            'branch_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Branch name'}),
+            'account_type': forms.Select(attrs={'class': 'form-control'}),
+            'upi_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'UPI ID (optional)'}),
+            'is_primary': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+    
+    def clean_account_number(self):
+        account_number = self.cleaned_data.get('account_number')
+        if len(account_number) < 9 or len(account_number) > 18:
+            raise forms.ValidationError('Account number must be between 9 and 18 digits')
+        return account_number
+    
+    def clean_ifsc_code(self):
+        ifsc = self.cleaned_data.get('ifsc_code')
+        if not ifsc or len(ifsc) != 11:
+            raise forms.ValidationError('IFSC code must be 11 characters')
+        return ifsc.upper()
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        account_number = cleaned_data.get('account_number')
+        confirm_account_number = cleaned_data.get('confirm_account_number')
+        
+        if account_number and confirm_account_number and account_number != confirm_account_number:
+            raise forms.ValidationError('Account numbers do not match')
+        
+        return cleaned_data
+
+
+class WholesellerAddressForm(forms.ModelForm):
+    """Form for wholeseller address"""
+    class Meta:
+        model = WholesellerAddress
+        fields = ['address_name', 'address_line1', 'address_line2', 'city', 'state', 
+                  'country', 'postal_code', 'contact_person', 'contact_phone', 'is_primary', 'is_active']
+        widgets = {
+            'address_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Main Warehouse'}),
+            'address_line1': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Street address'}),
+            'address_line2': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apartment, suite, etc. (optional)'}),
+            'city': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'City'}),
+            'state': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'State'}),
+            'country': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Country'}),
+            'postal_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Postal code'}),
+            'contact_person': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contact person name'}),
+            'contact_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contact phone number'}),
+            'is_primary': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+
+class ResellerAddressForm(forms.ModelForm):
+    """Form for reseller address"""
+    class Meta:
+        model = ResellerAddress
+        fields = ['address_line1', 'address_line2', 'city', 'state', 'country', 
+                  'postal_code', 'contact_person', 'contact_phone', 'is_primary']
+        widgets = {
+            'address_line1': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Street address'}),
+            'address_line2': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apartment, suite, etc. (optional)'}),
+            'city': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'City'}),
+            'state': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'State'}),
+            'country': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Country'}),
+            'postal_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Postal code'}),
+            'contact_person': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contact person name'}),
+            'contact_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contact phone number'}),
+            'is_primary': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }

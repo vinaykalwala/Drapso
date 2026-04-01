@@ -10,6 +10,7 @@ from .forms import *
 from .models import *
 import logging
 import json
+from django.shortcuts import get_object_or_404
 
 logger = logging.getLogger(__name__)
 from django.core.cache import cache
@@ -751,3 +752,404 @@ def edit_profile(request):
         'is_superuser': user.is_superuser
     }
     return render(request, 'accounts/edit_profile.html', context)
+
+
+from .forms import BankAccountForm, WholesellerAddressForm, ResellerAddressForm
+from .models import BankAccount, WholesellerAddress, ResellerAddress, User
+
+
+logger = logging.getLogger(__name__)
+
+def clear_messages(request):
+    storage = get_messages(request)
+    for _ in storage:
+        pass
+
+# ============ BANK ACCOUNT VIEWS ============
+
+@login_required
+def bank_accounts(request):
+    """List all bank accounts for wholeseller/reseller"""
+    accounts = BankAccount.objects.filter(user=request.user)
+    
+    context = {
+        'accounts': accounts,
+        'primary_account': accounts.filter(is_primary=True).first()
+    }
+    return render(request, 'accounts/bank_accounts.html', context)
+
+
+@login_required
+def add_bank_account(request):
+    """Add new bank account"""
+    if request.method == 'POST':
+        clear_messages(request)
+        form = BankAccountForm(request.POST)
+        
+        if form.is_valid():
+            try:
+                account = form.save(commit=False)
+                account.user = request.user
+                account.save()
+                
+                # If this is the first account, make it primary
+                if BankAccount.objects.filter(user=request.user).count() == 1:
+                    account.is_primary = True
+                    account.save()
+                elif account.is_primary:
+                    # If setting as primary, unset others
+                    BankAccount.objects.filter(user=request.user).exclude(id=account.id).update(is_primary=False)
+                
+                messages.success(request, f'Bank account added successfully!')
+                return redirect('accounts:bank_accounts')
+                
+            except Exception as e:
+                logger.error(f"Error adding bank account: {e}")
+                messages.error(request, 'Error adding bank account. Please try again.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+    
+    else:
+        form = BankAccountForm()
+    
+    return render(request, 'accounts/add_bank_account.html', {'form': form})
+
+
+@login_required
+def edit_bank_account(request, account_id):
+    """Edit bank account"""
+    account = get_object_or_404(BankAccount, id=account_id, user=request.user)
+    
+    if request.method == 'POST':
+        clear_messages(request)
+        form = BankAccountForm(request.POST, instance=account)
+        
+        if form.is_valid():
+            try:
+                account = form.save(commit=False)
+                account.user = request.user
+                account.save()
+                
+                # Handle primary account logic
+                if account.is_primary:
+                    BankAccount.objects.filter(user=request.user).exclude(id=account.id).update(is_primary=False)
+                
+                messages.success(request, 'Bank account updated successfully!')
+                return redirect('accounts:bank_accounts')
+                
+            except Exception as e:
+                logger.error(f"Error updating bank account: {e}")
+                messages.error(request, 'Error updating bank account. Please try again.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+    
+    else:
+        form = BankAccountForm(instance=account)
+    
+    return render(request, 'accounts/edit_bank_account.html', {'form': form, 'account': account})
+
+
+@login_required
+def set_primary_bank_account(request, account_id):
+    """Set a bank account as primary"""
+    account = get_object_or_404(BankAccount, id=account_id, user=request.user)
+    
+    # Set all accounts to non-primary
+    BankAccount.objects.filter(user=request.user).update(is_primary=False)
+    
+    # Set this account as primary
+    account.is_primary = True
+    account.save()
+    
+    messages.success(request, f'Primary account set to {account.bank_name} (****{account.account_number[-4:]})')
+    return redirect('accounts:bank_accounts')
+
+
+@login_required
+def delete_bank_account(request, account_id):
+    """Delete a bank account"""
+    account = get_object_or_404(BankAccount, id=account_id, user=request.user)
+    
+    if account.is_primary:
+        messages.error(request, 'Cannot delete primary account. Set another account as primary first.')
+        return redirect('accounts:bank_accounts')
+    
+    account.delete()
+    messages.success(request, 'Bank account deleted successfully.')
+    return redirect('accounts:bank_accounts')
+
+
+# ============ WHOLESELLER ADDRESS VIEWS ============
+
+@login_required
+def wholeseller_addresses(request):
+    """List all addresses for wholeseller"""
+    if request.user.role != User.Role.WHOLESELLER:
+        messages.error(request, 'Access denied. Only wholesellers can access this page.')
+        return redirect('accounts:dashboard')
+    
+    addresses = WholesellerAddress.objects.filter(user=request.user)
+    
+    context = {
+        'addresses': addresses,
+        'primary_address': addresses.filter(is_primary=True).first()
+    }
+    return render(request, 'accounts/wholeseller_addresses.html', context)
+
+
+@login_required
+def add_wholeseller_address(request):
+    """Add new address for wholeseller"""
+    if request.user.role != User.Role.WHOLESELLER:
+        messages.error(request, 'Access denied. Only wholesellers can access this page.')
+        return redirect('accounts:dashboard')
+    
+    if request.method == 'POST':
+        clear_messages(request)
+        form = WholesellerAddressForm(request.POST)
+        
+        if form.is_valid():
+            try:
+                address = form.save(commit=False)
+                address.user = request.user
+                address.save()
+                
+                # If this is the first address, make it primary
+                if WholesellerAddress.objects.filter(user=request.user).count() == 1:
+                    address.is_primary = True
+                    address.save()
+                elif address.is_primary:
+                    # If setting as primary, unset others
+                    WholesellerAddress.objects.filter(user=request.user).exclude(id=address.id).update(is_primary=False)
+                
+                messages.success(request, 'Address added successfully!')
+                return redirect('accounts:wholeseller_addresses')
+                
+            except Exception as e:
+                logger.error(f"Error adding address: {e}")
+                messages.error(request, 'Error adding address. Please try again.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+    
+    else:
+        form = WholesellerAddressForm()
+    
+    return render(request, 'accounts/add_wholeseller_address.html', {'form': form})
+
+
+@login_required
+def edit_wholeseller_address(request, address_id):
+    """Edit wholeseller address"""
+    if request.user.role != User.Role.WHOLESELLER:
+        messages.error(request, 'Access denied. Only wholesellers can access this page.')
+        return redirect('accounts:dashboard')
+    
+    address = get_object_or_404(WholesellerAddress, id=address_id, user=request.user)
+    
+    if request.method == 'POST':
+        clear_messages(request)
+        form = WholesellerAddressForm(request.POST, instance=address)
+        
+        if form.is_valid():
+            try:
+                address = form.save()
+                
+                # Handle primary address logic
+                if address.is_primary:
+                    WholesellerAddress.objects.filter(user=request.user).exclude(id=address.id).update(is_primary=False)
+                
+                messages.success(request, 'Address updated successfully!')
+                return redirect('accounts:wholeseller_addresses')
+                
+            except Exception as e:
+                logger.error(f"Error updating address: {e}")
+                messages.error(request, 'Error updating address. Please try again.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+    
+    else:
+        form = WholesellerAddressForm(instance=address)
+    
+    return render(request, 'accounts/edit_wholeseller_address.html', {'form': form, 'address': address})
+
+
+@login_required
+def set_primary_wholeseller_address(request, address_id):
+    """Set a wholeseller address as primary"""
+    if request.user.role != User.Role.WHOLESELLER:
+        messages.error(request, 'Access denied.')
+        return redirect('accounts:dashboard')
+    
+    address = get_object_or_404(WholesellerAddress, id=address_id, user=request.user)
+    
+    # Set all addresses to non-primary
+    WholesellerAddress.objects.filter(user=request.user).update(is_primary=False)
+    
+    # Set this address as primary
+    address.is_primary = True
+    address.save()
+    
+    messages.success(request, f'Primary address set to {address.address_name}')
+    return redirect('accounts:wholeseller_addresses')
+
+
+@login_required
+def delete_wholeseller_address(request, address_id):
+    """Delete a wholeseller address"""
+    if request.user.role != User.Role.WHOLESELLER:
+        messages.error(request, 'Access denied.')
+        return redirect('accounts:dashboard')
+    
+    address = get_object_or_404(WholesellerAddress, id=address_id, user=request.user)
+    
+    if address.is_primary:
+        messages.error(request, 'Cannot delete primary address. Set another address as primary first.')
+        return redirect('accounts:wholeseller_addresses')
+    
+    address.delete()
+    messages.success(request, 'Address deleted successfully.')
+    return redirect('accounts:wholeseller_addresses')
+
+
+# ============ RESELLER ADDRESS VIEWS ============
+
+@login_required
+def reseller_addresses(request):
+    """List all addresses for reseller"""
+    if request.user.role != User.Role.RESELLER:
+        messages.error(request, 'Access denied. Only resellers can access this page.')
+        return redirect('accounts:dashboard')
+    
+    addresses = ResellerAddress.objects.filter(user=request.user)
+    
+    context = {
+        'addresses': addresses,
+        'primary_address': addresses.filter(is_primary=True).first()
+    }
+    return render(request, 'accounts/reseller_addresses.html', context)
+
+
+@login_required
+def add_reseller_address(request):
+    """Add new address for reseller"""
+    if request.user.role != User.Role.RESELLER:
+        messages.error(request, 'Access denied. Only resellers can access this page.')
+        return redirect('accounts:dashboard')
+    
+    if request.method == 'POST':
+        clear_messages(request)
+        form = ResellerAddressForm(request.POST)
+        
+        if form.is_valid():
+            try:
+                address = form.save(commit=False)
+                address.user = request.user
+                address.save()
+                
+                # If this is the first address, make it primary
+                if ResellerAddress.objects.filter(user=request.user).count() == 1:
+                    address.is_primary = True
+                    address.save()
+                elif address.is_primary:
+                    # If setting as primary, unset others
+                    ResellerAddress.objects.filter(user=request.user).exclude(id=address.id).update(is_primary=False)
+                
+                messages.success(request, 'Address added successfully!')
+                return redirect('accounts:reseller_addresses')
+                
+            except Exception as e:
+                logger.error(f"Error adding address: {e}")
+                messages.error(request, 'Error adding address. Please try again.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+    
+    else:
+        form = ResellerAddressForm()
+    
+    return render(request, 'accounts/add_reseller_address.html', {'form': form})
+
+
+@login_required
+def edit_reseller_address(request, address_id):
+    """Edit reseller address"""
+    if request.user.role != User.Role.RESELLER:
+        messages.error(request, 'Access denied. Only resellers can access this page.')
+        return redirect('accounts:dashboard')
+    
+    address = get_object_or_404(ResellerAddress, id=address_id, user=request.user)
+    
+    if request.method == 'POST':
+        clear_messages(request)
+        form = ResellerAddressForm(request.POST, instance=address)
+        
+        if form.is_valid():
+            try:
+                address = form.save()
+                
+                # Handle primary address logic
+                if address.is_primary:
+                    ResellerAddress.objects.filter(user=request.user).exclude(id=address.id).update(is_primary=False)
+                
+                messages.success(request, 'Address updated successfully!')
+                return redirect('accounts:reseller_addresses')
+                
+            except Exception as e:
+                logger.error(f"Error updating address: {e}")
+                messages.error(request, 'Error updating address. Please try again.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+    
+    else:
+        form = ResellerAddressForm(instance=address)
+    
+    return render(request, 'accounts/edit_reseller_address.html', {'form': form, 'address': address})
+
+
+@login_required
+def set_primary_reseller_address(request, address_id):
+    """Set a reseller address as primary"""
+    if request.user.role != User.Role.RESELLER:
+        messages.error(request, 'Access denied.')
+        return redirect('accounts:dashboard')
+    
+    address = get_object_or_404(ResellerAddress, id=address_id, user=request.user)
+    
+    # Set all addresses to non-primary
+    ResellerAddress.objects.filter(user=request.user).update(is_primary=False)
+    
+    # Set this address as primary
+    address.is_primary = True
+    address.save()
+    
+    messages.success(request, 'Primary address updated successfully!')
+    return redirect('accounts:reseller_addresses')
+
+
+@login_required
+def delete_reseller_address(request, address_id):
+    """Delete a reseller address"""
+    if request.user.role != User.Role.RESELLER:
+        messages.error(request, 'Access denied.')
+        return redirect('accounts:dashboard')
+    
+    address = get_object_or_404(ResellerAddress, id=address_id, user=request.user)
+    
+    if address.is_primary:
+        messages.error(request, 'Cannot delete primary address. Set another address as primary first.')
+        return redirect('accounts:reseller_addresses')
+    
+    address.delete()
+    messages.success(request, 'Address deleted successfully.')
+    return redirect('accounts:reseller_addresses')

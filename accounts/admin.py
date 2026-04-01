@@ -3,3 +3,6 @@ from .models import *
 
 # Register your models here.
 admin.site.register(User)
+admin.site.register(BankAccount)
+admin.site.register(WholesellerAddress)
+admin.site.register(ResellerAddress)

@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 import random
 import string
+from django.conf import settings
 
 class UserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
@@ -220,3 +221,148 @@ class AdminProfile(models.Model):
     
     def __str__(self):
         return f"Admin: {self.user.username} ({self.designation})"
+
+
+
+class BankAccount(models.Model):
+    """
+    Centralized Bank Account model for all user types
+    """
+    ACCOUNT_TYPES = [
+        ('savings', 'Savings Account'),
+        ('current', 'Current Account'),
+        ('business', 'Business Account'),
+    ]
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bank_accounts')
+    
+    # Account Information
+    account_holder_name = models.CharField(max_length=200)
+    account_number = models.CharField(max_length=50)
+    confirm_account_number = models.CharField(max_length=50)
+    bank_name = models.CharField(max_length=200)
+    ifsc_code = models.CharField(max_length=20)
+    branch_name = models.CharField(max_length=200)
+    account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPES, default='savings')
+    
+    # Additional Fields
+    upi_id = models.CharField(max_length=100, blank=True, null=True)
+    is_primary = models.BooleanField(default=False)
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['user', 'account_number']
+        ordering = ['-is_primary', '-created_at']
+    
+    def __str__(self):
+        return f"{self.account_holder_name} - {self.bank_name} (****{self.account_number[-4:]})"
+    
+    def save(self, *args, **kwargs):
+        if self.account_number and self.confirm_account_number:
+            if self.account_number != self.confirm_account_number:
+                raise ValueError("Account numbers do not match")
+        super().save(*args, **kwargs)
+
+
+class CustomerAddress(models.Model):
+    """
+    Address model for Customers
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='customer_addresses', limit_choices_to={'role': 'customer'})
+    
+    # Address Details
+    address_line1 = models.CharField(max_length=255)
+    address_line2 = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    country = models.CharField(max_length=100, default='India')
+    postal_code = models.CharField(max_length=20)
+    
+    # Contact Information
+    recipient_name = models.CharField(max_length=100)
+    recipient_phone = models.CharField(max_length=15)
+    
+    # Additional Info
+    is_primary = models.BooleanField(default=False)
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-is_primary', '-created_at']
+        verbose_name_plural = "Customer Addresses"
+    
+    def __str__(self):
+        return f"{self.recipient_name} - {self.city}"
+
+
+class WholesellerAddress(models.Model):
+    """
+    Address model for Wholesellers (Warehouse/Shipping origin)
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wholeseller_addresses', limit_choices_to={'role': 'wholeseller'})
+    
+    # Address Details
+    address_name = models.CharField(max_length=100, help_text="e.g., Main Warehouse, Factory")
+    address_line1 = models.CharField(max_length=255)
+    address_line2 = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    country = models.CharField(max_length=100, default='India')
+    postal_code = models.CharField(max_length=20)
+    
+    # Contact Information
+    contact_person = models.CharField(max_length=100)
+    contact_phone = models.CharField(max_length=15)
+    
+    # Additional Info
+    is_primary = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-is_primary', 'address_name']
+        verbose_name_plural = "Wholeseller Addresses"
+    
+    def __str__(self):
+        return f"{self.address_name} - {self.city}"
+
+
+class ResellerAddress(models.Model):
+    """
+    Address model for Resellers
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reseller_addresses', limit_choices_to={'role': 'reseller'})
+    
+    # Address Details
+    address_line1 = models.CharField(max_length=255)
+    address_line2 = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    country = models.CharField(max_length=100, default='India')
+    postal_code = models.CharField(max_length=20)
+    
+    # Contact Information
+    contact_person = models.CharField(max_length=100)
+    contact_phone = models.CharField(max_length=15)
+    
+    # Additional Info
+    is_primary = models.BooleanField(default=False)
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-is_primary', '-created_at']
+        verbose_name_plural = "Reseller Addresses"
+    
+    def __str__(self):
+        return f"{self.contact_person} - {self.city}"

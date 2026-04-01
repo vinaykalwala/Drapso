@@ -1,0 +1,182 @@
+
+{% block title %}Add Warehouse Address{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus me-2"></i>Add Warehouse Address
+                        <a href="{% url 'accounts:wholeseller_addresses' %}" class="btn btn-light btn-sm float-end">
+                            <i class="fas fa-arrow-left me-1"></i>Back
+                        </a>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.address_name.id_for_label }}" class="form-label">Address Name *</label>
+                                {{ form.address_name }}
+                                {% if form.address_name.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.address_name.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <small class="text-muted">e.g., Main Warehouse, Factory, Distribution Center</small>
+                            </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.address_line1.id_for_label }}" class="form-label">Address Line 1 *</label>
+                                {{ form.address_line1 }}
+                                {% if form.address_line1.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.address_line1.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.address_line2.id_for_label }}" class="form-label">Address Line 2 (Optional)</label>
+                                {{ form.address_line2 }}
+                                {% if form.address_line2.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.address_line2.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.city.id_for_label }}" class="form-label">City *</label>
+                                {{ form.city }}
+                                {% if form.city.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.city.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.state.id_for_label }}" class="form-label">State *</label>
+                                {{ form.state }}
+                                {% if form.state.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.state.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.postal_code.id_for_label }}" class="form-label">Postal Code *</label>
+                                {{ form.postal_code }}
+                                {% if form.postal_code.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.postal_code.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.country.id_for_label }}" class="form-label">Country *</label>
+                                {{ form.country }}
+                                {% if form.country.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.country.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.contact_person.id_for_label }}" class="form-label">Contact Person *</label>
+                                {{ form.contact_person }}
+                                {% if form.contact_person.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.contact_person.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.contact_phone.id_for_label }}" class="form-label">Contact Phone *</label>
+                                {{ form.contact_phone }}
+                                {% if form.contact_phone.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.contact_phone.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check">
+                                    {{ form.is_primary }}
+                                    <label class="form-check-label" for="{{ form.is_primary.id_for_label }}">
+                                        Set as primary address
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                        Active
+                                    </label>
+                                </div>
+                                <small class="text-muted">Inactive addresses won't be available for shipping</small>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Save Address
+                            </button>
+                            <a href="{% url 'accounts:wholeseller_addresses' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

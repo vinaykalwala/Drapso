@@ -28,4 +28,26 @@ urlpatterns = [
     # Profile URLs
     path('profile/', views.profile_view, name='profile'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),
+
+
+     path('bank-accounts/', views.bank_accounts, name='bank_accounts'),
+    path('bank-accounts/add/', views.add_bank_account, name='add_bank_account'),
+    path('bank-accounts/edit/<int:account_id>/', views.edit_bank_account, name='edit_bank_account'),
+    path('bank-accounts/set-primary/<int:account_id>/', views.set_primary_bank_account, name='set_primary_bank_account'),
+    path('bank-accounts/delete/<int:account_id>/', views.delete_bank_account, name='delete_bank_account'),
+    
+    # Wholeseller Address URLs
+    path('wholeseller/addresses/', views.wholeseller_addresses, name='wholeseller_addresses'),
+    path('wholeseller/addresses/add/', views.add_wholeseller_address, name='add_wholeseller_address'),
+    path('wholeseller/addresses/edit/<int:address_id>/', views.edit_wholeseller_address, name='edit_wholeseller_address'),
+    path('wholeseller/addresses/set-primary/<int:address_id>/', views.set_primary_wholeseller_address, name='set_primary_wholeseller_address'),
+    path('wholeseller/addresses/delete/<int:address_id>/', views.delete_wholeseller_address, name='delete_wholeseller_address'),
+    
+    # Reseller Address URLs
+    path('reseller/addresses/', views.reseller_addresses, name='reseller_addresses'),
+    path('reseller/addresses/add/', views.add_reseller_address, name='add_reseller_address'),
+    path('reseller/addresses/edit/<int:address_id>/', views.edit_reseller_address, name='edit_reseller_address'),
+    path('reseller/addresses/set-primary/<int:address_id>/', views.set_primary_reseller_address, name='set_primary_reseller_address'),
+    path('reseller/addresses/delete/<int:address_id>/', views.delete_reseller_address, name='delete_reseller_address'),
+   
 ]
