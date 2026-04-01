@@ -226,12 +226,18 @@ class AdminProfile(models.Model):
 
 class BankAccount(models.Model):
     """
-    Centralized Bank Account model for all user types
+    Centralized Bank Account model with OTP verification
     """
     ACCOUNT_TYPES = [
         ('savings', 'Savings Account'),
         ('current', 'Current Account'),
         ('business', 'Business Account'),
+    ]
+    
+    VERIFICATION_STATUS = [
+        ('pending', 'Pending Verification'),
+        ('verified', 'Verified'),
+        ('failed', 'Verification Failed'),
     ]
     
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bank_accounts')
@@ -248,6 +254,13 @@ class BankAccount(models.Model):
     # Additional Fields
     upi_id = models.CharField(max_length=100, blank=True, null=True)
     is_primary = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
+    
+    # OTP Verification Fields
+    verification_otp = models.CharField(max_length=6, blank=True, null=True)
+    verification_otp_created_at = models.DateTimeField(blank=True, null=True)
+    verification_attempts = models.IntegerField(default=0)
+    verification_status = models.CharField(max_length=20, choices=VERIFICATION_STATUS, default='pending')
     
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
@@ -258,7 +271,38 @@ class BankAccount(models.Model):
         ordering = ['-is_primary', '-created_at']
     
     def __str__(self):
-        return f"{self.account_holder_name} - {self.bank_name} (****{self.account_number[-4:]})"
+        status = "✓" if self.is_verified else "⏳"
+        return f"{status} {self.account_holder_name} - {self.bank_name} (****{self.account_number[-4:]})"
+    
+    def generate_verification_otp(self):
+        """Generate OTP for bank account verification"""
+        import random
+        self.verification_otp = ''.join(random.choices('0123456789', k=6))
+        self.verification_otp_created_at = timezone.now()
+        self.verification_attempts = 0
+        self.save()
+        return self.verification_otp
+    
+    def verify_otp(self, otp):
+        """Verify OTP for bank account"""
+        if self.verification_otp and self.verification_otp == otp:
+            if self.verification_otp_created_at:
+                time_diff = timezone.now() - self.verification_otp_created_at
+                if time_diff.total_seconds() <= 300:  # 5 minutes expiry
+                    self.is_verified = True
+                    self.verification_status = 'verified'
+                    self.verification_otp = None
+                    self.verification_otp_created_at = None
+                    self.save()
+                    return True
+        return False
+    
+    def increment_attempts(self):
+        """Increment failed verification attempts"""
+        self.verification_attempts += 1
+        if self.verification_attempts >= 5:
+            self.verification_status = 'failed'
+        self.save()
     
     def save(self, *args, **kwargs):
         if self.account_number and self.confirm_account_number:
@@ -266,7 +310,7 @@ class BankAccount(models.Model):
                 raise ValueError("Account numbers do not match")
         super().save(*args, **kwargs)
 
-
+        
 class CustomerAddress(models.Model):
     """
     Address model for Customers

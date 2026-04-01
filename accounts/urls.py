@@ -30,8 +30,10 @@ urlpatterns = [
     path('profile/edit/', views.edit_profile, name='edit_profile'),
 
 
-     path('bank-accounts/', views.bank_accounts, name='bank_accounts'),
+    path('bank-accounts/', views.bank_accounts, name='bank_accounts'),
     path('bank-accounts/add/', views.add_bank_account, name='add_bank_account'),
+    path('bank-accounts/verify/<int:account_id>/', views.verify_bank_account_otp, name='verify_bank_account_otp'),
+    path('bank-accounts/resend-otp/<int:account_id>/', views.resend_bank_otp, name='resend_bank_otp'),
     path('bank-accounts/edit/<int:account_id>/', views.edit_bank_account, name='edit_bank_account'),
     path('bank-accounts/set-primary/<int:account_id>/', views.set_primary_bank_account, name='set_primary_bank_account'),
     path('bank-accounts/delete/<int:account_id>/', views.delete_bank_account, name='delete_bank_account'),

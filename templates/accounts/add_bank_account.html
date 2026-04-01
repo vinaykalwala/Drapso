@@ -15,14 +15,10 @@
                     </h4>
                 </div>
                 <div class="card-body">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        After adding, you'll need to verify your bank account with OTP sent to your email.
+                    </div>
                     
                     <form method="post" novalidate>
                         {% csrf_token %}
@@ -142,12 +138,13 @@
                                         Set as primary account
                                     </label>
                                 </div>
+                                <small class="text-muted">Primary account will be used for settlements by default</small>
                             </div>
                         </div>
                         
                         <div class="text-center mt-3">
                             <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-save me-2"></i>Save Bank Account
+                                <i class="fas fa-save me-2"></i>Add Bank Account
                             </button>
                             <a href="{% url 'accounts:bank_accounts' %}" class="btn btn-secondary btn-lg">
                                 <i class="fas fa-times me-2"></i>Cancel

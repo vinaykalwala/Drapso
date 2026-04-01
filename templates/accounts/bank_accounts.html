@@ -15,18 +15,40 @@
                     </h4>
                 </div>
                 <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if pending_verification %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-clock me-2"></i>
+                            <strong>Pending Verification!</strong> You have a bank account awaiting verification.
+                            <a href="{% url 'accounts:verify_bank_account_otp' pending_verification.id %}" class="alert-link">
+                                Click here to verify
+                            </a>
+                        </div>
+                    {% endif %}
+                    
                     {% if accounts %}
                         <div class="row">
                             {% for account in accounts %}
                                 <div class="col-md-6 mb-3">
-                                    <div class="card {% if account.is_primary %}border-primary{% endif %}">
+                                    <div class="card {% if account.is_primary and account.is_verified %}border-primary shadow{% endif %}">
                                         <div class="card-body">
                                             <div class="d-flex justify-content-between align-items-start">
                                                 <div>
                                                     <h5 class="card-title">
                                                         {{ account.bank_name }}
-                                                        {% if account.is_primary %}
+                                                        {% if account.is_primary and account.is_verified %}
                                                             <span class="badge bg-primary ms-2">Primary</span>
+                                                        {% endif %}
+                                                        {% if not account.is_verified %}
+                                                            <span class="badge bg-warning ms-2">Pending Verification</span>
                                                         {% endif %}
                                                     </h5>
                                                     <p class="card-text">
@@ -38,12 +60,13 @@
                                                         {% if account.upi_id %}
                                                             <strong>UPI ID:</strong> {{ account.upi_id }}<br>
                                                         {% endif %}
+                                                        <small class="text-muted">Added: {{ account.created_at|date:"d M Y" }}</small>
                                                     </p>
                                                 </div>
                                                 <div>
                                                     <div class="dropdown">
                                                         <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                            Actions
+                                                            <i class="fas fa-cog"></i>
                                                         </button>
                                                         <ul class="dropdown-menu">
                                                             <li>
@@ -51,18 +74,24 @@
                                                                     <i class="fas fa-edit me-2"></i>Edit
                                                                 </a>
                                                             </li>
-                                                            {% if not account.is_primary %}
+                                                            {% if not account.is_verified %}
+                                                                <li>
+                                                                    <a class="dropdown-item" href="{% url 'accounts:verify_bank_account_otp' account.id %}">
+                                                                        <i class="fas fa-check-circle me-2"></i>Verify
+                                                                    </a>
+                                                                </li>
+                                                            {% endif %}
+                                                            {% if account.is_verified and not account.is_primary %}
                                                                 <li>
                                                                     <a class="dropdown-item" href="{% url 'accounts:set_primary_bank_account' account.id %}">
                                                                         <i class="fas fa-star me-2"></i>Set as Primary
                                                                     </a>
                                                                 </li>
+                                                            {% endif %}
+                                                            {% if not account.is_primary %}
+                                                                <li><hr class="dropdown-divider"></li>
                                                                 <li>
-                                                                    <hr class="dropdown-divider">
-                                                                </li>
-                                                                <li>
-                                                                    <a class="dropdown-item text-danger" href="{% url 'accounts:delete_bank_account' account.id %}" 
-                                                                       onclick="return confirm('Are you sure you want to delete this bank account?')">
+                                                                    <a class="dropdown-item text-danger" href="{% url 'accounts:delete_bank_account' account.id %}">
                                                                         <i class="fas fa-trash me-2"></i>Delete
                                                                     </a>
                                                                 </li>

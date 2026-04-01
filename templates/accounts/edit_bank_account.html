@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+
 {% block title %}Edit Bank Account{% endblock %}
 
 {% block content %}
@@ -15,25 +15,21 @@
                     </h4>
                 </div>
                 <div class="card-body">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
+                    {% if not account.is_verified %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Account not verified!</strong> Please verify your account to use it for settlements.
+                            <a href="{% url 'accounts:verify_bank_account_otp' account.id %}" class="alert-link">Verify now</a>
+                        </div>
                     {% endif %}
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        If you change account number, IFSC code, or bank name, you'll need to re-verify the account.
+                    </div>
                     
                     <form method="post" novalidate>
                         {% csrf_token %}
-                         {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
                         
                         {% if form.non_field_errors %}
                             <div class="alert alert-danger">

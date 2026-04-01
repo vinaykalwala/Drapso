@@ -268,7 +268,7 @@ class AdminFullProfileForm(forms.ModelForm):
 from .models import BankAccount, WholesellerAddress, ResellerAddress
 
 class BankAccountForm(forms.ModelForm):
-    """Form for adding bank account"""
+    """Form for adding/editing bank account"""
     class Meta:
         model = BankAccount
         fields = ['account_holder_name', 'account_number', 'confirm_account_number', 
@@ -287,15 +287,21 @@ class BankAccountForm(forms.ModelForm):
     
     def clean_account_number(self):
         account_number = self.cleaned_data.get('account_number')
-        if len(account_number) < 9 or len(account_number) > 18:
-            raise forms.ValidationError('Account number must be between 9 and 18 digits')
+        if account_number:
+            account_number = account_number.replace(' ', '')
+            if not account_number.isdigit():
+                raise forms.ValidationError('Account number must contain only digits')
+            if len(account_number) < 9 or len(account_number) > 18:
+                raise forms.ValidationError('Account number must be between 9 and 18 digits')
         return account_number
     
     def clean_ifsc_code(self):
         ifsc = self.cleaned_data.get('ifsc_code')
-        if not ifsc or len(ifsc) != 11:
-            raise forms.ValidationError('IFSC code must be 11 characters')
-        return ifsc.upper()
+        if ifsc:
+            ifsc = ifsc.upper().replace(' ', '')
+            if len(ifsc) != 11:
+                raise forms.ValidationError('IFSC code must be 11 characters')
+        return ifsc
     
     def clean(self):
         cleaned_data = super().clean()
@@ -306,7 +312,6 @@ class BankAccountForm(forms.ModelForm):
             raise forms.ValidationError('Account numbers do not match')
         
         return cleaned_data
-
 
 class WholesellerAddressForm(forms.ModelForm):
     """Form for wholeseller address"""

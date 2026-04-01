@@ -780,22 +780,11 @@ def clear_messages(request):
         pass
 
 # ============ BANK ACCOUNT VIEWS ============
-
-@login_required
-def bank_accounts(request):
-    """List all bank accounts for wholeseller/reseller"""
-    accounts = BankAccount.objects.filter(user=request.user)
-    
-    context = {
-        'accounts': accounts,
-        'primary_account': accounts.filter(is_primary=True).first()
-    }
-    return render(request, 'accounts/bank_accounts.html', context)
-
+# ============ BANK ACCOUNT VIEWS WITH OTP VERIFICATION ============
 
 @login_required
 def add_bank_account(request):
-    """Add new bank account"""
+    """Add new bank account with OTP verification"""
     if request.method == 'POST':
         clear_messages(request)
         form = BankAccountForm(request.POST)
@@ -804,19 +793,40 @@ def add_bank_account(request):
             try:
                 account = form.save(commit=False)
                 account.user = request.user
+                account.is_verified = False
+                account.verification_status = 'pending'
                 account.save()
                 
-                # If this is the first account, make it primary
-                if BankAccount.objects.filter(user=request.user).count() == 1:
-                    account.is_primary = True
-                    account.save()
-                elif account.is_primary:
-                    # If setting as primary, unset others
-                    BankAccount.objects.filter(user=request.user).exclude(id=account.id).update(is_primary=False)
+                # Generate and send OTP
+                otp = account.generate_verification_otp()
                 
-                messages.success(request, f'Bank account added successfully!')
-                return redirect('accounts:bank_accounts')
-                
+                # Send OTP via email
+                try:
+                    subject = 'Verify Your Bank Account - OTP Code'
+                    message = f"""
+                    Hello {request.user.first_name},
+                    
+                    Your OTP for bank account verification is: {otp}
+                    
+                    Account Details:
+                    Bank: {account.bank_name}
+                    Account Number: ****{account.account_number[-4:]}
+                    
+                    This OTP is valid for 5 minutes.
+                    
+                    If you didn't add this bank account, please contact support immediately.
+                    """
+                    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [request.user.email])
+                    
+                    messages.success(request, 'Bank account added! Please verify with OTP sent to your email.')
+                    return redirect('accounts:verify_bank_account_otp', account_id=account.id)
+                    
+                except Exception as e:
+                    logger.error(f"Failed to send bank verification OTP: {e}")
+                    account.delete()
+                    messages.error(request, 'Failed to send OTP. Please try again.')
+                    return redirect('accounts:add_bank_account')
+                    
             except Exception as e:
                 logger.error(f"Error adding bank account: {e}")
                 messages.error(request, 'Error adding bank account. Please try again.')
@@ -832,9 +842,94 @@ def add_bank_account(request):
 
 
 @login_required
-def edit_bank_account(request, account_id):
-    """Edit bank account"""
+def verify_bank_account_otp(request, account_id):
+    """Verify bank account with OTP"""
     account = get_object_or_404(BankAccount, id=account_id, user=request.user)
+    
+    if account.is_verified:
+        messages.info(request, 'This account is already verified.')
+        return redirect('accounts:bank_accounts')
+    
+    if request.method == 'POST':
+        clear_messages(request)
+        otp = request.POST.get('otp')
+        
+        if not otp:
+            messages.error(request, 'Please enter OTP.')
+            return redirect('accounts:verify_bank_account_otp', account_id=account.id)
+        
+        if account.verify_otp(otp):
+            # If this is the first verified account, make it primary
+            if not BankAccount.objects.filter(user=request.user, is_verified=True).exists():
+                account.is_primary = True
+                account.save()
+            elif account.is_primary:
+                BankAccount.objects.filter(user=request.user, is_verified=True).exclude(id=account.id).update(is_primary=False)
+            
+            messages.success(request, f'Bank account {account.bank_name} (****{account.account_number[-4:]}) verified successfully!')
+            return redirect('accounts:bank_accounts')
+        else:
+            account.increment_attempts()
+            messages.error(request, 'Invalid or expired OTP. Please try again.')
+            if account.verification_attempts >= 5:
+                messages.error(request, 'Too many failed attempts. Please add a new bank account.')
+                account.delete()
+                return redirect('accounts:add_bank_account')
+    
+    return render(request, 'accounts/verify_bank_account_otp.html', {'account': account})
+
+
+@login_required
+def resend_bank_otp(request, account_id):
+    """Resend OTP for bank account verification"""
+    account = get_object_or_404(BankAccount, id=account_id, user=request.user)
+    
+    if account.is_verified:
+        messages.info(request, 'Account already verified.')
+        return redirect('accounts:bank_accounts')
+    
+    # Rate limiting (2 minutes cooldown)
+    cache_key = f"bank_otp_resend_{account.id}"
+    if cache.get(cache_key):
+        messages.error(request, 'Please wait 2 minutes before requesting another OTP.')
+        return redirect('accounts:verify_bank_account_otp', account_id=account.id)
+    
+    # Generate new OTP
+    otp = account.generate_verification_otp()
+    cache.set(cache_key, True, timeout=120)
+    
+    # Send OTP via email
+    try:
+        subject = 'Bank Account Verification OTP (Resend)'
+        message = f"""
+        Hello {request.user.first_name},
+        
+        Your new OTP for bank account verification is: {otp}
+        
+        Account Details:
+        Bank: {account.bank_name}
+        Account Number: ****{account.account_number[-4:]}
+        
+        This OTP is valid for 5 minutes.
+        """
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [request.user.email])
+        
+        messages.success(request, 'New OTP sent to your email.')
+        
+    except Exception as e:
+        logger.error(f"Failed to resend bank OTP: {e}")
+        messages.error(request, 'Failed to send OTP. Please try again.')
+    
+    return redirect('accounts:verify_bank_account_otp', account_id=account.id)
+
+
+@login_required
+def edit_bank_account(request, account_id):
+    """Edit bank account with re-verification"""
+    account = get_object_or_404(BankAccount, id=account_id, user=request.user)
+    
+    # Store original values to check what changed
+    original_account_number = account.account_number
     
     if request.method == 'POST':
         clear_messages(request)
@@ -842,17 +937,56 @@ def edit_bank_account(request, account_id):
         
         if form.is_valid():
             try:
-                account = form.save(commit=False)
-                account.user = request.user
-                account.save()
+                updated_account = form.save(commit=False)
                 
-                # Handle primary account logic
-                if account.is_primary:
-                    BankAccount.objects.filter(user=request.user).exclude(id=account.id).update(is_primary=False)
+                # Check if sensitive fields changed
+                sensitive_changed = (
+                    updated_account.account_number != original_account_number or
+                    updated_account.ifsc_code != account.ifsc_code or
+                    updated_account.bank_name != account.bank_name
+                )
                 
-                messages.success(request, 'Bank account updated successfully!')
-                return redirect('accounts:bank_accounts')
+                updated_account.save()
                 
+                if sensitive_changed:
+                    # Re-verify if sensitive info changed
+                    updated_account.is_verified = False
+                    updated_account.verification_status = 'pending'
+                    updated_account.save()
+                    
+                    # Generate and send new OTP
+                    otp = updated_account.generate_verification_otp()
+                    
+                    try:
+                        subject = 'Bank Account Updated - Please Re-verify'
+                        message = f"""
+                        Hello {request.user.first_name},
+                        
+                        Your bank account details have been updated. Please verify with OTP: {otp}
+                        
+                        Account Details:
+                        Bank: {updated_account.bank_name}
+                        Account Number: ****{updated_account.account_number[-4:]}
+                        
+                        This OTP is valid for 5 minutes.
+                        """
+                        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [request.user.email])
+                        
+                        messages.warning(request, 'Bank account updated! Please re-verify with OTP sent to your email.')
+                        return redirect('accounts:verify_bank_account_otp', account_id=updated_account.id)
+                        
+                    except Exception as e:
+                        logger.error(f"Failed to send re-verification OTP: {e}")
+                        messages.error(request, 'Failed to send verification OTP. Please try again.')
+                        return redirect('accounts:edit_bank_account', account_id=account.id)
+                else:
+                    # No sensitive changes, just update
+                    if updated_account.is_primary:
+                        BankAccount.objects.filter(user=request.user, is_verified=True).exclude(id=updated_account.id).update(is_primary=False)
+                    
+                    messages.success(request, 'Bank account updated successfully!')
+                    return redirect('accounts:bank_accounts')
+                    
             except Exception as e:
                 logger.error(f"Error updating bank account: {e}")
                 messages.error(request, 'Error updating bank account. Please try again.')
@@ -868,9 +1002,94 @@ def edit_bank_account(request, account_id):
 
 
 @login_required
-def set_primary_bank_account(request, account_id):
-    """Set a bank account as primary"""
+def delete_bank_account(request, account_id):
+    """Delete bank account with OTP verification"""
     account = get_object_or_404(BankAccount, id=account_id, user=request.user)
+    
+    if account.is_primary:
+        messages.error(request, 'Cannot delete primary account. Set another account as primary first.')
+        return redirect('accounts:bank_accounts')
+    
+    if request.method == 'POST':
+        clear_messages(request)
+        otp = request.POST.get('otp')
+        
+        if not otp:
+            messages.error(request, 'Please enter OTP to confirm deletion.')
+            return redirect('accounts:delete_bank_account', account_id=account.id)
+        
+        # Verify OTP for deletion
+        if 'delete_otp' in request.session and request.session['delete_otp'] == otp:
+            # Check if OTP is not expired
+            if 'delete_otp_time' in request.session and time.time() - request.session['delete_otp_time'] <= 300:
+                account.delete()
+                request.session.pop('delete_otp', None)
+                request.session.pop('delete_otp_time', None)
+                messages.success(request, 'Bank account deleted successfully.')
+                return redirect('accounts:bank_accounts')
+            else:
+                messages.error(request, 'OTP expired. Please request a new one.')
+        else:
+            messages.error(request, 'Invalid OTP. Please try again.')
+    
+    else:
+        # Generate OTP for deletion
+        import random
+        delete_otp = ''.join(random.choices('0123456789', k=6))
+        request.session['delete_otp'] = delete_otp
+        request.session['delete_otp_time'] = time.time()
+        
+        # Send OTP via email
+        try:
+            subject = 'Confirm Bank Account Deletion - OTP Code'
+            message = f"""
+            Hello {request.user.first_name},
+            
+            You have requested to delete your bank account.
+            
+            Account Details:
+            Bank: {account.bank_name}
+            Account Number: ****{account.account_number[-4:]}
+            
+            Your OTP for deletion is: {delete_otp}
+            
+            This OTP is valid for 5 minutes.
+            
+            If you didn't request this, please ignore this email.
+            """
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [request.user.email])
+            
+            messages.info(request, f'OTP sent to {request.user.email}. Enter it to confirm deletion.')
+            
+        except Exception as e:
+            logger.error(f"Failed to send deletion OTP: {e}")
+            messages.error(request, 'Failed to send OTP. Please try again.')
+            return redirect('accounts:bank_accounts')
+    
+    return render(request, 'accounts/delete_bank_account.html', {'account': account})
+
+
+@login_required
+def bank_accounts(request):
+    """List all bank accounts"""
+    accounts = BankAccount.objects.filter(user=request.user)
+    
+    context = {
+        'accounts': accounts,
+        'primary_account': accounts.filter(is_primary=True, is_verified=True).first(),
+        'pending_verification': accounts.filter(is_verified=False, verification_status='pending').first()
+    }
+    return render(request, 'accounts/bank_accounts.html', context)
+
+
+@login_required
+def set_primary_bank_account(request, account_id):
+    """Set a verified bank account as primary"""
+    account = get_object_or_404(BankAccount, id=account_id, user=request.user)
+    
+    if not account.is_verified:
+        messages.error(request, 'Only verified accounts can be set as primary.')
+        return redirect('accounts:bank_accounts')
     
     # Set all accounts to non-primary
     BankAccount.objects.filter(user=request.user).update(is_primary=False)
@@ -881,21 +1100,6 @@ def set_primary_bank_account(request, account_id):
     
     messages.success(request, f'Primary account set to {account.bank_name} (****{account.account_number[-4:]})')
     return redirect('accounts:bank_accounts')
-
-
-@login_required
-def delete_bank_account(request, account_id):
-    """Delete a bank account"""
-    account = get_object_or_404(BankAccount, id=account_id, user=request.user)
-    
-    if account.is_primary:
-        messages.error(request, 'Cannot delete primary account. Set another account as primary first.')
-        return redirect('accounts:bank_accounts')
-    
-    account.delete()
-    messages.success(request, 'Bank account deleted successfully.')
-    return redirect('accounts:bank_accounts')
-
 
 # ============ WHOLESELLER ADDRESS VIEWS ============
 
