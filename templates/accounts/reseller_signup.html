@@ -1,199 +1,927 @@
-
-
-{% block title %}Reseller Registration{% endblock %}
+{% block title %}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0"><i class="fas fa-tags me-2"></i>Reseller Registration</h4>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        overflow-x: hidden;
+        background: linear-gradient(135deg, #eef2ff, #f8fafc);
+        padding: 10px;
+    }
+
+    .split-register {
+        display: flex;
+        min-height: 95vh;
+        width: 92%;
+        margin: 20px auto;
+        /* 👈 center + spacing */
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    /* LEFT PANEL — image + blurred overlay */
+    .left-hero {
+        flex: 1.2;
+        position: relative;
+        background: url('https://cdni.iconscout.com/illustration/premium/thumb/create-account-illustration-svg-download-png-6110939.png') center/cover no-repeat;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 500px;
+    }
+.left-hero {
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+    .left-hero::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255,255,255,0.1); /* light overlay */
+z-index: 1;
+    }
+.left-hero {
+    flex: 1.2;
+    position: relative;
+    background: url('https://cdni.iconscout.com/illustration/premium/thumb/create-account-illustration-svg-download-png-6110939.png') center/contain no-repeat;
+    background-color: #eef2ff;
+    filter: brightness(1.15) contrast(1.05);
+}
+
+.left-hero::before {
+    display: none;
+}
+    .info-overlay {
+        display: flex;
+        flex-direction: row;
+        /* 👈 horizontal */
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        width: 90%;
+        max-width: 600px;
+    }
+
+    /* Blurred overlay cards */
+    .info-overlay {
+        position: relative;
+        z-index: 2;
+
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 32px;
+        padding: 1.8rem 2rem;
+        box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: transform 0.2s ease;
+    }
+
+    .info-item {
+        margin-bottom: 2rem;
+        text-align: center;
+        flex: 1;
+    }
+
+    .info-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .info-icon {
+        margin: 0 auto 10px;
+    }
+
+    .info-icon {
+        font-size: 2.2rem;
+        background: rgba(255, 255, 255, 0.25);
+        width: 52px;
+        height: 52px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 20px;
+        margin-bottom: 1rem;
+        backdrop-filter: blur(4px);
+        color: white;
+    }
+
+    .info-item h3 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        margin-bottom: 0.5rem;
+        color: white;
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .info-item p {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+        line-height: 1.4;
+        opacity: 0.95;
+    }
+
+    .badge-role {
+        display: inline-block;
+        background: rgba(255, 255, 240, 0.25);
+        backdrop-filter: blur(4px);
+        padding: 0.25rem 1rem;
+        border-radius: 40px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: white;
+        margin-top: 0.5rem;
+    }
+
+    /* RIGHT PANEL — modern stepper form */
+    .right-form {
+        flex: 1;
+        background: #ffffff;
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        padding: 2rem 2.2rem;
+        overflow-y: auto;
+        max-height: 100vh;
+    }
+
+    /* Stepper indicators */
+    .step-indicators {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        padding: 0 0.5rem;
+        position: relative;
+    }
+
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        position: relative;
+        z-index: 2;
+    }
+
+    .step-circle {
+        width: 44px;
+        height: 44px;
+        background: #eef2f6;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: #6c7a8e;
+        transition: all 0.2s;
+        margin-bottom: 8px;
+        border: 2px solid transparent;
+    }
+
+    .step.active .step-circle {
+        background: #667eea;
+        color: white;
+        box-shadow: 0 8px 18px rgba(102, 126, 234, 0.2);
+        border-color: #ffffff;
+    }
+
+    .step.completed .step-circle {
+        background: #667eea;
+        color: white;
+    }
+
+    .step.completed .step-circle i {
+        font-size: 1rem;
+    }
+
+    .step-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #5a6e8a;
+    }
+
+    .step.active .step-label {
+        color: #667eea;
+        font-weight: 700;
+    }
+
+    .progress-line {
+        position: absolute;
+        top: 22px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #e0e7ed;
+        z-index: 1;
+        transform: translateY(-50%);
+    }
+
+    .progress-fill {
+        height: 100%;
+        width: 0%;
+        background: #667eea;
+        transition: width 0.25s ease;
+    }
+
+    /* Form sections container */
+    .form-step {
+        display: none;
+        animation: fadeSlide 0.25s ease-out;
+    }
+
+    .form-step.active-step {
+        display: block;
+    }
+
+    @keyframes fadeSlide {
+        from {
+            opacity: 0;
+            transform: translateX(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .form-section {
+        margin-bottom: 1.8rem;
+    }
+
+    .form-section h5 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1e2a3e;
+        border-left: 4px solid #667eea;
+        padding-left: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-section h5 i {
+        color: #667eea;
+        margin-right: 8px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 0.8rem;
+        margin-bottom: 0.4rem;
+        color: #2c3e50;
+        letter-spacing: -0.2px;
+    }
+
+    .required-field:after {
+        content: "*";
+        color: #e53e3e;
+        margin-left: 4px;
+    }
+
+    .form-control,
+    select,
+    input,
+    textarea {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        padding: 0.7rem 1rem;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        background-color: #fefefe;
+        font-family: inherit;
+    }
+
+    .form-control:focus,
+    select:focus,
+    input:focus,
+    textarea:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        outline: none;
+    }
+
+    .btn-group-nav {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+        gap: 1rem;
+    }
+
+    .btn-prev,
+    .btn-next,
+    .btn-submit {
+        padding: 0.7rem 1.8rem;
+        border-radius: 40px;
+        font-weight: 600;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    .btn-prev {
+        background: #edf2f7;
+        color: #2d3748;
+    }
+
+    .btn-prev:hover:not(:disabled) {
+        background: #e2e8f0;
+    }
+
+    .btn-prev:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn-next,
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
+    }
+
+    .btn-next:hover,
+    .btn-submit:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .alert {
+        border-radius: 20px;
+        font-size: 0.85rem;
+        padding: 12px 16px;
+    }
+
+    .alert-danger {
+        background: #fff5f5;
+        border: 1px solid #fed7d7;
+        color: #c53030;
+    }
+
+    .text-danger {
+        color: #e53e3e;
+        font-size: 0.7rem;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .is-invalid {
+        border-color: #e53e3e !important;
+    }
+
+    /* Grid System */
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 -10px;
+    }
+
+    .row>[class*="col-"] {
+        padding: 0 10px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .col-md-4 {
+        flex: 0 0 33.333%;
+        max-width: 33.333%;
+    }
+
+    .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+
+    .mb-3 {
+        margin-bottom: 1rem;
+    }
+
+    .mt-3 {
+        margin-top: 1rem;
+    }
+
+    .mt-4 {
+        margin-top: 1.5rem;
+    }
+
+    .mb-0 {
+        margin-bottom: 0;
+    }
+
+    .me-2 {
+        margin-right: 0.5rem;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .small {
+        font-size: 0.875rem;
+    }
+
+    .d-none {
+        display: none;
+    }
+
+    .d-grid {
+        display: grid;
+    }
+
+    .gap-2 {
+        gap: 1rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .split-register {
+            flex-direction: column;
+        }
+
+        .left-hero {
+            min-height: 320px;
+        }
+
+        .right-form {
+            max-height: unset;
+            padding: 1.8rem;
+        }
+
+        .info-overlay {
+            max-width: 85%;
+            padding: 1.2rem;
+        }
+
+        .info-item h3 {
+            font-size: 1.3rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+
+        .col-md-4,
+        .col-md-6 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        .right-form {
+            padding: 1.5rem;
+        }
+
+        .step-circle {
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
+        }
+
+        .step-label {
+            font-size: 0.65rem;
+        }
+
+        .progress-line {
+            top: 18px;
+        }
+    }
+
+    i.fa,
+    i.far,
+    i.fas {
+        margin-right: 6px;
+    }
+</style>
+
+<div class="split-register">
+    <!-- LEFT SIDE: Image with blur overlay + Personal, Reseller, Address -->
+    <div class="left-hero">
+    </div>
+
+    <!-- RIGHT SIDE: Form with step-by-step navigation -->
+    <div class="right-form">
+        <!-- Step Progress Indicators -->
+        <div class="step-indicators">
+            <div class="step" id="step1Indicator">
+                <div class="step-circle"><span>1</span></div>
+                <div class="step-label">Personal</div>
             </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    
-                    <div class="form-section">
-                        <h5><i class="fas fa-user me-2"></i>Personal Information</h5>
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.first_name.id_for_label }}" class="form-label required-field">First Name</label>
-                                {{ form.first_name }}
-                                {% if form.first_name.errors %}
-                                    <div class="text-danger small">{{ form.first_name.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.middle_name.id_for_label }}" class="form-label">Middle Name</label>
-                                {{ form.middle_name }}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.last_name.id_for_label }}" class="form-label required-field">Last Name</label>
-                                {{ form.last_name }}
-                                {% if form.last_name.errors %}
-                                    <div class="text-danger small">{{ form.last_name.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.phone.id_for_label }}" class="form-label required-field">Phone Number</label>
-                                {{ form.phone }}
-                                {% if form.phone.errors %}
-                                    <div class="text-danger small">{{ form.phone.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.email.id_for_label }}" class="form-label required-field">Email Address</label>
-                                {{ form.email }}
-                                {% if form.email.errors %}
-                                    <div class="text-danger small">{{ form.email.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.username.id_for_label }}" class="form-label required-field">Username</label>
-                                {{ form.username }}
-                                {% if form.username.errors %}
-                                    <div class="text-danger small">{{ form.username.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.password.id_for_label }}" class="form-label required-field">Password</label>
-                                {{ form.password }}
-                                {% if form.password.errors %}
-                                    <div class="text-danger small">{{ form.password.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.confirm_password.id_for_label }}" class="form-label required-field">Confirm Password</label>
-                                {{ form.confirm_password }}
-                                {% if form.confirm_password.errors %}
-                                    <div class="text-danger small">{{ form.confirm_password.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h5><i class="fas fa-store me-2"></i>Reseller Information</h5>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.company_name.id_for_label }}" class="form-label">Company Name</label>
-                                {{ form.company_name }}
-                                {% if form.company_name.errors %}
-                                    <div class="text-danger small">{{ form.company_name.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.reseller_type.id_for_label }}" class="form-label required-field">Reseller Type</label>
-                                {{ form.reseller_type }}
-                                {% if form.reseller_type.errors %}
-                                    <div class="text-danger small">{{ form.reseller_type.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.tax_id.id_for_label }}" class="form-label">Tax ID</label>
-                                {{ form.tax_id }}
-                                {% if form.tax_id.errors %}
-                                    <div class="text-danger small">{{ form.tax_id.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.business_phone.id_for_label }}" class="form-label required-field">Business Phone</label>
-                                {{ form.business_phone }}
-                                {% if form.business_phone.errors %}
-                                    <div class="text-danger small">{{ form.business_phone.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.business_email.id_for_label }}" class="form-label required-field">Business Email</label>
-                                {{ form.business_email }}
-                                {% if form.business_email.errors %}
-                                    <div class="text-danger small">{{ form.business_email.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h5><i class="fas fa-map-marker-alt me-2"></i>Address Information</h5>
-                        <div class="mb-3">
-                            <label for="{{ form.business_address.id_for_label }}" class="form-label required-field">Business Address</label>
-                            {{ form.business_address }}
-                            {% if form.business_address.errors %}
-                                <div class="text-danger small">{{ form.business_address.errors }}</div>
-                            {% endif %}
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.city.id_for_label }}" class="form-label required-field">City</label>
-                                {{ form.city }}
-                                {% if form.city.errors %}
-                                    <div class="text-danger small">{{ form.city.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.state.id_for_label }}" class="form-label required-field">State</label>
-                                {{ form.state }}
-                                {% if form.state.errors %}
-                                    <div class="text-danger small">{{ form.state.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.country.id_for_label }}" class="form-label required-field">Country</label>
-                                {{ form.country }}
-                                {% if form.country.errors %}
-                                    <div class="text-danger small">{{ form.country.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.postal_code.id_for_label }}" class="form-label required-field">Postal Code</label>
-                                {{ form.postal_code }}
-                                {% if form.postal_code.errors %}
-                                    <div class="text-danger small">{{ form.postal_code.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    
-
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-user-check me-2"></i>Register as Reseller
-                        </button>
-                        <p class="text-center mt-3 mb-0">
-                            Already have an account? <a href="{% url 'accounts:login' %}">Login here</a>
-                        </p>
-                    </div>
-                </form>
+            <div class="step" id="step2Indicator">
+                <div class="step-circle"><span>2</span></div>
+                <div class="step-label">Reseller</div>
+            </div>
+            <div class="step" id="step3Indicator">
+                <div class="step-circle"><span>3</span></div>
+                <div class="step-label">Address</div>
+            </div>
+            <div class="progress-line">
+                <div class="progress-fill" id="progressFill"></div>
             </div>
         </div>
+
+        <!-- FORM - Original structure preserved exactly -->
+        <form method="post" enctype="multipart/form-data" id="resellerForm">
+            {% csrf_token %}
+
+            <!-- STEP 1: PERSONAL INFORMATION -->
+            <div class="form-step active-step" id="step1">
+                <div class="form-section">
+                    <h5><i class="fas fa-user me-2"></i>Personal Information</h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label required-field">First
+                                Name</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                            <div class="text-danger small">{{ form.first_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.middle_name.id_for_label }}" class="form-label">Middle Name</label>
+                            {{ form.middle_name }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label required-field">Last
+                                Name</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                            <div class="text-danger small">{{ form.last_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.phone.id_for_label }}" class="form-label required-field">Phone
+                                Number</label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                            <div class="text-danger small">{{ form.phone.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label required-field">Email
+                                Address</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                            <div class="text-danger small">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.username.id_for_label }}"
+                                class="form-label required-field">Username</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                            <div class="text-danger small">{{ form.username.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.password.id_for_label }}"
+                                class="form-label required-field">Password</label>
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                            <div class="text-danger small">{{ form.password.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.confirm_password.id_for_label }}"
+                                class="form-label required-field">Confirm Password</label>
+                            {{ form.confirm_password }}
+                            {% if form.confirm_password.errors %}
+                            <div class="text-danger small">{{ form.confirm_password.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 2: RESELLER INFORMATION -->
+            <div class="form-step" id="step2">
+                <div class="form-section">
+                    <h5><i class="fas fa-store me-2"></i>Reseller Information</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.company_name.id_for_label }}" class="form-label">Company Name</label>
+                            {{ form.company_name }}
+                            {% if form.company_name.errors %}
+                            <div class="text-danger small">{{ form.company_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.reseller_type.id_for_label }}"
+                                class="form-label required-field">Reseller Type</label>
+                            {{ form.reseller_type }}
+                            {% if form.reseller_type.errors %}
+                            <div class="text-danger small">{{ form.reseller_type.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.tax_id.id_for_label }}" class="form-label">Tax ID</label>
+                            {{ form.tax_id }}
+                            {% if form.tax_id.errors %}
+                            <div class="text-danger small">{{ form.tax_id.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.business_phone.id_for_label }}"
+                                class="form-label required-field">Business Phone</label>
+                            {{ form.business_phone }}
+                            {% if form.business_phone.errors %}
+                            <div class="text-danger small">{{ form.business_phone.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.business_email.id_for_label }}"
+                                class="form-label required-field">Business Email</label>
+                            {{ form.business_email }}
+                            {% if form.business_email.errors %}
+                            <div class="text-danger small">{{ form.business_email.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: ADDRESS INFORMATION -->
+            <div class="form-step" id="step3">
+                <div class="form-section">
+                    <h5><i class="fas fa-map-marker-alt me-2"></i>Address Information</h5>
+                    <div class="mb-3">
+                        <label for="{{ form.business_address.id_for_label }}" class="form-label required-field">Business
+                            Address</label>
+                        {{ form.business_address }}
+                        {% if form.business_address.errors %}
+                        <div class="text-danger small">{{ form.business_address.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.city.id_for_label }}" class="form-label required-field">City</label>
+                            {{ form.city }}
+                            {% if form.city.errors %}
+                            <div class="text-danger small">{{ form.city.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.state.id_for_label }}" class="form-label required-field">State</label>
+                            {{ form.state }}
+                            {% if form.state.errors %}
+                            <div class="text-danger small">{{ form.state.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.country.id_for_label }}"
+                                class="form-label required-field">Country</label>
+                            {{ form.country }}
+                            {% if form.country.errors %}
+                            <div class="text-danger small">{{ form.country.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.postal_code.id_for_label }}" class="form-label required-field">Postal
+                                Code</label>
+                            {{ form.postal_code }}
+                            {% if form.postal_code.errors %}
+                            <div class="text-danger small">{{ form.postal_code.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div id="nonFieldErrors" class="alert alert-danger d-none"></div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="btn-group-nav">
+                <button type="button" class="btn-prev" id="prevBtn" disabled><i class="fas fa-arrow-left"></i>
+                    Previous</button>
+                <button type="button" class="btn-next" id="nextBtn">Next <i class="fas fa-arrow-right"></i></button>
+                <button type="submit" class="btn-submit" id="submitBtn" style="display: none;">Register as Reseller <i
+                        class="fas fa-user-check"></i></button>
+            </div>
+
+            <p class="text-center mt-4 mb-0 small" style="color:#5a6e8a;">
+                Already have an account? <a href="{% url 'accounts:login' %}"
+                    style="color:#667eea; font-weight:600;">Login here</a>
+            </p>
+        </form>
     </div>
 </div>
+
+<script>
+    // Multi-step form logic - preserves all backend functionality
+    const steps = document.querySelectorAll('.form-step');
+    const stepIndicators = document.querySelectorAll('.step');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const progressFill = document.getElementById('progressFill');
+
+    let currentStep = 0;
+
+    function updateStepVisibility() {
+        steps.forEach((step, idx) => {
+            if (idx === currentStep) {
+                step.classList.add('active-step');
+            } else {
+                step.classList.remove('active-step');
+            }
+        });
+
+        stepIndicators.forEach((ind, idx) => {
+            const circleDiv = ind.querySelector('.step-circle');
+            if (idx < currentStep) {
+                ind.classList.add('completed');
+                ind.classList.remove('active');
+                if (circleDiv && !circleDiv.querySelector('i')) {
+                    circleDiv.innerHTML = '<i class="fas fa-check"></i>';
+                }
+            } else if (idx === currentStep) {
+                ind.classList.add('active');
+                ind.classList.remove('completed');
+                if (circleDiv && circleDiv.querySelector('i')) {
+                    circleDiv.innerHTML = `<span>${idx + 1}</span>`;
+                }
+            } else {
+                ind.classList.remove('active', 'completed');
+                if (circleDiv && circleDiv.querySelector('i')) {
+                    circleDiv.innerHTML = `<span>${idx + 1}</span>`;
+                }
+            }
+        });
+
+        const totalSteps = steps.length;
+        let progressPercent = (currentStep / (totalSteps - 1)) * 100;
+        progressFill.style.width = `${progressPercent}%`;
+
+        if (currentStep === 0) {
+            prevBtn.disabled = true;
+        } else {
+            prevBtn.disabled = false;
+        }
+
+        if (currentStep === steps.length - 1) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'inline-flex';
+        } else {
+            nextBtn.style.display = 'inline-flex';
+            submitBtn.style.display = 'none';
+        }
+    }
+
+    function validateStep(stepIndex) {
+        let stepContainer = steps[stepIndex];
+        let inputs = stepContainer.querySelectorAll('input, select, textarea');
+        let isValid = true;
+
+        stepContainer.querySelectorAll('.text-danger.small').forEach(el => {
+            if (!el.closest('.alert')) el.innerHTML = '';
+        });
+
+        for (let input of inputs) {
+            let label = stepContainer.querySelector(`label[for="${input.id}"]`);
+            let isRequired = false;
+            if (label && label.classList.contains('required-field')) {
+                isRequired = true;
+            }
+            if (input.hasAttribute('required')) isRequired = true;
+
+            if (isRequired) {
+                let value = input.value.trim();
+                if (value === "") {
+                    isValid = false;
+                    let errorSpan = input.parentNode.querySelector('.text-danger.small:not(.alert *)');
+                    if (!errorSpan) {
+                        let newErr = document.createElement('div');
+                        newErr.className = 'text-danger small';
+                        newErr.innerText = 'This field is required.';
+                        input.parentNode.appendChild(newErr);
+                    } else {
+                        errorSpan.innerHTML = 'This field is required.';
+                    }
+                    input.classList.add('is-invalid');
+                } else {
+                    input.classList.remove('is-invalid');
+                    let errorSpan = input.parentNode.querySelector('.text-danger.small');
+                    if (errorSpan && errorSpan.innerHTML === 'This field is required.') {
+                        errorSpan.innerHTML = '';
+                    }
+                }
+            }
+
+            if (input.id === 'id_email' && input.value.trim() !== '') {
+                const emailPattern = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/;
+                if (!emailPattern.test(input.value.trim())) {
+                    isValid = false;
+                    let errSpan = input.parentNode.querySelector('.text-danger.small');
+                    if (errSpan) errSpan.innerHTML = 'Enter valid email address.';
+                    input.classList.add('is-invalid');
+                }
+            }
+
+            if (stepIndex === 0 && input.id === 'id_confirm_password' && input.value.trim() !== '') {
+                let pwd = document.getElementById('id_password').value;
+                if (pwd !== input.value) {
+                    isValid = false;
+                    let errSpan = input.parentNode.querySelector('.text-danger.small');
+                    if (errSpan) errSpan.innerHTML = 'Passwords do not match.';
+                    input.classList.add('is-invalid');
+                }
+            }
+        }
+        return isValid;
+    }
+
+    function goToStep(step) {
+        if (step < 0 || step >= steps.length) return false;
+        if (step > currentStep) {
+            if (!validateStep(currentStep)) {
+                let firstInvalid = steps[currentStep].querySelector('.is-invalid');
+                if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
+            }
+        }
+        currentStep = step;
+        updateStepVisibility();
+        return true;
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (currentStep < steps.length - 1) {
+            goToStep(currentStep + 1);
+        }
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentStep > 0) {
+            goToStep(currentStep - 1);
+        }
+    });
+
+    const resellerForm = document.getElementById('resellerForm');
+    resellerForm.addEventListener('submit', (e) => {
+        let step0Valid = validateStep(0);
+        let step1Valid = validateStep(1);
+        let step2Valid = validateStep(2);
+
+        if (step0Valid && step1Valid && step2Valid) {
+            return true;
+        } else {
+            e.preventDefault();
+            if (!step0Valid) goToStep(0);
+            else if (!step1Valid) goToStep(1);
+            else if (!step2Valid) goToStep(2);
+
+            const nonFieldDiv = document.getElementById('nonFieldErrors');
+            if (nonFieldDiv) {
+                nonFieldDiv.classList.remove('d-none');
+                nonFieldDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please fill all required fields correctly before submitting.';
+                setTimeout(() => {
+                    nonFieldDiv.classList.add('d-none');
+                }, 3000);
+            }
+        }
+    });
+
+    updateStepVisibility();
+</script>
 {% endblock %}

@@ -3,214 +3,1279 @@
 
 {% block content %}
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 <style>
+    html {
+        scroll-behavior: smooth;
+    }
 
-body{
-font-family:'Inter',sans-serif;
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* HERO BACKGROUND - COMPLETELY UNTOUCHED */
+    .hero-bg {
+        background-image: url("{% static 'images/bg.avif' %}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        padding: 120px 0;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* floating shapes */
+    .hero-bg::before {
+        content: "";
+        position: absolute;
+        width: 700px;
+        height: 700px;
+        background: rgba(255, 255, 255, .06);
+        border-radius: 50%;
+        top: -200px;
+        right: -120px;
+    }
+
+    .hero-bg::after {
+        content: "";
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        background: rgba(255, 255, 255, .05);
+        border-radius: 50%;
+        bottom: -180px;
+        left: -120px;
+    }
+
+    /* CONTAINER */
+    .hero-container {
+        width: 1200px;
+        max-width: 94%;
+        margin: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 40px;
+    }
+
+    /* LEFT */
+    .hero-left {
+        max-width: 560px;
+    }
+
+    .hero-left h1 {
+        font-size: 44px;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 18px;
+    }
+
+    .hero-left p {
+        font-size: 16px;
+        opacity: .9;
+        margin-bottom: 28px;
+    }
+
+    /* BUTTONS */
+    .hero-btns {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #34D399, #10B981);
+        border: none;
+        padding: 13px 24px;
+        color: white;
+        font-size: 15px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 10px 25px rgba(16, 185, 129, .35);
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(16, 185, 129, .45);
+    }
+
+    .btn-secondary {
+        background: white;
+        color: #5b5bd6;
+        border: none;
+        padding: 13px 22px;
+        font-size: 15px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        transform: translateY(-2px);
+        background: #f8f9ff;
+    }
+
+    /* SMALL TEXT */
+    .hero-small {
+        margin-top: 22px;
+        font-size: 14px;
+        opacity: .85;
+    }
+
+    /* RIGHT IMAGE */
+    .hero-right img {
+        width: 520px;
+        max-width: 100%;
+        display: block;
+    }
+
+    /* RESPONSIVE */
+    @media(max-width:900px) {
+        .hero-container {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .hero-left {
+            max-width: 100%;
+        }
+
+        .hero-left h1 {
+            font-size: 32px;
+        }
+
+        .hero-btns {
+            justify-content: center;
+        }
+
+        .hero-right img {
+            width: 90%;
+            margin-top: 30px;
+        }
+    }
+
+    /* TRUSTED LINE - UNTOUCHED */
+    .trusted {
+        text-align: center;
+        padding: 25px 0;
+        font-size: 14px;
+        color: #666;
+        background: #f7f8fc;
+        border-top: 1px solid #eee;
+        border-bottom: 1px solid #eee;
+    }
+
+    .trusted span {
+        font-weight: 600;
+        color: #4f46e5;
+    }
+
+    /* ========== REDESIGNED HOW IT WORKS SECTION - PREMIUM ========== */
+    .how-works-premium {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        padding: 80px 0;
+    }
+
+    .premium-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+
+    .premium-header {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+
+    .premium-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(99, 102, 241, 0.1);
+        padding: 6px 18px;
+        border-radius: 60px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #6366f1;
+        margin-bottom: 20px;
+    }
+
+    .premium-header h2 {
+        font-size: 38px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 14px;
+        letter-spacing: -0.02em;
+    }
+
+    .premium-header h2 span {
+        background: linear-gradient(135deg, #10b981, #6366f1);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .premium-sub {
+        font-size: 16px;
+        color: #6b7280;
+        max-width: 550px;
+        margin: 0 auto;
+    }
+
+    /* Steps Grid */
+    .steps-grid-premium {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 28px;
+        margin-bottom: 60px;
+    }
+
+    .step-card-premium {
+        background: white;
+        border-radius: 28px;
+        padding: 40px 28px 35px;
+        text-align: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+        position: relative;
+        animation: fadeInUp 0.5s ease forwards;
+        opacity: 0;
+    }
+
+    .step-card-premium:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .step-card-premium:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .step-card-premium:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    .step-card-premium:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .step-card-premium:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.15);
+        border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    /* Subtle gradient border on hover */
+    .step-card-premium::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+
+        border-radius: 28px;
+        padding: 1px;
+        background: linear-gradient(135deg, transparent, rgba(99, 102, 241, 0.2), transparent);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .step-card-premium:hover::before {
+        opacity: 1;
+    }
+
+    .step-card-premium:hover .illustration-box img {
+        transform: scale(1.12);
+    }
+
+    .step-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(99, 102, 241, 0.1));
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        transition: all 0.3s;
+    }
+
+    .step-card-premium:hover .step-icon-wrapper {
+        background: linear-gradient(135deg, #10b981, #6366f1);
+    }
+
+    .step-card-premium:hover .step-icon-wrapper i {
+        color: white;
+    }
+
+    .step-icon-wrapper i {
+        font-size: 36px;
+        color: #10b981;
+        transition: all 0.3s;
+    }
+
+    .step-number {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+
+        padding: 6px 14px;
+        border-radius: 50px;
+
+        font-size: 12px;
+        font-weight: 700;
+
+        background: linear-gradient(135deg, #10b981, #6366f1);
+        color: white;
+
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+    }
+
+    .step-card-premium h3 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 10px;
+        letter-spacing: -0.01em;
+    }
+
+    .step-card-premium p {
+        font-size: 14px;
+        color: #6b7280;
+        line-height: 1.5;
+    }
+
+    .step-hint {
+        margin-top: 14px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #10b981;
+    }
+
+    /* Connector Dots */
+    .connector-dots {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin: -20px 0 50px;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        background: #cbd5e1;
+        border-radius: 50%;
+        transition: all 0.3s;
+    }
+
+    .dot.active {
+        background: linear-gradient(90deg, #10b981, #6366f1);
+        width: 28px;
+        border-radius: 10px;
+    }
+
+    /* Dual Cards */
+    .dual-cards {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+        margin: 50px 0 55px;
+    }
+
+    .info-card-premium {
+        background: white;
+        border-radius: 32px;
+        padding: 40px 36px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+        position: relative;
+        overflow: hidden;
+        animation: fadeInUp 0.5s ease forwards;
+        opacity: 0;
+        animation-delay: 0.5s;
+    }
+
+    .info-card-premium:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 25px 40px -12px rgba(99, 102, 241, 0.15);
+    }
+
+    .card-icon-bg {
+        position: absolute;
+        bottom: -30px;
+        right: -20px;
+        font-size: 100px;
+        opacity: 0.05;
+        pointer-events: none;
+    }
+
+    .info-card-premium h3 {
+        font-size: 28px;
+        font-weight: 800;
+        margin-bottom: 12px;
+    }
+
+    .reseller-title {
+        background: linear-gradient(135deg, #10b981, #34d399);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .wholeseller-title {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .card-subline {
+        font-size: 15px;
+        font-weight: 600;
+        color: #4b5563;
+        margin-bottom: 28px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid rgba(99, 102, 241, 0.15);
+        display: inline-block;
+    }
+
+    .feature-list-premium {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 32px 0;
+    }
+
+    .feature-list-premium li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+        font-size: 15px;
+        color: #4b5563;
+    }
+
+    .feature-list-premium li i {
+        width: 20px;
+        font-size: 16px;
+    }
+
+    .green-check {
+        color: #10b981;
+    }
+
+    .purple-check {
+        color: #6366f1;
+    }
+
+    .btn-reseller-premium {
+        background: linear-gradient(135deg, #10b981, #059669);
+        border: none;
+        padding: 14px 32px;
+        border-radius: 50px;
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-reseller-premium:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-wholeseller-premium {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        border: none;
+        padding: 14px 32px;
+        border-radius: 50px;
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-wholeseller-premium:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    /* Earnings Flow */
+    .earnings-flow-premium {
+        background: linear-gradient(135deg, #f8fafc, #ffffff);
+        border-radius: 32px;
+        padding: 48px 36px;
+        text-align: center;
+        margin: 45px 0 55px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid #e5e7eb;
+    }
+
+    .earnings-flow-premium h3 {
+        font-size: 30px;
+        font-weight: 800;
+        color: #1f2937;
+        margin-bottom: 30px;
+    }
+
+    .flow-steps-premium {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .flow-item-premium {
+        background: white;
+        padding: 14px 28px;
+        border-radius: 60px;
+        font-weight: 600;
+        font-size: 14px;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+    }
+
+    .flow-arrow-premium {
+        font-size: 20px;
+        color: #6366f1;
+        font-weight: 600;
+    }
+
+    .security-badges-premium {
+        margin-top: 32px;
+        display: flex;
+        justify-content: center;
+        gap: 28px;
+        flex-wrap: wrap;
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .security-badges-premium span {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .cta-premium {
+        background: linear-gradient(135deg, #0f172a, #1e293b, #312e81);
+        border-radius: 32px;
+        padding: 70px 50px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-premium::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+        background-size: 30px 30px;
+        opacity: 0.4;
+    }
+
+    .cta-premium::after {
+        content: "";
+        position: absolute;
+        width: 250px;
+        height: 250px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.4), transparent);
+        bottom: -80px;
+        right: -80px;
+    }
+
+    .cta-premium h2 {
+        font-size: 38px;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 30px;
+    }
+
+    .cta-buttons-premium {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 2;
+    }
+
+    .btn-cta-primary-premium {
+        background: linear-gradient(135deg, #22c55e, #10b981);
+        padding: 16px 42px;
+        border-radius: 60px;
+        font-weight: 700;
+        color: white;
+        box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: none;
+    }
+
+    .btn-cta-primary-premium:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 15px 35px rgba(16, 185, 129, 0.5);
+    }
+
+    .btn-cta-primary-premium {
+        position: relative;
+        z-index: 2;
+    }
+
+    .btn-cta-primary-premium::after {
+        content: "";
+        position: absolute;
+        inset: -6px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.4), transparent);
+        border-radius: 60px;
+        z-index: -1;
+    }
+
+    .btn-cta-secondary-premium {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        padding: 14px 40px;
+        border-radius: 60px;
+        font-weight: 600;
+        font-size: 15px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cta-secondary-premium:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.02);
+    }
+
+    /* AI Generated Image Style - Product Mockup */
+    .product-mockup {
+        background: linear-gradient(145deg, #f0fdf4, #eef2ff);
+        border-radius: 24px;
+        padding: 16px;
+        margin-top: 20px;
+    }
+
+    .product-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: white;
+        border-radius: 16px;
+        margin-bottom: 10px;
+    }
+
+    .product-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #10b981, #6366f1);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-icon i {
+        font-size: 24px;
+        color: white;
+    }
+
+    .product-details {
+        flex: 1;
+    }
+
+    .product-details h4 {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .product-details p {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .product-price {
+        font-weight: 700;
+        color: #10b981;
+    }
+
+    /* Illustration boxes - improved image sizing */
+    .illustration-box {
+        height: 140px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 18px;
+    }
+
+    .illustration-box img {
+        max-width: 140px;
+        max-height: 120px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        transition: 0.3s;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .steps-grid-premium {
+            gap: 20px;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .steps-grid-premium {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .dual-cards {
+            grid-template-columns: 1fr;
+            gap: 28px;
+        }
+
+        .premium-header h2 {
+            font-size: 30px;
+        }
+
+        .flow-steps-premium {
+            flex-direction: column;
+        }
+
+        .flow-arrow-premium {
+            transform: rotate(90deg);
+        }
+
+        .cta-premium h2 {
+            font-size: 26px;
+        }
+
+        .illustration-box {
+            height: 120px;
+        }
+
+        .illustration-box img {
+            max-width: 110px;
+            max-height: 100px;
+        }
+    }
+
+    @media (max-width: 550px) {
+        .steps-grid-premium {
+            grid-template-columns: 1fr;
+        }
+
+        .info-card-premium {
+            padding: 30px 24px;
+        }
+
+        .earnings-flow-premium {
+            padding: 36px 24px;
+        }
+
+        .cta-premium {
+            padding: 40px 24px;
+        }
+    }
+
+    /* Add gradient background like image */
+    .step-card-premium {
+        background: linear-gradient(145deg, #ffffff, #f1f5ff);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .step-card-premium::after {
+        content: "";
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.1), transparent);
+        bottom: -80px;
+        right: -80px;
+    }
+
+    body {
+        background: #f8fafc;
+    }
+
+    .new-card {
+        background: linear-gradient(180deg, #ffffff 0%, #eef2ff 100%);
+        border-radius: 24px;
+        padding: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* bottom curve like image */
+    .new-card::before {
+        content: "";
+        position: absolute;
+        bottom: -40px;
+        left: 0;
+        width: 100%;
+        height: 120px;
+        background: linear-gradient(135deg, #6366f1, #a5b4fc);
+        border-radius: 50% 50% 0 0;
+        opacity: 0.15;
+    }
+
+    .new-card:hover img {
+        transform: scale(1.08);
+    }
+
+    /* Premium Card Design */
+    .new-card {
+        background: linear-gradient(180deg, #ffffff 0%, #eef2ff 100%);
+        border-radius: 24px;
+        padding: 26px;
+        position: relative;
+        overflow: hidden;
+        transition: 0.3s;
+    }
+
+    /* bottom soft curve */
+    .new-card::before {
+        content: "";
+        position: absolute;
+        bottom: -50px;
+        left: 0;
+        width: 100%;
+        height: 130px;
+        background: linear-gradient(135deg, #6366f1, #a5b4fc);
+        border-radius: 50% 50% 0 0;
+        opacity: 0.15;
+    }
+
+    /* illustration */
+    .illustration-box {
+        height: 180px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .illustration-box img {
+        max-width: 200px;
+        max-height: 160px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        transition: 0.3s;
+    }
+
+    /* hover effect */
+    .new-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 30px rgba(99, 102, 241, 0.15);
+    }
+
+    .new-card:hover img {
+        transform: scale(1.08);
+    }
+
+    /* Glow background */
+    .info-card-premium {
+        background: linear-gradient(145deg, #ffffff, #f3f4ff);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .info-card-premium {
+        padding-right: 260px;
+    }
+
+    .info-card-premium::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to right,
+                rgba(255, 255, 255, 0.95) 45%,
+                rgba(255, 255, 255, 0.7) 65%,
+                rgba(255, 255, 255, 0.2) 85%,
+                transparent);
+        z-index: 1;
+    }
+
+    .info-card-premium * {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* soft purple glow */
+    .info-card-premium::after {
+        content: "";
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.15), transparent);
+        bottom: -60px;
+        right: -60px;
+    }
+
+    .card-illustration {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 320px;
+        opacity: 0.35;
+        /* light image */
+        filter: blur(1.5px);
+        /* soft blur */
+        pointer-events: none;
+    }
+
+    /* hover effect */
+    .info-card-premium:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px rgba(99, 102, 241, 0.12);
+    }
+
+    .card-illustration {
+        bottom: -10px;
+        right: -10px;
+        width: 280px;
+    }
+
+    .cta-premium {
+        animation: floatBg 6s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatBg {
+        0% {
+            transform: translateY(0px);
+        }
+
+        100% {
+            transform: translateY(-5px);
+        }
+    }
+
+    .cta-premium h2 {
+        font-size: 42px;
+        letter-spacing: -0.5px;
+    }
+
+    /* Focus states for accessibility */
+    .btn-primary:focus,
+    .btn-secondary:focus,
+    .btn-reseller-premium:focus,
+    .btn-wholeseller-premium:focus,
+    .btn-cta-primary-premium:focus,
+    .btn-cta-secondary-premium:focus {
+        outline: none;
+        ring: 2px solid #10b981;
+        ring-offset: 2px;
+    }
+
+
+    /* ================= FINAL RESPONSIVE FIX ================= */
+
+/* Tablet */
+@media (max-width: 1024px) {
+
+    .hero-left h1 {
+        font-size: 34px;
+    }
+
+    .steps-grid-premium {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .illustration-box img {
+        max-width: 140px;
+    }
 }
 
-/* HERO BACKGROUND */
+/* Mobile */
+@media (max-width: 768px) {
 
-.hero-bg{
+    /* HERO */
+    .hero-bg {
+        padding: 80px 0;
+    }
 
-background-image: url("{% static 'images/bg.avif' %}");
-background-size: cover;
-background-position: center;
-background-repeat: no-repeat;
+    .hero-left h1 {
+        font-size: 28px;
+    }
 
-padding:120px 0;
-color:white;
-position:relative;
-overflow:hidden;
+    .hero-left p {
+        font-size: 14px;
+    }
 
+    /* STEPS */
+    .steps-grid-premium {
+        grid-template-columns: 1fr;
+    }
+
+    .step-card-premium {
+        padding: 30px 20px;
+    }
+
+    .illustration-box {
+        height: 120px;
+    }
+
+    .illustration-box img {
+        max-width: 120px;
+    }
+
+    /* CARDS */
+    .info-card-premium {
+        padding: 28px 20px;
+        padding-right: 20px; /* remove extra space */
+    }
+
+    .card-illustration {
+        display: none; /* hide big background image */
+    }
+
+    /* FLOW */
+    .flow-item-premium {
+        font-size: 13px;
+        padding: 10px 18px;
+    }
+
+    /* CTA */
+    .cta-premium {
+        padding: 40px 20px;
+    }
+
+    .cta-premium h2 {
+        font-size: 24px;
+    }
 }
 
-/* floating shapes */
+/* Small Mobile */
+@media (max-width: 480px) {
 
-.hero-bg::before{
-content:"";
-position:absolute;
-width:700px;
-height:700px;
-background:rgba(255,255,255,.06);
-border-radius:50%;
-top:-200px;
-right:-120px;
+    .premium-header h2 {
+        font-size: 24px;
+    }
+
+    .premium-sub {
+        font-size: 13px;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+    }
+
+    .cta-buttons-premium button {
+        width: 100%;
+    }
 }
-
-.hero-bg::after{
-content:"";
-position:absolute;
-width:500px;
-height:500px;
-background:rgba(255,255,255,.05);
-border-radius:50%;
-bottom:-180px;
-left:-120px;
-}
-
-/* CONTAINER */
-
-.hero-container{
-width:1200px;
-max-width:94%;
-margin:auto;
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:40px;
-}
-
-/* LEFT */
-
-.hero-left{
-max-width:560px;
-}
-
-.hero-left h1{
-font-size:44px;
-font-weight:700;
-line-height:1.2;
-margin-bottom:18px;
-}
-
-.hero-left p{
-font-size:16px;
-opacity:.9;
-margin-bottom:28px;
-}
-
-/* BUTTONS */
-
-.hero-btns{
-display:flex;
-gap:14px;
-flex-wrap:wrap;
-}
-
-.btn-primary{
-background:linear-gradient(135deg,#34D399,#10B981);
-border:none;
-padding:13px 24px;
-color:white;
-font-size:15px;
-border-radius:8px;
-font-weight:600;
-cursor:pointer;
-box-shadow:0 10px 25px rgba(16,185,129,.35);
-}
-
-.btn-secondary{
-background:white;
-color:#5b5bd6;
-border:none;
-padding:13px 22px;
-font-size:15px;
-border-radius:8px;
-font-weight:600;
-cursor:pointer;
-}
-
-/* SMALL TEXT */
-
-.hero-small{
-margin-top:22px;
-font-size:14px;
-opacity:.85;
-}
-
-/* RIGHT IMAGE */
-
-.hero-right img{
-width:520px;
-max-width:100%;
-display:block;
-}
-
-/* RESPONSIVE */
-
-@media(max-width:900px){
-
-.hero-container{
-flex-direction:column;
-text-align:center;
-}
-
-.hero-left{
-max-width:100%;
-}
-
-.hero-left h1{
-font-size:32px;
-}
-
-.hero-btns{
-justify-content:center;
-}
-
-.hero-right img{
-width:90%;
-margin-top:30px;
-}
-
-}
-
 </style>
 
-
-
+<!-- ========== HERO SECTION - COMPLETELY UNTOUCHED ========== -->
 <div class="hero-bg">
-
-<div class="hero-container">
-
-<!-- LEFT TEXT -->
-
-<div class="hero-left">
-
-<h1>
-Start Your Online Business <br>
-Without Inventory
-</h1>
-
-<p>
-Create your store, add products in one click, and start earning — no stock, no risk.
-</p>
-
-<div class="hero-btns">
-
-<button class="btn-primary">
-Start Selling Now
-</button>
-
-<button class="btn-secondary">
-Become a Wholeseller
-</button>
-
+    <div class="hero-container">
+        <div class="hero-left">
+            <h1>
+                Start Your Online Business <br>
+                Without Inventory
+            </h1>
+            <p>
+                Create your store, add products in one click, and start earning — no stock, no risk.
+            </p>
+            <div class="hero-btns">
+                <button class="btn-primary">
+                    Start Selling Now
+                </button>
+                <button class="btn-secondary">
+                    Become a Wholeseller
+                </button>
+            </div>
+            <div class="hero-small">
+                No Investment • No Inventory • Weekly Payouts
+            </div>
+        </div>
+        <div class="hero-right">
+            <img src="{% static 'images/dashboard.png' %}" alt="Drapso seller dashboard preview" loading="lazy">
+        </div>
+    </div>
 </div>
 
-<div class="hero-small">
-
-No Investment • No Inventory • Weekly Payouts
-
+<!-- ========== TRUSTED SECTION - UNTOUCHED ========== -->
+<div class="trusted">
+    Trusted by Over <span>10,000+ Sellers</span> • Secure Payments Powered by <b>Razorpay</b>
 </div>
 
+<!-- ========== REDESIGNED HOW DRAPSO WORKS SECTION - PREMIUM ========== -->
+<div class="how-works-premium">
+    <div class="premium-container">
+
+        <!-- Header -->
+        <div class="premium-header">
+            <div class="premium-badge">
+                <i class="fas fa-magic"></i> SIMPLE 4-STEP PROCESS
+            </div>
+            <h2>How <span>Drapso</span> Works</h2>
+            <p class="premium-sub">Start your online business journey in minutes — no inventory, no hassle</p>
+        </div>
+
+        <!-- 4 Steps -->
+        <div class="steps-grid-premium">
+
+            <!-- Card 1 -->
+            <div class="step-card-premium new-card">
+                <div class="step-number">01</div>
+                <div class="illustration-box">
+                    <img src="{% static 'images/Sign up.png' %}" alt="Sign up illustration" loading="lazy">
+                </div>
+                <h3>Sign Up</h3>
+                <p>Create your account in seconds</p>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="step-card-premium new-card">
+                <div class="step-number">02</div>
+                <div class="illustration-box">
+                    <img src="https://api.backlinko.com/app/uploads/2024/11/ecommerce-website-design-featured-image.png"
+                        alt="Create store illustration" loading="lazy">
+                </div>
+                <h3>Create Store</h3>
+                <p>Launch your website instantly</p>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="step-card-premium new-card">
+                <div class="step-number">03</div>
+                <div class="illustration-box">
+                    <img src="https://d1zruf9db62p8s.cloudfront.net/2025/08/ecommerce-packaging.webp"
+                        alt="Add products illustration" loading="lazy">
+                </div>
+                <h3>Add Products</h3>
+                <p>Import products in one click</p>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="step-card-premium new-card">
+                <div class="step-number">04</div>
+                <div class="illustration-box">
+                    <img src="https://i.pinimg.com/736x/b0/0d/83/b00d83695b7517d67ced1c2ec7983ac8.jpg"
+                        alt="Start selling illustration" loading="lazy">
+                </div>
+                <h3>Start Selling</h3>
+                <p>Earn profits easily</p>
+            </div>
+        </div>
+
+        <!-- Connector Dots -->
+        <div class="connector-dots">
+            <div class="dot active"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+
+        <!-- Dual Cards - Reseller & Wholeseller -->
+        <div class="dual-cards">
+            <!-- Reseller Card -->
+            <div class="info-card-premium">
+                <h3 class="reseller-title">For Resellers</h3>
+                <div class="card-subline"><i class="fas fa-rocket"></i> Build Your Own Store in Minutes</div>
+                <ul class="feature-list-premium">
+                    <li><i class="fas fa-check-circle green-check"></i> <strong>Yourstorename.drapso.com</strong> —
+                        custom domain</li>
+                    <li><i class="fas fa-check-circle green-check"></i> Add products instantly from catalog</li>
+                    <li><i class="fas fa-check-circle green-check"></i> Set your own margin — keep 100% profits</li>
+                    <li><i class="fas fa-check-circle green-check"></i> No inventory needed — we handle everything</li>
+                </ul>
+                <button class="btn-reseller-premium"><i class="fas fa-store"></i> Create Your Store</button>
+                <img src="https://png.pngtree.com/png-clipart/20210530/original/pngtree-online-shopping-design-concept-people-are-on-e-commerce-via-smartphone-png-image_6337625.jpg"
+                    class="card-illustration" alt="Reseller illustration" loading="lazy">
+            </div>
+
+            <!-- Wholeseller Card -->
+            <div class="info-card-premium">
+                <h3 class="wholeseller-title">For Wholesellers</h3>
+                <div class="card-subline"><i class="fas fa-chart-simple"></i> Sell More Without Marketing</div>
+                <ul class="feature-list-premium">
+                    <li><i class="fas fa-check-circle purple-check"></i> Upload products easily in bulk</li>
+                    <li><i class="fas fa-check-circle purple-check"></i> Reach multiple resellers instantly</li>
+                    <li><i class="fas fa-check-circle purple-check"></i> Increase your sales volume by 3x</li>
+                    <li><i class="fas fa-check-circle purple-check"></i> Manage stock & orders seamlessly</li>
+                </ul>
+                <button class="btn-wholeseller-premium"><i class="fas fa-handshake"></i> Become a Supplier</button>
+                <img src="https://i.pinimg.com/736x/f1/c4/34/f1c4345a7497eefd640199a9c60bb2c3.jpg"
+                    class="card-illustration" alt="Wholeseller illustration" loading="lazy">
+            </div>
+        </div>
+
+        <!-- Earnings Flow -->
+        <div class="earnings-flow-premium">
+            <h3><i class="fas fa-coins"></i> Earnings Made Easy</h3>
+            <div class="flow-steps-premium">
+                <div class="flow-item-premium"><i class="fas fa-shopping-cart"></i> Customer Order</div>
+                <span class="flow-arrow-premium"><i class="fas fa-arrow-right"></i></span>
+                <div class="flow-item-premium"><i class="fas fa-credit-card"></i> Payment to Drapso</div>
+                <span class="flow-arrow-premium"><i class="fas fa-arrow-right"></i></span>
+                <div class="flow-item-premium"><i class="fas fa-check-double"></i> OTP Verified Delivery</div>
+                <span class="flow-arrow-premium"><i class="fas fa-arrow-right"></i></span>
+                <div class="flow-item-premium"><i class="fas fa-wallet"></i> Get Paid Weekly</div>
+            </div>
+            <div class="security-badges-premium">
+                <span><i class="fas fa-lock"></i> Secure Payments</span>
+                <span><i class="fas fa-mobile-alt"></i> OTP Delivery Confirmation</span>
+                <span><i class="fas fa-calendar-week"></i> Weekly Payouts</span>
+                <span><i class="fas fa-shield-alt"></i> 100% Protected</span>
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="cta-premium">
+            <h2>Ready to Start Your Online Business?</h2>
+            <div class="cta-buttons-premium">
+                <button class="btn-cta-primary-premium"><i class="fas fa-bolt"></i> Get Started Now</button>
+                <button class="btn-cta-secondary-premium"><i class="fas fa-users"></i> Join as a Wholeseller</button>
+            </div>
+        </div>
+
+    </div>
 </div>
-
-
-
-<!-- RIGHT IMAGE -->
-
-<div class="hero-right">
-
-<img src="{% static 'images/hero-mockup.png' %}" alt="dashboard">
-
-</div>
-
-</div>
-
-</div>
-
 
 {% endblock %}
