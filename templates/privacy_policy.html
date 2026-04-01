@@ -20,11 +20,7 @@ body {
 
 /* Hero Section with Parallax & Mesh Gradient */
 .hero-bg {
-    background: linear-gradient(135deg, rgba(17, 24, 39, 0.8), rgba(17, 24, 39, 0.4)), url("{% static 'images/bg.avif' %}");
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    height: 450px;
+  
     display: flex;
     align-items: center;
     justify-content: center;
@@ -32,15 +28,27 @@ body {
     position: relative;
     text-align: center;
 }
+.hero-bg{
 
+background-image: url("{% static 'images/bg.avif' %}");
+background-size: cover;
+background-position: center;
+background-repeat: no-repeat;
+
+padding:120px 0;
+color:white;
+position:relative;
+overflow:hidden;
+
+}
 .hero-content {
     z-index: 2;
 }
 
 .hero-title {
     font-family: 'Inter', sans-serif;
-    font-size: 56px;
-    font-weight: 800;
+    font-size: 40px;
+    font-weight: 600;
     letter-spacing: -1.5px;
     margin-bottom: 10px;
     text-shadow: 0 10px 20px rgba(0,0,0,0.2);
@@ -48,7 +56,7 @@ body {
 
 /* The "Floating" Card Design */
 .page-wrapper {
-    max-width: 1000px;
+    max-width: 1200px;
     margin: -100px auto 100px;
     padding: 0 20px;
     position: relative;
@@ -76,7 +84,7 @@ body {
 }
 
 .page h2 {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 800;
     color: var(--primary-dark);
     margin-top: 60px;

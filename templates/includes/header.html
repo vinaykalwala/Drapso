@@ -208,7 +208,7 @@ display:block;
 
 <!-- mobile only -->
 
-<a href="#" class="login-mobile">Login</a>
+<a href="{% url 'accounts:login' %}" class="login-mobile">Login</a>
 
 <button class="btn btn-mobile">
 Start Selling
@@ -221,7 +221,7 @@ Start Selling
 
 <div class="right">
 
-<a href="#" class="login">Login</a>
+<a href="{% url 'accounts:login' %}" class="login">Login</a>
 
 <button class="btn">Start Selling</button>
 

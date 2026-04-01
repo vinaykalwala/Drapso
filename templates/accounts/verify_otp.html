@@ -1,56 +1,499 @@
-
-{% block title %}Verify OTP{% endblock %}
-
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-5">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0"><i class="fas fa-envelope me-2"></i>Verify Your Email</h4>
-            </div>
-            <div class="card-body text-center">
-                <div class="mb-4">
-                    <i class="fas fa-envelope-open-text fa-4x text-primary"></i>
-                </div>
-                <p class="mb-3">We have sent a 6-digit OTP to your email address.</p>
-                <p class="text-muted small">Please check your inbox and enter the OTP below.</p>
-                
-                <form method="post" class="mt-4">
-                    {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.otp.id_for_label }}" class="form-label required-field">Enter OTP</label>
-                        {{ form.otp }}
-                        {% if form.otp.errors %}
-                            <div class="text-danger small">{{ form.otp.errors }}</div>
-                        {% endif %}
-                    </div>
+{% load static %}
 
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
+<!DOCTYPE html>
+<html lang="en">
 
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-check-circle me-2"></i>Verify OTP
-                        </button>
-                    </div>
-                </form>
+<head>
 
-                <div class="mt-4">
-                    <p class="mb-0">Didn't receive the OTP?</p>
-                    <form method="post" action="{% url 'accounts:resend_otp' %}" class="d-inline">
-                        {% csrf_token %}
-                        <input type="hidden" name="email" value="{{ request.session.pending_user_email }}">
-                        <button type="submit" class="btn btn-link">Resend OTP</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Email Verification</title>
+
+
+<style>
+
+/* reset */
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Inter, sans-serif;
+}
+
+
+/* page background */
+
+.verify-page{
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:32px;
+position:relative;
+background-image:url("{% static 'images/bg.avif' %}");
+background-size:cover;
+background-position:center;
+overflow:hidden;
+}
+
+
+/* texture icons */
+
+.verify-page::before{
+content:"";
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background-image:url("https://www.transparenttextures.com/patterns/cubes.png");
+opacity:.05;
+}
+
+
+/* bubbles */
+
+.bubble{
+position:absolute;
+border-radius:50%;
+z-index:1;
+}
+
+.b1{
+width:170px;
+height:170px;
+background:linear-gradient(135deg,#14b8a6,#0ea5e9);
+top:60px;
+left:60px;
+opacity:.35;
+}
+
+.b2{
+width:140px;
+height:140px;
+background:linear-gradient(135deg,#0ea5e9,#38bdf8);
+bottom:70px;
+left:110px;
+opacity:.3;
+}
+
+.b3{
+width:190px;
+height:190px;
+background:linear-gradient(135deg,#14b8a6,#38bdf8);
+top:80px;
+right:70px;
+opacity:.28;
+}
+
+.b4{
+width:150px;
+height:150px;
+background:linear-gradient(135deg,#0ea5e9,#14b8a6);
+bottom:90px;
+right:110px;
+opacity:.35;
+}
+
+
+/* main card */
+
+.verify-container{
+width:100%;
+max-width:1050px;
+display:grid;
+grid-template-columns:1.1fr .9fr;
+background:white;
+border-radius:22px;
+overflow:hidden;
+box-shadow:0 30px 70px rgba(0,0,0,.12);
+position:relative;
+z-index:2;
+}
+
+
+/* LEFT SIDE */
+
+.verify-left{
+padding:48px 55px 40px 55px;
+display:flex;
+flex-direction:column;
+justify-content:center;
+gap:16px;
+border-right:1px solid #e5e7eb;
+}
+
+.verify-left h1{
+font-size:32px;
+color:#0f172a;
+font-weight:600;
+}
+
+.verify-left p{
+font-size:15px;
+color:#475569;
+line-height:1.6;
+max-width:420px;
+}
+
+
+/* illustration */
+
+.verify-left img{
+width:100%;
+max-width:400px;
+margin-top:6px;
+max-height: 200px;
+}
+
+
+/* RIGHT SIDE */
+
+.verify-right{
+padding:40px 50px;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+
+/* form wrapper */
+
+.verify-form{
+width:100%;
+max-width:400px;
+}
+
+
+/* header */
+
+.verify-header{
+display:flex;
+align-items:center;
+gap:12px;
+margin-bottom:10px;
+}
+
+
+/* icon */
+
+.verify-icon{
+width:48px;
+height:48px;
+border-radius:12px;
+background:linear-gradient(135deg,#14b8a6,#0ea5e9);
+display:flex;
+align-items:center;
+justify-content:center;
+color:white;
+font-size:20px;
+box-shadow:0 8px 18px rgba(14,165,233,.35);
+}
+
+
+/* title */
+
+.verify-title{
+font-size:20px;
+font-weight:600;
+color:#0f172a;
+}
+
+
+/* subtitle */
+
+.verify-sub{
+font-size:14px;
+color:#64748b;
+margin-bottom:22px;
+}
+
+
+/* otp input */
+
+.verify-field{
+margin-bottom:16px;
+}
+
+.verify-field input{
+width:100%;
+padding:16px;
+border-radius:14px;
+border:1px solid #e2e8f0;
+background:#f8fafc;
+font-size:20px;
+letter-spacing:8px;
+text-align:center;
+transition:.2s;
+}
+
+.verify-field input:focus{
+outline:none;
+border-color:#0ea5e9;
+background:white;
+box-shadow:0 0 0 3px rgba(14,165,233,.15);
+}
+
+
+/* button */
+
+.verify-btn{
+width:100%;
+padding:15px;
+border:none;
+border-radius:14px;
+font-weight:600;
+font-size:15px;
+background:linear-gradient(135deg,#14b8a6,#0ea5e9);
+color:white;
+cursor:pointer;
+transition:.25s;
+}
+
+.verify-btn:hover{
+transform:translateY(-2px);
+box-shadow:0 12px 25px rgba(14,165,233,.35);
+}
+
+
+/* resend */
+
+.resend{
+margin-top:16px;
+font-size:13px;
+color:#64748b;
+}
+
+.resend button{
+border:none;
+background:none;
+color:#0ea5e9;
+font-weight:600;
+cursor:pointer;
+margin-top:4px;
+}
+
+
+/* error */
+
+.verify-error{
+color:#dc2626;
+font-size:12px;
+margin-top:5px;
+}
+
+
+/* tablet */
+
+@media(max-width:900px){
+
+.verify-container{
+grid-template-columns:1fr;
+max-width:520px;
+}
+
+.verify-left{
+border-right:none;
+border-bottom:1px solid #e5e7eb;
+text-align:center;
+align-items:center;
+padding:35px 30px 25px 30px;
+}
+
+.verify-left img{
+max-width:220px;
+}
+
+.verify-right{
+padding:30px;
+}
+
+.verify-header{
+justify-content:center;
+}
+
+.verify-sub{
+text-align:center;
+}
+
+}
+
+
+/* small mobile */
+
+@media(max-width:360px){
+
+.verify-page{
+padding:18px;
+}
+
+.verify-left h1{
+font-size:24px;
+}
+
+.verify-field input{
+font-size:18px;
+letter-spacing:6px;
+padding:14px;
+}
+
+.verify-btn{
+padding:13px;
+font-size:14px;
+}
+
+}
+
+</style>
+
+</head>
+
+
+
+<body>
+
+
+<div class="verify-page">
+
+
+<!-- bubbles -->
+
+<div class="bubble b1"></div>
+<div class="bubble b2"></div>
+<div class="bubble b3"></div>
+<div class="bubble b4"></div>
+
+
+
+<div class="verify-container">
+
+
+<!-- LEFT CONTENT -->
+
+<div class="verify-left">
+
+<h1>
+Email Verification
+</h1>
+
+<p>
+Enter the one-time password sent to your email to securely continue creating your account.
+</p>
+
+
+<img src="{% static 'images/otp.png' %}" alt="otp illustration">
+
 </div>
+
+
+
+<!-- RIGHT CONTENT -->
+
+<div class="verify-right">
+
+<div class="verify-form">
+
+
+<div class="verify-header">
+
+<div class="verify-icon">
+✉
+</div>
+
+
+<div class="verify-title">
+Verify OTP
+</div>
+
+</div>
+
+
+
+<div class="verify-sub">
+Enter the 6-digit code
+</div>
+
+
+
+<form method="post">
+
+{% csrf_token %}
+
+
+<div class="verify-field">
+
+{{ form.otp }}
+
+{% if form.otp.errors %}
+
+<div class="verify-error">
+{{ form.otp.errors }}
+</div>
+
+{% endif %}
+
+</div>
+
+
+
+{% if form.non_field_errors %}
+
+<div class="verify-error">
+
+{% for error in form.non_field_errors %}
+{{ error }}
+{% endfor %}
+
+</div>
+
+{% endif %}
+
+
+
+<button type="submit" class="verify-btn">
+Verify OTP
+</button>
+
+
+</form>
+
+
+
+<div class="resend">
+
+Didn't receive code?
+
+<form method="post" action="{% url 'accounts:resend_otp' %}">
+
+{% csrf_token %}
+
+<input type="hidden" name="email" value="{{ request.session.pending_user_email }}">
+
+<button type="submit">
+Resend OTP
+</button>
+
+</form>
+
+</div>
+
+
+</div>
+
+</div>
+
+
+
+</div>
+
+</div>
+
+
+</body>
+
+</html>
+
 {% endblock %}
