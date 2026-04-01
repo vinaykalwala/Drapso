@@ -1,29 +1,862 @@
 {% extends "dashboard_base.html" %}
+{% load static %}
 {% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #eef2ff, #f8fafc);
+        padding: clamp(10px, 3vw, 20px);
+        min-height: 100vh;
+    }
+
+    /* Main Container - Fluid Width */
+    .messages-container {
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        animation: fadeInUp 0.5s ease;
+        padding: 0 clamp(12px, 2vw, 24px);
+    }
+
+    /* Header Section */
+    .messages-header {
+        margin-bottom: clamp(24px, 5vw, 32px);
+    }
+
+    .header-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: clamp(6px, 2vw, 10px);
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        padding: clamp(6px, 2vw, 8px) clamp(16px, 3vw, 20px);
+        border-radius: 60px;
+        font-size: clamp(11px, 3vw, 13px);
+        font-weight: 600;
+        color: #667eea;
+        margin-bottom: clamp(16px, 4vw, 20px);
+        backdrop-filter: blur(4px);
+    }
+
+    .header-badge i {
+        font-size: clamp(12px, 3vw, 14px);
+    }
+
+    /* Title Row */
+    .title-row {
+        margin-bottom: clamp(20px, 4vw, 28px);
+    }
+
+    .messages-header h2 {
+        font-size: clamp(28px, 6vw, 36px);
+        font-weight: 800;
+        background: linear-gradient(135deg, #1f2937, #4b5563);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+        margin: 0;
+    }
+
+    .messages-header h2 span {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    /* Stats and Search Row - Same Line */
+    .stats-search-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: clamp(24px, 5vw, 32px);
+    }
+
+    /* Stats Cards Container */
+    .stats-container {
+        display: flex;
+        gap: clamp(12px, 3vw, 24px);
+        flex-wrap: wrap;
+        flex: 1;
+    }
+
+    .stat-card {
+        background: white;
+        padding: clamp(12px, 2.5vw, 16px) clamp(20px, 4vw, 28px);
+        border-radius: clamp(16px, 3vw, 20px);
+        display: flex;
+        align-items: center;
+        gap: clamp(12px, 2.5vw, 16px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+        min-width: clamp(140px, 25vw, 180px);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(102, 126, 234, 0.12);
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    .stat-card i {
+        font-size: clamp(28px, 6vw, 36px);
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .stat-info h4 {
+        font-size: clamp(22px, 5vw, 28px);
+        font-weight: 800;
+        color: #1f2937;
+        line-height: 1;
+    }
+
+    .stat-info p {
+        font-size: clamp(12px, 3vw, 13px);
+        color: #6b7280;
+        margin-top: 6px;
+        font-weight: 500;
+    }
+
+    /* Search Bar - Inline with Stats */
+    .search-bar-inline {
+        flex: 0 0 auto;
+        min-width: 480px;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .search-input-wrapper i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .search-input-wrapper input {
+        width: 100%;
+        padding: 12px 16px 12px 44px;
+        border: 2px solid #e5e7eb;
+        border-radius: 14px;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .search-input-wrapper input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        background: white;
+    }
+
+    .search-input-wrapper input::placeholder {
+        color: #9ca3af;
+    }
+
+    /* Active Search Chip */
+    .active-search-chip {
+        background: white;
+        border-radius: clamp(12px, 3vw, 16px);
+        padding: clamp(8px, 2vw, 10px) clamp(16px, 3vw, 20px);
+        margin-bottom: clamp(16px, 3vw, 20px);
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        border: 1px solid #e5e7eb;
+    }
+
+    .filter-chip {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        padding: 8px 16px;
+        border-radius: 30px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #667eea;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-chip i {
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .filter-chip i:hover {
+        color: #ef4444;
+        transform: scale(1.1);
+    }
+
+    /* Table Container */
+    .table-container {
+        background: white;
+        border-radius: clamp(16px, 4vw, 24px);
+        overflow-x: auto;
+        overflow-y: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .messages-table {
+        width: 100%;
+        min-width: 600px;
+        border-collapse: collapse;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .messages-table thead {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .messages-table th {
+        padding: clamp(14px, 3vw, 18px) clamp(16px, 3vw, 24px);
+        text-align: left;
+        font-weight: 600;
+        font-size: clamp(13px, 3vw, 14px);
+        color: #4b5563;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+
+    .messages-table th i {
+        margin-right: 10px;
+        color: #667eea;
+        font-size: 14px;
+    }
+
+    .messages-table td {
+        padding: clamp(14px, 3vw, 18px) clamp(16px, 3vw, 24px);
+        border-bottom: 1px solid #f0f0f0;
+        font-size: clamp(13px, 3vw, 14px);
+        color: #374151;
+        vertical-align: middle;
+    }
+
+    .messages-table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .messages-table tbody tr:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.03), rgba(118, 75, 162, 0.03));
+        cursor: pointer;
+    }
+
+    /* Mobile Card View */
+    @media (max-width: 640px) {
+        .messages-table {
+            min-width: 100%;
+        }
+        
+        .messages-table thead {
+            display: none;
+        }
+        
+        .messages-table tbody tr {
+            display: block;
+            margin-bottom: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            background: white;
+            padding: 16px;
+        }
+        
+        .messages-table tbody tr:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.1);
+        }
+        
+        .messages-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: right;
+            gap: 12px;
+        }
+        
+        .messages-table td:last-child {
+            border-bottom: none;
+        }
+        
+        .messages-table td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #4b5563;
+            text-align: left;
+            flex: 1;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .action-buttons {
+            justify-content: flex-end;
+            flex-direction: row;
+        }
+        
+        .btn-view, .btn-delete {
+            padding: 8px 16px;
+        }
+    }
+
+    /* Subject Badges */
+    .subject-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: clamp(12px, 3vw, 13px);
+        font-weight: 600;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.12), rgba(118, 75, 162, 0.12));
+        color: #667eea;
+    }
+
+    .subject-badge i {
+        font-size: 12px;
+    }
+
+    /* Email Link */
+    .email-link {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        word-break: break-all;
+    }
+
+    .email-link:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: clamp(8px, 2vw, 12px);
+        flex-wrap: wrap;
+    }
+
+    .btn-view {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        padding: clamp(8px, 2vw, 10px) clamp(16px, 3vw, 20px);
+        border-radius: 10px;
+        color: white;
+        font-size: clamp(12px, 3vw, 13px);
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-view:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-delete {
+        background: white;
+        border: 1px solid #fee2e2;
+        padding: clamp(8px, 2vw, 10px) clamp(16px, 3vw, 20px);
+        border-radius: 10px;
+        color: #ef4444;
+        font-size: clamp(12px, 3vw, 13px);
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-delete:hover {
+        background: #fee2e2;
+        transform: translateY(-2px);
+        border-color: #ef4444;
+    }
+
+    /* Date Styling */
+    .date-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .date-main {
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .date-time {
+        font-size: clamp(11px, 2.5vw, 12px);
+        color: #9ca3af;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: clamp(50px, 12vw, 80px) clamp(20px, 5vw, 20px);
+    }
+
+    .empty-state i {
+        font-size: clamp(56px, 12vw, 80px);
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: clamp(20px, 5vw, 24px);
+    }
+
+    .empty-state h3 {
+        font-size: clamp(20px, 5vw, 24px);
+        color: #1f2937;
+        margin-bottom: 12px;
+        font-weight: 700;
+    }
+
+    .empty-state p {
+        color: #6b7280;
+        font-size: clamp(14px, 3.5vw, 15px);
+    }
+
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: clamp(8px, 2vw, 12px);
+        padding: clamp(20px, 4vw, 28px);
+        border-top: 1px solid #e5e7eb;
+        background: white;
+        flex-wrap: wrap;
+    }
+
+    .pagination-btn {
+        padding: clamp(8px, 2vw, 10px) clamp(14px, 3vw, 20px);
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        font-family: 'Inter', sans-serif;
+        font-size: clamp(13px, 3vw, 14px);
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-color: transparent;
+        transform: translateY(-2px);
+    }
+
+    .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .page-numbers {
+        display: flex;
+        gap: clamp(6px, 1.5vw, 10px);
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .page-number {
+        min-width: clamp(36px, 8vw, 40px);
+        height: clamp(36px, 8vw, 40px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        font-family: 'Inter', sans-serif;
+        font-size: clamp(13px, 3vw, 14px);
+    }
+
+    .page-number.active {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .page-number:hover:not(.active) {
+        background: #f3f4f6;
+        transform: translateY(-2px);
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #764ba2;
+    }
+
+    /* Touch-friendly improvements */
+    @media (hover: none) and (pointer: coarse) {
+        .btn-view, .btn-delete, .pagination-btn, .page-number {
+            min-height: 44px;
+            min-width: 44px;
+        }
+        
+        .search-input-wrapper input {
+            min-height: 48px;
+        }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .stats-search-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .search-bar-inline {
+            width: 100%;
+        }
+        
+        .messages-header h2 {
+            text-align: center;
+        }
+        
+        .stats-container {
+            width: 100%;
+        }
+        
+        .stat-card {
+            flex: 1;
+        }
+    }
+
+    /* Landscape mode optimization */
+    @media (max-width: 900px) and (orientation: landscape) {
+        body {
+            padding: 10px;
+        }
+        
+        .messages-container {
+            padding: 0 12px;
+        }
+        
+        .stats-search-row {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+        
+        .search-bar-inline {
+            flex: 1;
+        }
+    }
+</style>
+
 <div class="content">
-<h2>Contact Messages</h2>
+<div class="messages-container">
+    <!-- Header Section -->
+    <div class="messages-header">
+        
+        <!-- Badge and Title -->
+        <div class="title-row">
+            <h2>Contact <span>Messages</span></h2>
+        </div>
+        
+        <!-- Stats and Search Bar in Same Row -->
+        <div class="stats-search-row">
+            <div class="stats-container">
+                <div class="stat-card">
+                    <i class="fas fa-inbox"></i>
+                    <div class="stat-info">
+                        <h4>{{ contacts|length }}</h4>
+                        <p>Total Messages</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Search Bar - Inline with Stats -->
+            <div class="search-bar-inline">
+                <div class="search-input-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search messages by name, email or subject...">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Active Search Chip -->
+        <div class="active-search-chip" id="activeSearchChip">
+            <div class="filter-chip">
+                <i class="fas fa-search"></i> Searching: <strong id="searchTermDisplay"></strong>
+                <i class="fas fa-times" onclick="clearSearch()" style="cursor: pointer;"></i>
+            </div>
+        </div>
+    </div>
 
-<table border="1">
-    <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Subject</th>
-        <th>Date</th>
-        <th>Action</th>
-    </tr>
+    <!-- Table Container -->
+    <div class="table-container">
+        <table class="messages-table" id="messagesTable">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-user"></i> Name</th>
+                    <th><i class="fas fa-envelope"></i> Email</th>
+                    <th><i class="fas fa-tag"></i> Subject</th>
+                    <th><i class="fas fa-calendar"></i> Date</th>
+                    <th><i class="fas fa-cog"></i> Action</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                {% for contact in contacts %}
+                <tr>
+                    <td data-label="Name">
+                        <strong style="color: #1f2937;">{{ contact.name }}</strong>
+                    </td>
+                    <td data-label="Email">
+                        <a href="mailto:{{ contact.email }}" class="email-link">
+                            <i class="fas fa-envelope"></i> {{ contact.email }}
+                        </a>
+                    </td>
+                    <td data-label="Subject">
+                        <span class="subject-badge">
+                            <i class="fas fa-comment"></i>
+                            {{ contact.subject|default:"General" }}
+                        </span>
+                    </td>
+                    <td data-label="Date">
+                        <div class="date-info">
+                            <span class="date-main">{{ contact.created_at|date:"M d, Y" }}</span>
+                            <span class="date-time">{{ contact.created_at|time:"g:i A" }}</span>
+                        </div>
+                    </td>
+                    <td data-label="Action">
+                        <div class="action-buttons">
+                            <a href="{% url 'contact_detail' contact.id %}" class="btn-view">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            <a href="{% url 'contact_delete' contact.id %}" class="btn-delete" 
+                               onclick="return confirm('Are you sure you want to delete this message? This action cannot be undone.')">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h3>No Messages Yet</h3>
+                            <p>When customers contact you, their messages will appear here</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-    {% for contact in contacts %}
-    <tr>
-        <td>{{ contact.name }}</td>
-        <td>{{ contact.email }}</td>
-        <td>{{ contact.subject }}</td>
-        <td>{{ contact.created_at }}</td>
-        <td>
-            <a href="{% url 'contact_detail' contact.id %}">View</a> |
-            <a href="{% url 'contact_delete' contact.id %}">Delete</a>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+        <!-- Pagination -->
+        {% if contacts.has_other_pages %}
+        <div class="pagination">
+            {% if contacts.has_previous %}
+            <button class="pagination-btn" onclick="goToPage({{ contacts.previous_page_number }})">
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            {% else %}
+            <button class="pagination-btn" disabled>
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            {% endif %}
+
+            <div class="page-numbers">
+                {% for i in contacts.paginator.page_range %}
+                    {% if contacts.number == i %}
+                    <div class="page-number active">{{ i }}</div>
+                    {% else %}
+                    <div class="page-number" onclick="goToPage({{ i }})">{{ i }}</div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% if contacts.has_next %}
+            <button class="pagination-btn" onclick="goToPage({{ contacts.next_page_number }})">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+            {% else %}
+            <button class="pagination-btn" disabled>
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
 </div>
+</div>
+
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const activeSearchChip = document.getElementById('activeSearchChip');
+    const searchTermDisplay = document.getElementById('searchTermDisplay');
+
+    // Search functionality
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            filterTable();
+            updateActiveSearchChip();
+        });
+    }
+
+    function filterTable() {
+        const searchValue = searchInput ? searchInput.value.toLowerCase() : '';
+        
+        const rows = document.querySelectorAll('#tableBody tr');
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            if (row.querySelector('.empty-state')) return;
+            
+            const cells = row.querySelectorAll('td');
+            if (cells.length === 0) return;
+            
+            const name = cells[0]?.innerText.toLowerCase() || '';
+            const email = cells[1]?.innerText.toLowerCase() || '';
+            const subject = cells[2]?.innerText.toLowerCase() || '';
+            
+            let showRow = true;
+            
+            // Search filter
+            if (searchValue && !name.includes(searchValue) && !email.includes(searchValue) && !subject.includes(searchValue)) {
+                showRow = false;
+            }
+            
+            row.style.display = showRow ? '' : 'none';
+            if (showRow) visibleCount++;
+        });
+        
+        // Show empty state if no results
+        const existingEmptyRow = document.querySelector('#tableBody tr td .empty-state')?.closest('tr');
+        if (visibleCount === 0 && rows.length > 0 && !existingEmptyRow && searchValue) {
+            const emptyRow = document.createElement('tr');
+            emptyRow.innerHTML = `
+                <td colspan="5">
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>No matching messages</h3>
+                        <p>No results found for "${searchValue}"</p>
+                    </div>
+                </td>
+            `;
+            document.getElementById('tableBody').appendChild(emptyRow);
+        } else if ((visibleCount > 0 || !searchValue) && existingEmptyRow) {
+            existingEmptyRow.remove();
+        }
+    }
+
+    function updateActiveSearchChip() {
+        const searchValue = searchInput ? searchInput.value.trim() : '';
+        
+        if (searchValue) {
+            searchTermDisplay.textContent = searchValue;
+            activeSearchChip.style.display = 'flex';
+        } else {
+            activeSearchChip.style.display = 'none';
+        }
+    }
+
+    function clearSearch() {
+        if (searchInput) {
+            searchInput.value = '';
+            filterTable();
+            updateActiveSearchChip();
+        }
+    }
+
+    function goToPage(pageNumber) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', pageNumber);
+        window.location.href = url.toString();
+    }
+
+    // Debounce function for better performance
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Apply debounce to search
+    if (searchInput) {
+        searchInput.addEventListener('keyup', debounce(() => filterTable(), 300));
+    }
+    
+    // Initialize
+    updateActiveSearchChip();
+</script>
+
 {% endblock %}
