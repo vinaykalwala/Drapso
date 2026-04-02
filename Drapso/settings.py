@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'general',
     'accounts',
+    'wholesellers',
 ]
 
 MIDDLEWARE = [
@@ -153,3 +154,6 @@ CACHES = {
         "LOCATION": "otp-rate-limit",
     }
 }
+
+
+SITE_URL = 'http://localhost:8000' 

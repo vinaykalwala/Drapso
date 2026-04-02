@@ -1,159 +1,522 @@
-
-{% block title %}Add Bank Account{% endblock %}
+{% extends "dashboard_base.html" %}
+{% load static %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-plus me-2"></i>Add Bank Account
-                        <a href="{% url 'accounts:bank_accounts' %}" class="btn btn-light btn-sm float-end">
-                            <i class="fas fa-arrow-left me-1"></i>Back
-                        </a>
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        After adding, you'll need to verify your bank account with OTP sent to your email.
-                    </div>
-                    
-                    <form method="post" novalidate>
-                        {% csrf_token %}
-                        
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label for="{{ form.account_holder_name.id_for_label }}" class="form-label">Account Holder Name *</label>
-                                {{ form.account_holder_name }}
-                                {% if form.account_holder_name.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.account_holder_name.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.account_number.id_for_label }}" class="form-label">Account Number *</label>
-                                {{ form.account_number }}
-                                {% if form.account_number.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.account_number.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <small class="text-muted">Enter 9-18 digit account number</small>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.confirm_account_number.id_for_label }}" class="form-label">Confirm Account Number *</label>
-                                {{ form.confirm_account_number }}
-                                {% if form.confirm_account_number.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.confirm_account_number.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.bank_name.id_for_label }}" class="form-label">Bank Name *</label>
-                                {{ form.bank_name }}
-                                {% if form.bank_name.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.bank_name.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.ifsc_code.id_for_label }}" class="form-label">IFSC Code *</label>
-                                {{ form.ifsc_code }}
-                                {% if form.ifsc_code.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.ifsc_code.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <small class="text-muted">11 character IFSC code (e.g., SBIN0001234)</small>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.branch_name.id_for_label }}" class="form-label">Branch Name *</label>
-                                {{ form.branch_name }}
-                                {% if form.branch_name.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.branch_name.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.account_type.id_for_label }}" class="form-label">Account Type *</label>
-                                {{ form.account_type }}
-                                {% if form.account_type.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.account_type.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-12 mb-3">
-                                <label for="{{ form.upi_id.id_for_label }}" class="form-label">UPI ID (Optional)</label>
-                                {{ form.upi_id }}
-                                {% if form.upi_id.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.upi_id.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <small class="text-muted">e.g., username@okhdfcbank</small>
-                            </div>
-                            
-                            <div class="col-md-12 mb-3">
-                                <div class="form-check">
-                                    {{ form.is_primary }}
-                                    <label class="form-check-label" for="{{ form.is_primary.id_for_label }}">
-                                        Set as primary account
-                                    </label>
-                                </div>
-                                <small class="text-muted">Primary account will be used for settlements by default</small>
-                            </div>
-                        </div>
-                        
-                        <div class="text-center mt-3">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-save me-2"></i>Add Bank Account
-                            </button>
-                            <a href="{% url 'accounts:bank_accounts' %}" class="btn btn-secondary btn-lg">
-                                <i class="fas fa-times me-2"></i>Cancel
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+
+<style>
+
+/* container */
+
+.page-container{
+max-width:1000px;
+margin:auto;
+padding:40px 20px;
+}
+
+/* HERO */
+
+.hero-section{
+background-image:url("{% static 'images/bg.avif' %}");
+background-size:cover;
+background-position:center;
+padding:10px 50px;
+position:relative;
+overflow:hidden;
+
+/* radius only top */
+border-radius:26px 26px 0 0;
+}
+
+/* overlay */
+
+.hero-section::before{
+content:"";
+position:absolute;
+top:0;
+left:0;
+right:0;
+bottom:0;
+background:linear-gradient(
+120deg,
+rgba(15,23,42,.25),
+rgba(79,70,229,.0)
+);
+}
+
+/* hero layout */
+
+.hero-inner{
+position:relative;
+z-index:2;
+display:grid;
+grid-template-columns:1.1fr .9fr;
+align-items:center;
+gap:40px;
+}
+
+/* hero text */
+
+.hero-text{
+color:white;
+}
+
+.hero-text h1{
+font-size:32px;
+font-weight:700;
+margin-bottom:14px;
+}
+
+.hero-text p{
+font-size:15px;
+opacity:.95;
+line-height:1.6;
+margin-bottom:20px;
+max-width:420px;
+}
+
+/* back button */
+
+.hero-back{
+display:inline-block;
+background:white;
+color:#4f46e5;
+padding:10px 18px;
+border-radius:12px;
+font-weight:600;
+text-decoration:none;
+font-size:14px;
+}
+
+/* image */
+
+.hero-image img{
+width:100%;
+max-width:270px;
+display:block;
+margin-left:auto;
+}
+
+/* FORM */
+
+.form-wrapper{
+background:white;
+padding:38px 42px;
+border:1px solid #eef2ff;
+box-shadow:
+0 20px 40px rgba(0,0,0,0.04),
+0 4px 10px rgba(0,0,0,0.03);
+
+/* radius only bottom */
+border-radius:0 0 26px 26px;
+}
+
+/* info */
+
+.info-box{
+background:#f0f9ff;
+border:1px solid #bae6fd;
+padding:14px 18px;
+border-radius:14px;
+margin-bottom:25px;
+color:#0369a1;
+font-size:14px;
+}
+
+/* grid */
+
+.form-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:22px;
+}
+
+.full{
+grid-column:1/-1;
+}
+
+/* labels */
+
+label{
+font-size:13px;
+font-weight:600;
+color:#334155;
+margin-bottom:6px;
+display:block;
+}
+
+.required{
+color:#dc2626;
+}
+
+/* inputs */
+
+input,select{
+width:100%;
+padding:13px 14px;
+border-radius:14px;
+border:1px solid #e2e8f0;
+font-size:14px;
+background:#f8fafc;
+transition:.2s;
+}
+
+input:focus,select:focus{
+outline:none;
+border-color:#4f46e5;
+background:white;
+box-shadow:0 0 0 3px rgba(79,70,229,.08);
+}
+
+/* checkbox FIXED ALIGNMENT */
+
+.checkbox-box{
+display:flex;
+align-items:flex-start;
+gap:10px;
+padding:14px 16px;
+border-radius:14px;
+border:1px solid #e2e8f0;
+background:#f8fafc;
+}
+
+.checkbox-box input{
+margin-top:3px;
+width:16px;
+height:16px;
+}
+
+.checkbox-text{
+font-size:14px;
+color:#334155;
+}
+
+/* errors */
+
+.error{
+font-size:12px;
+color:#dc2626;
+margin-top:4px;
+}
+
+.help-text{
+font-size:12px;
+color:#64748b;
+margin-top:4px;
+}
+
+/* buttons */
+
+.actions{
+margin-top:32px;
+display:flex;
+justify-content:center;
+gap:16px;
+}
+
+.primary-btn{
+background:linear-gradient(135deg,#4f46e5,#6366f1);
+border:none;
+color:white;
+padding:14px 34px;
+font-size:15px;
+font-weight:600;
+border-radius:14px;
+cursor:pointer;
+}
+
+.cancel-btn{
+background:white;
+border:1px solid #e2e8f0;
+color:#334155;
+padding:14px 26px;
+font-size:15px;
+font-weight:600;
+border-radius:14px;
+text-decoration:none;
+}
+
+/* responsive */
+
+@media(max-width:768px){
+
+.hero-inner{
+grid-template-columns:1fr;
+text-align:center;
+}
+
+.hero-image img{
+margin:auto;
+margin-top:20px;
+}
+
+.form-grid{
+grid-template-columns:1fr;
+}
+
+.hero-text h1{
+font-size:24px;
+}
+
+}
+
+body{
+background:#f8fafc;
+}
+
+</style>
+
+<div class="content">
+
+<div class="page-container">
+
+
+<!-- HERO -->
+
+<div class="hero-section">
+
+<div class="hero-inner">
+
+<div class="hero-text">
+
+<h1>Add Bank Account</h1>
+
+<p>
+
+Add your bank details securely to receive settlements safely.
+Your information is encrypted and protected.
+
+</p>
+
+<a href="{% url 'accounts:bank_accounts' %}" class="hero-back">
+
+Back to accounts
+
+</a>
+
+</div>
+
+
+<div class="hero-image">
+
+<img src="{% static 'images/bank.png' %}">
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- FORM -->
+
+<div class="form-wrapper">
+
+<div class="info-box">
+
+After adding account, OTP verification required.
+
+</div>
+
+
+
+<form method="post">
+
+{% csrf_token %}
+
+
+<div class="form-grid">
+
+
+<div class="full">
+
+<label>
+
+Account Holder Name <span class="required">*</span>
+
+</label>
+
+{{ form.account_holder_name }}
+
+{% for error in form.account_holder_name.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>
+
+Account Number <span class="required">*</span>
+
+</label>
+
+{{ form.account_number }}
+
+<div class="help-text">
+
+9–18 digit account number
+
+</div>
+
+{% for error in form.account_number.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>
+
+Confirm Account Number <span class="required">*</span>
+
+</label>
+
+{{ form.confirm_account_number }}
+
+{% for error in form.confirm_account_number.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>
+
+Bank Name <span class="required">*</span>
+
+</label>
+
+{{ form.bank_name }}
+
+{% for error in form.bank_name.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>
+
+IFSC Code <span class="required">*</span>
+
+</label>
+
+{{ form.ifsc_code }}
+
+{% for error in form.ifsc_code.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>
+
+Branch Name <span class="required">*</span>
+
+</label>
+
+{{ form.branch_name }}
+
+{% for error in form.branch_name.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>
+
+Account Type <span class="required">*</span>
+
+</label>
+
+{{ form.account_type }}
+
+{% for error in form.account_type.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div class="full">
+
+<label>UPI ID</label>
+
+{{ form.upi_id }}
+
+{% for error in form.upi_id.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div class="full">
+
+<div class="checkbox-box">
+
+{{ form.is_primary }}
+
+<div class="checkbox-text">
+
+Set as primary account
+
+</div>
+
+</div>
+
+</div>
+
+
+</div>
+
+
+
+<div class="actions">
+
+<button type="submit" class="primary-btn">
+
+Add Bank Account
+
+</button>
+
+
+<a href="{% url 'accounts:bank_accounts' %}" class="cancel-btn">
+
+Cancel
+
+</a>
+
+</div>
+
+
+</form>
+
+</div>
+
+</div>
 </div>
 {% endblock %}

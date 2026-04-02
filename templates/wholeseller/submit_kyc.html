@@ -1,0 +1,244 @@
+{% load static %}
+
+{% block title %}Submit KYC Documents - Drapso{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Display Django messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {% if message.tags == 'success' %}
+                            <i class="fas fa-check-circle me-2"></i>
+                        {% elif message.tags == 'error' %}
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                        {% elif message.tags == 'warning' %}
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% elif message.tags == 'info' %}
+                            <i class="fas fa-info-circle me-2"></i>
+                        {% endif %}
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-0">
+                    <h4 class="mb-0 text-success">Submit KYC Documents</h4>
+                    <p class="text-muted mb-0">Step 2 of 2: Upload required documents for verification</p>
+                </div>
+                <div class="card-body">
+                    <!-- Display form non-field errors -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <i class="fas fa-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="progress mb-4" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: 100%"></div>
+                    </div>
+                    
+                    <div class="alert alert-info border-0">
+                        <i class="fas fa-shield-alt"></i> 
+                        <strong>Verification Required:</strong> Please upload clear, readable copies of your documents. All documents will be verified by our admin team within 24-48 hours.
+                    </div>
+                    
+                    <form method="POST" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-file-pdf text-danger"></i> GST Certificate *
+                                </label>
+                                {{ form.gst_certificate }}
+                                {% if form.gst_certificate.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.gst_certificate.errors %}
+                                            <i class="fas fa-exclamation-circle"></i> {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <small class="text-muted">PDF or Image (Max 5MB)</small>
+                                
+                                <div class="mt-2">
+                                    <label class="form-label small">GST Number</label>
+                                    {{ form.gst_number }}
+                                    {% if form.gst_number.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.gst_number.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-id-card text-warning"></i> PAN Card *
+                                </label>
+                                {{ form.pan_card }}
+                                {% if form.pan_card.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.pan_card.errors %}
+                                            <i class="fas fa-exclamation-circle"></i> {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <small class="text-muted">PDF or Image (Max 5MB)</small>
+                                
+                                <div class="mt-2">
+                                    <label class="form-label small">PAN Number</label>
+                                    {{ form.pan_number }}
+                                    {% if form.pan_number.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.pan_number.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-home text-primary"></i> Address Proof *
+                                </label>
+                                {{ form.address_proof }}
+                                {% if form.address_proof.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.address_proof.errors %}
+                                            <i class="fas fa-exclamation-circle"></i> {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <small class="text-muted">Electricity bill, Rent agreement, etc. (Max 5MB)</small>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-building text-info"></i> Business Registration *
+                                </label>
+                                {{ form.business_registration }}
+                                {% if form.business_registration.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.business_registration.errors %}
+                                            <i class="fas fa-exclamation-circle"></i> {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <small class="text-muted">Company registration certificate (Max 5MB)</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-warehouse text-secondary"></i> Warehouse Photograph *
+                                </label>
+                                {{ form.warehouse_photo }}
+                                {% if form.warehouse_photo.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.warehouse_photo.errors %}
+                                            <i class="fas fa-exclamation-circle"></i> {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <small class="text-muted">Clear photo of your warehouse/facility (Max 5MB)</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-calendar-alt"></i> Years in Business
+                                </label>
+                                {{ form.years_in_business }}
+                                {% if form.years_in_business.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.years_in_business.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-rupee-sign"></i> Annual Turnover (₹)
+                                </label>
+                                {{ form.annual_turnover }}
+                                {% if form.annual_turnover.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.annual_turnover.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <small class="text-muted">Approximate annual turnover</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Display uploaded documents count -->
+                        {% if documents_uploaded %}
+                            <div class="alert alert-success border-0">
+                                <i class="fas fa-check-circle"></i>
+                                <strong>{{ documents_uploaded }}/5</strong> documents uploaded
+                            </div>
+                        {% endif %}
+                        
+                        <div class="alert alert-warning border-0 mt-3">
+                            <i class="fas fa-clock"></i>
+                            <strong>Important Note:</strong> 
+                            <ul class="mb-0 mt-2">
+                                <li>Verification usually takes 24-48 hours</li>
+                                <li>You'll receive an email notification once verified</li>
+                                <li>Incomplete or unclear documents may cause delays</li>
+                                <li>Maximum file size: 5MB per document</li>
+                                <li>Allowed formats: PDF, JPG, JPEG, PNG</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-paper-plane"></i> Submit KYC for Verification
+                            </button>
+                            <a href="{% url 'wholesellers:wholeseller_dashboard' %}" class="btn btn-outline-secondary">
+                                Back to Dashboard
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control, .form-control-file {
+        border-radius: 8px;
+    }
+    .form-control:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.15);
+    }
+    .card {
+        border-radius: 15px;
+    }
+    .alert {
+        border-radius: 10px;
+    }
+    input[type="file"] {
+        padding: 8px;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        width: 100%;
+    }
+</style>
+{% endblock %}

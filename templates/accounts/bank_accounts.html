@@ -1,123 +1,756 @@
-
-{% block title %}Bank Accounts{% endblock %}
-
+{% extends "dashboard_base.html" %}
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-university me-2"></i>Bank Accounts
-                        <a href="{% url 'accounts:add_bank_account' %}" class="btn btn-light btn-sm float-end">
-                            <i class="fas fa-plus me-1"></i>Add Bank Account
-                        </a>
-                    </h4>
-                </div>
-                <div class="card-body">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                    
-                    {% if pending_verification %}
-                        <div class="alert alert-warning">
-                            <i class="fas fa-clock me-2"></i>
-                            <strong>Pending Verification!</strong> You have a bank account awaiting verification.
-                            <a href="{% url 'accounts:verify_bank_account_otp' pending_verification.id %}" class="alert-link">
-                                Click here to verify
-                            </a>
-                        </div>
-                    {% endif %}
-                    
-                    {% if accounts %}
-                        <div class="row">
-                            {% for account in accounts %}
-                                <div class="col-md-6 mb-3">
-                                    <div class="card {% if account.is_primary and account.is_verified %}border-primary shadow{% endif %}">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <h5 class="card-title">
-                                                        {{ account.bank_name }}
-                                                        {% if account.is_primary and account.is_verified %}
-                                                            <span class="badge bg-primary ms-2">Primary</span>
-                                                        {% endif %}
-                                                        {% if not account.is_verified %}
-                                                            <span class="badge bg-warning ms-2">Pending Verification</span>
-                                                        {% endif %}
-                                                    </h5>
-                                                    <p class="card-text">
-                                                        <strong>Account Holder:</strong> {{ account.account_holder_name }}<br>
-                                                        <strong>Account Number:</strong> ****{{ account.account_number|slice:"-4:" }}<br>
-                                                        <strong>IFSC Code:</strong> {{ account.ifsc_code }}<br>
-                                                        <strong>Branch:</strong> {{ account.branch_name }}<br>
-                                                        <strong>Account Type:</strong> {{ account.get_account_type_display }}<br>
-                                                        {% if account.upi_id %}
-                                                            <strong>UPI ID:</strong> {{ account.upi_id }}<br>
-                                                        {% endif %}
-                                                        <small class="text-muted">Added: {{ account.created_at|date:"d M Y" }}</small>
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                            <i class="fas fa-cog"></i>
-                                                        </button>
-                                                        <ul class="dropdown-menu">
-                                                            <li>
-                                                                <a class="dropdown-item" href="{% url 'accounts:edit_bank_account' account.id %}">
-                                                                    <i class="fas fa-edit me-2"></i>Edit
-                                                                </a>
-                                                            </li>
-                                                            {% if not account.is_verified %}
-                                                                <li>
-                                                                    <a class="dropdown-item" href="{% url 'accounts:verify_bank_account_otp' account.id %}">
-                                                                        <i class="fas fa-check-circle me-2"></i>Verify
-                                                                    </a>
-                                                                </li>
-                                                            {% endif %}
-                                                            {% if account.is_verified and not account.is_primary %}
-                                                                <li>
-                                                                    <a class="dropdown-item" href="{% url 'accounts:set_primary_bank_account' account.id %}">
-                                                                        <i class="fas fa-star me-2"></i>Set as Primary
-                                                                    </a>
-                                                                </li>
-                                                            {% endif %}
-                                                            {% if not account.is_primary %}
-                                                                <li><hr class="dropdown-divider"></li>
-                                                                <li>
-                                                                    <a class="dropdown-item text-danger" href="{% url 'accounts:delete_bank_account' account.id %}">
-                                                                        <i class="fas fa-trash me-2"></i>Delete
-                                                                    </a>
-                                                                </li>
-                                                            {% endif %}
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-university fa-4x text-muted mb-3"></i>
-                            <h5>No Bank Accounts Added</h5>
-                            <p class="text-muted">Add a bank account to receive payments and manage settlements.</p>
-                            <a href="{% url 'accounts:add_bank_account' %}" class="btn btn-primary">
-                                <i class="fas fa-plus me-2"></i>Add Bank Account
-                            </a>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
+
+<style>
+.content {
+    padding: 10px 30px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.page-title i {
+    font-size: 28px;
+    color: #4f46e5;
+}
+
+.add-btn {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: white;
+    padding: 10px 24px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+}
+
+.add-btn:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    color: white;
+}
+
+/* Alert Messages */
+.alert-message {
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert-message i {
+    font-size: 20px;
+}
+
+.alert-message.success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+}
+
+.alert-message.error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.alert-message.info {
+    background: #fffbeb;
+    border: 1px solid #fed7aa;
+    color: #b45309;
+}
+
+.alert-message.warning {
+    background: #fffbeb;
+    border: 1px solid #fed7aa;
+    color: #b45309;
+}
+
+.alert-message a {
+    color: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    margin-left: 4px;
+}
+
+.alert-message a:hover {
+    opacity: 0.8;
+}
+
+/* Card Grid */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* default = 2 cards */
+    gap: 24px;
+    margin-bottom: 30px;
+}
+
+/* mobile */
+@media (max-width: 768px) {
+    .card-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* large desktop (1440px and above) */
+@media (min-width: 1440px) {
+    .card-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+.bank-card {
+    background: #ffffff;
+    border-radius: 24px;
+    border: 1px solid #eef2ff;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.bank-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.12);
+    border-color: #e0e7ff;
+}
+
+.bank-card.primary {
+    border: 2px solid #4f46e5;
+    box-shadow: 0 4px 20px rgba(79, 70, 229, 0.15);
+    background: linear-gradient(135deg, #ffffff 0%, #fef9ff 100%);
+}
+
+.bank-card.primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #4f46e5, #8b5cf6);
+}
+
+.card-header {
+    padding: 20px 24px 16px 24px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.card-body {
+    padding: 20px 24px;
+}
+
+.card-footer {
+    padding: 16px 24px;
+    background: #fafcff;
+    border-top: 1px solid #f1f5f9;
+}
+
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.bank-info {
+    flex: 1;
+}
+
+.bank-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.bank-type {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.bank-type i {
+    font-size: 11px;
+    color: #8b5cf6;
+}
+
+/* Badges */
+.badge {
+    padding: 4px 12px;
+    border-radius: 30px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.badge-primary {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: white;
+    box-shadow: 0 1px 2px rgba(79, 70, 229, 0.2);
+}
+
+.badge-warning {
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    color: white;
+}
+
+.badge-success {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    color: white;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.stat-card {
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 12px;
+    transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.stat-label i {
+    font-size: 11px;
+    color: #8b5cf6;
+}
+
+.stat-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+/* Account Number Box */
+.account-number-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    padding: 12px 16px;
+    border-radius: 14px;
+    border: 1px solid #eef2ff;
+}
+
+.account-number-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.account-number-value {
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+    letter-spacing: 0.5px;
+    background: white;
+    padding: 4px 12px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+/* Action Button */
+.action-btn {
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: #64748b;
+    flex-shrink: 0;
+}
+
+.action-btn:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #4f46e5;
+    transform: scale(1.05);
+}
+
+/* Dropdown Menu */
+.dropdown {
+    display: none;
+    position: absolute;
+    right: 24px;
+    top: 70px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    min-width: 180px;
+    z-index: 1000;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+}
+
+.dropdown a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #334155;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.dropdown a i {
+    width: 18px;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.dropdown a:hover {
+    background: #f8fafc;
+    color: #4f46e5;
+}
+
+.dropdown a:hover i {
+    color: #4f46e5;
+}
+
+.dropdown a.text-danger {
+    color: #dc2626;
+}
+
+.dropdown a.text-danger i {
+    color: #dc2626;
+}
+
+.dropdown a.text-danger:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 4px 0;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    background: #ffffff;
+    border-radius: 24px;
+    border: 1px dashed #cbd5e1;
+    margin: 20px 0;
+}
+
+.empty-state i {
+    font-size: 64px;
+    color: #cbd5e1;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.empty-state h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    color: #64748b;
+    margin-bottom: 24px;
+    font-size: 14px;
+}
+
+/* Bottom Note */
+.bottom-note {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 360px;
+    max-width: calc(100% - 48px);
+    background: #ffdeac !important;
+    border: 1px solid #d33535a1;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: #64748b;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    z-index: 2000;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    line-height: 1.5;
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.bottom-note i {
+    font-size: 16px;
+    color: #f59e0b;
+    margin-top: 2px;
+}
+
+.bottom-note strong {
+    color: #0f172a;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .card-grid {
+        gap: 20px;
+    }
+}
+
+@media (max-width: 900px) {
+    .card-grid {
+        gap: 18px;
+    }
+    
+    .card-header {
+        padding: 16px 20px 12px 20px;
+    }
+    
+    .card-body {
+        padding: 16px 20px;
+    }
+    
+    .card-footer {
+        padding: 14px 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .content {
+        padding: 10px 20px;
+    }
+    
+    .page-title {
+        font-size: 24px;
+    }
+    
+    .card-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .bottom-note {
+        width: calc(100% - 32px);
+        right: 16px;
+        bottom: 16px;
+        left: 16px;
+    }
+    
+    .stats-grid {
+        gap: 10px;
+    }
+    
+    .stat-card {
+        padding: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .content {
+        padding: 15px 16px;
+    }
+    
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .add-btn {
+        justify-content: center;
+    }
+    
+    .bank-name {
+        font-size: 16px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .account-number-box {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .account-number-value {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .alert-message {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .dropdown {
+        right: 16px;
+        top: 65px;
+        min-width: 160px;
+    }
+}
+</style>
+
+<div class="content" style="margin-bottom: 80px;">
+
+<div class="page-header">
+    <div class="page-title">
+        <i class="fa-solid fa-building-columns"></i>
+        Bank Accounts
+    </div>
+    <a href="{% url 'accounts:add_bank_account' %}" class="add-btn">
+        <i class="fa-solid fa-plus"></i> Add Account
+    </a>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert-message {% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}">
+            <i class="fa-solid fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}circle-info{% endif %}"></i>
+            <div>{{ message }}</div>
         </div>
+    {% endfor %}
+{% endif %}
+
+{% if pending_verification %}
+<div class="alert-message warning">
+    <i class="fa-solid fa-clock"></i>
+    <div>
+        <strong>Pending Verification!</strong> You have a bank account awaiting verification.
+        <a href="{% url 'accounts:verify_bank_account_otp' pending_verification.id %}">Verify now →</a>
     </div>
 </div>
+{% endif %}
+
+{% if accounts %}
+<div class="card-grid">
+{% for account in accounts %}
+<div class="bank-card {% if account.is_primary and account.is_verified %}primary{% endif %}">
+    <div class="card-header">
+        <div class="card-top">
+            <div class="bank-info">
+                <div class="bank-name">
+                    {{ account.bank_name }}
+                    {% if account.is_primary and account.is_verified %}
+                        <span class="badge badge-primary">★ Primary</span>
+                    {% endif %}
+                    {% if not account.is_verified %}
+                        <span class="badge badge-warning">⏳ Pending</span>
+                    {% endif %}
+                </div>
+                <div class="bank-type">
+                    <i class="fa-regular fa-credit-card"></i> {{ account.get_account_type_display }}
+                </div>
+            </div>
+            <button class="action-btn" onclick="toggleMenu('{{account.id}}')">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">
+                    <i class="fa-regular fa-user"></i> Account Holder
+                </div>
+                <div class="stat-value">{{ account.account_holder_name }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">
+                    <i class="fa-regular fa-building"></i> IFSC Code
+                </div>
+                <div class="stat-value">{{ account.ifsc_code }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">
+                    <i class="fa-regular fa-location-dot"></i> Branch
+                </div>
+                <div class="stat-value">{{ account.branch_name|default:"—" }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">
+                    <i class="fa-regular fa-mobile"></i> UPI ID
+                </div>
+                <div class="stat-value">{{ account.upi_id|default:"—" }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">
+                    <i class="fa-regular fa-calendar"></i> Added
+                </div>
+                <div class="stat-value">{{ account.created_at|date:"d M Y" }}</div>
+            </div>
+            {% if not account.is_verified %}
+            <div class="stat-card">
+                <div class="stat-label">
+                    <i class="fa-regular fa-clock"></i> Status
+                </div>
+                <div class="stat-value" style="color: #f59e0b;">Awaiting Verification</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card-footer">
+        <div class="account-number-box">
+            <span class="account-number-label">
+                <i class="fa-regular fa-credit-card"></i> Account Number
+            </span>
+            <span class="account-number-value">
+                •••• {{ account.account_number|slice:"-4:" }}
+            </span>
+        </div>
+    </div>
+    
+    <div class="dropdown" id="menu{{account.id}}">
+        <a href="{% url 'accounts:edit_bank_account' account.id %}">
+            <i class="fa-solid fa-pencil"></i> Edit Details
+        </a>
+        {% if not account.is_verified %}
+        <a href="{% url 'accounts:verify_bank_account_otp' account.id %}">
+            <i class="fa-solid fa-check-circle"></i> Verify Account
+        </a>
+        {% endif %}
+        {% if account.is_verified and not account.is_primary %}
+        <a href="{% url 'accounts:set_primary_bank_account' account.id %}">
+            <i class="fa-solid fa-star"></i> Set as Primary
+        </a>
+        {% endif %}
+        {% if not account.is_primary %}
+        <div class="dropdown-divider"></div>
+        <a href="{% url 'accounts:delete_bank_account' account.id %}" class="text-danger" onclick="return confirm('Are you sure you want to delete this account? This action cannot be undone.')">
+            <i class="fa-solid fa-trash"></i> Delete Account
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <i class="fa-solid fa-building-columns"></i>
+    <h3>No Bank Accounts Added</h3>
+    <p>Add your bank account details to receive payments seamlessly</p>
+    <a href="{% url 'accounts:add_bank_account' %}" class="add-btn">
+        <i class="fa-solid fa-plus"></i> Add Bank Account
+    </a>
+</div>
+{% endif %}
+
+</div>
+
+<div class="bottom-note">
+    <i class="fa-solid fa-shield-heart"></i>
+    <div>
+        <strong>Security Note:</strong> Please verify bank details carefully.<br>
+        All payments and refunds will be processed only to verified accounts.
+    </div>
+</div>
+
+<script>
+function toggleMenu(id) {
+    // Close all other dropdowns
+    document.querySelectorAll(".dropdown").forEach(el => {
+        if (el.id !== "menu" + id) {
+            el.style.display = "none";
+        }
+    });
+    
+    // Toggle current dropdown
+    const menu = document.getElementById("menu" + id);
+    if (menu) {
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
+    }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.action-btn') && !e.target.closest('.dropdown')) {
+        document.querySelectorAll(".dropdown").forEach(el => {
+            el.style.display = "none";
+        });
+    }
+});
+</script>
+
 {% endblock %}
