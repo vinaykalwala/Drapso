@@ -1,0 +1,475 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --primary-dark: #111827;
+        --secondary-gray: #374151;
+        --accent-blue: #6366f1;
+        --glass-bg: rgba(255, 255, 255, 0.96);
+        --border-light: #eef2ff;
+        --card-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8fafc;
+        scroll-behavior: smooth;
+    }
+
+    .main-content {
+        opacity: 0;
+        transition: opacity 0.4s ease-in;
+    }
+
+    .main-content.visible {
+        opacity: 1;
+    }
+
+    .hero-bg {
+        position: relative;
+        padding: 140px 20px 220px;  /* 👈 important (bottom space for card overlap) */
+
+        min-height: 500px;
+
+        background: url("{% static 'images/bg.avif' %}");
+
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .hero-content {
+        z-index: 2;
+        position: relative;
+ max-width: 800px;
+    margin: 0 auto;
+    }
+
+    .hero-title {
+        font-size: 44px;
+        font-weight: 700;
+        letter-spacing: -1px;
+        margin-bottom: 12px;
+        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        color: #ffffff;
+        /* ✅ ADD THIS */
+    }
+
+    .hero-sub {
+        font-size: 18px;
+        font-weight: 500;
+        color: #e0e7ff;
+        margin-top: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 30px;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        letter-spacing: 0.5px;
+    }
+
+    /* Floating card (same as return policy) */
+    .page-wrapper {
+        max-width: 1200px;
+margin: -180px auto 100px;   /* 👈 this creates overlap */
+
+        padding: 0 20px;
+        position: relative;
+        z-index: 10;
+    }
+
+    .content-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(72px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+
+        padding: 60px 70px;
+        border-radius: 32px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        transition: all 0.2s ease;
+    }
+
+    .update-info {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 2.5px;
+        color: var(--accent-blue);
+        font-weight: 700;
+        margin-bottom: 24px;
+        display: inline-block;
+        background: rgba(99, 102, 241, 0.08);
+        padding: 5px 12px;
+        border-radius: 40px;
+    }
+
+    /* headings with blue line (exact style from return policy) */
+    .policy-page h2 {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--primary-dark);
+        margin-top: 52px;
+        margin-bottom: 28px;
+        position: relative;
+        display: inline-block;
+    }
+
+    .policy-page h2::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        width: 48px;
+        height: 4px;
+        background: var(--accent-blue);
+        border-radius: 4px;
+        transition: width 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+
+    .policy-page h2:hover::after {
+        width: 90px;
+    }
+
+    .policy-page p {
+        font-size: 17px;
+        line-height: 1.75;
+        color: var(--secondary-gray);
+        margin-bottom: 24px;
+        font-weight: 400;
+    }
+
+    /* bullet list with checkmark + hover movement (same as return policy) */
+    .policy-page ul {
+        list-style: none;
+        padding: 0;
+        margin: 24px 0 28px 0;
+    }
+
+    .policy-page li {
+        background: white;
+        padding: 14px 20px;
+        border-radius: 14px;
+        margin-bottom: 12px;
+        border: 1px solid #f0f2f8;
+        display: flex;
+        align-items: center;
+        transition: all 0.25s ease;
+        font-weight: 500;
+        color: #1e293b;
+    }
+
+    .policy-page li:hover {
+        transform: translateX(8px);
+        border-color: var(--accent-blue);
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.08);
+    }
+
+    .policy-page li::before {
+        content: "✓";
+        margin-right: 16px;
+        color: var(--accent-blue);
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+
+    /* highlight box identical to return policy */
+    .highlight-box {
+        background: linear-gradient(105deg, #f8fafc 0%, #ffffff 100%);
+        border-left: 5px solid var(--primary-dark);
+        padding: 28px 32px;
+        border-radius: 0 20px 20px 0;
+        margin: 40px 0 32px 0;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    }
+
+    .highlight-box p {
+        font-weight: 600;
+        color: #0f172a;
+        margin-bottom: 0;
+    }
+
+    hr {
+        margin: 32px 0;
+        border: none;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    /* responsive */
+    @media (max-width: 768px) {
+        .content-card {
+            padding: 36px 24px;
+        }
+
+        .hero-title {
+            font-size: 32px;
+        }
+
+        .page-wrapper {
+            margin-top: -60px;
+        }
+
+        .policy-page h2 {
+            font-size: 24px;
+        }
+    }
+@media (max-width: 480px) {
+
+    .policy-page p {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .policy-page h2 {
+        font-size: 20px;
+    }
+
+    .policy-page li {
+        font-size: 13px;
+        padding: 10px;
+    }
+}
+    @media (max-width: 480px) {
+        .content-card {
+            padding: 28px 18px;
+        }
+
+        .policy-page li {
+            padding: 12px 14px;
+            font-size: 14px;
+        }
+    }
+@media (max-width: 768px) {
+
+    .hero-bg {
+        min-height: 420px;
+        padding: 100px 15px 160px;
+    }
+
+    .page-wrapper {
+        margin-top: -80px;
+    }
+}@media (max-width: 480px) {
+
+    .hero-bg {
+        min-height: 380px;
+        padding: 80px 15px 140px;
+    }
+
+    .hero-content {
+        transform: none !important;   /* ❌ remove shifts */
+        padding: 0 10px;
+    }
+
+    .hero-title {
+        transform: none !important;
+        font-size: 22px;
+        line-height: 1.3;
+    }
+
+    .hero-sub {
+        font-size: 12px;
+        padding: 6px 10px;
+        line-height: 1.4;
+    }
+}@media (max-width: 480px) {
+
+    .page-wrapper {
+        margin-top: -70px;   /* 👈 reduce overlap */
+    }
+
+    .content-card {
+        padding: 20px 14px;
+        border-radius: 16px;
+    }
+}
+    .content-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero-title {
+        animation: fadeUp 1s ease forwards;
+    }
+
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hero-bg::before {
+        content: "";
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: rgba(99, 102, 241, 0.3);
+        filter: blur(120px);
+        top: 20%;
+        left: 10%;
+    }
+
+    .policy-page li {
+        transition: all 0.3s ease;
+    }
+
+    .policy-page p i {
+        color: var(--accent-blue);
+        margin-right: 10px;
+    }
+
+    .floating-icons {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+
+    .floating-icons i {
+        position: absolute;
+        color: rgba(255, 255, 255, 0.14);
+        /* ✅ visible */
+        font-size: 28px;
+        animation: float 6s infinite ease-in-out;
+    }
+
+   .floating-icons i:nth-child(1) { top: 10%; left: 10%; }
+.floating-icons i:nth-child(2) { top: 20%; left: 80%; }
+.floating-icons i:nth-child(3) { top: 40%; left: 70%; }
+.floating-icons i:nth-child(4) { top: 60%; left: 20%; }
+.floating-icons i:nth-child(5) { top: 75%; left: 50%; }
+.floating-icons i:nth-child(6) { top: 30%; left: 40%; }
+.floating-icons i:nth-child(7) { top: 55%; left: 85%; }
+.floating-icons i:nth-child(8) { top: 80%; left: 10%; }
+    @keyframes float {
+        0% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-20px);
+        }
+
+        100% {
+            transform: translateY(0px);
+        }
+    }
+
+
+    .floating-icons i {
+    animation: float 6s infinite ease-in-out;
+}
+
+.floating-icons i:nth-child(even) {
+    animation-duration: 8s;
+}
+
+.floating-icons i:nth-child(odd) {
+    animation-duration: 5s;
+}
+
+
+</style>
+
+
+<div id="mainContent" class="main-content">
+    <!-- Hero section with same background image / styling and transform -->
+    <div class="hero-bg">
+      <div class="floating-icons">
+    <i class="fas fa-box"></i>
+    <i class="fas fa-truck"></i>
+    <i class="fas fa-shipping-fast"></i>
+    <i class="fas fa-map-marker-alt"></i>
+    <i class="fas fa-warehouse"></i>
+    <i class="fas fa-dolly"></i>
+    <i class="fas fa-route"></i>
+    <i class="fas fa-plane"></i>
+</div>
+        <div class="hero-content" data-aos="fade-up">
+            <h1 class="hero-title">Shipping & Delivery Policy</h1>
+            <p class="hero-sub">
+                <i class="fas fa-box"></i> Transparent logistics &nbsp; • &nbsp;
+                <i class="fas fa-clock"></i> Reliable timelines &nbsp; • &nbsp;
+                <i class="fas fa-shield-alt"></i> OTP confirmation
+            </p>
+        </div>
+    </div>
+
+    <div class="page-wrapper">
+        <article class="content-card policy-page">
+            <!-- Optional subtle last revised / badge similar to return policy style (keeps consistency) -->
+            <div class="update-info" data-aos="fade-up">📋 SHIPPING FRAMEWORK</div>
+
+            <!-- EXACT matter as provided: no extra content added, wording preserved verbatim -->
+            <p data-aos="fade-up" data-aos-delay="50">
+                Drapso facilitates order processing between wholesalers and resellers. Wholesellers are responsible
+                for packing and shipping the products to customers.
+            </p>
+
+            <p data-aos="fade-up" data-aos-delay="100">
+                Estimated delivery timelines may vary depending on the product, location, and logistics partner.
+                Typically, orders are delivered within 3–10 business days.
+            </p>
+
+            <p data-aos="fade-up" data-aos-delay="150">
+                Delivery is considered complete only after OTP-based confirmation from the customer. This
+                confirmation is mandatory for payout processing.
+            </p>
+
+            <p data-aos="fade-up" data-aos-delay="200">
+                In case of delays due to unforeseen circumstances such as logistics issues, weather conditions, or
+                other external factors, Drapso will not be held liable but will assist in resolving the issue.
+            </p>
+
+            <p data-aos="fade-up" data-aos-delay="250">
+                Shipping charges, if applicable, are included in the final order price or displayed at checkout.
+            </p>
+
+            <!-- Optional subtle spacer for design consistency, no extra text added beyond required matter -->
+            <div class="highlight-box" data-aos="fade-up" data-aos-delay="300">
+                <p>✅ Trust & transparency: OTP confirmation ensures safe delivery & seamless payouts for partners.
+                </p>
+            </div>
+        </article>
+    </div>
+</div>
+
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>
+    AOS.init({
+        duration: 700,
+        offset: 50,
+        once: true,
+        easing: 'ease-out-quad'
+    });
+
+    // ✅ FIX: page load ayyaka content show chey
+    window.addEventListener("load", function () {
+        document.getElementById("mainContent").classList.add("visible");
+    });
+</script>
+
+{% endblock %}

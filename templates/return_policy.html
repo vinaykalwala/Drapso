@@ -1,0 +1,565 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --primary-dark: #111827;
+        --secondary-gray: #374151;
+        --accent-blue: #6366f1;
+        /* deep indigo / blue line */
+        --glass-bg: rgba(255, 255, 255, 0.96);
+        --border-light: #eef2ff;
+        --card-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8fafc;
+        scroll-behavior: smooth;
+    }
+
+
+    /* main content (initially hidden until loader disappears) */
+    .main-content {
+        opacity: 0;
+        transition: opacity 0.4s ease-in;
+    }
+
+    .main-content.visible {
+        opacity: 1;
+    }
+
+    /* ===== HERO SECTION (exactly like uploaded image style: blue line concept, same vibe) ===== */
+
+    .hero-bg {
+        background: url("{% static 'images/bg.avif' %}");
+
+        background-size: cover;
+        background-position: center;
+
+        padding: 110px 0;
+        min-height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .hero-bg {
+        min-height: 500px;
+        /* increase this value */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: translateY(-60px);
+        /* text koncham paiki */
+    }
+
+    .hero-content {
+        z-index: 2;
+        position: relative;
+    }
+
+    .hero-title {
+        font-size: 44px;
+        font-weight: 700;
+        letter-spacing: -1px;
+        margin-bottom: 12px;
+        color: #ffffff;
+        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero-sub {
+        font-size: 18px;
+        opacity: 0.9;
+        font-weight: 400;
+    }
+
+    .hero-sub {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 10px 20px;
+        border-radius: 30px;
+    }
+.hero-content {
+    padding: 40px 20px;   /* 👈 NEW */
+}
+
+.hero-title {
+    margin-bottom: 20px;  /* 👈 increase gap */
+}
+
+.hero-sub {
+    margin-top: 15px;     /* 👈 space from title */
+}
+    /* Floating card (identical structure to previous design) */
+    .page-wrapper {
+        max-width: 1200px;
+        margin: -180px auto 100px;
+        /* increase negative value */
+
+        padding: 0 20px;
+        position: relative;
+        z-index: 10;
+    }
+
+    .content-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(2px);
+        padding: 60px 70px;
+        border-radius: 32px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        transition: all 0.2s ease;
+    }
+
+    /* Last revised style */
+    .update-info {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 2.5px;
+        color: var(--accent-blue);
+        font-weight: 700;
+        margin-bottom: 24px;
+        display: inline-block;
+        background: rgba(99, 102, 241, 0.08);
+        padding: 5px 12px;
+        border-radius: 40px;
+    }
+
+    /* Headings with blue line (exactly like reference: blue line under heading + hover width effect) */
+    .policy-page h2 {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--primary-dark);
+        margin-top: 52px;
+        margin-bottom: 28px;
+        position: relative;
+        display: inline-block;
+    }
+
+    /* Blue line under heading — same as uploaded file (::after with left alignment) */
+    .policy-page h2::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        width: 48px;
+        height: 4px;
+        background: var(--accent-blue);
+        border-radius: 4px;
+        transition: width 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+
+    .policy-page h2:hover::after {
+        width: 90px;
+    }
+
+    /* to keep heading block but line always under text */
+    .policy-page h2 {
+        display: inline-block;
+    }
+
+    /* paragraph style */
+    .policy-page p {
+        font-size: 17px;
+        line-height: 1;
+        color: var(--secondary-gray);
+        margin-bottom: 10px;
+        font-weight: 400;
+    }
+
+    /* list style with checkmark and interactive move (exactly like prior design) */
+    .policy-page ul {
+        list-style: none;
+        padding: 0;
+        margin: 16px 0 20px 0;
+    }
+
+    .policy-page li {
+        background: white;
+        padding: 14px 20px;
+        border-radius: 10px;
+        margin-bottom: 8px;
+        border: 1px solid #f0f2f8;
+        display: flex;
+        align-items: center;
+        transition: all 0.25s ease;
+        font-weight: 500;
+        color: #1e293b;
+    }
+
+
+    .policy-page li::before {
+        content: "✓";
+        margin-right: 16px;
+        color: var(--accent-blue);
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+
+    /* Highlight box for important disclaimer (similar to uploaded policy box) */
+    .highlight-box {
+        background: linear-gradient(105deg, #f8fafc 0%, #ffffff 100%);
+        border-left: 5px solid var(--primary-dark);
+        padding: 28px 32px;
+        border-radius: 0 20px 20px 0;
+        margin: 40px 0 32px 0;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    }
+
+    .highlight-box p {
+        font-weight: 600;
+        color: #0f172a;
+        margin-bottom: 0;
+    }
+
+    /* subtle badge for strict policy sections */
+    .badge-strict {
+        background: #fee2e2;
+        color: #b91c1c;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 50px;
+        display: inline-block;
+        margin-left: 12px;
+        vertical-align: middle;
+    }
+
+    hr {
+        margin: 32px 0;
+        border: none;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    /* responsiveness */
+    @media (max-width: 768px) {
+        .content-card {
+            padding: 36px 24px;
+        }
+
+        .hero-title {
+            font-size: 32px;
+        }
+
+        .page-wrapper {
+            margin-top: -60px;
+        }
+
+        .policy-page h2 {
+            font-size: 24px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .content-card {
+            padding: 28px 18px;
+        }
+
+        .policy-page li {
+            padding: 12px 14px;
+            font-size: 14px;
+        }
+    }
+
+    .hero-sub {
+        font-size: 18px;
+        font-weight: 500;
+        color: #e0e7ff;
+        margin-top: 10px;
+
+        /* design */
+        background: rgba(255, 255, 255, 0.1);
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 30px;
+
+        backdrop-filter: blur(8px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
+        letter-spacing: 0.5px;
+    }
+
+    .policy-page li i {
+        margin-right: 10px;
+        color: var(--accent-blue);
+    }
+
+
+/* ===============================
+   GLOBAL RESPONSIVE IMPROVEMENTS
+================================= */
+
+/* container width control */
+.page-wrapper {
+    width: 100%;
+    max-width: 1200px;
+    margin: -220px auto 100px;
+    padding: 0 16px;
+}
+
+/* HERO RESPONSIVE */
+.hero-bg {
+    padding: 140px 20px;
+    min-height: 600px;
+}
+
+.hero-title {
+    font-size: clamp(26px, 5vw, 44px);
+}
+
+.hero-sub {
+    font-size: clamp(14px, 2.5vw, 18px);
+    padding: 8px 16px;
+}
+
+/* CARD RESPONSIVE */
+.content-card {
+padding: 40px 70px 60px;  /* 👈 top padding reduce */
+}
+
+/* TEXT IMPROVEMENTS */
+.policy-page p {
+    line-height: 1.6;
+}
+.content-card {
+    padding-top: 25px !important;   /* 👈 reduce top space */
+}
+.policy-page h2:first-child {
+    margin-top: 5 !important;   /* 👈 remove default top gap */
+}
+/* ===============================
+   TABLET (<= 1024px)
+================================= */
+@media (max-width: 1024px) {
+
+    .page-wrapper {
+        margin-top: -120px;
+    }
+
+    .content-card {
+        padding: 40px 30px;
+    }
+
+    .hero-bg {
+        min-height: 380px;
+    }
+
+}
+
+/* ===============================
+   MOBILE (<= 768px)
+================================= */
+@media (max-width: 768px) {
+
+    .hero-bg {
+        padding: 70px 15px;
+        min-height: 320px;
+        transform: translateY(-30px);
+    }
+
+    .hero-title {
+        font-size: 28px;
+    }
+
+    .hero-sub {
+        font-size: 14px;
+        padding: 8px 14px;
+    }
+
+    .page-wrapper {
+        margin-top: -70px;
+    }
+
+    .content-card {
+        padding: 28px 20px;
+        border-radius: 20px;
+    }
+
+    .policy-page h2 {
+        font-size: 22px;
+        margin-top: 30px;
+    }
+
+    .policy-page p {
+        font-size: 15px;
+    }
+
+    .policy-page li {
+        padding: 12px 14px;
+        font-size: 14px;
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .highlight-box {
+        padding: 20px;
+    }
+
+}
+
+/* ===============================
+   SMALL MOBILE (<= 480px)
+================================= */
+@media (max-width: 480px) {
+
+    .hero-title {
+        font-size: 24px;
+    }
+
+    .hero-sub {
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .content-card {
+        padding: 22px 16px;
+    }
+
+    .policy-page h2 {
+        font-size: 20px;
+    }
+
+    .policy-page p {
+        font-size: 14px;
+    }
+
+    .policy-page li {
+        font-size: 13px;
+        padding: 10px 12px;
+    }
+
+}
+
+/* ===============================
+   LARGE SCREENS (>= 1400px)
+================================= */
+@media (min-width: 1400px) {
+
+    .page-wrapper {
+        max-width: 1300px;
+    }
+
+    .hero-title {
+        font-size: 48px;
+    }
+
+    .content-card {
+        padding: 70px 80px;
+    }
+
+}
+</style>
+</head>
+
+<body>
+    <div id="mainContent" class="main-content visible">
+        <!-- Hero Section with bg & consistency -->
+        <div class="hero-bg">
+            <div class="hero-content" data-aos="fade-up">
+                <h1 class="hero-title">Return & Refund Policy</h1>
+                <p class="hero-sub">
+                    <i class="fas fa-undo"></i> Fair returns &nbsp; • &nbsp;
+                    <i class="fas fa-check-circle"></i> Verified claims &nbsp; • &nbsp;
+                    <i class="fas fa-shield-alt"></i> Trust for everyone
+                </p>
+            </div>
+        </div>
+
+        <div class="page-wrapper">
+            <article class="content-card policy-page">
+
+                <h2>Return Policy</h2>
+
+                <p>
+                    Customers may request a return within <strong>7 days</strong> of delivery only under the following
+                    conditions:
+                </p>
+
+                <ul>
+                    <li><i class="fas fa-box-open"></i> Product is damaged at the time of delivery</li>
+                    <li><i class="fas fa-exchange-alt"></i> Wrong product has been received</li>
+                </ul>
+
+                <h2>Unboxing Video Requirement</h2>
+
+                <p>
+                    To initiate a return, customers must submit a mandatory unboxing video as proof. The video must
+                    clearly show:
+                </p>
+
+                <ul>
+                    <li>The package before opening</li>
+                    <li>The full unboxing process</li>
+                    <li>The issue with the product</li>
+                </ul>
+
+                <div class="highlight-box">
+                    <p>Return requests without valid video proof will not be accepted.</p>
+                </div>
+
+                <h2>Verification & Rejection</h2>
+
+                <p>
+                    Drapso enforces strict verification to prevent misuse. Return requests will be rejected if:
+                </p>
+
+                <ul>
+                    <li>The video is edited, incomplete, or unclear</li>
+                    <li>AI-generated or manipulated content is detected</li>
+                    <li>The product appears used, altered, or intentionally damaged</li>
+                </ul>
+
+                <h2>Return Process</h2>
+
+                <p>
+                    If the return request is approved, the customer must send the product to the address provided by
+                    Drapso or the wholeseller.
+                </p>
+
+                <h2>Refund Process</h2>
+
+                <p>
+                    Once the returned product is received and inspected, the refund will be processed as per the Refund
+                    Policy.
+                </p>
+
+                <h2>Fraud Prevention</h2>
+
+                <p>
+                    Drapso reserves the right to take action against users involved in fraudulent return activities,
+                    including account suspension.
+                </p>
+
+            </article>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 700,
+            offset: 50,
+            once: true,
+            easing: 'ease-out-quad'
+        });
+    </script>
+
+    <!-- ensure any residual interaction: plus design consistency with blue line exactly like uploaded file -->
+</body>
+
+</html>
+
+{% endblock %}
