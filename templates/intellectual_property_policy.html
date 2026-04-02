@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+:root {
+    --primary: #4f46e5;
+    --primary-light: #eef2ff;
+    --accent: #06b6d4;
+    --slate-900: #0f172a;
+    --slate-600: #475569;
+    --glass: rgba(255, 255, 255, 0.9);
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #f8fafc;
+    color: var(--slate-900);
+    margin: 0;
+    scroll-behavior: smooth;
+}
+
+/* --- LIGHT NEBULA BACKGROUND --- */
+.nebula-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: radial-gradient(circle at 0% 0%, #e0e7ff 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, #f0f9ff 0%, transparent 50%);
+}
+
+/* --- HERO SECTION --- */
+.hero-banner {
+    padding: 100px 20px 60px;
+    background: url("{% static 'images/bg.avif' %}") center/cover no-repeat fixed, white;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: center;
+}
+
+.badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.hero-banner h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -1px;
+    color: white;
+}
+
+/* --- LAYOUT STRUCTURE --- */
+.policy-grid {
+    max-width: 1200px;
+    margin: 40px auto 100px;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 60px;
+    padding: 0 20px;
+}
+
+/* --- STICKY NAVIGATION --- */
+.policy-nav {
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+}
+
+.nav-item {
+    display: block;
+    padding: 12px 20px;
+    color: var(--slate-600);
+    text-decoration: none;
+    border-left: 2px solid #e2e8f0;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.nav-item:hover {
+    color: var(--primary);
+    background: var(--primary-light);
+    border-color: var(--primary);
+}
+
+/* --- CONTENT CARDS --- */
+.content-area {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.policy-block {
+    background: white;
+    padding: 40px;
+    border-radius: 24px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.policy-block h2 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.policy-block h2 i {
+    color: var(--primary);
+    font-size: 1.4rem;
+}
+
+.policy-block p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--slate-600);
+}
+
+/* --- SPECIAL LISTS --- */
+.prohibited-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 15px;
+}
+
+.prohibited-list li {
+    background: #fff1f2;
+    padding: 15px 20px;
+    border-radius: 12px;
+    color: #9f1239;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.prohibited-list li::before {
+    content: "\f057";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+}
+
+/* --- RESPONSIVE ADJUSTMENTS --- */
+@media (max-width: 1024px) {
+    .policy-grid {
+        grid-template-columns: 1fr;
+    }
+    .policy-nav {
+        display: none; /* Hide sidebar on small screens */
+    }
+    .policy-block {
+        padding: 30px 20px;
+    }
+}
+
+@media (max-width: 640px) {
+    .hero-banner { padding-top: 60px; }
+    .policy-block h2 { font-size: 1.4rem; }
+}
+
+.footer-cta {
+    background: var(--slate-900);
+    color: white;
+    padding: 60px 20px;
+    text-align: center;
+    border-radius: 32px;
+    margin-top: 60px;
+}
+
+.email-box {
+    display: inline-block;
+    border: 1px dashed rgba(255,255,255,0.3);
+    padding: 10px 25px;
+    border-radius: 12px;
+    margin-top: 20px;
+    color: var(--accent);
+    font-family: monospace;
+    font-size: 1.1rem;
+}
+</style>
+
+<div class="nebula-bg"></div>
+
+<header class="hero-banner">
+    <div class="badge" data-aos="fade-down">Legal Compliance</div>
+    <h1>Intellectual Property Policy</h1>
+    <p style="color: white; margin-top: 15px; font-size: 1.1rem;">Guidelines for protecting creativity and branding on Drapso.</p>
+</header>
+
+<div class="policy-grid">
+    <aside class="policy-nav" data-aos="fade-right">
+        <a href="#overview" class="nav-item">Overview</a>
+        <a href="#ownership" class="nav-item">Platform Property</a>
+        <a href="#responsibility" class="nav-item">User Responsibility</a>
+        <a href="#prohibited" class="nav-item">Prohibited Actions</a>
+        <a href="#enforcement" class="nav-item">Enforcement</a>
+        <a href="#licensing" class="nav-item">Content Licensing</a>
+    </aside>
+
+    <main class="content-area">
+        
+        <section id="overview" class="policy-block" data-aos="fade-up">
+            <h2><i class="fa-solid fa-circle-info"></i> Policy Overview</h2>
+            <p>Drapso respects intellectual property rights and expects all users to do the same. This policy applies to all content uploaded, shared, or displayed on the platform.</p>
+        </section>
+
+        <section id="ownership" class="policy-block" data-aos="fade-up">
+            <h2><i class="fa-solid fa-copyright"></i> Platform Property</h2>
+            <p>All platform-related content, including but not limited to the Drapso name, logo, design, software, and technology, is the exclusive property of Drapso and may not be copied, reproduced, or used without prior permission.</p>
+        </section>
+
+        <section id="responsibility" class="policy-block" data-aos="fade-up">
+            <h2><i class="fa-solid fa-user-shield"></i> User Responsibility</h2>
+            <p>Users (wholesellers and resellers) are solely responsible for ensuring that the content they upload, including product images, videos, descriptions, branding, and trademarks, does not violate any intellectual property rights.</p>
+        </section>
+
+        <section id="prohibited" class="policy-block" data-aos="fade-up">
+            <h2><i class="fa-solid fa-triangle-exclamation"></i> Prohibited Activities</h2>
+            <p>To maintain a fair marketplace, users must strictly adhere to the following:</p>
+            <ul class="prohibited-list">
+                <li>Upload copyrighted images or videos without permission</li>
+                <li>Use brand names, logos, or trademarks without authorization</li>
+                <li>Copy product listings, images, or descriptions from other sellers or platforms</li>
+                <li>Use misleading branding that imitates known brands</li>
+            </ul>
+            <p style="margin-top: 20px;">Additionally, Drapso prohibits the use of AI-generated or manipulated content intended to deceive customers, including fake product representations or misleading visuals.</p>
+        </section>
+
+        <section id="enforcement" class="policy-block" data-aos="fade-up">
+            <h2><i class="fa-solid fa-gavel"></i> Enforcement & Action</h2>
+            <p>If a user uploads content that infringes on intellectual property rights, Drapso reserves the right to:</p>
+            <ul style="color: var(--slate-600); line-height: 2;">
+                <li>Remove the content immediately</li>
+                <li>Suspend or terminate the user account</li>
+                <li>Withhold payouts if required</li>
+                <li>Take legal action where necessary</li>
+            </ul>
+            <p>Drapso may act upon receiving complaints from rightful owners or authorities. Users agree to cooperate in resolving such disputes and provide necessary information when requested. In case of repeated violations, strict action including permanent account termination may be taken.</p>
+        </section>
+
+        <section id="licensing" class="policy-block" data-aos="fade-up">
+            <h2><i class="fa-solid fa-file-signature"></i> Ownership & Licensing</h2>
+            <p>Users retain ownership of their original content but grant Drapso a limited, non-exclusive, royalty-free license to use, display, and promote such content for platform operations and marketing purposes. Drapso reserves the right to modify or remove any content that violates this policy or harms the integrity of the platform.</p>
+        </section>
+
+    </main>
+</div>
+
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>
+    AOS.init({
+        duration: 800,
+        once: true,
+        offset: 100
+    });
+</script>
+
+{% endblock %}
