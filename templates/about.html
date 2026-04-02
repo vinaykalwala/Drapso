@@ -2,67 +2,211 @@
 {% load static %}
 
 {% block content %}
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
 <style>
+    
 :root {
-    --primary-dark: #111827;
-    --secondary-gray: #374151;
-    --accent-blue: #6366f1; /* A deep indigo that pairs well with dark themes */
-    --glass-bg: rgba(255, 255, 255, 0.95);
+    --primary: #6366f1;
+    --accent: #a855f7;
 }
 
 body {
-    background-color: #f8fafc;
-    scroll-behavior: smooth;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #00050a;
+    overflow-x: hidden;
 }
 
-/* Hero Section with Parallax & Mesh Gradient */
-.hero-bg {
-  
+/* --- THE BACKGROUND ENGINE --- */
+/* This creates a moving, high-end mesh background across the whole page */
+.bg-mesh-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+    /* background: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%); */
+}
+
+.mesh-ball {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.3;
+    animation: move 20s infinite alternate;
+}
+
+.ball-1 { width: 600px; height: 600px; background: var(--primary); top: -10%; left: -10%; }
+.ball-2 { width: 500px; height: 500px; background: var(--accent); bottom: -10%; right: -10%; animation-delay: -5s; }
+.ball-3 { width: 400px; height: 400px; background: #3b82f6; top: 40%; left: 30%; animation-duration: 30s; }
+
+@keyframes move {
+    from { transform: translate(0, 0) scale(1); }
+    to { transform: translate(100px, 200px) scale(1.2); }
+}
+
+/* --- Hero Section --- */
+.hero-header {
+    height: 80vh;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: white;
     position: relative;
-    text-align: center;
+    background: url("{% static 'images/bg.avif' %}") center/cover no-repeat;
 }
-.hero-bg{
 
-background-image: url("{% static 'images/bg.avif' %}");
-background-size: cover;
-background-position: center;
-background-repeat: no-repeat;
-
-padding:120px 0;
-color:white;
-position:relative;
-overflow:hidden;
-
-}
-.hero-content {
-    z-index: 2;
+.hero-overlay {
+    position: absolute;
+    inset: 0;
 }
 
 .hero-title {
-    font-family: 'Inter', sans-serif;
-    font-size: 40px;
-    font-weight: 600;
-    letter-spacing: -1.5px;
-    margin-bottom: 10px;
-    text-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    position: relative;
+    font-size: clamp(4rem, 10vw, 8rem);
+    font-weight: 800;
+    letter-spacing: -4px;
+    margin: 0;
+    background: linear-gradient(to bottom, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
+/* --- Content Panels --- */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 40px;
+    padding: 60px;
+    margin-bottom: 80px;
+    transition: transform 0.3s ease, border 0.3s ease;
+}
+
+.glass-panel:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    transform: translateY(-5px);
+}
+
+.section-title {
+    font-weight: 800;
+    font-size: 2.8rem;
+    margin-bottom: 25px;
+    background: linear-gradient(90deg, #fff, #818cf8);
+    -webkit-background-clip: text;
+    /* -webkit-text-fill-color: transparent; */
+    color: #00050a;
+}
+
+.content-text {
+    font-size: 1.5rem;
+    line-height: 1.8;
+    color: #000913;
+    font-weight: 300;
+}
+
+.side-img {
+    width: 100%;
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.accent-glow {
+    color: var(--primary);
+    text-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+}
 
 </style>
 
-<div class="hero-bg">
-    <div class="hero-content" data-aos="fade-up">
-        <h1 class="hero-title">About</h1>
-    </div>
+<div class="bg-mesh-container">
+    <div class="mesh-ball ball-1"></div>
+    <div class="mesh-ball ball-2"></div>
+    <div class="mesh-ball ball-3"></div>
 </div>
 
+<section class="hero-header">
+    <div class="hero-overlay"></div>
+    <h1 class="hero-title" data-aos="zoom-in">About Drapso</h1>
+</section>
 
+<div class="container" style="position: relative; margin-top: -100px;">
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-11" data-aos="fade-up">
+            <div class="glass-panel text-center">
+                <!-- <h2 class="section-title">About Drapso</h2> -->
+                <p class="content-text">
+                    Drapso is a next-generation social commerce platform designed to simplify online selling for everyone. Our mission is to empower individuals and businesses to start and grow their online stores without the need for inventory, large investments, or technical expertise.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row align-items: center mb-5 py-5">
+        <div class="col-lg-6" data-aos="fade-right">
+            <h2 class="section-title">Collaboration</h2>
+            <p class="content-text">
+                We connect wholesalers and resellers on a single platform, enabling seamless collaboration. Wholesellers can list their products and reach a wide network of resellers, while resellers can instantly create their own online stores, add products with one click, and start selling without managing stock or logistics.
+            </p>
+        </div>
+        <div class="col-lg-6" data-aos="fade-left">
+            <img src="{% static 'images/About1.png' %}" class="side-img" alt="Collaboration">
+        </div>
+    </div>
+
+    <div class="row align-items: center flex-column-reverse flex-lg-row mb-5 py-5">
+        <div class="col-lg-6 ps-lg-5" data-aos="fade-left">
+            <h2 class="section-title">Complex Parts Handled</h2>
+            <p class="content-text">
+                At Drapso, we handle the complex parts of eCommerce — including payment processing, order flow, and payout distribution — so that our users can focus on what matters most: selling and growing their business.
+            </p>
+        </div>
+        <div class="col-lg-6" data-aos="fade-right">
+            <img src="{% static 'images/About2.png' %}" class="side-img" alt="Operations">
+        </div>
+    </div>
+
+    <div class="row align-items: center mb-5 py-5">
+        <div class="col-lg-6" data-aos="fade-right">
+            <h2 class="section-title">Transparency and Trust</h2>
+            <p class="content-text">
+                Our platform is built on transparency and trust. All payments are securely processed, and earnings are distributed only after successful delivery verification. We ensure a fair and structured system where wholesalers, resellers, and the platform all benefit from each transaction.
+            </p>
+        </div>
+        <div class="col-lg-6" data-aos="fade-left">
+            <img src="{% static 'images/About3.png' %}" class="side-img" alt="Trust">
+        </div>
+    </div>
+    <div>
+        <br>
+        <br>
+    </div>
+    <div class="row justify-content-center py-5">
+        <div class="col-lg-11" data-aos="flip-up">
+            <div class="glass-panel text-center" style="border: 1px solid var(--primary);">
+                <h2 class="section-title">No Barriers. <span class="accent-glow">Just Success.</span></h2>
+                <p class="content-text">
+                    We believe that anyone should be able to start an online business without barriers. Whether you are a student, a small business owner, or an aspiring entrepreneur, Drapso provides the tools you need to succeed in the digital marketplace.
+                </p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>
+    AOS.init({
+        duration: 1200,
+        once: true,
+    });
+</script>
 
 {% endblock %}

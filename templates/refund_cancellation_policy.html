@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+:root {
+    --primary: #6366f1;
+    --secondary: #4f46e5;
+    --accent: #f43f5e;
+    --bg-light: #f8fafc;
+    --card-bg: rgba(255, 255, 255, 0.85);
+    --text-main: #1e293b;
+    --text-muted: #475569;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-main);
+    margin: 0;
+    overflow-x: hidden;
+    line-height: 1.6;
+}
+
+/* --- ADAPTIVE BACKGROUND --- */
+.bg-visuals {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.circle {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.12;
+    animation: float-slow 20s infinite alternate ease-in-out;
+}
+
+@keyframes float-slow {
+    from { transform: translate(0, 0) scale(1); }
+    to { transform: translate(5%, 5%) scale(1.1); }
+}
+
+/* --- RESPONSIVE HERO --- */
+.policy-hero {
+    padding: clamp(80px, 15vh, 140px) 20px 60px;
+    text-align: center;
+    background: radial-gradient(circle at top, rgba(99, 102, 241, 0.08), transparent), url("{% static 'images/bg.avif' %}") center/cover no-repeat fixed;
+}
+
+.policy-hero h1 {
+    font-size: clamp(2.2rem, 7vw, 4.5rem);
+    font-weight: 500;
+    /* letter-spacing: -0.04em; */
+    margin-bottom: 15px;
+    background: white;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* --- SMART BENTO GRID --- */
+.policy-container {
+    max-width: 1400px;
+    margin: 0 auto 100px;
+    padding: 0 20px;
+    display: grid;
+    /* 12-column grid for maximum flexibility */
+    grid-template-columns: repeat(12, 1fr);
+    gap: 24px;
+}
+
+.policy-card {
+    /* background: var(--card-bg); */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 28px;
+    padding: clamp(25px, 4vw, 45px);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.policy-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(99, 102, 241, 0.12);
+    border-color: var(--primary);
+}
+
+/* Logic for Grid Spanning */
+.col-12 { grid-column: span 12; }
+.col-8 { grid-column: span 8; }
+.col-4 { grid-column: span 4; }
+.col-6 { grid-column: span 6; }
+
+.policy-card i {
+    font-size: 2.2rem;
+    color: var(--primary);
+    margin-bottom: 20px;
+}
+
+.policy-card h2 {
+    font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: #0f172a;
+}
+
+.policy-card p {
+    margin-bottom: 0;
+    font-size: clamp(1rem, 1.2vw, 1.1rem);
+}
+
+/* Dark Highlight Card */
+.video-rules {
+    /* background: #0f172a; */
+    /* color: #f8fafc; */
+    border: var(--primary);
+}
+
+/* .video-rules h2, .video-rules p, .video-rules li { color: #f1f5f9 !important; } */
+.video-rules i { color: #818cf8; }
+
+/* List Styling */
+.custom-list {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0 0;
+}
+
+.custom-list li {
+    position: relative;
+    padding-left: 28px;
+    margin-bottom: 12px;
+    font-size: 1rem;
+}
+
+.custom-list li::before {
+    content: "\f058";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+}
+
+/* --- TABLET & MOBILE RESPONSIVENESS --- */
+@media (max-width: 1100px) {
+    .col-8, .col-4 { grid-column: span 6; }
+}
+
+@media (max-width: 768px) {
+    .col-12, .col-8, .col-6, .col-4 { grid-column: span 12; }
+    .policy-container { gap: 16px; }
+    .policy-hero { padding-top: 100px; }
+    .policy-card { padding: 30px 20px; border-radius: 20px; }
+}
+
+/* Contact Module */
+.contact-footer {
+    grid-column: span 12;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    text-align: center;
+    padding: 60px 20px;
+    border-radius: 32px;
+    margin-top: 20px;
+}
+
+.contact-link {
+    display: inline-block;
+    background: white;
+    color: var(--primary);
+    padding: 16px 40px;
+    border-radius: 100px;
+    font-weight: 800;
+    text-decoration: none;
+    margin-top: 25px;
+    transition: 0.3s ease;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.contact-link:hover {
+    transform: scale(1.05);
+    filter: brightness(1.05);
+}
+
+</style>
+
+<div class="bg-visuals">
+    <div class="circle" style="width: 35vw; height: 35vw; background: #6366f1; top: -5%; left: -10%;"></div>
+    <div class="circle" style="width: 30vw; height: 30vw; background: #a855f7; bottom: -5%; right: -10%;"></div>
+</div>
+
+<header class="policy-hero" data-aos="fade-down">
+    <h1>Refund & Cancellation Policy</h1>
+    <p style="max-width: 700px; margin: 0 auto; color: white; font-size: 1.1rem; padding: 0 20px;">
+        Clear guidelines to ensure a fair and secure experience for all Drapso users.
+    </p>
+</header>
+
+<main class="policy-container">
+
+    <article class="policy-card col-8" data-aos="fade-up">
+        <i class="fa-solid fa-shield-heart"></i>
+        <h2>Platform Operations</h2>
+        <p>Drapso operates as an intermediary platform connecting wholesalers and resellers. All payments for orders are collected by Drapso and held securely until delivery is completed.</p>
+        <p style="margin-top: 15px; font-weight: 600;">All wholesalers and resellers agree to comply with this policy.</p>
+    </article>
+
+    <article class="policy-card col-4" data-aos="fade-up" data-aos-delay="100">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <h2>Cancellations</h2>
+        <p>Customers may request order cancellation only <strong>before the order is shipped</strong>. Once the order has been shipped, cancellation will not be allowed and such cases will be handled under the Return Policy.</p>
+    </article>
+
+    <article class="policy-card col-4" data-aos="fade-up">
+        <i class="fa-solid fa-box-open"></i>
+        <h2>Refund Eligibility</h2>
+        <p>Refunds are applicable only under the following conditions:</p>
+        <ul class="custom-list">
+            <li>Product is damaged or defective at the time of delivery</li>
+            <li>Wrong product has been delivered</li>
+        </ul>
+    </article>
+
+    <article class="policy-card col-8 " data-aos="fade-up" data-aos-delay="100">
+        <i class="fa-solid fa-video"></i>
+        <h2>Unboxing Video Proof</h2>
+        <p>To claim a refund for damaged, defective, or incorrect products, customers must provide a clear and continuous unboxing video as proof. The video must:</p>
+        <ul class="custom-list" style="columns: 1; -webkit-columns: 1;">
+            <li>Start before opening the package</li>
+            <li>Clearly show the sealed package</li>
+            <li>Show the entire unboxing process without cuts or edits</li>
+        </ul>
+        <p style="margin-top: 20px; color: #fb7185 !important; font-weight: 700;">Any refund request submitted without proper video proof will be rejected.</p>
+    </article>
+
+    <article class="policy-card col-6" data-aos="fade-up">
+        <i class="fa-solid fa-hand-holding-hand"></i>
+        <h2>Right to Reject</h2>
+        <p>Drapso strictly reserves the right to reject refund requests if:</p>
+        <ul class="custom-list">
+            <li>The video is unclear, edited, or incomplete</li>
+            <li>The claim appears to be fraudulent</li>
+            <li>The product has been intentionally damaged</li>
+            <li>AI-generated, manipulated, or fake videos are detected</li>
+        </ul>
+    </article>
+
+    <article class="policy-card col-6" data-aos="fade-up" data-aos-delay="100">
+        <i class="fa-solid fa-calendar-check"></i>
+        <h2>Refund Timeline</h2>
+        <p>Once a refund request is approved, the amount will be credited within <strong>5–7 business days</strong> to the original payment method.</p>
+    </article>
+
+</main>
+
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>
+    AOS.init({
+        duration: 800,
+        once: true,
+        offset: 50
+    });
+</script>
+
+{% endblock %}

@@ -2,67 +2,373 @@
 {% load static %}
 
 {% block content %}
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
 <style>
 :root {
-    --primary-dark: #111827;
-    --secondary-gray: #374151;
-    --accent-blue: #6366f1; /* A deep indigo that pairs well with dark themes */
-    --glass-bg: rgba(255, 255, 255, 0.95);
+    --primary: #6366f1;
+    --accent: #a855f7;
+    --glass: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.1);
 }
 
 body {
-    background-color: #f8fafc;
-    scroll-behavior: smooth;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #0f172a;
+    background: #f8fafc;
+    overflow-x: hidden;
 }
 
-/* Hero Section with Parallax & Mesh Gradient */
-.hero-bg {
-  
+/* --- FULL WIDTH ANIMATED BACKGROUND --- */
+.bg-engine {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    background: #fcfdfe;
+}
+
+.blob {
+    position: absolute;
+    width: 50vw; /* Changed to viewport width for responsiveness */
+    height: 50vw;
+    max-width: 800px;
+    max-height: 800px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.05) 100%);
+    filter: blur(80px);
+    border-radius: 50%;
+    z-index: -1;
+    animation: float 25s infinite alternate;
+}
+
+@keyframes float {
+    0% { transform: translate(-10%, -10%) rotate(0deg); }
+    100% { transform: translate(20%, 20%) rotate(360deg); }
+}
+
+/* --- HERO SECTION --- */
+.hero-header {
+    height: 40vh; /* Reduced height for better mobile viewing */
+    min-height: 300px;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    position: relative;
+    background: url("{% static 'images/bg.avif' %}") center/cover no-repeat fixed;
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 0% 100%);
+    padding: 0 20px;
     text-align: center;
-}
-.hero-bg{
-
-background-image: url("{% static 'images/bg.avif' %}");
-background-size: cover;
-background-position: center;
-background-repeat: no-repeat;
-
-padding:120px 0;
-color:white;
-position:relative;
-overflow:hidden;
-
-}
-.hero-content {
-    z-index: 2;
 }
 
 .hero-title {
-    font-family: 'Inter', sans-serif;
-    font-size: 40px;
-    font-weight: 600;
-    letter-spacing: -1.5px;
-    margin-bottom: 10px;
-    text-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    font-size: clamp(2.5rem, 8vw, 7rem); /* Responsive font size */
+    font-weight: 800;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: -1px;
 }
 
+/* --- TERMS CONTENT GRID --- */
+.terms-wrapper {
+    width: 100%;
+    max-width: 1200px;
+    margin: -60px auto 100px; /* Adjusted margin for better overlap on mobile */
+    padding: 0 15px;
+    box-sizing: border-box;
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.9); /* Increased opacity for readability */
+    backdrop-filter: blur(20px);
+    border: 1px solid white;
+    border-radius: 30px;
+    padding: clamp(20px, 5vw, 80px); /* Responsive padding */
+    box-shadow: 0 40px 100px rgba(0,0,0,0.05);
+}
+
+.clause-item {
+    padding: 40px 0;
+    border-bottom: 1px solid #e2e8f0;
+    transition: all 0.4s ease;
+    display: flex;
+    flex-direction: row; /* Default desktop side-by-side */
+    gap: clamp(15px, 3vw, 40px);
+}
+
+.clause-number {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 800;
+    color: var(--primary);
+    opacity: 0.2;
+    min-width: 60px;
+    line-height: 1;
+}
+
+.clause-content h2 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    margin-bottom: 15px;
+    color: #1e293b;
+}
+
+.clause-content p {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    line-height: 1.7;
+    color: #475569;
+}
+
+/* --- MOBILE SPECIFIC ADJUSTMENTS --- */
+@media (max-width: 768px) {
+    .clause-item {
+        flex-direction: column; /* Stack number above text on mobile */
+        gap: 10px;
+    }
+    .clause-item:hover {
+        transform: translateX(10px);
+    }
+    .hero-header {
+        background-attachment: scroll; /* Fixed backgrounds jitter on some mobile browsers */
+    }
+}
+
+.clause-item:hover {
+    transform: translateX(20px);
+}
+
+.clause-item:hover .clause-number {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* --- DECORATIVE LISTS --- */
+.custom-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.custom-list li {
+    padding: 10px 0;
+    padding-left: 30px;
+    position: relative;
+    font-size: 1.1rem;
+    color: #475569;
+}
+
+.custom-list li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: bold;
+}
+
+/* --- CONTACT SECTION --- */
+.contact-banner {
+    background: var(--primary);
+    border-radius: 25px;
+    padding: clamp(30px, 6vw, 60px);
+    color: white;
+    margin-top: 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.contact-email-btn {
+    background: white; 
+    color: var(--primary); 
+    display: inline-block; 
+    padding: 12px 30px; 
+    border-radius: 50px; 
+    font-weight: 800; 
+    font-size: clamp(0.9rem, 2vw, 1.2rem);
+    word-break: break-all; /* Prevents long emails from breaking mobile layout */
+}
 
 </style>
 
-<div class="hero-bg">
-    <div class="hero-content" data-aos="fade-up">
-        <h1 class="hero-title">Terms</h1>
+<div class="bg-engine">
+    <div class="blob" style="top: 10%; left: -5%;"></div>
+    <div class="blob" style="bottom: 10%; right: -5%; background: rgba(168, 85, 247, 0.1);"></div>
+</div>
+
+<section class="hero-header">
+    <h1 class="hero-title" data-aos="fade-down">Terms of Use</h1>
+</section>
+
+<div class="terms-wrapper">
+    <div class="glass-card">
+        
+        <div class="clause-item" data-aos="fade-up">
+            <div class="clause-number">01</div>
+            <div class="clause-content">
+                <h2>Acceptance of Terms</h2>
+                <p>By accessing or using Drapso (“Platform”), you agree to comply with and be bound by these Terms of Use. These terms apply to all users including wholesellers, resellers, and visitors. If you do not agree, you must not use the platform.</p>
+            </div>
+        </div>
+
+        <div class="clause-item" data-aos="fade-up">
+            <div class="clause-number">02</div>
+            <div class="clause-content">
+                <h2>Platform Overview</h2>
+                <p>Drapso is a technology platform that connects wholesalers and resellers. Wholesellers can list products and resellers can create online stores and sell those products. Drapso facilitates transactions, payment processing, and payout distribution but does not own or manufacture any products listed on the platform.</p>
+            </div>
+        </div>
+
+        <div class="clause-item" data-aos="fade-up">
+            <div class="clause-number">03</div>
+            <div class="clause-content">
+                <h2>User Accounts</h2>
+                <p>To use Drapso, you must:</p>
+                <ul class="custom-list">
+                    <li>Provide accurate and complete information</li>
+                    <li>Maintain confidentiality of your login credentials</li>
+                    <li>Be responsible for all activities under your account</li>
+                </ul>
+                <p>Drapso reserves the right to suspend or terminate accounts that provide false information or violate policies.</p>
+            </div>
+        </div>
+
+        <div class="clause-item" data-aos="fade-up">
+            <div class="clause-number">04</div>
+            <div class="clause-content">
+                <h2>User Roles and Responsibilities</h2>
+                <h3 style="margin-top:20px; font-weight:700;">4.1 Wholesellers</h3>
+                <ul class="custom-list">
+                    <li>Provide accurate product information</li>
+                    <li>Maintain correct pricing and stock availability</li>
+                    <li>Dispatch products on time</li>
+                    <li>Provide valid bank and GST details (if required)</li>
+                </ul>
+                <h3 style="margin-top:20px; font-weight:700;">4.2 Resellers</h3>
+                <ul class="custom-list">
+                    <li>Use the platform to create stores using Drapso subdomains</li>
+                    <li>Set fair pricing and not mislead customers</li>
+                    <li>Use products responsibly without manipulation</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="clause-item" data-aos="fade-up">
+            <div class="clause-number">05</div>
+            <div class="clause-content">
+                <h2>Payments and Wallet System</h2>
+                <p>All customer payments are processed and collected by Drapso. Funds are held until delivery is successfully completed and verified. After delivery confirmation, earnings are credited to user wallets. Users can withdraw funds weekly or via automatic weekly transfers.</p>
+            </div>
+        </div>
+
+        <div class="clause-item" data-aos="fade-up">
+            <div class="clause-number">06</div>
+            <div class="clause-content">
+                <h2>Commission and Fees</h2>
+                <p>Drapso charges a commission of approximately 5% per transaction. Payment gateway fees (e.g., Razorpay) are deducted from the platform’s commission. Remaining amount is distributed between wholesellers, resellers, and logistics.</p>
+            </div>
+        </div>
+
+        <div class="clause-item" data-aos="fade-up">
+            <div class="clause-number">07</div>
+            <div class="clause-content">
+                <h2>Payout Conditions</h2>
+                <p>Only successfully delivered orders are eligible for payout. Cancelled, returned, or failed deliveries will not be paid. Drapso may hold payouts in case of disputes, fraud, or policy violations.</p>
+            </div>
+        </div>
+
+        <div class="clause-item" data-aos="fade-up">
+            <div class="clause-number">08</div>
+            <div class="clause-content">
+                <h2>Prohibited Activities</h2>
+                <p>Users must not:</p>
+                <ul class="custom-list">
+                    <li>Engage in fraudulent activities</li>
+                    <li>Create fake orders or manipulate delivery confirmations</li>
+                    <li>Upload illegal, counterfeit, or restricted products</li>
+                    <li>Abuse payment or wallet systems</li>
+                </ul>
+                <p>Violation may result in account suspension, fund hold, or permanent ban.</p>
+            </div>
+        </div>
+
+        <div class="clause-item" data-aos="fade-up">
+            <div class="clause-number">09</div>
+            <div class="clause-content">
+                <h2>Order and Delivery</h2>
+                <p>Wholesellers are responsible for product fulfillment. Delivery confirmation is verified via OTP. Without confirmation, payments will not be released.</p>
+            </div>
+        </div>
+
+        <div class="clause-item" data-aos="fade-up">
+            <div class="clause-number">10</div>
+            <div class="clause-content">
+                <h2>Intel Property</h2>
+                <p>All content on the platform including branding, design, and technology belongs to Drapso. Users may not copy, reproduce, or misuse platform content without permission.</p>
+            </div>
+        </div>
+
+        <div class="clause-item" data-aos="fade-up">
+            <div class="clause-number">11</div>
+            <div class="clause-content">
+                <h2>Data and Privacy</h2>
+                <p>User data is collected and processed as per Drapso’s Privacy Policy. By using the platform, you consent to such data usage.</p>
+            </div>
+        </div>
+
+        <div class="clause-item" data-aos="fade-up">
+            <div class="clause-number">12</div>
+            <div class="clause-content">
+                <h2>Limitation of Liability</h2>
+                <p>Drapso acts only as an intermediary and is not responsible for: Product quality, Delivery delays, Disputes between users.</p>
+            </div>
+        </div>
+
+        <div class="clause-item" data-aos="fade-up">
+            <div class="clause-number">13</div>
+            <div class="clause-content">
+                <h2>Suspension and Termination</h2>
+                <p>Drapso reserves the right to: Suspend or terminate accounts, Withhold or cancel payouts, Remove content or listings. If any policy violations or suspicious activities are detected.</p>
+            </div>
+        </div>
+
+        <div class="clause-item" data-aos="fade-up">
+            <div class="clause-number">14</div>
+            <div class="clause-content">
+                <h2>Modifications to Terms</h2>
+                <p>Drapso may update these Terms of Use at any time. Continued use of the platform after changes constitutes acceptance of the updated terms.</p>
+            </div>
+        </div>
+
+        <div class="clause-item" data-aos="fade-up">
+            <div class="clause-number">15</div>
+            <div class="clause-content">
+                <h2>Governing Law</h2>
+                <p>These Terms shall be governed by and interpreted under the laws of India.</p>
+            </div>
+        </div>
+
+        <div class="contact-banner" data-aos="zoom-in">
+            <h2 style="font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 800; margin-bottom: 10px;">Contact Information</h2>
+            <p style="font-size: 1.1rem; opacity: 0.9; margin-bottom: 20px;">For any queries or support, we're here to help you understand our policies.</p>
+            <div class="contact-email-btn">
+                Email us on: mkdrapso@gmail.com
+            </div>
+        </div>
+
     </div>
 </div>
 
-
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>
+    AOS.init({
+        duration: 1000,
+        once: true,
+        offset: 50 /* Reduced offset for better mobile trigger */
+    });
+</script>
 
 {% endblock %}
