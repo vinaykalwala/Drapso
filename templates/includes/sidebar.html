@@ -515,11 +515,7 @@
         Dashboard
     </a>
 
-    <a href="{% url 'accounts:profile' %}">
-        <i class="fa-solid fa-user"></i>
-        My Profile
-    </a>
-
+   
 
     <!-- ADMIN / SUPERADMIN ONLY -->
 
@@ -528,6 +524,10 @@
     <a href="{% url 'contact_list' %}">
         <i class="fa-solid fa-envelope"></i>
         Contact Messages
+    </a>
+     <a href="{% url 'wholesellers:admin_pending_kyc' %}">
+        <i class="fa-solid fa-envelope"></i>
+       KYC Approvals
     </a>
 
     
@@ -539,7 +539,11 @@
 
     {% if request.user.role == "wholeseller" %}
 
-    
+        </a>
+       <a href="{% url 'wholesellers:wholeseller_dashboard' %}">
+        <i class="fa-solid fa-building-columns"></i>
+       Add Inventory
+    </a>
 
     <a href="{% url 'accounts:bank_accounts' %}">
         <i class="fa-solid fa-building-columns"></i>
@@ -548,7 +552,7 @@
      <a href="{% url 'accounts:wholeseller_addresses' %}">
         <i class="fa-solid fa-building-columns"></i>
         Shipping Adresses
-    </a>
+  
 
     {% endif %}
 
@@ -576,6 +580,10 @@
 
 
     <!-- COMMON FOR ALL USERS -->
+    <a href="{% url 'accounts:profile' %}">
+        <i class="fa-solid fa-user"></i>
+        My Profile
+    </a>
 
     <a href="{% url 'accounts:change_password' %}">
         <i class="fa-solid fa-key"></i>
