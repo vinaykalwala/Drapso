@@ -12,6 +12,30 @@ def terms(request):
 def about(request):
     return render(request, 'about.html')
 
+def wholeseller_vendor_policy(request):
+    return render(request, 'policies/wholeseller_vendor_policy.html')
+
+def reseller_seller_policy(request):
+    return render(request, 'policies/reseller_seller_policy.html')
+
+def community_guidelines(request):
+    return render(request, 'policies/community_guidelines.html')
+
+def intellectual_property_policy(request):
+    return render(request, 'policies/intellectual_property_policy.html')
+
+def return_policy(request):
+    return render(request, 'policies/return_policy.html')
+
+def shipping_delivery_policy(request):
+    return render(request, 'policies/shipping_delivery_policy.html')
+
+def refund_cancellation_policy(request):
+    return render(request, 'policies/refund_cancellation_policy.html')
+
+def cookie_policy(request):
+    return render(request, 'policies/cookie_policy.html')
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied

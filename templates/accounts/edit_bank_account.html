@@ -1,163 +1,540 @@
+{% extends "dashboard_base.html" %}
+{% load static %}
 
-{% block title %}Edit Bank Account{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-edit me-2"></i>Edit Bank Account
-                        <a href="{% url 'accounts:bank_accounts' %}" class="btn btn-light btn-sm float-end">
-                            <i class="fas fa-arrow-left me-1"></i>Back
-                        </a>
-                    </h4>
-                </div>
-                <div class="card-body">
-                    {% if not account.is_verified %}
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>Account not verified!</strong> Please verify your account to use it for settlements.
-                            <a href="{% url 'accounts:verify_bank_account_otp' account.id %}" class="alert-link">Verify now</a>
-                        </div>
-                    {% endif %}
-                    
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        If you change account number, IFSC code, or bank name, you'll need to re-verify the account.
-                    </div>
-                    
-                    <form method="post" novalidate>
-                        {% csrf_token %}
-                        
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label for="{{ form.account_holder_name.id_for_label }}" class="form-label">Account Holder Name *</label>
-                                {{ form.account_holder_name }}
-                                {% if form.account_holder_name.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.account_holder_name.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.account_number.id_for_label }}" class="form-label">Account Number *</label>
-                                {{ form.account_number }}
-                                {% if form.account_number.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.account_number.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.confirm_account_number.id_for_label }}" class="form-label">Confirm Account Number *</label>
-                                {{ form.confirm_account_number }}
-                                {% if form.confirm_account_number.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.confirm_account_number.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.bank_name.id_for_label }}" class="form-label">Bank Name *</label>
-                                {{ form.bank_name }}
-                                {% if form.bank_name.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.bank_name.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.ifsc_code.id_for_label }}" class="form-label">IFSC Code *</label>
-                                {{ form.ifsc_code }}
-                                {% if form.ifsc_code.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.ifsc_code.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.branch_name.id_for_label }}" class="form-label">Branch Name *</label>
-                                {{ form.branch_name }}
-                                {% if form.branch_name.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.branch_name.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.account_type.id_for_label }}" class="form-label">Account Type *</label>
-                                {{ form.account_type }}
-                                {% if form.account_type.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.account_type.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-12 mb-3">
-                                <label for="{{ form.upi_id.id_for_label }}" class="form-label">UPI ID (Optional)</label>
-                                {{ form.upi_id }}
-                                {% if form.upi_id.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.upi_id.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-12 mb-3">
-                                <div class="form-check">
-                                    {{ form.is_primary }}
-                                    <label class="form-check-label" for="{{ form.is_primary.id_for_label }}">
-                                        Set as primary account
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="text-center mt-3">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-save me-2"></i>Update Bank Account
-                            </button>
-                            <a href="{% url 'accounts:bank_accounts' %}" class="btn btn-secondary btn-lg">
-                                <i class="fas fa-times me-2"></i>Cancel
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+
+<style>
+
+.page-area{
+max-width:980px;
+margin:0 auto;
+padding:40px 20px;
+}
+
+/* card */
+
+.main-card{
+background:white;
+border-radius:28px;
+border:1px solid #eef2ff;
+box-shadow:
+0 25px 50px rgba(0,0,0,.05),
+0 4px 10px rgba(0,0,0,.03);
+overflow:hidden;
+}
+
+/* top header */
+
+.card-header{
+padding:28px 32px;
+background:
+linear-gradient(135deg,#4f46e5,#6366f1);
+color:white;
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+gap:10px;
+}
+
+.title{
+font-size:24px;
+font-weight:700;
+letter-spacing:.3px;
+}
+
+.back-link{
+background:white;
+color:#4338ca;
+padding:8px 16px;
+border-radius:12px;
+text-decoration:none;
+font-weight:600;
+font-size:13px;
+transition:.2s;
+}
+
+.back-link:hover{
+background:#eef2ff;
+}
+
+/* body */
+
+.card-body{
+padding:35px 32px 40px;
+}
+
+/* alerts */
+
+.alert{
+padding:14px 16px;
+border-radius:14px;
+margin-bottom:18px;
+font-size:14px;
+border:1px solid;
+}
+
+.warning{
+background:#fff7ed;
+border-color:#fed7aa;
+color:#9a3412;
+}
+
+.info{
+background:#eff6ff;
+border-color:#bfdbfe;
+color:#1e40af;
+}
+
+.error-box{
+background:#fef2f2;
+border-color:#fecaca;
+color:#b91c1c;
+}
+
+/* section */
+
+.section-title{
+font-size:15px;
+font-weight:700;
+color:#334155;
+margin-bottom:16px;
+margin-top:10px;
+}
+
+/* grid */
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+.full{
+grid-column:1/-1;
+}
+
+/* labels */
+
+label{
+font-size:13px;
+font-weight:600;
+color:#475569;
+margin-bottom:6px;
+display:block;
+}
+
+.required{
+color:#dc2626;
+margin-left:2px;
+}
+
+/* inputs */
+
+input,select{
+width:100%;
+padding:13px 14px;
+border-radius:14px;
+border:1px solid #e2e8f0;
+font-size:14px;
+background:#f8fafc;
+transition:.25s;
+}
+
+input:hover,select:hover{
+border-color:#c7d2fe;
+background:white;
+}
+
+input:focus,select:focus{
+outline:none;
+border-color:#4f46e5;
+background:white;
+box-shadow:0 0 0 3px rgba(79,70,229,.08);
+}
+
+/* checkbox */
+
+.checkbox-row{
+margin-top:15px;
+background:#f8fafc;
+border:1px solid #e2e8f0;
+padding:14px 16px;
+border-radius:14px;
+display:flex;
+align-items:center;
+gap:10px;
+font-size:14px;
+font-weight:500;
+color:#334155;
+}
+
+.checkbox-row input{
+width:18px;
+height:18px;
+}
+
+/* error */
+
+.error{
+font-size:12px;
+color:#dc2626;
+margin-top:5px;
+}
+
+/* buttons */
+
+.actions{
+margin-top:35px;
+display:flex;
+justify-content:center;
+gap:18px;
+flex-wrap:wrap;
+}
+
+.save-btn{
+background:linear-gradient(135deg,#4f46e5,#6366f1);
+color:white;
+border:none;
+padding:14px 34px;
+font-size:15px;
+font-weight:600;
+border-radius:14px;
+cursor:pointer;
+transition:.25s;
+box-shadow:0 12px 25px rgba(79,70,229,.28);
+}
+
+.save-btn:hover{
+transform:translateY(-2px);
+box-shadow:0 18px 32px rgba(79,70,229,.35);
+}
+
+.cancel-btn{
+padding:14px 26px;
+border-radius:14px;
+border:1px solid #e2e8f0;
+background:white;
+font-weight:600;
+text-decoration:none;
+color:#334155;
+transition:.2s;
+}
+
+.cancel-btn:hover{
+background:#f8fafc;
+}
+
+/* background */
+
+body{
+background:#f8fafc;
+}
+
+/* responsive */
+
+@media(max-width:768px){
+
+.grid{
+grid-template-columns:1fr;
+}
+
+.card-header{
+padding:24px;
+}
+
+.card-body{
+padding:28px 20px 35px;
+}
+
+.title{
+font-size:20px;
+}
+
+}
+
+</style>
+
+
+<div class="content">
+<div class="page-area">
+
+<div class="main-card">
+
+
+<div class="card-header">
+
+<div class="title">
+
+Edit Bank Account
+
+</div>
+
+<a href="{% url 'accounts:bank_accounts' %}" class="back-link">
+
+Back
+
+</a>
+
+</div>
+
+
+
+<div class="card-body">
+
+
+{% if not account.is_verified %}
+
+<div class="alert warning">
+
+Account not verified.
+Verify before using for settlements.
+
+<a href="{% url 'accounts:verify_bank_account_otp' account.id %}">
+
+Verify now
+
+</a>
+
+</div>
+
+{% endif %}
+
+
+
+<div class="alert info">
+
+Changing bank details requires OTP verification again.
+
+</div>
+
+
+
+<form method="post">
+
+{% csrf_token %}
+
+
+{% if form.non_field_errors %}
+
+<div class="alert error-box">
+
+{% for error in form.non_field_errors %}
+{{ error }}
+{% endfor %}
+
+</div>
+
+{% endif %}
+
+
+
+<div class="section-title">
+
+Bank Details
+
+</div>
+
+
+<div class="grid">
+
+
+<div class="full">
+
+<label>
+
+Account Holder Name
+
+<span class="required">*</span>
+
+</label>
+
+{{ form.account_holder_name }}
+
+{% for error in form.account_holder_name.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>
+
+Account Number
+
+<span class="required">*</span>
+
+</label>
+
+{{ form.account_number }}
+
+{% for error in form.account_number.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>
+
+Confirm Account Number
+
+<span class="required">*</span>
+
+</label>
+
+{{ form.confirm_account_number }}
+
+{% for error in form.confirm_account_number.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>
+
+Bank Name
+
+<span class="required">*</span>
+
+</label>
+
+{{ form.bank_name }}
+
+{% for error in form.bank_name.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>
+
+IFSC Code
+
+<span class="required">*</span>
+
+</label>
+
+{{ form.ifsc_code }}
+
+{% for error in form.ifsc_code.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>
+
+Branch Name
+
+<span class="required">*</span>
+
+</label>
+
+{{ form.branch_name }}
+
+{% for error in form.branch_name.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>
+
+Account Type
+
+<span class="required">*</span>
+
+</label>
+
+{{ form.account_type }}
+
+{% for error in form.account_type.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div class="full">
+
+<label>
+
+UPI ID
+
+</label>
+
+{{ form.upi_id }}
+
+{% for error in form.upi_id.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+</div>
+
+
+
+<div class="checkbox-row">
+
+{{ form.is_primary }}
+
+Set as primary account
+
+</div>
+
+
+
+<div class="actions">
+
+<button type="submit" class="save-btn">
+
+Update Account
+
+</button>
+
+<a href="{% url 'accounts:bank_accounts' %}" class="cancel-btn">
+
+Cancel
+
+</a>
+
+</div>
+
+
+
+</form>
+
+</div>
+
+</div>
+
+</div>
 </div>
 {% endblock %}
