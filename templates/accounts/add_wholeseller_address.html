@@ -1,182 +1,551 @@
+{% extends "dashboard_base.html" %}
+{% load static %}
 
 {% block title %}Add Warehouse Address{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-plus me-2"></i>Add Warehouse Address
-                        <a href="{% url 'accounts:wholeseller_addresses' %}" class="btn btn-light btn-sm float-end">
-                            <i class="fas fa-arrow-left me-1"></i>Back
-                        </a>
-                    </h4>
-                </div>
-                <div class="card-body">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                    
-                    <form method="post" novalidate>
-                        {% csrf_token %}
-                        
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label for="{{ form.address_name.id_for_label }}" class="form-label">Address Name *</label>
-                                {{ form.address_name }}
-                                {% if form.address_name.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.address_name.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <small class="text-muted">e.g., Main Warehouse, Factory, Distribution Center</small>
-                            </div>
-                            
-                            <div class="col-md-12 mb-3">
-                                <label for="{{ form.address_line1.id_for_label }}" class="form-label">Address Line 1 *</label>
-                                {{ form.address_line1 }}
-                                {% if form.address_line1.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.address_line1.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-12 mb-3">
-                                <label for="{{ form.address_line2.id_for_label }}" class="form-label">Address Line 2 (Optional)</label>
-                                {{ form.address_line2 }}
-                                {% if form.address_line2.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.address_line2.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.city.id_for_label }}" class="form-label">City *</label>
-                                {{ form.city }}
-                                {% if form.city.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.city.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.state.id_for_label }}" class="form-label">State *</label>
-                                {{ form.state }}
-                                {% if form.state.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.state.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.postal_code.id_for_label }}" class="form-label">Postal Code *</label>
-                                {{ form.postal_code }}
-                                {% if form.postal_code.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.postal_code.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.country.id_for_label }}" class="form-label">Country *</label>
-                                {{ form.country }}
-                                {% if form.country.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.country.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.contact_person.id_for_label }}" class="form-label">Contact Person *</label>
-                                {{ form.contact_person }}
-                                {% if form.contact_person.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.contact_person.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.contact_phone.id_for_label }}" class="form-label">Contact Phone *</label>
-                                {{ form.contact_phone }}
-                                {% if form.contact_phone.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.contact_phone.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-12 mb-3">
-                                <div class="form-check">
-                                    {{ form.is_primary }}
-                                    <label class="form-check-label" for="{{ form.is_primary.id_for_label }}">
-                                        Set as primary address
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-12 mb-3">
-                                <div class="form-check">
-                                    {{ form.is_active }}
-                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                        Active
-                                    </label>
-                                </div>
-                                <small class="text-muted">Inactive addresses won't be available for shipping</small>
-                            </div>
-                        </div>
-                        
-                        <div class="text-center mt-3">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-save me-2"></i>Save Address
-                            </button>
-                            <a href="{% url 'accounts:wholeseller_addresses' %}" class="btn btn-secondary btn-lg">
-                                <i class="fas fa-times me-2"></i>Cancel
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+
+<style>
+
+/* page */
+
+.page-area{
+max-width:1050px;
+margin:auto;
+padding:40px 20px;
+}
+
+/* main card */
+
+.main-card{
+background:white;
+border-radius:28px;
+overflow:hidden;
+border:1px solid #eef2ff;
+box-shadow:
+0 25px 55px rgba(0,0,0,.05),
+0 6px 14px rgba(0,0,0,.04);
+}
+
+/* HERO SPLIT */
+
+.hero-split{
+display:grid;
+grid-template-columns:1fr 1fr;
+}
+
+.hero-left{
+background:linear-gradient(135deg,#4f46e5,#6366f1);
+color:white;
+padding:36px 38px;
+display:flex;
+flex-direction:column;
+justify-content:center;
+}
+
+.hero-left h2{
+font-size:26px;
+font-weight:700;
+margin-bottom:10px;
+}
+
+.hero-left p{
+font-size:14px;
+opacity:.95;
+line-height:1.6;
+}
+
+.hero-right{
+padding:36px 38px;
+display:flex;
+flex-direction:column;
+justify-content:center;
+background-image:url("{% static 'images/bg.avif' %}");
+background-size:cover;
+background-position:center;
+}
+
+.points{
+margin-bottom:22px;
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.point{
+display:flex;
+gap:10px;
+align-items:center;
+background:rgba(218, 216, 255, 0.7);
+border:1px solid #e0e7ff;
+padding:10px 14px;
+border-radius:12px;
+font-size:13px;
+color:#3730a3;
+}
+
+.dot{
+width:7px;
+height:7px;
+background:#6366f1;
+border-radius:50%;
+flex-shrink:0;
+}
+
+.back-btn{
+display:inline-block;
+background:#eef2ff;
+color:#4338ca;
+padding:9px 16px;
+border-radius:12px;
+font-size:13px;
+font-weight:600;
+text-decoration:none;
+width:max-content;
+}
+
+.form-section{
+padding:38px 40px 42px;
+border-top:1px solid #eef2ff;
+}
+
+.section-title{
+font-size:16px;
+font-weight:700;
+color:#334155;
+margin-bottom:18px;
+}
+
+.form-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:22px;
+}
+
+.full{
+grid-column:1/-1;
+}
+
+label{
+font-size:13px;
+font-weight:600;
+color:#475569;
+margin-bottom:6px;
+display:block;
+}
+
+.required{
+color:#dc2626;
+}
+
+input,select{
+width:100%;
+padding:13px 14px;
+border-radius:14px;
+border:1px solid #e2e8f0;
+background:#f8fafc;
+font-size:14px;
+transition:.25s;
+}
+
+input:focus,select:focus{
+outline:none;
+border-color:#4f46e5;
+background:white;
+box-shadow:0 0 0 3px rgba(79,70,229,.08);
+}
+
+.check-row{
+display:flex;
+align-items:center;
+gap:10px;
+background:#f8fafc;
+border:1px solid #e2e8f0;
+padding:13px 14px;
+border-radius:14px;
+font-size:14px;
+}
+
+.check-row input{
+width:16px;
+height:16px;
+}
+
+.help{
+font-size:12px;
+color:#64748b;
+margin-top:4px;
+}
+
+.error{
+font-size:12px;
+color:#dc2626;
+margin-top:4px;
+}
+
+.alert{
+padding:14px;
+border-radius:12px;
+margin-bottom:16px;
+font-size:14px;
+}
+
+.alert-success{background:#ecfdf5;color:#065f46}
+.alert-danger{background:#fef2f2;color:#991b1b}
+.alert-warning{background:#fffbeb;color:#92400e}
+
+.actions{
+margin-top:34px;
+display:flex;
+justify-content:center;
+gap:16px;
+flex-wrap:wrap;
+}
+
+.primary-btn{
+background:linear-gradient(135deg,#4f46e5,#6366f1);
+color:white;
+border:none;
+padding:14px 34px;
+font-size:15px;
+font-weight:600;
+border-radius:14px;
+cursor:pointer;
+box-shadow:0 12px 25px rgba(79,70,229,.28);
+}
+
+.cancel-btn{
+padding:14px 26px;
+border-radius:14px;
+border:1px solid #e2e8f0;
+background:white;
+font-weight:600;
+text-decoration:none;
+color:#334155;
+}
+
+body{
+background:#f8fafc;
+}
+
+@media(max-width:768px){
+
+.hero-split{
+grid-template-columns:1fr;
+}
+
+.hero-left{
+padding:26px 22px 18px;
+text-align:center;
+}
+
+.hero-right{
+padding:20px 22px 26px;
+text-align:center;
+}
+
+.form-section{
+padding:28px 20px 32px;
+}
+
+.form-grid{
+grid-template-columns:1fr;
+gap:18px;
+}
+
+.actions{
+flex-direction:column;
+}
+
+.primary-btn,
+.cancel-btn{
+width:100%;
+text-align:center;
+}
+.page-area{
+    padding-top: 60px;
+}
+
+}
+
+</style>
+
+
+<div class="content">
+<div class="page-area">
+<div class="main-card">
+
+<!-- top design -->
+<div class="hero-split">
+
+<div class="hero-left">
+
+<a href="{% url 'accounts:wholeseller_addresses' %}" class="back-btn">
+Back to addresses
+</a>
+<br>
+<h2>Warehouse Address</h2>
+
+<p>
+Add your warehouse location used for order fulfillment and delivery operations.
+</p>
+
 </div>
+
+
+<div class="hero-right">
+
+<div class="points">
+
+<div class="point">
+<div class="dot"></div>
+Used for shipping calculations
+</div>
+
+<div class="point">
+<div class="dot"></div>
+Can be edited anytime
+</div>
+
+<div class="point">
+<div class="dot"></div>
+Primary address auto-selected
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- form -->
+<div class="form-section">
+
+<div class="section-title">
+Address Details
+</div>
+
+
+<!-- Django messages -->
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-{{ message.tags }}">
+{{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
+
+<form method="post" novalidate>
+
+{% csrf_token %}
+
+
+<!-- non field errors -->
+{% if form.non_field_errors %}
+<div class="alert alert-danger">
+{% for error in form.non_field_errors %}
+{{ error }}
+{% endfor %}
+</div>
+{% endif %}
+
+
+<div class="form-grid">
+
+
+<div class="full">
+
+<label>
+Address Name <span class="required">*</span>
+</label>
+
+{{ form.address_name }}
+
+<div class="help">
+Example: Main warehouse, Factory, Distribution center
+</div>
+
+{% for error in form.address_name.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div class="full">
+
+<label>
+Address Line 1 <span class="required">*</span>
+</label>
+
+{{ form.address_line1 }}
+
+{% for error in form.address_line1.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div class="full">
+
+<label>Address Line 2</label>
+
+{{ form.address_line2 }}
+
+{% for error in form.address_line2.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>City <span class="required">*</span></label>
+
+{{ form.city }}
+
+{% for error in form.city.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>State <span class="required">*</span></label>
+
+{{ form.state }}
+
+{% for error in form.state.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>Postal Code <span class="required">*</span></label>
+
+{{ form.postal_code }}
+
+{% for error in form.postal_code.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>Country <span class="required">*</span></label>
+
+{{ form.country }}
+
+{% for error in form.country.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>Contact Person <span class="required">*</span></label>
+
+{{ form.contact_person }}
+
+{% for error in form.contact_person.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>Contact Phone <span class="required">*</span></label>
+
+{{ form.contact_phone }}
+
+{% for error in form.contact_phone.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div class="full">
+
+<div class="check-row">
+
+{{ form.is_primary }}
+
+Set as primary address
+
+</div>
+
+</div>
+
+
+
+<div class="full">
+
+<div class="check-row">
+
+{{ form.is_active }}
+
+Active address
+
+</div>
+
+<div class="help">
+Inactive addresses won't be available for shipping
+</div>
+
+</div>
+
+
+
+</div>
+
+
+
+<div class="actions">
+
+<button type="submit" class="primary-btn">
+Save Address
+</button>
+
+<a href="{% url 'accounts:wholeseller_addresses' %}" class="cancel-btn">
+Cancel
+</a>
+
+</div>
+
+
+</form>
+
+</div>
+
+
+</div>
+</div>
+</div>
+
 {% endblock %}

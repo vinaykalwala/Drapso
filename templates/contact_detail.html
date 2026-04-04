@@ -1,7 +1,333 @@
-<h2>Contact Detail</h2>
+{% extends "dashboard_base.html" %}
 
-<p><b>Name:</b> {{ contact.name }}</p>
-<p><b>Email:</b> {{ contact.email }}</p>
-<p><b>Phone:</b> {{ contact.phone }}</p>
-<p><b>Subject:</b> {{ contact.subject }}</p>
-<p><b>Message:</b> {{ contact.message }}</p>
+{% block title %}Contact Detail{% endblock %}
+
+{% block content %}
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+
+  .content {
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Thicker / richer background gradient */
+    background: linear-gradient(145deg, #eef2ff 0%, #e0e7ff 100%);
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+
+  /* --- main elevated card with subtle white --- */
+  .contact-card {
+    width: 100%;
+    max-width: 780px;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 2rem;
+    box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.2), 0 8px 20px rgba(0, 0, 0, 0.05);
+    padding: 2rem 2.2rem 2.5rem;
+    transition: transform 0.25s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* gradient top bar */
+  .contact-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd);
+    z-index: 2;
+  }
+
+  .contact-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 30px 50px -14px rgba(59, 130, 246, 0.3);
+  }
+
+  /* --- title with fresh blue accent --- */
+  .card-title {
+    font-size: 1.9rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6, #60a5fa);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    margin-bottom: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 2px dashed #bfdbfe;
+    padding-bottom: 0.75rem;
+  }
+
+  .card-title i {
+    background: linear-gradient(135deg, #2563eb, #60a5fa);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    font-size: 1.8rem;
+  }
+
+  /* --- info rows (light, clean) --- */
+  .info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.2rem;
+    margin-bottom: 1.2rem;
+    background: #ffffff;
+    padding: 0.7rem 1rem;
+    border-radius: 1.2rem;
+    transition: all 0.2s;
+    border: 1px solid #eef2ff;
+  }
+
+  .info-row:hover {
+    background: #fafcff;
+    border-color: #bfdbfe;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+  }
+
+  .icon-wrapper {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(145deg, #eff6ff, #ffffff);
+    border-radius: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.02);
+    flex-shrink: 0;
+  }
+
+  .icon-wrapper i {
+    font-size: 1.4rem;
+    color: #3b82f6;
+    filter: drop-shadow(0 1px 1px rgba(59,130,246,0.2));
+  }
+
+  .info-content {
+    flex: 1;
+  }
+
+  .info-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #5b6e9e;
+    margin-bottom: 0.2rem;
+  }
+
+  .info-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0c2b4b;
+    word-break: break-word;
+  }
+
+  /* gradient highlight for name */
+  .info-value.highlight {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    font-weight: 700;
+  }
+
+  /* --- divider soft blue --- */
+  .divider {
+    margin: 1.6rem 0 1.4rem;
+    height: 2px;
+    background: linear-gradient(90deg, #dbeafe, #93c5fd, #dbeafe);
+    border-radius: 4px;
+  }
+
+  /* --- MESSAGE SECTION: LIGHT BLUE CARD (as requested) --- */
+  .message-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #2563eb;
+  }
+
+  .message-header i {
+    font-size: 1.2rem;
+    background: linear-gradient(145deg, #2563eb, #60a5fa);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  /* Light blue message card + rounded, elevated style */
+  .message-box {
+    background: #f0f9ff;   /* soft light blue background */
+    border-radius: 1.5rem;
+    padding: 1.4rem 1.6rem;
+    border-left: 5px solid #3b82f6;
+    font-size: 0.96rem;
+    line-height: 1.6;
+    color: #0c4a6e;
+    font-weight: 500;
+    box-shadow: 0 6px 14px -6px rgba(59, 130, 246, 0.2);
+    transition: all 0.25s;
+    word-break: break-word;
+    white-space: pre-wrap;
+    border: 1px solid #d9efff;
+  }
+
+  .message-box:hover {
+    background: #e6f4ff;
+    border-left-color: #2563eb;
+    box-shadow: 0 10px 20px -10px rgba(37, 99, 235, 0.25);
+    transform: scale(0.99);
+  }
+
+  /* subtle shine effect on card */
+  .contact-card:after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -60%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(147, 197, 253, 0.2) 0%, rgba(255,255,255,0) 70%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+
+  .contact-card:hover:after {
+    opacity: 0.4;
+  }
+
+  /* responsive */
+  @media (max-width: 680px) {
+    .content {
+      padding: 1.2rem;
+    }
+    .contact-card {
+      padding: 1.5rem;
+    }
+    .card-title {
+      font-size: 1.5rem;
+      margin-bottom: 1.2rem;
+    }
+    .info-row {
+      gap: 0.9rem;
+      padding: 0.5rem 0.8rem;
+    }
+    .icon-wrapper {
+      width: 36px;
+      height: 36px;
+    }
+    .icon-wrapper i {
+      font-size: 1.1rem;
+    }
+    .info-value {
+      font-size: 0.9rem;
+    }
+    .message-box {
+      padding: 1rem;
+      font-size: 0.88rem;
+    }
+  }
+
+  /* fade in animation */
+  @keyframes fadeSlideUp {
+    0% {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .contact-card {
+    animation: fadeSlideUp 0.45s ease-out;
+  }
+</style>
+
+<div class="content">
+  <div class="contact-card">
+    <div class="card-title">
+      <i class="fas fa-id-card"></i>
+      <span>Contact profile</span>
+    </div>
+
+    <!-- name row -->
+    <div class="info-row">
+      <div class="icon-wrapper">
+        <i class="fas fa-user-astronaut"></i>
+      </div>
+      <div class="info-content">
+        <div class="info-label">Full name</div>
+        <div class="info-value highlight">{{ contact.name }}</div>
+      </div>
+    </div>
+
+    <!-- email row -->
+    <div class="info-row">
+      <div class="icon-wrapper">
+        <i class="fas fa-paper-plane"></i>
+      </div>
+      <div class="info-content">
+        <div class="info-label">Email address</div>
+        <div class="info-value">{{ contact.email }}</div>
+      </div>
+    </div>
+
+    <!-- phone row -->
+    <div class="info-row">
+      <div class="icon-wrapper">
+        <i class="fas fa-mobile-alt"></i>
+      </div>
+      <div class="info-content">
+        <div class="info-label">Phone / Mobile</div>
+        <div class="info-value">{{ contact.phone }}</div>
+      </div>
+    </div>
+
+    <!-- subject row -->
+    <div class="info-row">
+      <div class="icon-wrapper">
+        <i class="fas fa-feather-alt"></i>
+      </div>
+      <div class="info-content">
+        <div class="info-label">Subject</div>
+        <div class="info-value">{{ contact.subject }}</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- message area with LIGHT BLUE card & header background -->
+    <div>
+      <div class="message-header">
+        <i class="fas fa-comment-dots"></i>
+        <span>Message details</span>
+      </div>
+      <div class="message-box">
+        {{ contact.message }}
+      </div>
+    </div>
+
+    <!-- subtle footer -->
+    <div style="margin-top: 1.8rem; text-align: right; opacity: 0.5; font-size: 0.7rem; letter-spacing: 0.3px;">
+      <i class="fas fa-inbox"></i> via contact form • {{ "now"|date:"F j, Y" }}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

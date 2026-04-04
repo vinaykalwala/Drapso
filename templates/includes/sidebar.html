@@ -440,6 +440,27 @@
             }
 
         }
+        .menu-badge{
+
+margin-left:auto;
+
+background:#ef4444;
+
+color:white;
+
+font-size:11px;
+
+padding:3px 8px;
+
+border-radius:20px;
+
+font-weight:600;
+
+min-width:18px;
+
+text-align:center;
+
+}
     </style>
 
 </head>
@@ -525,9 +546,20 @@
         <i class="fa-solid fa-envelope"></i>
         Contact Messages
     </a>
-     <a href="{% url 'wholesellers:admin_pending_kyc' %}">
+    <a href="{% url 'wholesellers:admin_pending_kyc' %}">
+    <i class="fa-solid fa-id-card"></i>
+
+    KYC Approvals
+
+    {% if pending_kyc_count > 0 %}
+        <span class="menu-badge">
+            {{ pending_kyc_count }}
+        </span>
+    {% endif %}
+</a>
+     <a href="{% url 'wholesellers:admin_verified_wholesellers' %}">
         <i class="fa-solid fa-envelope"></i>
-       KYC Approvals
+     Verified Wholesellers
     </a>
 
     
@@ -570,7 +602,7 @@
     </a>
      <a href="{% url 'accounts:reseller_addresses' %}">
         <i class="fa-solid fa-building-columns"></i>
-        Billing Adresses
+        Shipping Adresses
     </a>
 
    

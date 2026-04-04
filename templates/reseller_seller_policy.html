@@ -1,0 +1,957 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #f8fafc 100%);
+}
+
+/* ========== HERO SECTION WITH GLASS EFFECT ========== */
+.hero-section {
+    position: relative;
+    background-image: url("{% static 'images/bg.avif' %}");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    padding: 120px 20px 100px;
+    text-align: center;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 700px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px);
+    border-radius: 32px;
+    padding: 40px 48px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: fadeInUp 0.6s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+    padding: 6px 18px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+}
+
+.hero-title {
+    font-size: 44px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 16px;
+    letter-spacing: -1px;
+    line-height: 1.2;
+}
+
+.hero-subtitle {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.5;
+}
+
+/* ========== MAIN LAYOUT ========== */
+.main-wrapper {
+    max-width: 1300px;
+    margin: -50px auto 70px;
+    padding: 0 24px;
+    position: relative;
+    z-index: 3;
+}
+
+/* ========== SIDEBAR ========== */
+.sidebar {
+    position: sticky;
+    top: 100px;
+    background: white;
+    border-radius: 20px;
+    padding: 20px 16px;
+    box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #eef2ff;
+    height: fit-content;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.sidebar-header {
+    padding: 0 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 12px;
+}
+
+.sidebar-header h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.sidebar-header p {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+    background: #f8fafc;
+    color: #4f46e5;
+}
+
+.nav-item.active {
+    background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+    color: white;
+}
+
+.nav-number {
+    width: 28px;
+    height: 28px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #4f46e5;
+    transition: all 0.2s ease;
+}
+
+.nav-item.active .nav-number {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.nav-item:hover .nav-number {
+    background: #e0e7ff;
+}
+
+/* ========== CONTENT AREA ========== */
+.content-area {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* ========== POLICY CARDS ========== */
+.policy-card {
+    background: white;
+    border-radius: 24px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid #eef2ff;
+}
+
+.policy-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.1);
+    border-color: #c7d2fe;
+}
+
+.card-header {
+    padding: 24px 28px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1px solid #f1f5f9;
+    background: linear-gradient(135deg, #fafcff, #ffffff);
+}
+
+.card-number {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 800;
+    color: white;
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+}
+
+.card-title {
+    flex: 1;
+}
+
+.card-title h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.card-title span {
+    font-size: 11px;
+    color: #8b5cf6;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #f5f3ff;
+    padding: 2px 8px;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+.card-body {
+    padding: 24px 28px 28px;
+}
+
+/* Paragraph Styling */
+.card-body p {
+    font-size: 15px;
+    color: #334155;
+    line-height: 1.7;
+    margin-bottom: 16px;
+}
+
+.card-body p:last-child {
+    margin-bottom: 0;
+}
+
+.card-body strong {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+/* Modern List Styling */
+.custom-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.custom-list li {
+    padding: 10px 0 10px 28px;
+    position: relative;
+    font-size: 15px;
+    color: #334155;
+    line-height: 1.6;
+    border-bottom: 1px solid #f8fafc;
+}
+
+.custom-list li:last-child {
+    border-bottom: none;
+}
+
+.custom-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 17px;
+    width: 6px;
+    height: 6px;
+    background: #4f46e5;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+/* Nested List */
+.nested-list {
+    list-style: none;
+    padding-left: 28px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.nested-list li {
+    padding: 6px 0 6px 24px;
+    border-bottom: none;
+}
+
+.nested-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: auto;
+    height: auto;
+    background: transparent;
+    color: #8b5cf6;
+    font-size: 12px;
+    box-shadow: none;
+}
+
+/* Warning Box */
+.warning-box {
+    background: linear-gradient(135deg, #fef2f2, #ffffff);
+    border-left: 4px solid #ef4444;
+    padding: 16px 20px;
+    border-radius: 14px;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.warning-box i {
+    color: #ef4444;
+    font-size: 18px;
+}
+
+.warning-box strong {
+    color: #991b1b;
+    font-size: 14px;
+}
+
+/* Highlight Box */
+.highlight-box {
+    background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+    color: white;
+    padding: 24px 28px;
+    border-radius: 18px;
+    margin-top: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.highlight-box::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
+}
+
+.highlight-box p {
+    color: white;
+    margin-bottom: 0;
+    font-size: 15px;
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+}
+
+.highlight-box i {
+    margin-right: 12px;
+    font-size: 18px;
+}
+
+/* Section Intro Text */
+.section-intro {
+    background: #f8fafc;
+    padding: 16px 20px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+    border-left: 3px solid #4f46e5;
+}
+
+.section-intro p {
+    margin-bottom: 0;
+    color: #475569;
+}
+
+/* Grid Layout */
+.layout-grid {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 32px;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+    .hero-title {
+        font-size: 36px;
+    }
+    
+    .hero-content {
+        padding: 30px 36px;
+    }
+    
+    .layout-grid {
+        grid-template-columns: 240px 1fr;
+        gap: 28px;
+    }
+}
+
+@media (max-width: 900px) {
+    .layout-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    
+    .sidebar {
+        position: relative;
+        top: 0;
+        max-height: none;
+        overflow-y: visible;
+        padding: 16px;
+    }
+    
+    .nav-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .nav-item {
+        flex: 1;
+        min-width: 130px;
+        justify-content: center;
+        padding: 8px 12px;
+    }
+    
+    .hero-title {
+        font-size: 28px;
+    }
+    
+    .hero-section {
+        padding: 80px 20px 60px;
+    }
+    
+    .hero-content {
+        padding: 24px 28px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 24px;
+    }
+    
+    .hero-subtitle {
+        font-size: 14px;
+    }
+    
+    .hero-badge {
+        font-size: 11px;
+        padding: 5px 14px;
+    }
+    
+    .hero-content {
+        padding: 20px 24px;
+    }
+    
+    .card-header {
+        padding: 18px 20px 12px;
+        gap: 12px;
+    }
+    
+    .card-number {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+        border-radius: 14px;
+    }
+    
+    .card-title h2 {
+        font-size: 17px;
+    }
+    
+    .card-body {
+        padding: 18px 20px 22px;
+    }
+    
+    .card-body p,
+    .custom-list li {
+        font-size: 14px;
+    }
+    
+    .main-wrapper {
+        margin: -40px auto 50px;
+        padding: 0 16px;
+    }
+    
+    .highlight-box {
+        padding: 18px 20px;
+    }
+    
+    .warning-box {
+        padding: 14px 16px;
+    }
+}
+
+@media (max-width: 580px) {
+    .hero-title {
+        font-size: 22px;
+    }
+    
+    .hero-subtitle {
+        font-size: 13px;
+    }
+    
+    .hero-section {
+        padding: 60px 16px 40px;
+    }
+    
+    .hero-content {
+        padding: 20px;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+    
+    .card-number {
+        margin-bottom: 4px;
+    }
+    
+    .card-title span {
+        font-size: 9px;
+    }
+    
+    .nav-item {
+        min-width: 100%;
+    }
+    
+    .custom-list li {
+        padding: 8px 0 8px 24px;
+        font-size: 13px;
+    }
+    
+    .nested-list {
+        padding-left: 20px;
+    }
+    
+    .section-intro {
+        padding: 12px 16px;
+    }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #4f46e5;
+}
+/* ===== Tablet & Mobile Improvements (below 920px) ===== */
+@media (max-width: 920px) {
+
+    /* HERO spacing improvement */
+    .hero-section {
+        padding: 100px 20px 80px;
+        background-attachment: scroll;
+    }
+
+    .hero-content {
+        padding: 32px 26px;
+        border-radius: 26px;
+    }
+
+    .hero-title {
+        font-size: 30px;
+        line-height: 1.3;
+    }
+
+    .hero-subtitle {
+        font-size: 15px;
+    }
+
+    /* Layout stack */
+    .layout-grid {
+        grid-template-columns: 1fr;
+        gap: 22px;
+    }
+
+    /* Sidebar redesign */
+    .sidebar {
+        position: relative;
+        top: 0;
+        max-height: none;
+        padding: 18px;
+        border-radius: 18px;
+    }
+
+    .sidebar-header {
+        padding-bottom: 12px;
+        margin-bottom: 14px;
+        text-align: center;
+    }
+
+    /* Navigation alignment fix */
+    .nav-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .nav-item {
+        flex: 1 1 calc(50% - 10px);
+        justify-content: center;
+        text-align:left;
+        padding: 10px 12px;
+        font-size: 13px;
+        border-radius: 12px;
+    }
+
+    .nav-number {
+        width: 26px;
+        height: 26px;
+        font-size: 11px;
+    }
+}
+</style>
+
+<!-- HERO SECTION WITH GLASS EFFECT -->
+<div class="hero-section">
+    <div class="hero-content">
+       
+        <h1 class="hero-title">Reseller (Seller) Policy</h1>
+        <p class="hero-subtitle">Guidelines for maintaining a fair, transparent, and trustworthy marketplace</p>
+    </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-wrapper">
+    <div class="layout-grid">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>Quick Navigation</h3>
+                <p>Jump to section</p>
+            </div>
+            <div class="nav-list">
+                <a href="#section1" class="nav-item">
+                    <div class="nav-number">01</div>
+                    <span>Role</span>
+                </a>
+                <a href="#section2" class="nav-item">
+                    <div class="nav-number">02</div>
+                    <span>Store Management</span>
+                </a>
+                <a href="#section3" class="nav-item">
+                    <div class="nav-number">03</div>
+                    <span>Pricing</span>
+                </a>
+                <a href="#section4" class="nav-item">
+                    <div class="nav-number">04</div>
+                    <span>Orders & Earnings</span>
+                </a>
+                <a href="#section5" class="nav-item">
+                    <div class="nav-number">05</div>
+                    <span>Refunds</span>
+                </a>
+                <a href="#section6" class="nav-item">
+                    <div class="nav-number">06</div>
+                    <span>Prohibited</span>
+                </a>
+                <a href="#section7" class="nav-item">
+                    <div class="nav-number">07</div>
+                    <span>Disputes</span>
+                </a>
+                <a href="#section8" class="nav-item">
+                    <div class="nav-number">08</div>
+                    <span>Compliance</span>
+                </a>
+                <a href="#section9" class="nav-item">
+                    <div class="nav-number">09</div>
+                    <span>Agreement</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- CONTENT CARDS -->
+        <div class="content-area">
+            <!-- Section 1 -->
+            <div id="section1" class="policy-card">
+                <div class="card-header">
+                    <div class="card-number">01</div>
+                    <div class="card-title">
+                        <h2>Role of Reseller</h2>
+                        <span>Foundation</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>A reseller on Drapso can create an online store, import products from wholesalers, set selling prices, and sell to customers. <strong>Resellers do not own inventory</strong> but act as sellers to end customers.</p>
+                </div>
+            </div>
+
+            <!-- Section 2 -->
+            <div id="section2" class="policy-card">
+                <div class="card-header">
+                    <div class="card-number">02</div>
+                    <div class="card-title">
+                        <h2>Store Management</h2>
+                        <span>Responsibilities</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Resellers are responsible for:</p>
+                    <ul class="custom-list">
+                        <li>Managing their store (subdomain provided by Drapso)</li>
+                        <li>Setting fair and transparent pricing</li>
+                        <li>Displaying accurate product information</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 3 -->
+            <div id="section3" class="policy-card">
+                <div class="card-header">
+                    <div class="card-number">03</div>
+                    <div class="card-title">
+                        <h2>Pricing & Customer Responsibility</h2>
+                        <span>Fair Trade</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Resellers must:</p>
+                    <ul class="custom-list">
+                        <li>Avoid misleading pricing</li>
+                        <li>Not overpromise delivery timelines</li>
+                        <li>Maintain transparency with customers</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 4 -->
+            <div id="section4" class="policy-card">
+                <div class="card-header">
+                    <div class="card-number">04</div>
+                    <div class="card-title">
+                        <h2>Orders & Earnings</h2>
+                        <span>Transaction Flow</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <ul class="custom-list">
+                        <li>Orders placed by customers are processed through Drapso</li>
+                        <li>Payments are held until delivery is confirmed</li>
+                        <li>Earnings are credited only for successfully delivered orders</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 5 -->
+            <div id="section5" class="policy-card">
+                <div class="card-header">
+                    <div class="card-number">05</div>
+                    <div class="card-title">
+                        <h2>Refunds & Returns</h2>
+                        <span>Policy Compliance</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Resellers must follow Drapso's:</p>
+                    <ul class="custom-list">
+                        <li>Refund Policy</li>
+                        <li>Return Policy</li>
+                    </ul>
+                    <p><strong>Resellers cannot override or create policies that conflict with Drapso rules.</strong></p>
+                </div>
+            </div>
+
+            <!-- Section 6 -->
+            <div id="section6" class="policy-card">
+                <div class="card-header">
+                    <div class="card-number">06</div>
+                    <div class="card-title">
+                        <h2>Prohibited Activities</h2>
+                        <span>Strictly Forbidden</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Resellers must not:</p>
+                    <ul class="custom-list">
+                        <li>Create fake orders</li>
+                        <li>Mislead customers</li>
+                        <li>Abuse pricing or promotions</li>
+                        <li>Attempt to bypass the platform</li>
+                    </ul>
+                    <div class="warning-box">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Violations may result in suspension or account termination.</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 7 -->
+            <div id="section7" class="policy-card">
+                <div class="card-header">
+                    <div class="card-number">07</div>
+                    <div class="card-title">
+                        <h2>Dispute Management & Accountability</h2>
+                        <span>Resolution Authority</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="section-intro">
+                        <p><strong>In any dispute (refunds, returns, delivery issues, or complaints):</strong></p>
+                    </div>
+                    <ul class="custom-list">
+                        <li>Drapso will act as the final decision-making authority</li>
+                    </ul>
+                    
+                    <p><strong>Decisions will be based on:</strong></p>
+                    <ul class="custom-list">
+                        <li>Platform policies</li>
+                        <li>Order data</li>
+                        <li>Proof submitted (e.g., unboxing videos)</li>
+                    </ul>
+                    
+                    <p><strong>Resellers agree that:</strong></p>
+                    <ul class="custom-list">
+                        <li>Drapso's decision is final and binding</li>
+                        <li>Payouts may be adjusted based on dispute outcomes</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 8 -->
+            <div id="section8" class="policy-card">
+                <div class="card-header">
+                    <div class="card-number">08</div>
+                    <div class="card-title">
+                        <h2>Policy Compliance</h2>
+                        <span>Mandatory</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Resellers may display store-level policies, but they must <strong>comply with Drapso's platform policies at all times.</strong></p>
+                </div>
+            </div>
+
+            <!-- Section 9 -->
+            <div id="section9" class="policy-card">
+                <div class="card-header">
+                    <div class="card-number">09</div>
+                    <div class="card-title">
+                        <h2>Agreement</h2>
+                        <span>Acceptance</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="highlight-box">
+                        <p><i class="fas fa-check-circle"></i> By using Drapso, resellers agree to follow all rules and accept Drapso's authority in dispute resolution.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Smooth scroll with active state tracking
+document.querySelectorAll('.nav-item').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href');
+        const target = document.querySelector(targetId);
+        
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+            
+            // Update active state
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            this.classList.add('active');
+        }
+    });
+});
+
+// Update active nav on scroll
+window.addEventListener('scroll', () => {
+    const sections = document.querySelectorAll('.policy-card');
+    const navItems = document.querySelectorAll('.nav-item');
+    
+    let current = '';
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.clientHeight;
+        if (window.scrollY >= sectionTop - 200) {
+            current = section.getAttribute('id');
+        }
+    });
+    
+    navItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('href') === `#${current}`) {
+            item.classList.add('active');
+        }
+    });
+});
+</script>
+
+{% endblock %}

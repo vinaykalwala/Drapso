@@ -1,0 +1,605 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+
+/* hero */
+
+.hero-bg{
+
+background-image:url("{% static 'images/bg.avif' %}");
+background-size:cover;
+background-position:center;
+
+padding:100px 20px;
+padding-top: 150px;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+}
+
+/* glass title */
+
+.hero-title{
+
+background:rgba(255,255,255,.15);
+
+backdrop-filter:blur(12px);
+
+padding:14px 28px;
+
+border-radius:12px;
+
+color:white;
+
+font-size:26px;
+
+font-weight:600;
+
+letter-spacing:.3px;
+
+box-shadow:0 8px 25px rgba(0,0,0,.15);
+
+}
+
+
+
+/* layout */
+
+.policy-wrapper{
+
+max-width:1100px;
+
+margin:30px auto;
+
+padding:0 20px;
+
+}
+
+
+
+/* card */
+
+.policy-container{
+
+background:white;
+
+border-radius:18px;
+
+padding:28px;
+
+box-shadow:0 15px 35px rgba(0,0,0,.05);
+
+border:1px solid #eef2f7;
+
+}
+
+
+
+/* vertical layout */
+
+.policy-block{
+
+margin-bottom:22px;
+
+padding-left:18px;
+
+border-left:3px solid #eef2ff;
+
+}
+
+
+
+/* heading */
+
+.policy-heading{
+
+font-size:16px;
+
+font-weight:600;
+
+color:#111827;
+
+margin-bottom:8px;
+
+}
+
+
+
+/* content box */
+
+.policy-box{
+
+background:#f8faff;
+
+border:1px solid #eef2ff;
+
+border-radius:12px;
+
+padding:14px 16px;
+
+margin-top:6px;
+
+}
+
+
+
+/* list */
+
+.policy-list{
+
+margin-top:8px;
+
+display:grid;
+
+gap:6px;
+
+}
+
+.policy-item{
+
+background:white;
+
+border:1px solid #f1f5f9;
+
+border-radius:8px;
+
+padding:8px 10px;
+
+font-size:14px;
+
+color:#475569;
+
+}
+
+
+
+/* normal text */
+
+.policy-text{
+
+font-size:14px;
+
+color:#475569;
+
+line-height:1.65;
+
+margin-top:6px;
+
+}
+
+
+
+/* mobile */
+
+@media(max-width:600px){
+
+.hero-bg{
+
+padding:55px 15px;
+padding-top: 100px;
+
+}
+
+.hero-title{
+
+font-size:20px;
+
+padding:12px 18px;
+
+}
+
+.policy-container{
+
+padding:20px;
+
+border-radius:14px;
+
+}
+
+.policy-heading{
+
+font-size:15px;
+
+}
+
+.policy-text{
+
+font-size:13.5px;
+
+}
+
+.policy-item{
+
+font-size:13.5px;
+
+padding:7px 9px;
+
+}
+
+}
+
+</style>
+
+
+
+<div class="hero-bg">
+
+<div class="hero-title">
+
+Wholeseller (Vendor) Policy – Drapso
+
+</div>
+
+</div>
+
+
+
+<div class="policy-wrapper">
+
+<div class="policy-container">
+
+
+
+<div class="policy-block">
+
+<div class="policy-heading">
+
+1. Role of Wholeseller
+
+</div>
+
+<div class="policy-box">
+
+<div class="policy-text">
+
+A wholeseller (vendor) on Drapso is responsible for listing products, managing inventory, fulfilling orders, and ensuring product quality. By using the platform, you agree to comply with all Drapso policies and operational standards.
+
+</div>
+
+</div>
+
+</div>
+
+
+
+
+<div class="policy-block">
+
+<div class="policy-heading">
+
+2. Product Listing Responsibility
+
+</div>
+
+<div class="policy-box">
+
+<div class="policy-text">
+
+Wholesellers must ensure:
+
+</div>
+
+<div class="policy-list">
+
+<div class="policy-item">
+
+Accurate product descriptions, images, and pricing
+
+</div>
+
+<div class="policy-item">
+
+Correct stock availability
+
+</div>
+
+<div class="policy-item">
+
+No misleading or false information
+
+</div>
+
+</div>
+
+</div>
+
+<div class="policy-text">
+
+Drapso reserves the right to remove or suspend listings that violate these rules.
+
+</div>
+
+</div>
+
+
+
+
+<div class="policy-block">
+
+<div class="policy-heading">
+
+3. Order Fulfillment & Shipping
+
+</div>
+
+<div class="policy-box">
+
+<div class="policy-text">
+
+Wholesellers are responsible for:
+
+</div>
+
+<div class="policy-list">
+
+<div class="policy-item">
+
+Timely processing and dispatch of orders
+
+</div>
+
+<div class="policy-item">
+
+Proper packaging of products
+
+</div>
+
+<div class="policy-item">
+
+Ensuring the correct product is shipped
+
+</div>
+
+</div>
+
+</div>
+
+<div class="policy-text">
+
+Failure to fulfill orders properly may result in penalties, account suspension, or reduced visibility.
+
+</div>
+
+</div>
+
+
+
+
+<div class="policy-block">
+
+<div class="policy-heading">
+
+4. Product Quality & Returns
+
+</div>
+
+<div class="policy-box">
+
+<div class="policy-text">
+
+Wholesellers are accountable for:
+
+</div>
+
+<div class="policy-list">
+
+<div class="policy-item">
+
+Damaged or defective products
+
+</div>
+
+<div class="policy-item">
+
+Incorrect items shipped
+
+</div>
+
+</div>
+
+</div>
+
+<div class="policy-text">
+
+If a return or refund request is approved (based on Drapso policy), the wholeseller must accept the return and bear the applicable cost as per platform rules.
+
+</div>
+
+</div>
+
+
+
+
+<div class="policy-block">
+
+<div class="policy-heading">
+
+5. Payment & Earnings
+
+</div>
+
+<div class="policy-list">
+
+<div class="policy-item">
+
+Wholesellers receive payment only after successful delivery confirmation (OTP-based)
+
+</div>
+
+<div class="policy-item">
+
+Payments are credited to the wallet and processed weekly
+
+</div>
+
+<div class="policy-item">
+
+Payments may be held in case of disputes or policy violations
+
+</div>
+
+</div>
+
+</div>
+
+
+
+
+<div class="policy-block">
+
+<div class="policy-heading">
+
+6. Prohibited Activities
+
+</div>
+
+<div class="policy-box">
+
+<div class="policy-text">
+
+Wholesellers must not:
+
+</div>
+
+<div class="policy-list">
+
+<div class="policy-item">
+
+Upload counterfeit or illegal products
+
+</div>
+
+<div class="policy-item">
+
+Provide false information
+
+</div>
+
+<div class="policy-item">
+
+Manipulate orders or deliveries
+
+</div>
+
+</div>
+
+</div>
+
+<div class="policy-text">
+
+Violations may result in account suspension or permanent removal.
+
+</div>
+
+</div>
+
+
+
+
+<div class="policy-block">
+
+<div class="policy-heading">
+
+7. Dispute Management & Accountability
+
+</div>
+
+<div class="policy-box">
+
+<div class="policy-text">
+
+In case of disputes (returns, refunds, delivery issues, or complaints):
+
+</div>
+
+<div class="policy-list">
+
+<div class="policy-item">
+
+Drapso will act as the final authority in decision-making
+
+</div>
+
+<div class="policy-item">
+
+Decisions will be based on platform policies, submitted proof (including unboxing videos), and transaction records
+
+</div>
+
+<div class="policy-item">
+
+Wholesellers must comply with Drapso’s final decision
+
+</div>
+
+</div>
+
+</div>
+
+<div class="policy-text">
+
+Drapso reserves the right to:
+
+</div>
+
+<div class="policy-list">
+
+<div class="policy-item">
+
+Deduct amounts from wholeseller earnings
+
+</div>
+
+<div class="policy-item">
+
+Hold payouts
+
+</div>
+
+<div class="policy-item">
+
+Penalize accounts for repeated issues
+
+</div>
+
+</div>
+
+</div>
+
+
+
+
+<div class="policy-block">
+
+<div class="policy-heading">
+
+8. Agreement
+
+</div>
+
+<div class="policy-box">
+
+<div class="policy-text">
+
+By using Drapso, wholesellers agree to follow all policies and accept Drapso’s authority in dispute resolution.
+
+</div>
+
+</div>
+
+</div>
+
+
+
+</div>
+
+</div>
+
+
+
+{% endblock %}

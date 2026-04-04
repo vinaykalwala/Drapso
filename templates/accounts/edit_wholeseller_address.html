@@ -1,180 +1,523 @@
+{% extends "dashboard_base.html" %}
+{% load static %}
 
 {% block title %}Edit Warehouse Address{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-edit me-2"></i>Edit Warehouse Address
-                        <a href="{% url 'accounts:wholeseller_addresses' %}" class="btn btn-light btn-sm float-end">
-                            <i class="fas fa-arrow-left me-1"></i>Back
-                        </a>
-                    </h4>
-                </div>
-                <div class="card-body">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                    
-                    <form method="post" novalidate>
-                        {% csrf_token %}
-                        
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label for="{{ form.address_name.id_for_label }}" class="form-label">Address Name *</label>
-                                {{ form.address_name }}
-                                {% if form.address_name.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.address_name.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-12 mb-3">
-                                <label for="{{ form.address_line1.id_for_label }}" class="form-label">Address Line 1 *</label>
-                                {{ form.address_line1 }}
-                                {% if form.address_line1.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.address_line1.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-12 mb-3">
-                                <label for="{{ form.address_line2.id_for_label }}" class="form-label">Address Line 2 (Optional)</label>
-                                {{ form.address_line2 }}
-                                {% if form.address_line2.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.address_line2.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.city.id_for_label }}" class="form-label">City *</label>
-                                {{ form.city }}
-                                {% if form.city.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.city.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.state.id_for_label }}" class="form-label">State *</label>
-                                {{ form.state }}
-                                {% if form.state.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.state.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.postal_code.id_for_label }}" class="form-label">Postal Code *</label>
-                                {{ form.postal_code }}
-                                {% if form.postal_code.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.postal_code.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.country.id_for_label }}" class="form-label">Country *</label>
-                                {{ form.country }}
-                                {% if form.country.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.country.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.contact_person.id_for_label }}" class="form-label">Contact Person *</label>
-                                {{ form.contact_person }}
-                                {% if form.contact_person.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.contact_person.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.contact_phone.id_for_label }}" class="form-label">Contact Phone *</label>
-                                {{ form.contact_phone }}
-                                {% if form.contact_phone.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.contact_phone.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-12 mb-3">
-                                <div class="form-check">
-                                    {{ form.is_primary }}
-                                    <label class="form-check-label" for="{{ form.is_primary.id_for_label }}">
-                                        Set as primary address
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-12 mb-3">
-                                <div class="form-check">
-                                    {{ form.is_active }}
-                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                        Active
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="text-center mt-3">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-save me-2"></i>Update Address
-                            </button>
-                            <a href="{% url 'accounts:wholeseller_addresses' %}" class="btn btn-secondary btn-lg">
-                                <i class="fas fa-times me-2"></i>Cancel
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+
+<style>
+
+.page-wrap{
+max-width:920px;
+margin:auto;
+padding:38px 18px;
+}
+
+/* card */
+
+.card-box{
+background:white;
+border-radius:20px;
+overflow:hidden;
+border:1px solid #e6e9f2;
+box-shadow:0 25px 60px rgba(0,0,0,0.06);
+}
+
+/* header */
+
+.card-header{
+background:linear-gradient(135deg,#4f46e5,#6366f1);
+padding:22px 26px;
+color:white;
+display:flex;
+align-items:center;
+justify-content:space-between;
+flex-wrap:wrap;
+gap:12px;
+}
+
+.card-title{
+font-size:19px;
+font-weight:600;
+display:flex;
+align-items:center;
+gap:10px;
+letter-spacing:.3px;
+}
+
+/* back button */
+
+.back-btn{
+background:white;
+color:#4338ca;
+padding:7px 16px;
+border-radius:9px;
+font-size:13px;
+font-weight:600;
+text-decoration:none;
+transition:.2s;
+}
+
+.back-btn:hover{
+background:#eef2ff;
+}
+
+/* body */
+
+.card-body{
+padding:30px 26px 26px;
+}
+
+/* alerts */
+
+.alert{
+padding:13px 14px;
+border-radius:12px;
+margin-bottom:16px;
+font-size:14px;
+}
+
+.alert-success{
+background:#ecfdf5;
+color:#065f46;
+}
+
+.alert-danger{
+background:#fef2f2;
+color:#991b1b;
+}
+
+/* grid */
+
+.form-grid{
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+gap:18px;
+}
+
+.full{
+grid-column:1/-1;
+}
+
+/* labels */
+
+label{
+font-size:13px;
+font-weight:600;
+color:#475569;
+margin-bottom:6px;
+display:block;
+}
+
+label span{
+color:#dc2626;
+font-weight:700;
+}
+
+/* inputs */
+
+input,select{
+width:100%;
+padding:11px 13px;
+border-radius:12px;
+border:1px solid #e3e7f0;
+background:#f8fafc;
+font-size:14px;
+transition:.25s;
+}
+
+input:hover,select:hover{
+border-color:#c7d2fe;
+background:white;
+}
+
+input:focus,select:focus{
+outline:none;
+border-color:#6366f1;
+background:white;
+box-shadow:0 0 0 3px rgba(99,102,241,.12);
+}
+
+/* error */
+
+.error{
+font-size:12px;
+color:#dc2626;
+margin-top:4px;
+}
+
+/* checkbox */
+
+.check-row{
+display:flex;
+align-items:center;
+gap:10px;
+border:1px solid #e3e7f0;
+padding:12px 14px;
+border-radius:12px;
+background:#f8fafc;
+transition:.2s;
+}
+
+.check-row:hover{
+background:white;
+border-color:#c7d2fe;
+}
+
+.check-row input{
+width:16px;
+height:16px;
+}
+
+/* buttons */
+
+.actions{
+margin-top:26px;
+display:flex;
+justify-content:center;
+gap:14px;
+flex-wrap:wrap;
+}
+
+.primary-btn{
+background:linear-gradient(135deg,#4f46e5,#6366f1);
+color:white;
+border:none;
+padding:12px 28px;
+border-radius:12px;
+font-weight:600;
+cursor:pointer;
+box-shadow:0 10px 22px rgba(79,70,229,.25);
+transition:.2s;
+}
+
+.primary-btn:hover{
+transform:translateY(-1px);
+}
+
+.cancel-btn{
+padding:12px 24px;
+border-radius:12px;
+border:1px solid #e2e8f0;
+background:white;
+text-decoration:none;
+font-weight:600;
+color:#334155;
+transition:.2s;
+}
+
+.cancel-btn:hover{
+background:#f8fafc;
+}
+
+/* responsive */
+
+@media(max-width:768px){
+
+.form-grid{
+grid-template-columns:1fr;
+}
+
+}
+
+/* BELOW 430px */
+
+@media(max-width:430px){
+
+.card-header{
+flex-direction:column;
+align-items:flex-start;
+}
+
+.back-btn{
+width:100%;
+text-align:center;
+}
+
+.actions{
+flex-direction:column;
+}
+
+.primary-btn,
+.cancel-btn{
+width:100%;
+text-align:center;
+}
+.page-wrap{
+    padding-top: 60px;
+}
+}
+
+body{
+background:#f8fafc;
+}
+
+</style>
+
+
+
+<div class="content">
+
+<div class="page-wrap">
+
+<div class="card-box">
+
+
+<!-- header -->
+
+<div class="card-header">
+
+<div class="card-title">
+
+<i class="fas fa-edit"></i>
+
+Edit Warehouse Address
+
 </div>
+
+
+<a href="{% url 'accounts:wholeseller_addresses' %}" class="back-btn">
+
+← Back
+
+</a>
+
+</div>
+
+
+
+<div class="card-body">
+
+
+{% if messages %}
+
+{% for message in messages %}
+
+<div class="alert alert-{{ message.tags }}">
+
+{{ message }}
+
+</div>
+
+{% endfor %}
+
+{% endif %}
+
+
+
+<form method="post" novalidate>
+
+{% csrf_token %}
+
+
+
+{% if form.non_field_errors %}
+
+<div class="alert alert-danger">
+
+{% for error in form.non_field_errors %}
+
+{{ error }}
+
+{% endfor %}
+
+</div>
+
+{% endif %}
+
+
+
+<div class="form-grid">
+
+
+<div class="full">
+
+<label>Address Name <span>*</span></label>
+
+{{ form.address_name }}
+
+{% for error in form.address_name.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div class="full">
+
+<label>Address Line 1 <span>*</span></label>
+
+{{ form.address_line1 }}
+
+{% for error in form.address_line1.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div class="full">
+
+<label>Address Line 2 (Optional)</label>
+
+{{ form.address_line2 }}
+
+{% for error in form.address_line2.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>City <span>*</span></label>
+
+{{ form.city }}
+
+{% for error in form.city.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>State <span>*</span></label>
+
+{{ form.state }}
+
+{% for error in form.state.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>Postal Code <span>*</span></label>
+
+{{ form.postal_code }}
+
+{% for error in form.postal_code.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>Country <span>*</span></label>
+
+{{ form.country }}
+
+{% for error in form.country.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>Contact Person <span>*</span></label>
+
+{{ form.contact_person }}
+
+{% for error in form.contact_person.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div>
+
+<label>Contact Phone <span>*</span></label>
+
+{{ form.contact_phone }}
+
+{% for error in form.contact_phone.errors %}
+<div class="error">{{ error }}</div>
+{% endfor %}
+
+</div>
+
+
+
+<div class="full">
+
+<div class="check-row">
+
+{{ form.is_primary }}
+
+Set as primary address
+
+</div>
+
+</div>
+
+
+
+<div class="full">
+
+<div class="check-row">
+
+{{ form.is_active }}
+
+Active
+
+</div>
+
+</div>
+
+
+
+</div>
+
+
+
+<div class="actions">
+
+<button type="submit" class="primary-btn">
+
+Update Address
+
+</button>
+
+
+
+<a href="{% url 'accounts:wholeseller_addresses' %}" class="cancel-btn">
+
+Cancel
+
+</a>
+
+</div>
+
+
+
+</form>
+
+
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
 {% endblock %}
