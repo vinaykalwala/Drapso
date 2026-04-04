@@ -1,91 +1,300 @@
-
+{% extends "dashboard_base.html" %}
 {% block title %}Reseller Addresses{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-address-card me-2"></i>My Addresses
-                        <a href="{% url 'accounts:add_reseller_address' %}" class="btn btn-light btn-sm float-end">
-                            <i class="fas fa-plus me-1"></i>Add Address
-                        </a>
-                    </h4>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        --danger-gradient: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+        --glass-bg: rgba(255, 255, 255, 0.95);
+    }
+
+    .address-page-wrapper {
+        padding: 30px;
+        max-width: 1400px;
+        margin: 0 auto 100px auto;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* --- Animations --- */
+    @keyframes cardEntrance {
+        from { opacity: 0; transform: scale(0.9) translateY(30px); filter: blur(10px); }
+        to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+    }
+
+    @keyframes modalFade {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    /* --- Grid Layout --- */
+    .address-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+        gap: 30px;
+        transition: all 0.5s ease;
+    }
+
+    /* --- Card Styling --- */
+    .address-card {
+        background: var(--glass-bg);
+        border: 1px solid #e2e8f0;
+        border-radius: 32px;
+        padding: 32px;
+        position: relative;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        animation: cardEntrance 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    }
+
+    /* Make Primary Card pop instantly */
+    .address-card.is-primary {
+        order: -1; 
+        border: 2px solid #4f46e5;
+        box-shadow: 0 25px 50px -12px rgba(79, 70, 229, 0.25);
+        background: linear-gradient(165deg, #ffffff 0%, #f5f3ff 100%);
+    }
+
+    .address-card:hover {
+        transform: translateY(-12px) scale(1.02);
+        box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.15);
+        border-color: #4f46e5;
+    }
+
+    .primary-label {
+        position: absolute;
+        top: -15px;
+        left: 35px;
+        background: var(--primary-gradient);
+        color: white;
+        padding: 6px 20px;
+        border-radius: 50px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+    }
+
+    /* --- UI Elements --- */
+    .city-tag {
+        background: #f1f5f9;
+        padding: 8px 16px;
+        border-radius: 14px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #475569;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .address-details {
+        margin: 24px 0;
+        font-size: 16px;
+        line-height: 1.8;
+        color: #1e293b;
+    }
+
+    .contact-bar {
+        background: #f8fafc;
+        border-radius: 24px;
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* --- Custom Modal Styling --- */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(8px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .custom-modal {
+        background: white;
+        padding: 40px;
+        border-radius: 35px;
+        width: 90%;
+        max-width: 450px;
+        text-align: center;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        animation: modalFade 0.3s ease-out;
+    }
+
+    .modal-icon {
+        width: 80px;
+        height: 80px;
+        background: #fee2e2;
+        color: #ef4444;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        margin: 0 auto 24px;
+    }
+
+    .modal-btns {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+
+    .modal-btn {
+        flex: 1;
+        padding: 14px;
+        border-radius: 15px;
+        border: none;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-cancel { background: #f1f5f9; color: #64748b; }
+    .btn-confirm { background: var(--danger-gradient); color: white; }
+
+    /* --- Action Menu --- */
+    .action-dots {
+        width: 42px; height: 42px;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        background: white;
+        cursor: pointer;
+        transition: 0.3s;
+        color: #94a3b8;
+    }
+
+    .action-dots:hover { background: #4f46e5; color: white; transform: rotate(90deg); }
+
+    .dropdown-menu-list {
+        display: none;
+        position: absolute;
+        right: 32px; top: 85px;
+        background: white;
+        border-radius: 24px;
+        min-width: 220px;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.2);
+        z-index: 100;
+        padding: 10px;
+        border: 1px solid #f1f5f9;
+    }
+
+    .dropdown-menu-list a {
+        display: flex; align-items: center; gap: 12px;
+        padding: 14px 18px; color: #475569;
+        text-decoration: none; font-weight: 600;
+        border-radius: 18px; transition: 0.2s;
+    }
+
+    .dropdown-menu-list a:hover { background: #f1f5f9; color: #4f46e5; }
+
+</style>
+<div class="content" style="margin-bottom: 80px;">
+<div class="address-page-wrapper">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 50px; flex-wrap: wrap; gap: 20px;">
+        <div>
+            <h1 style="font-weight: 800; font-size: 2.5rem; letter-spacing: -1.5px; margin: 0; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">My Locations</h1>
+            <p style="color: #64748b; font-weight: 500;">Default shipping address appears first.</p>
+        </div>
+        <a href="{% url 'accounts:add_reseller_address' %}" style="background: var(--primary-gradient); color: white; padding: 16px 32px; border-radius: 20px; text-decoration: none; font-weight: 700; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3); display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-plus-circle"></i> Add New Address
+        </a>
+    </div>
+
+    {% if addresses %}
+    <div class="address-grid">
+        {% for address in addresses %}
+        <div class="address-card {% if address.is_primary %}is-primary{% endif %}" style="animation-delay: {{ forloop.counter0 }}00ms;">
+            {% if address.is_primary %}
+                <div class="primary-label"><i class="fa-solid fa-star"></i> Primary</div>
+            {% endif %}
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div class="city-tag">
+                    <i class="fa-solid fa-map-pin"></i> {{ address.city }}
                 </div>
-                <div class="card-body">
-                    {% if addresses %}
-                        <div class="row">
-                            {% for address in addresses %}
-                                <div class="col-md-6 mb-3">
-                                    <div class="card {% if address.is_primary %}border-primary{% endif %}">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <h5 class="card-title">
-                                                        {% if address.is_primary %}
-                                                            <span class="badge bg-primary">Primary</span>
-                                                        {% endif %}
-                                                    </h5>
-                                                    <p class="card-text">
-                                                        <strong>Address:</strong> {{ address.address_line1 }}, 
-                                                        {% if address.address_line2 %}{{ address.address_line2 }}, {% endif %}
-                                                        {{ address.city }}, {{ address.state }} - {{ address.postal_code }}<br>
-                                                        <strong>Country:</strong> {{ address.country }}<br>
-                                                        <strong>Contact Person:</strong> {{ address.contact_person }}<br>
-                                                        <strong>Contact Phone:</strong> {{ address.contact_phone }}
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                            Actions
-                                                        </button>
-                                                        <ul class="dropdown-menu">
-                                                            <li>
-                                                                <a class="dropdown-item" href="{% url 'accounts:edit_reseller_address' address.id %}">
-                                                                    <i class="fas fa-edit me-2"></i>Edit
-                                                                </a>
-                                                            </li>
-                                                            {% if not address.is_primary %}
-                                                                <li>
-                                                                    <a class="dropdown-item" href="{% url 'accounts:set_primary_reseller_address' address.id %}">
-                                                                        <i class="fas fa-star me-2"></i>Set as Primary
-                                                                    </a>
-                                                                </li>
-                                                                <li>
-                                                                    <hr class="dropdown-divider">
-                                                                </li>
-                                                                <li>
-                                                                    <a class="dropdown-item text-danger" href="{% url 'accounts:delete_reseller_address' address.id %}" 
-                                                                       onclick="return confirm('Are you sure you want to delete this address?')">
-                                                                        <i class="fas fa-trash me-2"></i>Delete
-                                                                    </a>
-                                                                </li>
-                                                            {% endif %}
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-map-marker-alt fa-4x text-muted mb-3"></i>
-                            <h5>No Addresses Added</h5>
-                            <p class="text-muted">Add your addresses for communication and correspondence.</p>
-                            <a href="{% url 'accounts:add_reseller_address' %}" class="btn btn-primary">
-                                <i class="fas fa-plus me-2"></i>Add Address
-                            </a>
-                        </div>
-                    {% endif %}
+                <div style="position: relative;">
+                    <button class="action-dots" onclick="toggleMenu('{{address.id}}', event)">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </button>
+                    <div class="dropdown-menu-list" id="menu{{address.id}}">
+                        <a href="{% url 'accounts:edit_reseller_address' address.id %}">
+                            <i class="fa-solid fa-pen-to-square"></i> Edit Address
+                        </a>
+                        {% if not address.is_primary %}
+                        <a href="{% url 'accounts:set_primary_reseller_address' address.id %}" style="color: #4f46e5;">
+                            <i class="fa-solid fa-circle-check"></i> Make Primary
+                        </a>
+                        <a href="javascript:void(0)" onclick="showDeleteModal('{% url 'accounts:delete_reseller_address' address.id %}')" style="color: #ef4444;">
+                            <i class="fa-solid fa-trash-can"></i> Delete Address
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="address-details">
+                <span style="font-weight: 800; font-size: 1.2rem; color: #0f172a;">{{ address.address_line1 }}</span><br>
+                {{ address.city }}, {{ address.state }} — {{ address.postal_code }}<br>
+                <small style="color: #94a3b8; font-weight: 700;">{{ address.country|upper }}</small>
+            </div>
+
+            <div class="contact-bar">
+                <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: #334155;">
+                    <i class="fa-solid fa-user-circle" style="color: #4f46e5;"></i> {{ address.contact_person }}
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: #334155;">
+                    <i class="fa-solid fa-phone" style="color: #4f46e5;"></i> {{ address.contact_phone }}
                 </div>
             </div>
         </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<div class="modal-overlay" id="deleteModal">
+    <div class="custom-modal">
+        <div class="modal-icon"><i class="fa-solid fa-trash-can"></i></div>
+        <h2 style="font-weight: 800; color: #0f172a; margin-bottom: 10px;">Are you sure?</h2>
+        <p style="color: #64748b; line-height: 1.6;">This action cannot be undone. This address will be permanently removed from your profile.</p>
+        <div class="modal-btns">
+            <button class="modal-btn btn-cancel" onclick="closeModal()">Cancel</button>
+            <a id="confirmDeleteLink" href="#" class="modal-btn btn-confirm" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">Delete Now</a>
+        </div>
     </div>
 </div>
+</div>
+
+<script>
+    function toggleMenu(id, event) {
+        event.stopPropagation();
+        document.querySelectorAll('.dropdown-menu-list').forEach(m => {
+            if (m.id !== 'menu' + id) m.style.display = 'none';
+        });
+        const m = document.getElementById('menu' + id);
+        m.style.display = (m.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function showDeleteModal(url) {
+        document.getElementById('confirmDeleteLink').href = url;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    window.onclick = function(e) {
+        document.querySelectorAll('.dropdown-menu-list').forEach(m => m.style.display = 'none');
+        if (e.target.className === 'modal-overlay') closeModal();
+    }
+</script>
 {% endblock %}

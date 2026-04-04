@@ -1,209 +1,310 @@
-
+{% extends "dashboard_base.html" %}
 {% load static %}
 
 {% block title %}Edit Inventory - Drapso{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white py-3 border-0">
-                    <h4 class="mb-0 text-success">Edit Inventory Details</h4>
-                    <p class="text-muted mb-0">Update your business and warehouse information</p>
-                </div>
-                <div class="card-body">
-                    <!-- Display non-field errors -->
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <strong>Note:</strong> Changes will require re-verification by admin.
-                    </div>
-                    
-                    <form method="POST" novalidate>
-                        {% csrf_token %}
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Business Name *</label>
-                                {{ form.business_name }}
-                                {% if form.business_name.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.business_name.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Business Type *</label>
-                                {{ form.business_type }}
-                                {% if form.business_type.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.business_type.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <h5 class="mt-4 mb-3 text-success">🏭 Warehouse Location</h5>
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label fw-semibold">Warehouse Name *</label>
-                                {{ form.warehouse_name }}
-                                {% if form.warehouse_name.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.warehouse_name.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label fw-semibold">Address Line 1 *</label>
-                                {{ form.address_line1 }}
-                                {% if form.address_line1.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.address_line1.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label">Address Line 2</label>
-                                {{ form.address_line2 }}
-                                {% if form.address_line2.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.address_line2.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">City *</label>
-                                {{ form.city }}
-                                {% if form.city.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.city.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">State *</label>
-                                {{ form.state }}
-                                {% if form.state.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.state.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Postal Code *</label>
-                                {{ form.postal_code }}
-                                {% if form.postal_code.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.postal_code.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label fw-semibold">Country *</label>
-                                {{ form.country }}
-                                {% if form.country.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.country.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <h5 class="mt-4 mb-3 text-success">📞 Contact Information</h5>
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Contact Person *</label>
-                                {{ form.contact_person }}
-                                {% if form.contact_person.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.contact_person.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Contact Phone *</label>
-                                {{ form.contact_phone }}
-                                {% if form.contact_phone.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.contact_phone.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Contact Email *</label>
-                                {{ form.contact_email }}
-                                {% if form.contact_email.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.contact_email.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <i class="fas fa-save"></i> Save Changes
-                            </button>
-                            <a href="{% url 'wholesellers:wholeseller_dashboard' %}" class="btn btn-outline-secondary">
-                                Cancel
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-    .form-control:focus {
-        border-color: #28a745;
-        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.15);
+    :root {
+        --dr-primary: #4f46e5;
+        --dr-secondary: #7c3aed;
+        --dr-glass-bg: rgba(255, 255, 255, 0.95);
+        --dr-border: #e2e8f0;
+        --dr-text-main: #0f172a;
+        --dr-text-muted: #64748b;
     }
-    .card {
-        border-radius: 15px;
+
+    .dr-edit-wrapper {
+        padding: 40px 20px;
+        max-width: 900px;
+        margin: 0 auto 100px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
-    .errorlist {
-        list-style: none;
-        padding-left: 0;
-        margin-top: 5px;
+
+    /* --- Animated Header --- */
+    .dr-header-section {
+        text-align: center;
+        margin-bottom: 35px;
+        animation: drFadeIn 0.6s ease-out;
     }
-    .errorlist li {
-        color: #dc3545;
-        font-size: 0.875rem;
+
+    .dr-header-section h1 {
+        font-size: clamp(24px, 5vw, 32px);
+        font-weight: 800;
+        color: var(--dr-text-main);
+        letter-spacing: -1px;
+    }
+
+    /* --- Alert Styles --- */
+    .dr-alert-verify {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        color: #92400e;
+        padding: 16px 20px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .dr-alert-error {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        font-size: 14px;
+    }
+
+    /* --- Form Card --- */
+    .dr-form-card {
+        background: var(--dr-glass-bg);
+        border: 1px solid var(--dr-border);
+        border-radius: 30px;
+        padding: clamp(20px, 5vw, 40px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.04);
+        animation: drSlideUp 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .dr-section-label {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--dr-primary);
+        margin: 30px 0 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .dr-section-label i {
+        background: #f5f3ff;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        font-size: 16px;
+    }
+
+    /* --- Input Styles --- */
+    .dr-form-group {
+        margin-bottom: 24px;
+    }
+
+    .dr-form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 8px;
+        margin-left: 4px;
+    }
+
+    /* Standard Django Input Override */
+    .dr-form-group input, 
+    .dr-form-group select, 
+    .dr-form-group textarea {
+        width: 100%;
+        padding: 14px 18px;
+        border-radius: 14px;
+        border: 1.5px solid #eef2ff;
+        background: #fff;
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--dr-text-main);
+        transition: all 0.3s ease;
+        outline: none;
+    }
+
+    .dr-form-group input:focus {
+        border-color: var(--dr-primary);
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    }
+
+    .dr-field-error {
+        color: #ef4444;
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 6px;
+        display: block;
+    }
+
+    /* --- Buttons --- */
+    .dr-action-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 15px;
+        margin-top: 40px;
+    }
+
+    .dr-btn-save {
+        background: linear-gradient(135deg, var(--dr-primary), var(--dr-secondary));
+        color: white !important;
+        padding: 16px;
+        border-radius: 16px;
+        border: none;
+        font-weight: 800;
+        font-size: 16px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+    }
+
+    .dr-btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(79, 70, 229, 0.4);
+    }
+
+    .dr-btn-cancel {
+        background: #f1f5f9;
+        color: var(--dr-text-muted) !important;
+        padding: 16px;
+        border-radius: 16px;
+        text-decoration: none;
+        text-align: center;
+        font-weight: 700;
+        transition: 0.2s;
+    }
+
+    .dr-btn-cancel:hover {
+        background: #e2e8f0;
+        color: var(--dr-text-main) !important;
+    }
+
+    @keyframes drFadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes drSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Responsive Grid */
+    @media (max-width: 768px) {
+        .dr-action-row { grid-template-columns: 1fr; }
+        .dr-edit-wrapper { padding: 20px 15px; }
+        .dr-form-card { padding: 25px; border-radius: 20px; }
     }
 </style>
+<div class="content">
+<div class="dr-edit-wrapper">
+    <div class="dr-header-section">
+        <h1>Edit Inventory Details</h1>
+        <p class="text-muted">Update your business information seamlessly</p>
+    </div>
+
+    <div class="dr-form-card">
+        {% if form.non_field_errors %}
+            <div class="dr-alert-error">
+                {% for error in form.non_field_errors %}
+                    <i class="fas fa-exclamation-circle me-1"></i> {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="dr-alert-verify">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span><strong>Verification Required:</strong> Any updates to business details will require manual re-verification by the Drapso admin team.</span>
+        </div>
+
+        <form method="POST" novalidate>
+            {% csrf_token %}
+
+            <div class="dr-section-label">
+                <i class="fas fa-briefcase"></i> Business Identity
+            </div>
+            <div class="row">
+                <div class="col-md-6 dr-form-group">
+                    <label>Business Name *</label>
+                    {{ form.business_name }}
+                    {% if form.business_name.errors %}
+                        <span class="dr-field-error">{{ form.business_name.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 dr-form-group">
+                    <label>Business Type *</label>
+                    {{ form.business_type }}
+                </div>
+            </div>
+
+            <div class="dr-section-label">
+                <i class="fas fa-warehouse"></i> Location Details
+            </div>
+            <div class="dr-form-group">
+                <label>Warehouse Name *</label>
+                {{ form.warehouse_name }}
+                {% if form.warehouse_name.errors %}
+                    <span class="dr-field-error">{{ form.warehouse_name.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="dr-form-group">
+                <label>Address Line 1 *</label>
+                {{ form.address_line1 }}
+                {% if form.address_line1.errors %}
+                    <span class="dr-field-error">{{ form.address_line1.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="dr-form-group">
+                <label>Address Line 2</label>
+                {{ form.address_line2 }}
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 dr-form-group">
+                    <label>City *</label>
+                    {{ form.city }}
+                </div>
+                <div class="col-md-4 dr-form-group">
+                    <label>State *</label>
+                    {{ form.state }}
+                </div>
+                <div class="col-md-4 dr-form-group">
+                    <label>Postal Code *</label>
+                    {{ form.postal_code }}
+                </div>
+            </div>
+
+            <div class="dr-form-group">
+                <label>Country *</label>
+                {{ form.country }}
+            </div>
+
+            <div class="dr-section-label">
+                <i class="fas fa-id-card"></i> Contact Information
+            </div>
+            <div class="row">
+                <div class="col-md-4 dr-form-group">
+                    <label>Contact Person *</label>
+                    {{ form.contact_person }}
+                </div>
+                <div class="col-md-4 dr-form-group">
+                    <label>Contact Phone *</label>
+                    {{ form.contact_phone }}
+                </div>
+                <div class="col-md-4 dr-form-group">
+                    <label>Contact Email *</label>
+                    {{ form.contact_email }}
+                </div>
+            </div>
+
+            <div class="dr-action-row">
+                <button type="submit" class="dr-btn-save">
+                    <i class="fas fa-check-circle"></i> Save Updated Details
+                </button>
+                <a href="{% url 'wholesellers:wholeseller_dashboard' %}" class="dr-btn-cancel">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
 {% endblock %}
