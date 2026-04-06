@@ -1,7 +1,7 @@
 
 {% load static %}
 
-{% block title %}Complete Payment - {{ store.store_name }}{% endblock %}
+{% block title %}Subscribe to {{ plan.get_name_display|title }} - {{ store.store_name }}{% endblock %}
 
 {% block extra_css %}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -13,20 +13,6 @@
     .order-summary {
         border-left: 3px solid #28a745;
     }
-    .detail-row {
-        padding: 10px 0;
-        border-bottom: 1px solid #e0e0e0;
-    }
-    .detail-row:last-child {
-        border-bottom: none;
-    }
-    .bonus-badge {
-        background: #ffc107;
-        color: #333;
-        padding: 5px 10px;
-        border-radius: 5px;
-        font-size: 12px;
-    }
 </style>
 {% endblock %}
 
@@ -36,13 +22,7 @@
         <div class="col-md-8">
             <div class="card shadow">
                 <div class="card-header bg-gradient-primary text-white">
-                    <h4 class="mb-0">
-                        {% if is_upgrade %}
-                            <i class="fas fa-arrow-up"></i> Upgrade Your Plan
-                        {% else %}
-                            <i class="fas fa-sync-alt"></i> Renew Subscription
-                        {% endif %}
-                    </h4>
+                    <h4 class="mb-0"><i class="fas fa-store"></i> Subscribe to {{ plan.get_name_display|title }} Plan</h4>
                 </div>
                 <div class="card-body">
                     <!-- Store Summary -->
@@ -51,67 +31,48 @@
                             {% if store.store_logo %}
                                 <img src="{{ store.store_logo.url }}" alt="{{ store.store_name }}" style="max-height: 60px;">
                             {% else %}
-                                <i class="fas fa-store fa-3x"></i>
+                                <i class="fas fa-store fa-3x text-white"></i>
                             {% endif %}
-                            <h3 class="mt-2">{{ store.store_name }}</h3>
-                            <p class="mb-0">{{ store.store_description|default:"Your store" }}</p>
+                            <h3 class="mt-2 text-white">{{ store.store_name }}</h3>
+                            <p class="mb-0 text-white-50">{{ store.store_description|default:"Your store" }}</p>
                         </div>
                     </div>
 
-                    <!-- Data Preservation Notice -->
+                    <!-- Important Note About Data Preservation -->
                     <div class="alert alert-success">
                         <i class="fas fa-check-circle"></i>
-                        <strong>Your data is safe!</strong> All your products, theme, and settings will be preserved.
+                        <strong>Your data is preserved!</strong> 
+                        All your existing products ({{ products_count }} products), theme, and settings will be restored immediately upon payment.
                     </div>
 
                     <!-- Order Summary -->
-                    <div class="order-summary p-3 mb-4">
+                    <div class="order-summary p-3 mb-4 bg-light rounded">
                         <h5><i class="fas fa-receipt"></i> Order Summary</h5>
                         <table class="table table-borderless">
                             <tr>
-                                <td><strong>Store:</strong></td>
+                                <td><strong>Store:</strong></strong></td>
                                 <td>{{ store.store_name }}</td>
                             </tr>
                             <tr>
-                                <td><strong>Current Plan:</strong></td>
-                                <td>
-                                    {% if old_plan %}
-                                        {{ old_plan.get_name_display|title }} ({{ old_plan.get_duration_display }})
-                                    {% else %}
-                                        No active plan
-                                    {% endif %}
-                                 
-                             
-                            {% if not is_upgrade and remaining_days > 0 %}
-                                <tr>
-                                    <td><strong>Remaining Days:</strong></td>
-                                    <td>
-                                        <span class="badge bg-info">{{ remaining_days }} days left</span>
-                                     
-                                 
-                            {% endif %}
+                                <td><strong>Previous Plan:</strong></th>
+                                <td>{% if old_plan %}{{ old_plan.get_name_display|title }}{% else %}None{% endif %}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>New Plan:</strong></th>
+                                <td><span class="badge bg-primary">{{ plan.get_name_display|title }}</span> ({{ plan.get_duration_display }})</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Max Products:</strong></th>
+                                <td>{{ plan.multiple_theme_limit }} products</td>
+                            </tr>
                             <tr class="border-top">
-                                <td><strong>Amount:</strong></td>
+                                <td><strong>Amount:</strong></th>
                                 <td><h4 class="text-primary mb-0">${{ amount }}</h4></td>
-                             
+                            </tr>
                         </table>
-
-                        {% if will_get_extra_days and remaining_days > 0 %}
-                            <div class="alert alert-success">
-                                <i class="fas fa-gift"></i> 
-                                <strong>Bonus!</strong> You will get <strong>{{ remaining_days }} extra days</strong> added to your new subscription period!
-                            </div>
-                        {% endif %}
-
-                        {% if is_upgrade %}
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle"></i>
-                                Your existing subscription value has been applied. You only pay the difference!
-                            </div>
-                        {% endif %}
                     </div>
 
-                    <!-- Store URL Preview -->
+                    <!-- Store URL -->
                     <div class="alert alert-info">
                         <i class="fas fa-link"></i>
                         <strong>Your store URL remains:</strong><br>
@@ -121,11 +82,7 @@
                     <!-- Payment Button -->
                     <div class="d-grid gap-2">
                         <button id="pay-button" class="btn btn-success btn-lg">
-                            {% if is_upgrade %}
-                                <i class="fas fa-arrow-up"></i> Pay ${{ amount }} and Upgrade
-                            {% else %}
-                                <i class="fas fa-sync-alt"></i> Pay ${{ amount }} and Renew
-                            {% endif %}
+                            <i class="fas fa-rupee-sign"></i> Pay ${{ amount }} and Subscribe
                         </button>
                         <a href="{% url 'resellers:manage_subscription' store.id %}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Cancel
@@ -147,12 +104,12 @@
         "amount": {{ amount }} * 100,
         "currency": "INR",
         "name": "Drapso",
-        "description": "{% if is_upgrade %}Upgrade{% else %}Renew{% endif %} Subscription - {{ store.store_name }}",
+        "description": "Subscribe to {{ plan.get_name_display|title }} Plan - {{ store.store_name }}",
         "order_id": "{{ razorpay_order_id }}",
         "handler": function (response) {
             var form = document.createElement('form');
             form.method = 'POST';
-            form.action = "{% url 'resellers:renewal_payment_callback' %}";
+            form.action = "{% url 'resellers:new_subscription_callback' %}";
             
             var csrfInput = document.createElement('input');
             csrfInput.type = 'hidden';

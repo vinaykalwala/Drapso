@@ -635,9 +635,6 @@ from django.shortcuts import render
 from django.http import Http404
 from general.views import home
 
-# resellers/views.py
-
-# resellers/views.py
 
 from django.shortcuts import render
 from django.http import Http404
@@ -947,69 +944,64 @@ def admin_store_detail(request, store_id):
         'days_until_expiry': days_until_expiry,
         'is_expiring_soon': is_expiring_soon,
     })
-# resellers/views.py - Add these imports at the top if not already there
 
 from django.utils import timezone
 from datetime import timedelta
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-# Add these views to your existing views.py
+# Add these to your existing resellers/views.py
 
 @login_required
 @user_passes_test(is_reseller)
 def manage_subscription(request, store_id):
-    """Manage store subscription - renew or upgrade only (no downgrade)"""
+    """Manage store subscription - renew, upgrade, or subscribe to new plan"""
     store = get_object_or_404(Store, id=store_id, reseller=request.user)
     
-    # Check and update expiry status
     store.check_and_update_expiry()
     
-    # Get available plans (all active plans)
-    all_plans = SubscriptionPlan.objects.filter(is_active=True)
-    
-    # Filter plans - only show current plan and higher tier plans (no downgrades)
-    if store.subscription_plan:
-        plan_priority = {'silver': 1, 'gold': 2, 'platinum': 3}
-        current_priority = plan_priority.get(store.subscription_plan.name, 0)
-        
-        # Show only plans with priority >= current priority (same or higher)
-        available_plans = []
-        for plan in all_plans:
-            plan_priority_value = plan_priority.get(plan.name, 0)
-            if plan_priority_value >= current_priority:
-                available_plans.append(plan)
-    else:
-        # No current plan, show all plans
-        available_plans = all_plans
-    
-    # Calculate subscription info
-    days_left = store.days_until_expiry()
+    remaining_days = store.get_remaining_days()
     is_expired = store.status == 'expired'
-    is_active = store.status == 'active'
+    can_renew = store.can_renew_early()
+    can_upgrade = store.can_upgrade()
     
-    # Prepare plans with upgrade info
-    plans_with_info = []
-    for plan in available_plans:
-        is_current = store.subscription_plan and store.subscription_plan.id == plan.id
-        
-        plan_info = {
-            'plan': plan,
-            'is_current': is_current,
-            'can_upgrade': not is_current and store.can_upgrade_plan(plan),
-            'upgrade_price': store.calculate_prorated_upgrade_price(plan) if store.subscription_plan and not is_current else plan.price,
-            'is_higher_tier': not is_current and store.can_upgrade_plan(plan),
-        }
-        plans_with_info.append(plan_info)
+    all_plans_list = SubscriptionPlan.objects.filter(is_active=True)
+    plan_priority = {'silver': 1, 'gold': 2, 'platinum': 3}
+    
+    renewal_plan = store.subscription_plan if store.subscription_plan else None
+    
+    # All plans for new subscription (when expired)
+    all_plans = [{'plan': plan} for plan in all_plans_list]
+    
+    # Upgrade plans (higher tiers only for active subscriptions)
+    upgrade_plans = []
+    if store.subscription_plan and not is_expired:
+        current_priority = plan_priority.get(store.subscription_plan.name, 0)
+        for plan in all_plans_list:
+            if plan_priority.get(plan.name, 0) > current_priority:
+                upgrade_plans.append({
+                    'plan': plan,
+                    'upgrade_price': store.calculate_prorated_upgrade_price(plan)
+                })
+    
+    renewal_message = ""
+    if not is_expired and remaining_days > 0 and remaining_days <= 7:
+        renewal_message = f"Your subscription expires in {remaining_days} days. Renew now to add {remaining_days} extra days to your new subscription period!"
     
     context = {
         'store': store,
-        'plans': plans_with_info,
-        'days_left': days_left,
+        'renewal_plan': renewal_plan,
+        'upgrade_plans': upgrade_plans,
+        'all_plans': all_plans,
+        'remaining_days': remaining_days,
         'is_expired': is_expired,
-        'is_active': is_active,
+        'can_renew': can_renew,
+        'can_upgrade': can_upgrade,
+        'renewal_message': renewal_message,
         'current_plan': store.subscription_plan,
-        'can_upgrade': store.subscription_plan and any(p['can_upgrade'] for p in plans_with_info),
+        'days_until_expiry': store.days_until_expiry(),
+        'is_expiring_soon': store.is_expiring_soon(7),
+        'subscription_end': store.subscription_end,
     }
     
     return render(request, 'resellers/manage_subscription.html', context)
@@ -1018,45 +1010,43 @@ def manage_subscription(request, store_id):
 @login_required
 @user_passes_test(is_reseller)
 def process_renewal(request, store_id, plan_id=None):
-    """Process renewal or upgrade payment (no downgrade)"""
+    """Process renewal or upgrade payment"""
     store = get_object_or_404(Store, id=store_id, reseller=request.user)
     
-    # Determine which plan to use
+    is_upgrade = False
+    new_plan = None
+    
     if plan_id:
         new_plan = get_object_or_404(SubscriptionPlan, id=plan_id, is_active=True)
-        
-        # Validate - prevent downgrade
         if store.subscription_plan and store.subscription_plan.id != new_plan.id:
             if not store.can_upgrade_plan(new_plan):
-                messages.error(request, 'Downgrading plans is not allowed. You can only renew your current plan or upgrade to a higher plan.')
+                messages.error(request, 'You can only upgrade to higher tier plans.')
                 return redirect('resellers:manage_subscription', store_id=store.id)
-        
-        is_upgrade = store.subscription_plan and store.subscription_plan.id != new_plan.id
+            is_upgrade = True
     else:
         if not store.subscription_plan:
             messages.error(request, 'No subscription plan found.')
             return redirect('resellers:manage_subscription', store_id=store.id)
         new_plan = store.subscription_plan
-        is_upgrade = False
     
-    # Calculate amount to charge
+    remaining_days = store.get_remaining_days() if not is_upgrade else 0
+    
+    if not is_upgrade and not store.can_renew_early():
+        messages.error(request, 'Renewal is only available when 7 days or less remaining, or after expiry.')
+        return redirect('resellers:manage_subscription', store_id=store.id)
+    
     if is_upgrade:
         amount = store.calculate_prorated_upgrade_price(new_plan)
-        # Ensure upgrade amount is not zero (should be at least some amount)
         if amount <= 0:
-            messages.error(request, 'Unable to process upgrade. Please contact support.')
-            return redirect('resellers:manage_subscription', store_id=store.id)
+            amount = new_plan.price
     else:
         amount = new_plan.price
     
-    # Generate order ID
     order_id = generate_order_id()
     
-    # Create Razorpay order
     try:
         razorpay_order = create_razorpay_order(amount)
         
-        # Create transaction record
         transaction = StoreTransaction.objects.create(
             store=store,
             user=request.user,
@@ -1070,15 +1060,21 @@ def process_renewal(request, store_id, plan_id=None):
             status='created'
         )
         
-        # Store renewal info in session
         request.session['renewal_data'] = {
             'transaction_id': transaction.id,
             'store_id': store.id,
             'plan_id': new_plan.id,
             'is_upgrade': is_upgrade,
+            'remaining_days': remaining_days,
             'old_plan_name': store.subscription_plan.get_name_display() if store.subscription_plan else None,
-            'old_plan_price': float(store.subscription_plan.price) if store.subscription_plan else None,
         }
+        
+        current_host = request.get_host()
+        if 'localhost' in current_host or '127.0.0.1' in current_host:
+            port = ':8000' if ':' not in current_host else f":{current_host.split(':')[1]}"
+            store_url = f"http://{store.subdomain}.localhost{port}"
+        else:
+            store_url = store.get_full_url(request)
         
         context = {
             'store': store,
@@ -1088,13 +1084,78 @@ def process_renewal(request, store_id, plan_id=None):
             'razorpay_key_id': settings.RAZORPAY_KEY_ID,
             'order_id': order_id,
             'transaction': transaction,
-            'is_renewal': True,
+            'store_url': store_url,
+            'is_renewal': not is_upgrade,
             'is_upgrade': is_upgrade,
             'old_plan': store.subscription_plan,
-            'show_savings': is_upgrade and store.subscription_plan,
-            'savings_amount': float(store.subscription_plan.price) if is_upgrade and store.subscription_plan else 0,
+            'remaining_days': remaining_days,
+            'will_get_extra_days': remaining_days > 0 and not is_upgrade,
         }
         return render(request, 'resellers/renewal_payment.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Error creating order: {str(e)}')
+        return redirect('resellers:manage_subscription', store_id=store.id)
+
+
+@login_required
+@user_passes_test(is_reseller)
+def subscribe_new_plan(request, store_id, plan_id):
+    """Subscribe to a new plan (for expired subscriptions)"""
+    store = get_object_or_404(Store, id=store_id, reseller=request.user)
+    new_plan = get_object_or_404(SubscriptionPlan, id=plan_id, is_active=True)
+    
+    if store.status != 'expired':
+        messages.error(request, 'This option is only available for expired subscriptions.')
+        return redirect('resellers:manage_subscription', store_id=store.id)
+    
+    amount = new_plan.price
+    order_id = generate_order_id()
+    
+    try:
+        razorpay_order = create_razorpay_order(amount)
+        
+        transaction = StoreTransaction.objects.create(
+            store=store,
+            user=request.user,
+            plan_name=new_plan.get_name_display(),
+            plan_price=new_plan.price,
+            plan_duration=new_plan.get_duration_display(),
+            store_name=store.store_name,
+            razorpay_order_id=razorpay_order['id'],
+            order_id=order_id,
+            amount=amount,
+            status='created'
+        )
+        
+        request.session['new_subscription_data'] = {
+            'transaction_id': transaction.id,
+            'store_id': store.id,
+            'plan_id': new_plan.id,
+            'old_plan_name': store.subscription_plan.get_name_display() if store.subscription_plan else None,
+        }
+        
+        current_host = request.get_host()
+        if 'localhost' in current_host or '127.0.0.1' in current_host:
+            port = ':8000' if ':' not in current_host else f":{current_host.split(':')[1]}"
+            store_url = f"http://{store.subdomain}.localhost{port}"
+        else:
+            store_url = store.get_full_url(request)
+        
+        context = {
+            'store': store,
+            'plan': new_plan,
+            'amount': amount,
+            'razorpay_order_id': razorpay_order['id'],
+            'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+            'order_id': order_id,
+            'transaction': transaction,
+            'store_url': store_url,
+            'is_new_subscription': True,
+            'old_plan': store.subscription_plan,
+            'products_count': store.products.count() if hasattr(store, 'products') else 0,
+        }
+        return render(request, 'resellers/new_subscription_payment.html', context)
         
     except Exception as e:
         messages.error(request, f'Error creating order: {str(e)}')
@@ -1106,108 +1167,181 @@ def process_renewal(request, store_id, plan_id=None):
 @login_required
 @user_passes_test(is_reseller)
 def renewal_payment_callback(request):
-    """Handle renewal payment callback from Razorpay"""
+    """Handle renewal/upgrade payment callback"""
     
     razorpay_order_id = request.POST.get('razorpay_order_id')
     razorpay_payment_id = request.POST.get('razorpay_payment_id')
     razorpay_signature = request.POST.get('razorpay_signature')
     
-    # Verify payment signature
     if verify_payment_signature(razorpay_order_id, razorpay_payment_id, razorpay_signature):
-        # Get transaction
         transaction = get_object_or_404(StoreTransaction, razorpay_order_id=razorpay_order_id)
         store = transaction.store
-        
-        # Get renewal data from session
         renewal_data = request.session.get('renewal_data', {})
         
-        # Update transaction
         transaction.razorpay_payment_id = razorpay_payment_id
         transaction.razorpay_signature = razorpay_signature
         transaction.status = 'success'
         transaction.save()
         
-        # Get the new plan
         new_plan_id = renewal_data.get('plan_id')
-        if new_plan_id:
-            new_plan = get_object_or_404(SubscriptionPlan, id=new_plan_id)
-        else:
-            new_plan = store.subscription_plan
+        new_plan = get_object_or_404(SubscriptionPlan, id=new_plan_id) if new_plan_id else store.subscription_plan
         
         is_upgrade = renewal_data.get('is_upgrade', False)
+        remaining_days = renewal_data.get('remaining_days', 0)
         old_plan_name = renewal_data.get('old_plan_name')
         
-        # Renew the subscription (this preserves all store data)
-        store.renew_subscription(plan=new_plan)
+        existing_products_count = store.products.count() if hasattr(store, 'products') else 0
         
-        # Clear session data
+        store.renew_subscription(plan=new_plan, is_upgrade=is_upgrade, remaining_days_to_add=remaining_days if not is_upgrade else 0)
+        
         request.session.pop('renewal_data', None)
         
-        # Send confirmation email
         try:
             if is_upgrade:
                 subject = f"🎉 Store Upgraded to {new_plan.get_name_display().title()} Plan!"
                 message = f"""
-Dear {request.user.first_name},
+Dear {store.reseller.first_name},
 
-Congratulations! Your store "{store.store_name}" has been upgraded!
+Your store "{store.store_name}" has been upgraded!
 
 📊 Upgrade Details:
 • Old Plan: {old_plan_name}
 • New Plan: {new_plan.get_name_display().title()} ({new_plan.get_duration_display()})
-• Amount Paid: ₹{transaction.amount}
+• Amount Paid: ${transaction.amount}
 
-✨ New Features Available:
-{chr(10).join(['• ' + f for f in new_plan.get_features_list()])}
-
-✅ Your store remains active with all your products and settings intact!
+✅ Your {existing_products_count} products have been preserved!
 
 Transaction ID: {transaction.order_id}
 
 Thank you for upgrading!
-
-Best regards,
-Your Platform Team
 """
             else:
+                new_expiry = store.subscription_end.strftime('%B %d, %Y') if store.subscription_end else 'Lifetime'
+                extra_days_msg = f" You also received {remaining_days} extra days!" if remaining_days > 0 else ""
                 subject = f"🔄 Store '{store.store_name}' Subscription Renewed!"
                 message = f"""
-Dear {request.user.first_name},
+Dear {store.reseller.first_name},
 
-Your store "{store.store_name}" subscription has been successfully renewed!
+Your store "{store.store_name}" subscription has been renewed!
 
 📊 Renewal Details:
 • Plan: {new_plan.get_name_display().title()} ({new_plan.get_duration_display()})
-• Amount Paid: ₹{transaction.amount}
-• New Expiry Date: {store.subscription_end.strftime('%B %d, %Y') if store.subscription_end else 'Lifetime'}
+• Amount Paid: ${transaction.amount}
+• New Expiry Date: {new_expiry}{extra_days_msg}
 
-✅ All your products, theme, and settings have been preserved!
+✅ Your {existing_products_count} products have been preserved!
 
 Transaction ID: {transaction.order_id}
 
-Thank you for continuing with us!
-
-Best regards,
-Your Platform Team
+Thank you for continuing with Drapso!
 """
             
             send_mail(
                 subject=subject,
                 message=message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[request.user.email, store.contact_email],
+                recipient_list=[store.reseller.email, store.contact_email],
                 fail_silently=False,
             )
         except Exception as e:
-            print(f"Email sending failed: {e}")
+            print(f"Email failed: {e}")
         
-        # Success message
         if is_upgrade:
-            messages.success(request, f'🎉 Successfully upgraded to {new_plan.get_name_display().title()} plan!')
+            messages.success(request, f'🎉 Upgraded to {new_plan.get_name_display().title()} plan! Your {existing_products_count} products preserved!')
         else:
-            messages.success(request, f'🔄 Successfully renewed {new_plan.get_name_display().title()} plan!')
+            messages.success(request, f'🔄 Renewed successfully! Your {existing_products_count} products preserved!')
         
         return redirect('resellers:store_dashboard', store_id=store.id)
     else:
-        messages.error(request, 'Payment verification failed. Please contact support.')
+        messages.error(request, 'Payment verification failed.')
         return redirect('resellers:manage_subscription', store_id=request.session.get('renewal_data', {}).get('store_id'))
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+@user_passes_test(is_reseller)
+def new_subscription_callback(request):
+    """Handle new subscription payment callback - PRESERVES ALL PRODUCTS"""
+    
+    razorpay_order_id = request.POST.get('razorpay_order_id')
+    razorpay_payment_id = request.POST.get('razorpay_payment_id')
+    razorpay_signature = request.POST.get('razorpay_signature')
+    
+    if verify_payment_signature(razorpay_order_id, razorpay_payment_id, razorpay_signature):
+        transaction = get_object_or_404(StoreTransaction, razorpay_order_id=razorpay_order_id)
+        store = transaction.store
+        sub_data = request.session.get('new_subscription_data', {})
+        
+        transaction.razorpay_payment_id = razorpay_payment_id
+        transaction.razorpay_signature = razorpay_signature
+        transaction.status = 'success'
+        transaction.save()
+        
+        new_plan_id = sub_data.get('plan_id')
+        new_plan = get_object_or_404(SubscriptionPlan, id=new_plan_id)
+        old_plan_name = sub_data.get('old_plan_name', 'None')
+        
+        existing_products_count = store.products.count() if hasattr(store, 'products') else 0
+        
+        # Update subscription - products remain untouched
+        store.subscription_plan = new_plan
+        store.subscription_start = timezone.now()
+        
+        if new_plan.duration == 'monthly':
+            store.subscription_end = timezone.now() + timezone.timedelta(days=30)
+        elif new_plan.duration == 'yearly':
+            store.subscription_end = timezone.now() + timezone.timedelta(days=365)
+        else:
+            store.subscription_end = None
+        
+        store.payment_status = True
+        store.status = 'active'
+        store.is_published = True
+        store.expiry_notified_7 = False
+        store.expiry_notified_3 = False
+        store.expiry_notified_expired = False
+        
+        if not store.published_at:
+            store.published_at = timezone.now()
+        
+        store.save()
+        
+        request.session.pop('new_subscription_data', None)
+        
+        try:
+            subject = f"🎉 Store '{store.store_name}' Reactivated with {new_plan.get_name_display().title()} Plan!"
+            message = f"""
+Dear {store.reseller.first_name},
+
+Your store "{store.store_name}" has been reactivated!
+
+📊 Subscription Details:
+• Previous Plan: {old_plan_name}
+• New Plan: {new_plan.get_name_display().title()} ({new_plan.get_duration_display()})
+• Amount Paid: ${transaction.amount}
+• New Expiry Date: {store.subscription_end.strftime('%B %d, %Y') if store.subscription_end else 'Lifetime'}
+
+✅ IMPORTANT: Your {existing_products_count} products have been preserved!
+
+Transaction ID: {transaction.order_id}
+
+Thank you for continuing with Drapso!
+"""
+            
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[store.reseller.email, store.contact_email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Email failed: {e}")
+        
+        messages.success(request, f'🎉 Subscribed to {new_plan.get_name_display().title()} plan! Your {existing_products_count} products preserved! Store is LIVE!')
+        
+        return redirect('resellers:store_dashboard', store_id=store.id)
+    else:
+        messages.error(request, 'Payment verification failed.')
+        return redirect('resellers:manage_subscription', store_id=request.session.get('new_subscription_data', {}).get('store_id'))
