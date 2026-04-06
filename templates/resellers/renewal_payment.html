@@ -1,0 +1,91 @@
+
+{% load static %}
+
+{% block title %}Payment - Renew Subscription{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        {% if is_upgrade %}
+                            <i class="fas fa-arrow-up"></i> Upgrade Subscription
+                        {% else %}
+                            <i class="fas fa-sync-alt"></i> Renew Subscription
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Store Details</h5>
+                            <p>
+                                <strong>Store Name:</strong> {{ store.store_name }}<br>
+                                <strong>Current Plan:</strong> 
+                                {% if old_plan %}
+                                    {{ old_plan.get_name_display|title }}
+                                {% else %}
+                                    {{ plan.get_name_display|title }}
+                                {% endif %}
+                                <br>
+                                {% if is_upgrade %}
+                                    <strong>New Plan:</strong> {{ plan.get_name_display|title }}<br>
+                                    <strong>Upgrade Price:</strong> ${{ amount }}
+                                {% else %}
+                                    <strong>Renewal Price:</strong> ${{ amount }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle"></i> What happens next?</h6>
+                                <ul class="mb-0 small">
+                                    <li>✓ Subscription extended by {{ plan.get_duration_display }}</li>
+                                    <li>✓ All products and settings preserved</li>
+                                    <li>✓ Store remains active immediately</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <form id="payment-form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label>Pay with Razorpay</label>
+                            <div id="razorpay-button"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    var options = {
+        "key": "{{ razorpay_key_id }}",
+        "amount": {{ amount|floatformat:2 }} * 100,
+        "currency": "INR",
+        "name": "{{ store.store_name }}",
+        "description": "{% if is_upgrade %}Upgrade to{% else %}Renew{% endif %} {{ plan.get_name_display }} Plan",
+        "order_id": "{{ razorpay_order_id }}",
+        "callback_url": "{% url 'resellers:renewal_payment_callback' %}",
+        "prefill": {
+            "name": "{{ request.user.get_full_name }}",
+            "email": "{{ request.user.email }}",
+        },
+        "theme": {
+            "color": "#007bff"
+        }
+    };
+    
+    var rzp = new Razorpay(options);
+    
+    document.getElementById('razorpay-button').innerHTML = '<button type="button" class="btn btn-primary btn-lg btn-block" onclick="rzp.open()">Pay ${{ amount }}</button>';
+</script>
+{% endblock %}

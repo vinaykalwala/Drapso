@@ -1,0 +1,60 @@
+
+{% block title %}{% if plan %}Edit{% else %}Create{% endif %} Plan{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-tag"></i> {% if plan %}Edit{% else %}Create{% endif %} Plan</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Plan Name</label>
+                            <select name="name" class="form-control" required>
+                                <option value="silver" {% if plan.name == 'silver' %}selected{% endif %}>Silver</option>
+                                <option value="gold" {% if plan.name == 'gold' %}selected{% endif %}>Gold</option>
+                                <option value="platinum" {% if plan.name == 'platinum' %}selected{% endif %}>Platinum</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Duration</label>
+                            <select name="duration" class="form-control" required>
+                                <option value="monthly" {% if plan.duration == 'monthly' %}selected{% endif %}>Monthly</option>
+                                <option value="yearly" {% if plan.duration == 'yearly' %}selected{% endif %}>Yearly</option>
+                                <option value="lifetime" {% if plan.duration == 'lifetime' %}selected{% endif %}>Lifetime</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Price ($)</label>
+                            <input type="number" name="price" class="form-control" step="0.01" value="{{ plan.price|default:'' }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Multiple Theme Limit (Max Products)</label>
+                            <input type="number" name="multiple_theme_limit" class="form-control" value="{{ plan.multiple_theme_limit|default:'' }}" required>
+                            <small class="text-muted">Maximum products allowed for Multiple Products Theme</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Features (comma-separated)</label>
+                            <textarea name="features" class="form-control" rows="3" placeholder="Feature 1, Feature 2, Feature 3">{{ plan.features|default:'' }}</textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Save Plan</button>
+                            <a href="{% url 'resellers:plan_list' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -25,7 +25,14 @@ SECRET_KEY = 'django-insecure-vqvxd4d@jphz6o_p0)s$zq90tlh^d%er-2b$s3p483jk=7$8bi
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.localhost',  
+    'lvh.me',
+    '.lvh.me',    
+]
 
 
 # Application definition
@@ -40,6 +47,7 @@ INSTALLED_APPS = [
     'general',
     'accounts',
     'wholesellers',
+    'resellers',
 ]
 
 MIDDLEWARE = [
@@ -50,6 +58,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'resellers.middleware.SubdomainMiddleware',
+    'resellers.middleware.StoreContextMiddleware',
 ]
 
 ROOT_URLCONF = 'Drapso.urls'
@@ -65,6 +75,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'accounts.context_processors.user_profile_data',
+                'resellers.context_processors.store_context',
             ],
         },
     },
@@ -155,5 +166,3 @@ CACHES = {
     }
 }
 
-
-SITE_URL = 'http://localhost:8000' 
