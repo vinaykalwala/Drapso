@@ -76,7 +76,7 @@ class StoreTheme(models.Model):
 
 
 class Store(models.Model):
-    """Store model for resellers"""
+    """Store model for resellers with subscription management"""
     
     STATUS_CHOICES = [
         ('pending_payment', 'Pending Payment'),
@@ -144,13 +144,15 @@ class Store(models.Model):
     # Analytics
     total_visitors = models.IntegerField(default=0)
     
-    # Metadata
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # Expiry Notification Flags
     expiry_notified_7 = models.BooleanField(default=False)
     expiry_notified_3 = models.BooleanField(default=False)
     expiry_notified_expired = models.BooleanField(default=False)
-        
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
     class Meta:
         ordering = ['-created_at']
         indexes = [
@@ -170,6 +172,7 @@ class Store(models.Model):
         super().save(*args, **kwargs)
     
     def get_full_url(self, request=None):
+        """Generate full store URL dynamically"""
         if request:
             host = request.get_host().split(':')[0]
             host_parts = host.split('.')
@@ -190,8 +193,11 @@ class Store(models.Model):
             return self.subscription_plan.multiple_theme_limit
     
     def increment_visitor(self):
+        """Increment visitor count"""
         self.total_visitors += 1
         self.save(update_fields=['total_visitors'])
+    
+    # ============ SUBSCRIPTION MANAGEMENT METHODS ============
     
     def is_subscription_active(self):
         """Check if subscription is currently active"""
@@ -201,6 +207,17 @@ class Store(models.Model):
         
         # Check if not expired and status is active
         return self.subscription_end > timezone.now() and self.status == 'active'
+    
+    def get_remaining_days(self):
+        """Get remaining days in current subscription"""
+        if not self.subscription_end or self.status == 'expired':
+            return 0
+        
+        if self.subscription_end <= timezone.now():
+            return 0
+            
+        delta = self.subscription_end - timezone.now()
+        return max(0, delta.days)
     
     def days_until_expiry(self):
         """Get days until subscription expires"""
@@ -221,6 +238,18 @@ class Store(models.Model):
         days_left = self.days_until_expiry()
         return 0 < days_left <= days
     
+    def can_renew_early(self):
+        """Check if renewal is available (7 days or less remaining OR expired)"""
+        if self.status == 'expired':
+            return True
+        
+        remaining_days = self.get_remaining_days()
+        return 0 < remaining_days <= 7
+    
+    def can_upgrade(self):
+        """Check if upgrade is available (anytime for active subscriptions)"""
+        return self.status == 'active' and self.subscription_plan is not None
+    
     def can_upgrade_plan(self, new_plan):
         """Check if user can upgrade to a new plan"""
         if not self.subscription_plan:
@@ -238,10 +267,14 @@ class Store(models.Model):
         
         return new_priority > current_priority
     
-    def calculate_prorated_upgrade_price(self, new_plan):  # ✅ Fixed: no spaces
+    def calculate_prorated_upgrade_price(self, new_plan):
         """Calculate fair price for upgrading mid-subscription"""
         if not self.subscription_end or not self.subscription_start:
             # No active subscription, pay full price
+            return new_plan.price
+        
+        # Check if already expired
+        if self.status == 'expired':
             return new_plan.price
         
         # Calculate remaining days in current subscription
@@ -275,10 +308,11 @@ class Store(models.Model):
         else:  # lifetime
             return 0
     
-    def renew_subscription(self, plan=None, duration=None):
+    def renew_subscription(self, plan=None, is_upgrade=False, remaining_days_to_add=0):
         """
         Renew subscription with same or upgraded plan
         Preserves all store data
+        Adds remaining days to new subscription period if renewing before expiry
         """
         # Use new plan if provided, otherwise keep existing
         if plan:
@@ -287,21 +321,27 @@ class Store(models.Model):
         if not self.subscription_plan:
             return False
         
-        # Update subscription dates
+        # Calculate new start and end dates
         self.subscription_start = timezone.now()
-        self.payment_status = True
         
-        # Set end date based on duration
-        duration = duration or self.subscription_plan.duration
+        # Get base duration days from plan
+        duration_days = self._get_plan_duration_days(self.subscription_plan.duration)
         
-        if duration == 'monthly':
-            self.subscription_end = timezone.now() + timezone.timedelta(days=30)
-        elif duration == 'yearly':
-            self.subscription_end = timezone.now() + timezone.timedelta(days=365)
-        else:  # lifetime
+        # Calculate total days = plan duration + remaining days from old subscription (if renewing before expiry)
+        total_days = duration_days + remaining_days_to_add
+        
+        if self.subscription_plan.duration == 'lifetime':
             self.subscription_end = None
+        else:
+            self.subscription_end = timezone.now() + timezone.timedelta(days=total_days)
         
-        # Reactivate store
+        # Reset expiry notification flags
+        self.expiry_notified_7 = False
+        self.expiry_notified_3 = False
+        self.expiry_notified_expired = False
+        
+        # Update payment and status
+        self.payment_status = True
         self.status = 'active'
         self.is_published = True
         
@@ -321,10 +361,28 @@ class Store(models.Model):
                 self.save()
                 return True
         return False
-
+    
+    def get_subscription_summary(self):
+        """Get subscription summary for display"""
+        summary = {
+            'plan_name': self.subscription_plan.get_name_display() if self.subscription_plan else 'No Plan',
+            'plan_duration': self.subscription_plan.get_duration_display() if self.subscription_plan else 'N/A',
+            'status': self.status,
+            'is_active': self.is_subscription_active(),
+            'remaining_days': self.get_remaining_days(),
+            'can_renew': self.can_renew_early(),
+            'can_upgrade': self.can_upgrade(),
+        }
+        
+        if self.subscription_end:
+            summary['expiry_date'] = self.subscription_end.strftime('%B %d, %Y')
+        else:
+            summary['expiry_date'] = 'Lifetime'
+        
+        return summary
+    
     def __str__(self):
         return f"{self.store_name} → {self.subdomain}"
-
 
 class StoreTransaction(models.Model):
     """Store transaction details from Razorpay"""

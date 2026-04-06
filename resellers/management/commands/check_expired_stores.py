@@ -1,143 +1,124 @@
-# resellers/management/commands/check_expired_stores.py
-
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
+
 from resellers.models import Store
 
+
 class Command(BaseCommand):
-    help = 'Check for expired subscriptions and send notifications'
-    
+    help = "Check store subscriptions and send expiry notifications"
+
     def add_arguments(self, parser):
         parser.add_argument(
             '--dry-run',
             action='store_true',
             help='Show what would happen without making changes'
         )
-    
+
     def handle(self, *args, **options):
         dry_run = options['dry_run']
-        
-        self.stdout.write(f"🔍 Checking expired subscriptions at {timezone.now()}")
-        
-        # 1. Find and process expired stores
-        expired_stores = Store.objects.filter(
-            status='active',
-            subscription_end__isnull=False,
-            subscription_end__lte=timezone.now()
-        )
-        
-        self.stdout.write(f"\n📊 Found {expired_stores.count()} expired stores")
-        
-        for store in expired_stores:
-            if not dry_run:
-                # Update store status
-                old_status = store.status
-                store.status = 'expired'
-                store.is_published = False
-                store.save()
+        now = timezone.now()
+
+        stores = Store.objects.select_related('reseller', 'subscription_plan')
+
+        for store in stores:
+            # Skip lifetime plans
+            if not store.subscription_end:
+                continue
+
+            days_left = (store.subscription_end - now).days
+
+            # =========================
+            # 1. EXPIRE STORE
+            # =========================
+            if store.subscription_end <= now and not store.expiry_notified_expired:
                 
-                self.stdout.write(f"  ✓ Expired: {store.store_name} (was {old_status})")
+                if not dry_run:
+                    store.status = 'expired'
+                    store.is_published = False
+                    store.expiry_notified_expired = True
+                    store.save(update_fields=['status', 'is_published', 'expiry_notified_expired', 'updated_at'])
+
+                    send_mail(
+                        subject="⚠️ Your Store Has Expired",
+                        message=f"""
+Hi {store.reseller.first_name or store.reseller.username},
+
+Your store "{store.store_name}" has expired.
+
+⚠️ Your store is now unpublished and not visible to customers.
+
+👉 Please login to your dashboard to renew your subscription and reactivate your store.
+
+Regards,
+Drapso Team
+                        """,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[store.reseller.email, store.contact_email],
+                        fail_silently=False,
+                    )
+
+                    self.stdout.write(f"Expired store: {store.store_name}")
+
+            # =========================
+            # 2. 7 DAYS REMINDER (between 5-10 days)
+            # =========================
+            elif 5 <= days_left <= 10 and not store.expiry_notified_7:
                 
-                # Send expiration email
-                self._send_expiration_email(store)
-            else:
-                self.stdout.write(f"  • Would expire: {store.store_name}")
-        
-        # 2. Find stores expiring in 7 days (for reminders)
-        from datetime import timedelta
-        expiring_soon = Store.objects.filter(
-            status='active',
-            subscription_end__isnull=False,
-            subscription_end__gt=timezone.now(),
-            subscription_end__lte=timezone.now() + timedelta(days=7)
-        )
-        
-        self.stdout.write(f"\n📧 Found {expiring_soon.count()} stores expiring within 7 days")
-        
-        for store in expiring_soon:
-            days_left = (store.subscription_end - timezone.now()).days
-            
-            if not dry_run:
-                self._send_expiry_reminder(store, days_left)
-                self.stdout.write(f"  ✓ Reminder sent to: {store.store_name} ({days_left} days left)")
-            else:
-                self.stdout.write(f"  • Would remind: {store.store_name} ({days_left} days left)")
-        
-        self.stdout.write(self.style.SUCCESS(f"\n✅ Subscription check completed!"))
-        if dry_run:
-            self.stdout.write(self.style.WARNING("⚠️  This was a DRY RUN - no changes were made"))
-    
-    def _send_expiration_email(self, store):
-        """Send email when store expires"""
-        try:
-            renewal_url = f"https://yourdomain.com/resellers/manage-subscription/{store.id}/"
-            
-            subject = f"⚠️ Your Store '{store.store_name}' Has Expired"
-            message = f"""
-Dear Store Owner,
+                if not dry_run:
+                    store.expiry_notified_7 = True
+                    store.save(update_fields=['expiry_notified_7', 'updated_at'])
 
-Your store "{store.store_name}" has expired on {store.subscription_end.strftime('%B %d, %Y')}.
+                    send_mail(
+                        subject="📅 7 Days Left - Renew Your Store",
+                        message=f"""
+Hi {store.reseller.first_name or store.reseller.username},
 
-Your store has been unpublished and is no longer visible to customers.
+Your store "{store.store_name}" will expire in {days_left} days.
 
-🔴 To reactivate your store and restore all your products:
-👉 {renewal_url}
+📅 Expiry Date: {store.subscription_end.strftime('%d %b %Y')}
 
-✅ What happens when you renew:
-• All your products will be restored immediately
-• Your store theme and settings remain intact
-• Your store URL stays the same
-• Your customers can access your store again
+👉 Please login to your dashboard to renew your subscription and avoid downtime.
 
-If you have any questions, please contact our support team.
+Regards,
+Drapso Team
+                        """,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[store.reseller.email],
+                        fail_silently=False,
+                    )
 
-Best regards,
-Your Platform Team
-"""
-            
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[store.contact_email, store.reseller.email],
-                fail_silently=False,
-            )
-        except Exception as e:
-            self.stdout.write(f"  ⚠️ Failed to send email to {store.store_name}: {e}")
-    
-    def _send_expiry_reminder(self, store, days_left):
-        """Send reminder email before expiry"""
-        try:
-            renewal_url = f"https://yourdomain.com/resellers/manage-subscription/{store.id}/"
-            
-            subject = f"📅 Your Store '{store.store_name}' Expires in {days_left} Days"
-            message = f"""
-Dear Store Owner,
+                    self.stdout.write(f"7-day reminder sent: {store.store_name}")
 
-Your store "{store.store_name}" subscription will expire in {days_left} days on {store.subscription_end.strftime('%B %d, %Y')}.
+            # =========================
+            # 3. 3 DAYS REMINDER (between 1-4 days)
+            # =========================
+            elif 1 <= days_left <= 4 and not store.expiry_notified_3:
+                
+                if not dry_run:
+                    store.expiry_notified_3 = True
+                    store.save(update_fields=['expiry_notified_3', 'updated_at'])
 
-🟡 To avoid service interruption, please renew now:
-👉 {renewal_url}
+                    send_mail(
+                        subject="🚨 3 Days Left - Immediate Action Required",
+                        message=f"""
+Hi {store.reseller.first_name or store.reseller.username},
 
-💡 Benefits of renewing early:
-• No interruption to your store
-• Keep all your products and settings
-• Continue serving your customers
+Only {days_left} days left for your store "{store.store_name}".
 
-Don't let your store go offline!
+⚠️ Your store will be unpublished if not renewed.
 
-Best regards,
-Your Platform Team
-"""
-            
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[store.contact_email, store.reseller.email],
-                fail_silently=False,
-            )
-        except Exception as e:
-            self.stdout.write(f"  ⚠️ Failed to send reminder to {store.store_name}: {e}")
+👉 Login to your dashboard immediately to renew your subscription.
+
+Regards,
+Drapso Team
+                        """,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[store.reseller.email],
+                        fail_silently=False,
+                    )
+
+                    self.stdout.write(f"3-day reminder sent: {store.store_name}")
+
+        self.stdout.write(self.style.SUCCESS("Subscription check completed"))
