@@ -1,9 +1,27 @@
-<!-- resellers/store_dashboard.html -->
+
+{% load static %}
 
 {% block title %}Dashboard - {{ store.store_name }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
+    <!-- Subscription Expiry Warning Banner -->
+    {% if is_expiring_soon and days_until_expiry %}
+        <div class="alert alert-warning alert-dismissible fade show mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Subscription Expiring Soon!</strong> Your subscription will expire in <strong>{{ days_until_expiry }} days</strong> ({{ subscription_end|date:"F j, Y" }}).
+                    <a href="{% url 'resellers:manage_subscription' store.id %}" class="alert-link">Renew now</a> to avoid interruption.
+                </div>
+                <a href="{% url 'resellers:renew_subscription' store.id %}" class="btn btn-warning btn-sm">
+                    <i class="fas fa-sync-alt"></i> Renew Now
+                </a>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endif %}
+
     <div class="row">
         <div class="col-12">
             <div class="card bg-gradient-primary text-white mb-4">
@@ -53,6 +71,12 @@
                         <i class="fas fa-box"></i> Products 
                         <span class="badge bg-primary float-end">0/{{ max_products }}</span>
                     </a>
+                    <a href="{% url 'resellers:manage_subscription' store.id %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-credit-card"></i> Subscription
+                        {% if is_expiring_soon %}
+                            <span class="badge bg-warning float-end">Expiring</span>
+                        {% endif %}
+                    </a>
                     <a href="#" class="list-group-item list-group-item-action">
                         <i class="fas fa-chart-line"></i> Analytics
                     </a>
@@ -100,41 +124,47 @@
                         <strong>Subdomain:</strong>
                         <code>{{ store.subdomain }}</code>
                     </div>
-                    {% if store.subscription_end %}
+                    
+                    <!-- Subscription Expiry Info -->
+                    {% if subscription_end %}
                         <div class="mb-2">
                             <strong>Subscription Expires:</strong>
-                            {{ store.subscription_end|date:"M d, Y" }}
+                            {{ subscription_end|date:"M d, Y" }}
+                            {% if days_until_expiry %}
+                                <span class="badge {% if days_until_expiry <= 7 %}bg-danger{% else %}bg-secondary{% endif %} ms-2">
+                                    {{ days_until_expiry }} days left
+                                </span>
+                            {% endif %}
                         </div>
                     {% endif %}
 
-                    <!-- Add this somewhere in your store_dashboard.html template -->
-{% if days_until_expiry %}
-    <div class="alert {% if is_expiring_soon %}alert-warning{% else %}alert-info{% endif %} mt-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <i class="fas {% if is_expiring_soon %}fa-exclamation-triangle{% else %}fa-clock{% endif %}"></i>
-                <strong>Subscription Status:</strong>
-                {% if is_expiring_soon %}
-                    Your subscription will expire in <strong>{{ days_until_expiry }} days</strong> ({{ subscription_end|date:"F j, Y" }}).
-                    <a href="{% url 'resellers:manage_subscription' store.id %}" class="alert-link">Renew now →</a>
-                {% else %}
-                    Your subscription is active and expires on {{ subscription_end|date:"F j, Y" }}.
-                    <a href="{% url 'resellers:manage_subscription' store.id %}" class="alert-link">Manage subscription →</a>
-                {% endif %}
-            </div>
-            {% if is_expiring_soon %}
-                <a href="{% url 'resellers:renew_subscription' store.id %}" class="btn btn-warning btn-sm">
-                    <i class="fas fa-sync-alt"></i> Renew Now
-                </a>
-            {% endif %}
-        </div>
-    </div>
-{% elif subscription_plan.duration == 'lifetime' %}
-    <div class="alert alert-success mt-3">
-        <i class="fas fa-crown"></i>
-        <strong>Lifetime Plan!</strong> Your subscription never expires. Thank you for being a valued customer!
-    </div>
-{% endif %}
+                    <!-- Subscription Status Alert -->
+                    {% if days_until_expiry %}
+                        <div class="alert {% if is_expiring_soon %}alert-warning{% else %}alert-info{% endif %} mt-3 mb-0">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                <div class="small">
+                                    <i class="fas {% if is_expiring_soon %}fa-exclamation-triangle{% else %}fa-clock{% endif %}"></i>
+                                    {% if is_expiring_soon %}
+                                        Your subscription expires in <strong>{{ days_until_expiry }} days</strong>.
+                                        <a href="{% url 'resellers:manage_subscription' store.id %}" class="alert-link">Renew now →</a>
+                                    {% else %}
+                                        Your subscription is active until {{ subscription_end|date:"F j, Y" }}.
+                                        <a href="{% url 'resellers:manage_subscription' store.id %}" class="alert-link">Manage →</a>
+                                    {% endif %}
+                                </div>
+                                {% if is_expiring_soon %}
+                                    <a href="{% url 'resellers:renew_subscription' store.id %}" class="btn btn-warning btn-sm mt-2 mt-sm-0">
+                                        <i class="fas fa-sync-alt"></i> Renew Now
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% elif subscription_plan.duration == 'lifetime' %}
+                        <div class="alert alert-success mt-3 mb-0">
+                            <i class="fas fa-crown"></i>
+                            <strong>Lifetime Plan!</strong> Your subscription never expires.
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -228,6 +258,42 @@
                             {% endif %}
                         </div>
                     {% endif %}
+                </div>
+            </div>
+            
+            <!-- Subscription Management Card -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-credit-card"></i> Subscription Management</h5>
+                    <a href="{% url 'resellers:manage_subscription' store.id %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-cog"></i> Manage Subscription
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Current Plan:</strong> {{ store.subscription_plan.get_name_display|title }}</p>
+                            <p><strong>Duration:</strong> {{ store.subscription_plan.get_duration_display }}</p>
+                            <p><strong>Price:</strong> ${{ store.subscription_plan.price }}/{{ store.subscription_plan.get_duration_display }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Started:</strong> {{ store.subscription_start|date:"M d, Y" }}</p>
+                            <p><strong>Expires:</strong> 
+                                {% if subscription_end %}
+                                    {{ subscription_end|date:"M d, Y" }}
+                                {% else %}
+                                    Lifetime
+                                {% endif %}
+                            </p>
+                            {% if days_until_expiry and days_until_expiry <= 7 %}
+                                <div class="alert alert-warning mt-2 mb-0">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Your subscription expires in {{ days_until_expiry }} days!
+                                    <a href="{% url 'resellers:renew_subscription' store.id %}" class="alert-link">Renew now</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
             

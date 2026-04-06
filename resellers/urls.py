@@ -40,8 +40,10 @@ urlpatterns = [
     path('admin/store/<int:store_id>/', views.admin_store_detail, name='admin_store_detail'),
     
     path('', views.store_frontend, name='store_frontend'),
-     path('manage-subscription/<int:store_id>/', views.manage_subscription, name='manage_subscription'),
+    path('manage-subscription/<int:store_id>/', views.manage_subscription, name='manage_subscription'),
     path('renew-subscription/<int:store_id>/', views.process_renewal, name='renew_subscription'),
     path('renew-subscription/<int:store_id>/<int:plan_id>/', views.process_renewal, name='renew_subscription_with_plan'),
+    path('subscribe-new-plan/<int:store_id>/<int:plan_id>/', views.subscribe_new_plan, name='subscribe_new_plan'),
     path('renewal-payment-callback/', views.renewal_payment_callback, name='renewal_payment_callback'),
+    path('new-subscription-callback/', views.new_subscription_callback, name='new_subscription_callback'),
 ]

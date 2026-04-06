@@ -1,27 +1,174 @@
+{% extends "dashboard_base.html" %}
+{% load static %}
 
 {% block title %}Delete Plan{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-danger text-white">
-                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Delete Plan</h4>
-                </div>
-                <div class="card-body">
-                    <p class="lead">Are you sure you want to delete the plan <strong>"{{ plan.get_name_display }}"</strong>?</p>
-                    <p class="text-danger">This action cannot be undone and will affect all stores using this plan.</p>
-                    
-                    <form method="POST">
-                        {% csrf_token %}
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{% url 'resellers:plan_list' %}" class="btn btn-secondary me-md-2">Cancel</a>
-                            <button type="submit" class="btn btn-danger">Yes, Delete Plan</button>
-                        </div>
-                    </form>
-                </div>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --dr-danger: #ef4444;
+        --dr-danger-light: #fef2f2;
+        --dr-border: #e2e8f0;
+        --dr-text-main: #0f172a;
+        --dr-text-slate: #64748b;
+    }
+
+    .dr-confirm-container {
+        padding: 60px 20px;
+        max-width: 600px;
+        margin: 0 auto 100px auto;
+    }
+
+    /* --- Confirmation Glass Card --- */
+    .dr-confirm-card {
+        background: rgba(255, 255, 255, 0.98);
+        border: 1px solid var(--dr-border);
+        border-radius: 40px;
+        padding: clamp(30px, 5vw, 50px);
+        box-shadow: 0 30px 60px -12px rgba(239, 68, 68, 0.12);
+        text-align: center;
+        animation: drFadeUpConfirm 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* Warning Icon Badge */
+    .dr-warning-badge {
+        width: 90px;
+        height: 90px;
+        background: var(--dr-danger-light);
+        color: var(--dr-danger);
+        border-radius: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 38px;
+        margin: 0 auto 30px;
+        animation: drPulseWarning 2s infinite;
+    }
+
+    .dr-confirm-title {
+        font-weight: 800;
+        font-size: 26px;
+        color: var(--dr-text-main);
+        margin-bottom: 15px;
+        letter-spacing: -0.5px;
+    }
+
+    .dr-confirm-desc {
+        color: var(--dr-text-slate);
+        line-height: 1.7;
+        margin-bottom: 35px;
+        font-size: 16px;
+    }
+
+    .dr-plan-highlight {
+        background: #f1f5f9;
+        color: var(--dr-text-main);
+        padding: 5px 15px;
+        border-radius: 12px;
+        font-weight: 800;
+        display: inline-block;
+        margin: 5px 0;
+        border: 1px solid #e2e8f0;
+    }
+
+    /* --- Action Buttons --- */
+    .dr-btn-group {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .dr-btn-back {
+        background: #f1f5f9;
+        color: var(--dr-text-slate) !important;
+        padding: 16px;
+        border-radius: 20px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .dr-btn-back:hover {
+        background: #e2e8f0;
+        color: var(--dr-text-main) !important;
+    }
+
+    .dr-btn-confirm {
+        background: var(--dr-danger);
+        color: white !important;
+        padding: 16px;
+        border-radius: 20px;
+        font-weight: 800;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2);
+    }
+
+    .dr-btn-confirm:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(239, 68, 68, 0.35);
+        background: #dc2626;
+    }
+
+    @keyframes drFadeUpConfirm { 
+        from { opacity: 0; transform: translateY(30px); } 
+        to { opacity: 1; transform: translateY(0); } 
+    }
+
+    @keyframes drPulseWarning { 
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 
+        70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); } 
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } 
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 576px) {
+        .dr-btn-group {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .dr-confirm-card { padding: 30px 20px; }
+        .dr-btn-back { order: 2; }
+        .dr-btn-confirm { order: 1; }
+    }
+</style>
+
+<div class="content">
+    <div class="dr-confirm-container">
+        <div class="dr-confirm-card">
+            <div class="dr-warning-badge">
+                <i class="fas fa-exclamation-triangle"></i>
             </div>
+            
+            <h1 class="dr-confirm-title">Confirm Deletion</h1>
+            
+            <p class="dr-confirm-desc">
+                Are you sure you want to delete the plan:<br>
+                <span class="dr-plan-highlight">{{ plan.get_name_display }}</span><br><br>
+                <span style="color: var(--dr-danger); font-weight: 700;">
+                    <i class="fas fa-info-circle me-1"></i> This action is permanent. 
+                    All resellers currently subscribed to this plan will be affected.
+                </span>
+            </p>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="dr-btn-group">
+                    <a href="{% url 'resellers:plan_list' %}" class="dr-btn-back">
+                        <i class="fas fa-arrow-left me-2"></i> Cancel
+                    </a>
+                    <button type="submit" class="dr-btn-confirm">
+                        <i class="fas fa-trash-alt me-2"></i> Yes, Delete Plan
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

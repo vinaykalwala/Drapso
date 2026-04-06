@@ -1,74 +1,228 @@
-
-
+{% extends "dashboard_base.html" %}
 {% block title %}Manage Subscription Plans{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="card shadow">
-        <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0"><i class="fas fa-tags"></i> Subscription Plans</h4>
-            <a href="{% url 'resellers:plan_create' %}" class="btn btn-light">
-                <i class="fas fa-plus"></i> Add New Plan
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --dr-primary: #4f46e5;
+        --dr-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        --dr-border: #e2e8f0;
+    }
+
+    /* --- Page Header Mobile Fix --- */
+    .dr-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        gap: 15px;
+        flex-wrap: wrap; 
+        padding-top: 10px; /* Prevents text from hitting the very top */
+    }
+
+    .dr-page-title {
+        flex: 1;
+        min-width: 280px; 
+    }
+
+    .dr-page-title h1 {
+        font-size: clamp(22px, 7vw, 32px); 
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: normal; /* Fixed: Removed negative spacing that caused overlapping */
+        margin: 0;
+        line-height: 1.3; /* Fixed: Added breathing room between lines */
+    }
+
+    .dr-page-title p {
+        font-size: 14px;
+        margin-top: 4px;
+        color: #64748b;
+    }
+
+    .dr-btn-add {
+        background: var(--dr-gradient);
+        color: white !important;
+        padding: 12px 24px;
+        border-radius: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        white-space: nowrap;
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.15);
+        transition: 0.3s;
+    }
+
+    /* --- Responsive Plan Grid --- */
+    .dr-plan-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+        gap: 20px;
+    }
+
+    .dr-plan-card {
+        background: #fff;
+        border: 1px solid var(--dr-border);
+        border-radius: 28px;
+        padding: 25px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        transition: 0.3s ease;
+    }
+
+    .dr-plan-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--dr-primary);
+    }
+
+    .dr-plan-badge {
+        position: absolute;
+        top: 20px; right: 20px;
+        padding: 4px 10px;
+        border-radius: 50px;
+        font-size: 10px;
+        font-weight: 800;
+        background: #ecfdf5;
+        color: #10b981;
+    }
+
+    .dr-plan-name { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+    .dr-plan-duration { font-size: 13px; color: #64748b; margin-bottom: 15px; display: flex; align-items: center; gap: 5px; }
+
+    .dr-plan-price {
+        font-size: clamp(28px, 5vw, 36px);
+        font-weight: 800;
+        color: var(--dr-primary);
+        margin-bottom: 15px;
+    }
+    .dr-plan-price span { font-size: 14px; color: #94a3b8; font-weight: 600; }
+
+    .dr-theme-limit {
+        background: #f5f3ff;
+        color: var(--dr-primary);
+        padding: 10px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .dr-feature-list {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 20px;
+        flex-grow: 1;
+    }
+
+    .dr-feature-item {
+        font-size: 14px;
+        color: #475569;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .dr-feature-item i { color: #10b981; margin-top: 3px; }
+
+    /* --- Action Buttons --- */
+    .dr-card-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        padding-top: 15px;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .btn-action {
+        padding: 12px;
+        border-radius: 12px;
+        text-align: center;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .btn-edit { background: #f8fafc; color: #334155; border: 1.5px solid #e2e8f0; }
+    .btn-delete { background: #fff1f2; color: #ef4444; border: 1.5px solid #ffe4e6; }
+
+    /* --- Specific Mobile Media Query --- */
+    @media (max-width: 576px) {
+        .dr-page-header {
+            flex-direction: column;
+            align-items: stretch;
+            text-align: left;
+        }
+        .dr-btn-add {
+            width: 100%;
+            justify-content: center;
+        }
+        .dr-card-actions {
+            grid-template-columns: 1fr; /* Stacks edit/delete on small screens */
+        }
+    }
+</style>
+
+<div class="content">
+    <div class="dr-plan-wrapper" style="padding: 20px;">
+        <header class="dr-page-header">
+            <div class="dr-page-title">
+                <h1>Subscription Plans</h1>
+                <p class="fw-semibold">Manage pricing tiers for your resellers.</p>
+            </div>
+            <a href="{% url 'resellers:plan_create' %}" class="dr-btn-add">
+                <i class="fas fa-plus-circle"></i> Add New Plan
             </a>
-        </div>
-        <div class="card-body">
-            {% if plans %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Name</th>
-                                <th>Duration</th>
-                                <th>Price</th>
-                                <th>Multiple Theme Limit</th>
-                                <th>Features</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for plan in plans %}
-                            <tr>
-                                <td><strong>{{ plan.get_name_display }}</strong></td>
-                                <td>{{ plan.get_duration_display }}</td>
-                                <td>${{ plan.price }}</td>
-                                <td>{{ plan.multiple_theme_limit }} products</td>
-                                <td>
-                                    {% for feature in plan.get_features_list %}
-                                        <span class="badge bg-info mb-1">{{ feature }}</span>
-                                    {% empty %}
-                                        <span class="text-muted">No features listed</span>
-                                    {% endfor %}
-                                </td>
-                                <td>
-                                    {% if plan.is_active %}
-                                        <span class="badge bg-success">Active</span>
-                                    {% else %}
-                                        <span class="badge bg-danger">Inactive</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <a href="{% url 'resellers:plan_edit' plan.id %}" class="btn btn-sm btn-warning">
-                                        <i class="fas fa-edit">Edit</i>
-                                    </a>
-                                    <a href="{% url 'resellers:plan_delete' plan.id %}" class="btn btn-sm btn-danger">
-                                        <i class="fas fa-trash">Delete</i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+        </header>
+
+        {% if plans %}
+        <div class="dr-plan-grid">
+            {% for plan in plans %}
+            <div class="dr-plan-card">
+                <div class="dr-plan-badge">ACTIVE</div>
+                <div class="dr-plan-name">{{ plan.get_name_display }}</div>
+                <div class="dr-plan-duration"><i class="far fa-clock"></i> {{ plan.get_duration_display }}</div>
+
+                <div class="dr-plan-price">
+                    ${{ plan.price }}<span>/ {{ plan.get_duration_display }}</span>
                 </div>
-            {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-tags display-1 text-muted"></i>
-                    <h3>No Plans Created</h3>
-                    <p class="text-muted">Create subscription plans to offer different pricing tiers</p>
-                    <a href="{% url 'resellers:plan_create' %}" class="btn btn-primary">Create First Plan</a>
+
+                <div class="dr-theme-limit">
+                    <i class="fas fa-layer-group me-2"></i> {{ plan.multiple_theme_limit }} Products Limit
                 </div>
-            {% endif %}
+
+                <ul class="dr-feature-list">
+                    {% for feature in plan.get_features_list %}
+                    <li class="dr-feature-item">
+                        <i class="fas fa-check-circle"></i> 
+                        <span>{{ feature }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <div class="dr-card-actions">
+                    <a href="{% url 'resellers:plan_edit' plan.id %}" class="btn-action btn-edit">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a href="{% url 'resellers:plan_delete' plan.id %}" class="btn-action btn-delete" onclick="return confirm('Delete this plan?')">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

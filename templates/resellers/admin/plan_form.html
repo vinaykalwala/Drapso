@@ -1,63 +1,209 @@
-
-
+{% extends "dashboard_base.html" %}
 {% block title %}{% if plan %}Edit{% else %}Create{% endif %} Plan{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-tag"></i> {% if plan %}Edit{% else %}Create{% endif %} Plan</h4>
-                </div>
-                <div class="card-body">
-                    <form method="POST">
-                        {% csrf_token %}
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Plan Name *</label>
-                            <select name="name" class="form-control" required>
-                                <option value="">Select Plan</option>
-                                <option value="silver" {% if plan.name == 'silver' %}selected{% endif %}>Silver</option>
-                                <option value="gold" {% if plan.name == 'gold' %}selected{% endif %}>Gold</option>
-                                <option value="platinum" {% if plan.name == 'platinum' %}selected{% endif %}>Platinum</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Duration *</label>
-                            <select name="duration" class="form-control" required>
-                                <option value="monthly" {% if plan.duration == 'monthly' %}selected{% endif %}>Monthly</option>
-                                <option value="yearly" {% if plan.duration == 'yearly' %}selected{% endif %}>Yearly</option>
-                                <option value="lifetime" {% if plan.duration == 'lifetime' %}selected{% endif %}>Lifetime</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Price ($) *</label>
-                            <input type="number" name="price" class="form-control" step="0.01" value="{{ plan.price|default:'' }}" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Multiple Theme Limit (Max Products) *</label>
-                            <input type="number" name="multiple_theme_limit" class="form-control" value="{{ plan.multiple_theme_limit|default:'' }}" required>
-                            <small class="text-muted">Maximum products allowed for Multiple Products Theme</small>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Features (comma-separated)</label>
-                            <textarea name="features" class="form-control" rows="3" placeholder="Feature 1, Feature 2, Feature 3">{{ plan.features|default:'' }}</textarea>
-                            <small class="text-muted">Example: Unlimited Products, 24/7 Support, Custom Domain</small>
-                        </div>
-                        
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{% url 'resellers:plan_list' %}" class="btn btn-secondary me-md-2">Cancel</a>
-                            <button type="submit" class="btn btn-primary">{% if plan %}Update{% else %}Create{% endif %} Plan</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --dr-primary: #4f46e5;
+        --dr-secondary: #7c3aed;
+        --dr-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        --dr-glass-bg: rgba(255, 255, 255, 0.95);
+        --dr-border: #e2e8f0;
+    }
+
+    .dr-form-container {
+        padding: 40px 20px;
+        max-width: 700px;
+        margin: 0 auto 100px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* --- Animated Header --- */
+    .dr-form-header {
+        text-align: center;
+        margin-bottom: 35px;
+        animation: drFadeIn 0.6s ease-out;
+        padding-top: 15px; /* Prevents text from hitting the very top on mobile */
+    }
+
+    .dr-form-header h1 {
+        font-size: clamp(24px, 5vw, 32px);
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: -1px;
+        letter-spacing: normal; /* Fixed: Removed negative spacing that caused overlapping */
+        margin: 0;
+        line-height: 1.3; /* Fixed: Added breathing room between lines */
+    }
+
+    /* --- Glassmorphism Form Card --- */
+    .dr-glass-card {
+        background: var(--dr-glass-bg);
+        border: 1px solid var(--dr-border);
+        border-radius: 30px;
+        padding: clamp(20px, 5vw, 40px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.04);
+        animation: drSlideUp 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* --- Premium Input Styles --- */
+    .dr-form-group {
+        margin-bottom: 25px;
+    }
+
+    .dr-form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 8px;
+        margin-left: 4px;
+    }
+
+    .dr-form-group input, 
+    .dr-form-group select, 
+    .dr-form-group textarea {
+        width: 100%;
+        padding: 14px 18px;
+        border-radius: 14px;
+        border: 1.5px solid #eef2ff;
+        background: #fff;
+        font-size: 15px;
+        font-weight: 500;
+        color: #1e293b;
+        transition: all 0.3s ease;
+        outline: none;
+    }
+
+    .dr-form-group input:focus,
+    .dr-form-group select:focus,
+    .dr-form-group textarea:focus {
+        border-color: var(--dr-primary);
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        background: #fff;
+    }
+
+    .dr-hint {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-top: 6px;
+        margin-left: 4px;
+        display: block;
+    }
+
+    /* --- Button Actions --- */
+    .dr-action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 40px;
+    }
+
+    .dr-btn-submit {
+        flex: 2;
+        background: var(--dr-gradient);
+        color: white !important;
+        padding: 16px;
+        border-radius: 16px;
+        border: none;
+        font-weight: 800;
+        font-size: 16px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+    }
+
+    .dr-btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(79, 70, 229, 0.4);
+    }
+
+    .dr-btn-cancel {
+        flex: 1;
+        background: #f1f5f9;
+        color: #64748b !important;
+        padding: 16px;
+        border-radius: 16px;
+        text-decoration: none;
+        text-align: center;
+        font-weight: 700;
+        transition: 0.2s;
+    }
+
+    .dr-btn-cancel:hover {
+        background: #e2e8f0;
+        color: #1e293b !important;
+    }
+
+    @keyframes drFadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes drSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 600px) {
+        .dr-form-container { padding: 20px 15px; }
+        .dr-glass-card { padding: 25px; border-radius: 20px; }
+        .dr-action-buttons { flex-direction: column-reverse; }
+    }
+</style>
+<div class="content">
+<div class="dr-form-container">
+    <div class="dr-form-header">
+        <h1>{% if plan %}Edit{% else %}Create{% endif %} Subscription Plan</h1>
+        <p class="text-muted small fw-bold mt-2">Define your pricing tier and reseller benefits</p>
     </div>
+
+    <div class="dr-glass-card">
+        <form method="POST" action=".">
+            {% csrf_token %}
+            
+            <div class="dr-form-group">
+                <label><i class="fas fa-signature me-1"></i> Plan Name *</label>
+                <select name="name" required>
+                    <option value="">Select Plan</option>
+                    <option value="silver" {% if plan.name == 'silver' %}selected{% endif %}>Silver</option>
+                    <option value="gold" {% if plan.name == 'gold' %}selected{% endif %}>Gold</option>
+                    <option value="platinum" {% if plan.name == 'platinum' %}selected{% endif %}>Platinum</option>
+                </select>
+            </div>
+
+            <div class="dr-form-group">
+                <label><i class="far fa-calendar-alt me-1"></i> Duration *</label>
+                <select name="duration" required>
+                    <option value="monthly" {% if plan.duration == 'monthly' %}selected{% endif %}>Monthly</option>
+                    <option value="yearly" {% if plan.duration == 'yearly' %}selected{% endif %}>Yearly</option>
+                    <option value="lifetime" {% if plan.duration == 'lifetime' %}selected{% endif %}>Lifetime</option>
+                </select>
+            </div>
+
+            <div class="dr-form-group">
+                <label><i class="fas fa-dollar-sign me-1"></i> Price *</label>
+                <input type="number" name="price" step="0.01" value="{{ plan.price|default:'' }}" required placeholder="0.00">
+            </div>
+
+            <div class="dr-form-group">
+                <label><i class="fas fa-layer-group me-1"></i> Multiple Theme Limit (Max Products) *</label>
+                <input type="number" name="multiple_theme_limit" value="{{ plan.multiple_theme_limit|default:'' }}" required placeholder="e.g. 50">
+                <span class="dr-hint">Maximum products allowed for Multiple Products Theme</span>
+            </div>
+
+            <div class="dr-form-group">
+                <label><i class="fas fa-list-check me-1"></i> Features (comma-separated)</label>
+                <textarea name="features" rows="4" placeholder="Unlimited Products, 24/7 Support, Custom Domain">{{ plan.features|default:'' }}</textarea>
+                <span class="dr-hint">Separate each benefit with a comma for better display</span>
+            </div>
+
+            <div class="dr-action-buttons">
+                <a href="{% url 'resellers:plan_list' %}" class="dr-btn-cancel">Cancel</a>
+                <button type="submit" class="dr-btn-submit">
+                    <i class="fas fa-rocket"></i> {% if plan %}Update{% else %}Create{% endif %} Plan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 </div>
 {% endblock %}

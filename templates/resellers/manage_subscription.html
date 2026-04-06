@@ -4,196 +4,241 @@
 {% block title %}Manage Subscription - {{ store.store_name }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container py-5">
     <div class="row">
-        <div class="col-md-12">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'resellers:reseller_dashboard' %}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'resellers:store_dashboard' store.id %}">{{ store.store_name }}</a></li>
-                    <li class="breadcrumb-item active">Manage Subscription</li>
-                </ol>
-            </nav>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-12">
-            {% if is_expired %}
-                <div class="alert alert-danger">
-                    <h4><i class="fas fa-exclamation-triangle"></i> Subscription Expired!</h4>
-                    <p>Your subscription expired on {{ store.subscription_end|date:"F j, Y" }}. Please renew to reactivate your store. All your products are still saved and will be restored immediately upon renewal.</p>
-                </div>
-            {% elif days_left and days_left <= 7 %}
-                <div class="alert alert-warning">
-                    <h4><i class="fas fa-clock"></i> Subscription Expiring Soon!</h4>
-                    <p>Your subscription will expire in <strong>{{ days_left }} days</strong> ({{ store.subscription_end|date:"F j, Y" }}). Renew now to avoid interruption.</p>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <div class="row">
-        <!-- Current Subscription Info -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Current Subscription</h5>
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-credit-card"></i> Manage Subscription - {{ store.store_name }}</h4>
                 </div>
                 <div class="card-body">
-                    {% if current_plan %}
-                        <h3>{{ current_plan.get_name_display|title }}</h3>
-                        <p class="text-muted">{{ current_plan.get_duration_display|title }} Plan</p>
-                        
-                        <hr>
-                        
-                        <div class="mb-3">
-                            <strong>Price:</strong> ${{ current_plan.price }}
-                        </div>
-                        
-                        <div class="mb-3">
-                            <strong>Started:</strong> {{ store.subscription_start|date:"F j, Y" }}
-                        </div>
-                        
-                        {% if store.subscription_end %}
-                            <div class="mb-3">
-                                <strong>Expires:</strong> {{ store.subscription_end|date:"F j, Y" }}
-                                {% if days_left and not is_expired %}
-                                    <span class="badge {% if days_left <= 7 %}badge-danger{% else %}badge-warning{% endif %}">
-                                        {{ days_left }} days left
-                                    </span>
-                                {% endif %}
+                    <!-- Current Subscription Status -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-info-circle"></i> Current Subscription</h5>
+                                    <hr>
+                                    <p><strong>Plan:</strong> 
+                                        {% if current_plan %}
+                                            <span class="badge bg-primary">{{ current_plan.get_name_display|title }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">No Plan</span>
+                                        {% endif %}
+                                    </p>
+                                    <p><strong>Duration:</strong> 
+                                        {% if current_plan %}
+                                            {{ current_plan.get_duration_display }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </p>
+                                    <p><strong>Status:</strong>
+                                        {% if is_expired %}
+                                            <span class="badge bg-danger">Expired</span>
+                                        {% elif store.status == 'active' %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">{{ store.status }}</span>
+                                        {% endif %}
+                                    </p>
+                                    {% if not is_expired and remaining_days > 0 %}
+                                        <p><strong>Days Remaining:</strong> 
+                                            <span class="{% if remaining_days <= 7 %}text-danger{% else %}text-success{% endif %}">
+                                                {{ remaining_days }} days
+                                            </span>
+                                        </p>
+                                        <p><strong>Expires On:</strong> {{ store.subscription_end|date:"F d, Y" }}</p>
+                                    {% elif is_expired %}
+                                        <p><strong>Expired On:</strong> {{ store.subscription_end|date:"F d, Y" }}</p>
+                                    {% endif %}
+                                </div>
                             </div>
-                        {% else %}
-                            <div class="mb-3">
-                                <strong>Expires:</strong> <span class="badge badge-success">Lifetime</span>
-                            </div>
-                        {% endif %}
-                        
-                        <div class="mb-3">
-                            <strong>Status:</strong>
-                            {% if store.is_subscription_active %}
-                                <span class="badge badge-success">Active</span>
-                            {% else %}
-                                <span class="badge badge-danger">Expired</span>
-                            {% endif %}
                         </div>
-                        
-                        <div class="mb-3">
-                            <strong>Max Products:</strong> {{ store.get_max_products }}
-                        </div>
-                        
-                        <div class="mb-3">
-                            <strong>Features:</strong>
-                            <ul class="mt-2">
-                                {% for feature in current_plan.get_features_list %}
-                                    <li><i class="fas fa-check text-success"></i> {{ feature }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        
-                        <!-- Renew Current Plan Button -->
-                        <a href="{% url 'resellers:renew_subscription' store.id %}" class="btn btn-primary btn-block">
-                            <i class="fas fa-sync-alt"></i> Renew Current Plan
-                        </a>
-                    {% else %}
-                        <p class="text-muted">No active subscription</p>
-                        <a href="{% url 'resellers:select_plan' %}" class="btn btn-primary">Get Started</a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Upgrade Options (Higher Plans Only) -->
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-arrow-up text-success"></i> Upgrade to Higher Plans
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if can_upgrade %}
-                        <p class="text-muted mb-4">Upgrade your plan to unlock more features and higher product limits. You'll only pay the difference for the remaining period!</p>
-                        
-                        <div class="row">
-                            {% for plan_info in plans %}
-                                {% if plan_info.is_higher_tier %}
-                                    <div class="col-md-6 mb-4">
-                                        <div class="card h-100 border-success">
-                                            <div class="card-header text-center bg-success text-white">
-                                                <h4 class="mb-0">{{ plan_info.plan.get_name_display|title }}</h4>
-                                                <small>{{ plan_info.plan.get_duration_display|title }}</small>
-                                            </div>
-                                            <div class="card-body text-center">
-                                                <h2 class="text-success">${{ plan_info.plan.price }}</h2>
-                                                <small class="text-muted">Regular price</small>
-                                                
-                                                <div class="mt-3 p-2 bg-light rounded">
-                                                    <strong>Upgrade Price:</strong>
-                                                    <h4 class="text-success">${{ plan_info.upgrade_price }}</h4>
-                                                    <small>You save ${{ plan_info.plan.price|floatformat:2|add:"-"|add:plan_info.upgrade_price|floatformat:2 }}</small>
-                                                </div>
-                                                
-                                                <hr>
-                                                
-                                                <ul class="text-left">
-                                                    {% for feature in plan_info.plan.get_features_list %}
-                                                        <li><i class="fas fa-check text-success"></i> {{ feature }}</li>
-                                                    {% endfor %}
-                                                </ul>
-                                            </div>
-                                            <div class="card-footer">
-                                                <a href="{% url 'resellers:renew_subscription_with_plan' store.id plan_info.plan.id %}" 
-                                                   class="btn btn-success btn-block">
-                                                    <i class="fas fa-arrow-up"></i> Upgrade Now
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> You're already on our highest plan! No upgrades available at this time.
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- What Gets Preserved -->
-            <div class="card mt-3">
-                <div class="card-body">
-                    <div class="alert alert-success mb-0">
-                        <h5><i class="fas fa-check-circle"></i> When you renew or upgrade:</h5>
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <ul class="mb-0">
-                                    <li><i class="fas fa-check text-success"></i> ✅ All your products remain <strong>intact</strong></li>
-                                    <li><i class="fas fa-check text-success"></i> ✅ Store theme and customization <strong>preserved</strong></li>
-                                    <li><i class="fas fa-check text-success"></i> ✅ Store URL and branding stay <strong>same</strong></li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6">
-                                <ul class="mb-0">
-                                    <li><i class="fas fa-check text-success"></i> ✅ Customer data and orders <strong>saved</strong></li>
-                                    <li><i class="fas fa-check text-success"></i> ✅ Analytics history <strong>maintained</strong></li>
-                                    <li><i class="fas fa-check text-success"></i> ✅ New features <strong>available immediately</strong></li>
-                                </ul>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-store"></i> Store Information</h5>
+                                    <hr>
+                                    <p><strong>Store Name:</strong> {{ store.store_name }}</p>
+                                    <p><strong>Store URL:</strong> 
+                                        <a href="{{ store.get_full_url }}" target="_blank">{{ store.get_full_url }}</a>
+                                    </p>
+                                    <p><strong>Theme:</strong> {{ store.theme.name|default:"Not selected" }}</p>
+                                    <p><strong>Max Products:</strong> {{ store.get_max_products }}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Note about downgrades -->
-            <div class="card mt-3">
-                <div class="card-body">
-                    <div class="alert alert-secondary mb-0">
-                        <small>
-                            <i class="fas fa-info-circle"></i> <strong>Note:</strong> Plan downgrades are not available. You can only renew your current plan or upgrade to higher plans. This ensures you always have access to the best features for your growing business.
-                        </small>
+
+                    <!-- Expired Subscription Message -->
+                    {% if is_expired %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Your subscription has expired!</strong> Your store is currently offline. 
+                            Renew your previous plan or subscribe to a new plan to reactivate your store. 
+                            All your products and settings are preserved and will be restored immediately upon reactivation.
+                        </div>
+                    {% endif %}
+
+                    <!-- Renewal Message for Active but expiring soon -->
+                    {% if not is_expired and renewal_message %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> {{ renewal_message }}
+                        </div>
+                    {% endif %}
+
+                    <!-- RENEW PREVIOUS PLAN SECTION (Shows when expired OR expiring soon) -->
+                    {% if can_renew and renewal_plan and renewal_plan.id %}
+                        <div class="card mb-4 border-success">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-sync-alt"></i> 
+                                    {% if is_expired %}
+                                        Reactivate with Previous Plan
+                                    {% else %}
+                                        Renew Current Plan
+                                    {% endif %}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <h4>{{ renewal_plan.get_name_display|title }} Plan</h4>
+                                        <p>{{ renewal_plan.get_duration_display }} - ${{ renewal_plan.price }}</p>
+                                        {% if not is_expired and remaining_days > 0 and remaining_days <= 7 %}
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-gift"></i> 
+                                                <strong>Bonus!</strong> Renew now and get <strong>{{ remaining_days }} extra days</strong> added to your new subscription period!
+                                            </div>
+                                        {% elif is_expired %}
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-history"></i> 
+                                                <strong>Your data is preserved!</strong> Reactivating with your previous plan will restore all your products and settings immediately.
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <a href="{% url 'resellers:renew_subscription' store.id %}" class="btn btn-success btn-lg">
+                                            <i class="fas fa-sync-alt"></i> 
+                                            {% if is_expired %}
+                                                Reactivate - ${{ renewal_plan.price }}
+                                            {% else %}
+                                                Renew Now - ${{ renewal_plan.price }}
+                                            {% endif %}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- SUBSCRIBE TO NEW PLAN SECTION (Shows for expired subscriptions) -->
+                    {% if is_expired and all_plans %}
+                        <div class="card mb-4 border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0"><i class="fas fa-store"></i> Subscribe to a New Plan</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted mb-3">Choose a different plan for your store. Your existing products and settings will be preserved.</p>
+                                <div class="row">
+                                    {% for plan_info in all_plans %}
+                                        {% if plan_info.plan and plan_info.plan.id %}
+                                        <div class="col-md-4 mb-3">
+                                            <div class="card h-100">
+                                                <div class="card-header text-center {% if plan_info.plan.name == 'gold' %}bg-primary text-white{% elif plan_info.plan.name == 'platinum' %}bg-dark text-white{% else %}bg-secondary text-white{% endif %}">
+                                                    <h4>{{ plan_info.plan.get_name_display|title }}</h4>
+                                                    <h3 class="mb-0">${{ plan_info.plan.price }}</h3>
+                                                    <small>/{{ plan_info.plan.get_duration_display }}</small>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p><strong>Max Products:</strong> {{ plan_info.plan.multiple_theme_limit }} products</p>
+                                                    <p><strong>Features:</strong></p>
+                                                    <ul>
+                                                        {% for feature in plan_info.plan.get_features_list %}
+                                                            <li><i class="fas fa-check text-success"></i> {{ feature }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                                <div class="card-footer bg-white text-center">
+                                                    <a href="{% url 'resellers:subscribe_new_plan' store.id plan_info.plan.id %}" class="btn btn-primary">
+                                                        Subscribe to {{ plan_info.plan.get_name_display|title }}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- UPGRADE SECTION (Only for active subscriptions - higher plans only) -->
+                    {% if not is_expired and can_upgrade and upgrade_plans %}
+                        <div class="card mb-4 border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0"><i class="fas fa-arrow-up"></i> Upgrade Plan (Get More Features)</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for plan_info in upgrade_plans %}
+                                        {% if plan_info.plan and plan_info.plan.id %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card h-100">
+                                                <div class="card-header text-center {% if plan_info.plan.name == 'gold' %}bg-primary text-white{% elif plan_info.plan.name == 'platinum' %}bg-dark text-white{% else %}bg-secondary text-white{% endif %}">
+                                                    <h4>{{ plan_info.plan.get_name_display|title }}</h4>
+                                                    <h3 class="mb-0">${{ plan_info.upgrade_price }}</h3>
+                                                    <small>one-time upgrade</small>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p><strong>Regular Price:</strong> ${{ plan_info.plan.price }}/{{ plan_info.plan.get_duration_display }}</p>
+                                                    <p><strong>Max Products:</strong> {{ plan_info.plan.multiple_theme_limit }} products</p>
+                                                    <p><strong>Features:</strong></p>
+                                                    <ul>
+                                                        {% for feature in plan_info.plan.get_features_list %}
+                                                            <li><i class="fas fa-check text-success"></i> {{ feature }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                    {% if plan_info.upgrade_price < plan_info.plan.price %}
+                                                        <div class="alert alert-success">
+                                                            <i class="fas fa-tag"></i> Save ${{ plan_info.plan.price|floatformat:2|add:plan_info.upgrade_price|floatformat:2 }} with prorated upgrade!
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="card-footer bg-white text-center">
+                                                    <a href="{% url 'resellers:renew_subscription_with_plan' store.id plan_info.plan.id %}" class="btn btn-primary">
+                                                        Upgrade to {{ plan_info.plan.get_name_display|title }}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- No Actions Available -->
+                    {% if not can_renew and not can_upgrade and not is_expired %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            {% if not store.subscription_plan %}
+                                Please complete your store setup first.
+                            {% elif remaining_days > 7 %}
+                                Your subscription is active with {{ remaining_days }} days remaining. Renewal will be available when 7 days or less are left.
+                            {% else %}
+                                No actions available at this time.
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Back to Dashboard -->
+                    <div class="mt-4">
+                        <a href="{% url 'resellers:store_dashboard' store.id %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Dashboard
+                        </a>
                     </div>
                 </div>
             </div>

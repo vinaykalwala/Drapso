@@ -26,13 +26,7 @@ SECRET_KEY = 'django-insecure-vqvxd4d@jphz6o_p0)s$zq90tlh^d%er-2b$s3p483jk=7$8bi
 DEBUG = True
 
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '.localhost',  
-    'lvh.me',
-    '.lvh.me',    
-]
+ALLOWED_HOSTS = ['*']
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 MAX_UPLOAD_SIZE = 5242880
@@ -120,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
