@@ -181,6 +181,7 @@ def select_plan(request):
     }
     return render(request, 'resellers/select_plan.html', context)
 
+
 @login_required
 @user_passes_test(is_reseller)
 def select_theme(request):
@@ -213,32 +214,26 @@ def select_theme(request):
         return redirect('resellers:select_plan')
     
     if request.method == 'POST' and 'next' in request.POST:
-        form = ThemeSelectionForm(request.POST)
+        theme_id = request.POST.get('theme_id')
         
-        if form.is_valid():
-            theme = form.cleaned_data['theme_id']
-            store.theme = theme
-            store.save()
-            
-            messages.success(request, f'✓ Selected {theme.name}!')
-            return redirect('resellers:create_order', store_id=store.id)
+        if not theme_id:
+            messages.error(request, 'Please select a theme to continue.')
         else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"{field}: {error}")
-    else:
-        form = ThemeSelectionForm()
-    
-    # Pre-select current theme if exists
-    if store.theme:
-        form = ThemeSelectionForm(initial={'theme_id': store.theme.id})
+            try:
+                theme = StoreTheme.objects.get(id=theme_id, is_active=True)
+                store.theme = theme
+                store.save()
+                
+                messages.success(request, f'✓ Selected {theme.name} theme!')
+                return redirect('resellers:create_order', store_id=store.id)
+            except StoreTheme.DoesNotExist:
+                messages.error(request, 'Selected theme is not available.')
     
     # Get limits for display
     single_theme = themes.filter(theme_type='single').first()
     multiple_theme = themes.filter(theme_type='multiple').first()
     
     context = {
-        'form': form,
         'store': store,
         'plan': plan,
         'single_theme': single_theme,
@@ -250,8 +245,78 @@ def select_theme(request):
         'back_url': 'resellers:select_plan',
     }
     return render(request, 'resellers/select_theme.html', context)
-    
 
+
+@login_required
+@user_passes_test(is_reseller)
+def preview_single_theme(request, theme_id):
+    """Preview Single Product Theme"""
+    theme = get_object_or_404(StoreTheme, id=theme_id, theme_type='single', is_active=True)
+    
+    # Get the current store or create a dummy store for preview
+    store = None
+    if request.user.is_authenticated:
+        store = Store.objects.filter(reseller=request.user).first()
+    
+    # Sample product data for preview
+    sample_product = {
+        'name': 'Premium Product Sample',
+        'description': 'This is a sample product demonstration for the single product theme. You can showcase your main product with detailed description, features, and benefits.',
+        'price': '49.99',
+        'image_url': None,  # You can add a default image
+        'features': [
+            'Premium quality materials',
+            '1 year warranty',
+            'Free shipping worldwide',
+            '30-day money-back guarantee',
+            '24/7 customer support'
+        ]
+    }
+    
+    context = {
+        'theme': theme,
+        'store': store,
+        'product': sample_product,
+        'is_preview': True,
+    }
+    return render(request, 'resellers/preview_single_theme.html', context)
+
+
+@login_required
+@user_passes_test(is_reseller)
+def preview_multiple_theme(request, theme_id):
+    """Preview Multiple Products Theme"""
+    theme = get_object_or_404(StoreTheme, id=theme_id, theme_type='multiple', is_active=True)
+    
+    # Get the current store or create a dummy store for preview
+    store = None
+    plan_limit = 12  # Default limit
+    
+    if request.user.is_authenticated:
+        store = Store.objects.filter(reseller=request.user).first()
+        if store and store.subscription_plan:
+            plan_limit = store.subscription_plan.multiple_theme_limit
+    
+    # Sample products data for preview
+    sample_products = []
+    for i in range(1, min(plan_limit, 9)):  # Show up to 8 sample products
+        sample_products.append({
+            'id': i,
+            'name': f'Sample Product {i}',
+            'description': f'This is a sample product {i} demonstration for the multiple products theme.',
+            'price': f'{39.99 + i * 10:.2f}',
+            'image_url': None,
+            'category': ['Electronics', 'Clothing', 'Home', 'Sports'][i % 4],
+        })
+    
+    context = {
+        'theme': theme,
+        'store': store,
+        'products': sample_products,
+        'product_limit': plan_limit,
+        'is_preview': True,
+    }
+    return render(request, 'resellers/preview_multiple_theme.html', context)
 # resellers/views.py - Update create_order view
 
 @login_required

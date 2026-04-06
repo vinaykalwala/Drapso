@@ -16,7 +16,8 @@ urlpatterns = [
     path('create-order/<int:store_id>/', views.create_order, name='create_order'), 
     path('payment-success/', views.payment_success, name='payment_success'),
     path('payment-failed/', views.payment_failed, name='payment_failed'),
-    
+    path('preview/single-theme/<int:theme_id>/', views.preview_single_theme, name='preview_single_theme'),
+    path('preview/multiple-theme/<int:theme_id>/', views.preview_multiple_theme, name='preview_multiple_theme'),
     # Store Management
     path('store/<int:store_id>/', views.store_dashboard, name='store_dashboard'),
     path('store/<int:store_id>/preview/', views.preview_store, name='preview_store'),

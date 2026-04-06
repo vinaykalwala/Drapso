@@ -1,0 +1,166 @@
+
+{% block title %}Preview: {{ theme.name }} - Multiple Products Theme{% endblock %}
+
+{% block extra_css %}
+<style>
+    .preview-banner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem;
+        text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+    
+    .product-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+    }
+    
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .product-image {
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    .product-price {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #28a745;
+    }
+    
+    .category-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+    }
+    
+    .search-filter {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="preview-banner">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6 text-md-start">
+                <i class="fas fa-eye"></i> Preview Mode: {{ theme.name }}
+            </div>
+            <div class="col-md-6 text-md-end">
+                <a href="{% url 'resellers:select_theme' %}" class="btn btn-sm btn-light">
+                    <i class="fas fa-arrow-left"></i> Back to Theme Selection
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="display-4">Our Products</h1>
+            <p class="lead">Browse our collection of premium products</p>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                Your plan allows up to <strong>{{ product_limit }} products</strong>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search and Filter (Preview) -->
+    <div class="search-filter">
+        <div class="row">
+            <div class="col-md-6">
+                <input type="text" class="form-control" placeholder="Search products..." disabled>
+            </div>
+            <div class="col-md-3">
+                <select class="form-control" disabled>
+                    <option>All Categories</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-control" disabled>
+                    <option>Sort by: Featured</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        {% for product in products %}
+        <div class="col-md-4 col-lg-3 mb-4">
+            <div class="card product-card shadow-sm">
+                {% if product.category %}
+                    <span class="badge bg-primary category-badge">{{ product.category }}</span>
+                {% endif %}
+                
+                {% if product.image_url %}
+                    <img src="{{ product.image_url }}" class="card-img-top product-image" alt="{{ product.name }}">
+                {% else %}
+                    <div class="bg-light text-center py-5 product-image">
+                        <i class="fas fa-image fa-3x text-muted"></i>
+                    </div>
+                {% endif %}
+                
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text text-muted">{{ product.description|truncatewords:15 }}</p>
+                    <div class="product-price">${{ product.price }}</div>
+                </div>
+                <div class="card-footer bg-white">
+                    <button class="btn btn-primary w-100" disabled>
+                        <i class="fas fa-shopping-cart"></i> View Product
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if products|length == 0 %}
+    <div class="text-center py-5">
+        <i class="fas fa-box-open fa-4x text-muted"></i>
+        <h3>No Products Found</h3>
+        <p class="text-muted">Products will appear here once you add them to your store.</p>
+    </div>
+    {% endif %}
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle"></i>
+                This is a preview of the Multiple Products Theme. Your actual store will display your real products in this grid layout.
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if products|length > 0 %}
+<div class="text-center mb-5">
+    <nav>
+        <ul class="pagination justify-content-center">
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1">Previous</a>
+            </li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+                <a class="page-link" href="#">Next</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+{% endif %}
+{% endblock %}

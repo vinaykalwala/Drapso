@@ -1,64 +1,230 @@
 
+
+{% block title %}Select Store Theme - Step 3{% endblock %}
+
+{% block extra_css %}
+<style>
+    .theme-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .theme-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    }
+    
+    .theme-card.selected {
+        border: 3px solid #28a745;
+        box-shadow: 0 0 20px rgba(40,167,69,0.3);
+    }
+    
+    .theme-preview-img {
+        height: 250px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    
+    .theme-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+    }
+    
+    .preview-link {
+        text-decoration: none;
+        margin-top: 15px;
+        display: inline-block;
+    }
+    
+    .preview-link:hover {
+        text-decoration: underline;
+    }
+    
+    .radio-card {
+        cursor: pointer;
+    }
+    
+    .radio-card input[type="radio"] {
+        cursor: pointer;
+    }
+    
+    .feature-list {
+        list-style: none;
+        padding-left: 0;
+    }
+    
+    .feature-list li {
+        padding: 5px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .feature-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .feature-list i {
+        margin-right: 8px;
+        color: #28a745;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-5">
     <!-- Step Indicator -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="progress">
-                <div class="progress-bar bg-success" style="width: 75%">Step {{ step }} of {{ total_steps }}</div>
+            <div class="progress" style="height: 10px;">
+                <div class="progress-bar bg-success" style="width: 75%"></div>
             </div>
             <div class="text-center mt-2">
-                <small class="text-muted">Step {{ step }}: Select Store Theme</small>
+                <small class="text-muted">Step {{ step }} of {{ total_steps }}: Select Store Theme</small>
             </div>
         </div>
     </div>
     
     <div class="row">
         <div class="col-12 text-center mb-5">
-            <h1>Choose Your Store Theme</h1>
-            <p class="lead">Select how your store will look</p>
-            <div class="alert alert-info">
+            <h1 class="display-4">Choose Your Store Theme</h1>
+            <p class="lead">Select how your store will look to your customers</p>
+            <div class="alert alert-info shadow-sm">
                 <i class="fas fa-info-circle"></i>
                 Your plan: <strong>{{ plan.get_name_display|title }}</strong> | 
-                Multiple theme limit: <strong>{{ plan.multiple_theme_limit }} products</strong>
+                Products limit: <strong>{{ plan.multiple_theme_limit }} products</strong>
+                {% if plan.duration == 'lifetime' %}
+                    <span class="badge bg-warning ms-2">Lifetime Access</span>
+                {% endif %}
             </div>
         </div>
     </div>
     
-    <form method="POST">
+    <form method="POST" id="themeForm">
         {% csrf_token %}
         
         <div class="row">
             <!-- Single Product Theme -->
-            <div class="col-md-6 mb-4">
-                <div class="card theme-card h-100 shadow">
-                    <div class="card-header bg-info text-white text-center">
-                        <h3>Single Product Theme</h3>
+            <div class="col-lg-6 mb-4">
+                <div class="card theme-card h-100 shadow" data-theme-type="single">
+                    <div class="card-header bg-gradient-info text-white">
+                        <h3 class="mb-0 text-center">
+                            <i class="fas fa-store"></i> Single Product Theme
+                        </h3>
                     </div>
                     <div class="card-body">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="theme_id" value="{{ single_theme.id }}" id="theme_single" {% if store.theme.id == single_theme.id %}checked{% endif %}>
-                            <label class="form-check-label" for="theme_single">
-                                Select Single Product Theme
-                            </label>
-                        </div>
+                        {% if single_theme %}
+                            <!-- Preview Image -->
+                            {% if single_theme.preview_image %}
+                                <img src="{{ single_theme.preview_image.url }}" 
+                                     alt="{{ single_theme.name }}" 
+                                     class="img-fluid rounded theme-preview-img w-100 mb-3">
+                            {% else %}
+                                <div class="bg-light text-center py-5 rounded mb-3">
+                                    <i class="fas fa-image fa-4x text-muted"></i>
+                                    <p class="mt-2 text-muted">Preview image coming soon</p>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="form-check radio-card">
+                                <input class="form-check-input" type="radio" 
+                                       name="theme_id" value="{{ single_theme.id }}" 
+                                       id="theme_single" 
+                                       {% if store.theme.id == single_theme.id %}checked{% endif %}
+                                       data-theme-type="single">
+                                <label class="form-check-label fs-5 fw-bold" for="theme_single">
+                                    Select Single Product Theme
+                                </label>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <h5>Theme Features:</h5>
+                                <ul class="feature-list">
+                                    <li><i class="fas fa-check-circle"></i> Focus on a single product</li>
+                                    <li><i class="fas fa-check-circle"></i> Full-screen product display</li>
+                                    <li><i class="fas fa-check-circle"></i> Detailed product information</li>
+                                    <li><i class="fas fa-check-circle"></i> Call-to-action optimization</li>
+                                    <li><i class="fas fa-check-circle"></i> Mobile responsive design</li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Live Preview Link -->
+                            <div class="mt-3 text-center">
+                                <a href="{% url 'resellers:preview_single_theme' theme_id=single_theme.id %}" 
+                                   class="btn btn-outline-info preview-link" 
+                                   target="_blank">
+                                    <i class="fas fa-eye"></i> Live Preview Single Product Theme
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Single product theme is not available. Please contact administrator.
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
             
             <!-- Multiple Products Theme -->
-            <div class="col-md-6 mb-4">
-                <div class="card theme-card h-100 shadow">
-                    <div class="card-header bg-success text-white text-center">
-                        <h3>Multiple Products Theme</h3>
+            <div class="col-lg-6 mb-4">
+                <div class="card theme-card h-100 shadow" data-theme-type="multiple">
+                    <div class="card-header bg-gradient-success text-white">
+                        <h3 class="mb-0 text-center">
+                            <i class="fas fa-store-alt"></i> Multiple Products Theme
+                        </h3>
                     </div>
                     <div class="card-body">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="theme_id" value="{{ multiple_theme.id }}" id="theme_multiple" {% if store.theme.id == multiple_theme.id %}checked{% endif %}>
-                            <label class="form-check-label" for="theme_multiple">
-                                Select Multiple Products Theme
-                            </label>
-                        </div>
+                        {% if multiple_theme %}
+                            <!-- Preview Image -->
+                            {% if multiple_theme.preview_image %}
+                                <img src="{{ multiple_theme.preview_image.url }}" 
+                                     alt="{{ multiple_theme.name }}" 
+                                     class="img-fluid rounded theme-preview-img w-100 mb-3">
+                            {% else %}
+                                <div class="bg-light text-center py-5 rounded mb-3">
+                                    <i class="fas fa-image fa-4x text-muted"></i>
+                                    <p class="mt-2 text-muted">Preview image coming soon</p>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="form-check radio-card">
+                                <input class="form-check-input" type="radio" 
+                                       name="theme_id" value="{{ multiple_theme.id }}" 
+                                       id="theme_multiple" 
+                                       {% if store.theme.id == multiple_theme.id %}checked{% endif %}
+                                       data-theme-type="multiple">
+                                <label class="form-check-label fs-5 fw-bold" for="theme_multiple">
+                                    Select Multiple Products Theme
+                                </label>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <h5>Theme Features:</h5>
+                                <ul class="feature-list">
+                                    <li><i class="fas fa-check-circle"></i> Display up to <strong>{{ plan.multiple_theme_limit }}</strong> products</li>
+                                    <li><i class="fas fa-check-circle"></i> Product grid layout</li>
+                                    <li><i class="fas fa-check-circle"></i> Search and filter options</li>
+                                    <li><i class="fas fa-check-circle"></i> Product categories</li>
+                                    <li><i class="fas fa-check-circle"></i> Comparison feature</li>
+                                    <li><i class="fas fa-check-circle"></i> Mobile responsive design</li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Live Preview Link -->
+                            <div class="mt-3 text-center">
+                                <a href="{% url 'resellers:preview_multiple_theme' theme_id=multiple_theme.id %}" 
+                                   class="btn btn-outline-success preview-link" 
+                                   target="_blank">
+                                    <i class="fas fa-eye"></i> Live Preview Multiple Products Theme
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Multiple products theme is not available. Please contact administrator.
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -71,11 +237,51 @@
                         <i class="fas fa-arrow-left"></i> Back to Plans
                     </button>
                 {% endif %}
-                <button type="submit" name="next" value="next" class="btn btn-primary btn-lg px-5">
+                <button type="submit" name="next" value="next" class="btn btn-primary btn-lg px-5" id="continueBtn" disabled>
                     Continue to Payment <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
         </div>
     </form>
 </div>
+
+{% block extra_js %}
+<script>
+    // Theme card selection
+    document.querySelectorAll('.theme-card input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Remove selected class from all cards
+            document.querySelectorAll('.theme-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selected class to parent card
+            this.closest('.theme-card').classList.add('selected');
+            
+            // Enable continue button
+            document.getElementById('continueBtn').disabled = false;
+        });
+        
+        // If already checked, trigger selection
+        if (radio.checked) {
+            radio.dispatchEvent(new Event('change'));
+        }
+    });
+    
+    // Make entire card clickable
+    document.querySelectorAll('.theme-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Don't trigger if clicking on preview link
+            if (e.target.closest('.preview-link')) {
+                return;
+            }
+            const radio = this.querySelector('input[type="radio"]');
+            if (radio && !radio.checked) {
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}
