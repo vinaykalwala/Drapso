@@ -34,8 +34,9 @@ ALLOWED_HOSTS = [
     '.lvh.me',    
 ]
 
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
+MAX_UPLOAD_SIZE = 5242880
 
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',

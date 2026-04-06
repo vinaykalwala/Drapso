@@ -1,4 +1,5 @@
 
+
 {% block title %}Manage Subscription Plans{% endblock %}
 
 {% block content %}
@@ -14,7 +15,7 @@
             {% if plans %}
                 <div class="table-responsive">
                     <table class="table table-hover">
-                        <thead>
+                        <thead class="table-light">
                             <tr>
                                 <th>Name</th>
                                 <th>Duration</th>
@@ -35,6 +36,8 @@
                                 <td>
                                     {% for feature in plan.get_features_list %}
                                         <span class="badge bg-info mb-1">{{ feature }}</span>
+                                    {% empty %}
+                                        <span class="text-muted">No features listed</span>
                                     {% endfor %}
                                 </td>
                                 <td>
@@ -46,10 +49,10 @@
                                 </td>
                                 <td>
                                     <a href="{% url 'resellers:plan_edit' plan.id %}" class="btn btn-sm btn-warning">
-                                        <i class="fas fa-edit"></i>
+                                        <i class="fas fa-edit">Edit</i>
                                     </a>
                                     <a href="{% url 'resellers:plan_delete' plan.id %}" class="btn btn-sm btn-danger">
-                                        <i class="fas fa-trash"></i>
+                                        <i class="fas fa-trash">Delete</i>
                                     </a>
                                 </td>
                             </tr>
@@ -61,6 +64,7 @@
                 <div class="text-center py-5">
                     <i class="fas fa-tags display-1 text-muted"></i>
                     <h3>No Plans Created</h3>
+                    <p class="text-muted">Create subscription plans to offer different pricing tiers</p>
                     <a href="{% url 'resellers:plan_create' %}" class="btn btn-primary">Create First Plan</a>
                 </div>
             {% endif %}

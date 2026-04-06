@@ -637,12 +637,18 @@ def store_frontend(request, subdomain=None):
     # Raise 404 so Django continues to next URL pattern
     raise Http404("Not a store request")
            
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+import os
+
+def is_admin(user):
+    return user.is_superuser or (hasattr(user, 'is_admin') and user.is_admin)
+
 @login_required
 @user_passes_test(is_admin)
 def plan_list(request):
     plans = SubscriptionPlan.objects.all()
     return render(request, 'resellers/admin/plan_list.html', {'plans': plans})
-
 
 @login_required
 @user_passes_test(is_admin)
@@ -654,18 +660,25 @@ def plan_create(request):
         multiple_theme_limit = request.POST.get('multiple_theme_limit')
         features = request.POST.get('features')
         
-        plan = SubscriptionPlan.objects.create(
-            name=name,
-            duration=duration,
-            price=price,
-            multiple_theme_limit=multiple_theme_limit,
-            features=features
-        )
-        messages.success(request, f'Plan "{plan.get_name_display()}" created successfully!')
-        return redirect('resellers:plan_list')
+        # Validation
+        if not all([name, duration, price, multiple_theme_limit]):
+            messages.error(request, 'All fields are required!')
+            return render(request, 'resellers/admin/plan_form.html')
+        
+        try:
+            plan = SubscriptionPlan.objects.create(
+                name=name,
+                duration=duration,
+                price=price,
+                multiple_theme_limit=multiple_theme_limit,
+                features=features
+            )
+            messages.success(request, f'Plan "{plan.get_name_display()}" created successfully!')
+            return redirect('resellers:plan_list')
+        except Exception as e:
+            messages.error(request, f'Error creating plan: {str(e)}')
     
     return render(request, 'resellers/admin/plan_form.html')
-
 
 @login_required
 @user_passes_test(is_admin)
@@ -684,7 +697,6 @@ def plan_edit(request, plan_id):
     
     return render(request, 'resellers/admin/plan_form.html', {'plan': plan})
 
-
 @login_required
 @user_passes_test(is_admin)
 def plan_delete(request, plan_id):
@@ -697,13 +709,11 @@ def plan_delete(request, plan_id):
     
     return render(request, 'resellers/admin/plan_confirm_delete.html', {'plan': plan})
 
-
 @login_required
 @user_passes_test(is_admin)
 def theme_list(request):
     themes = StoreTheme.objects.all()
     return render(request, 'resellers/admin/theme_list.html', {'themes': themes})
-
 
 @login_required
 @user_passes_test(is_admin)
@@ -713,16 +723,33 @@ def theme_create(request):
         theme_type = request.POST.get('theme_type')
         description = request.POST.get('description')
         
-        theme = StoreTheme.objects.create(
-            name=name,
-            theme_type=theme_type,
-            description=description
-        )
-        messages.success(request, f'Theme "{theme.name}" created successfully!')
-        return redirect('resellers:theme_list')
+        # Validation
+        if not all([name, theme_type]):
+            messages.error(request, 'Name and Theme Type are required!')
+            return render(request, 'resellers/admin/theme_form.html')
+        
+        try:
+            theme = StoreTheme.objects.create(
+                name=name,
+                theme_type=theme_type,
+                description=description
+            )
+            
+            # Handle preview image upload
+            if request.FILES.get('preview_image'):
+                theme.preview_image = request.FILES['preview_image']
+            
+            # Handle thumbnail upload
+            if request.FILES.get('thumbnail'):
+                theme.thumbnail = request.FILES['thumbnail']
+            
+            theme.save()
+            messages.success(request, f'Theme "{theme.name}" created successfully!')
+            return redirect('resellers:theme_list')
+        except Exception as e:
+            messages.error(request, f'Error creating theme: {str(e)}')
     
     return render(request, 'resellers/admin/theme_form.html')
-
 
 @login_required
 @user_passes_test(is_admin)
@@ -733,12 +760,27 @@ def theme_edit(request, theme_id):
         theme.name = request.POST.get('name')
         theme.theme_type = request.POST.get('theme_type')
         theme.description = request.POST.get('description')
+        
+        # Handle preview image upload - remove old if new is uploaded
+        if request.FILES.get('preview_image'):
+            # Delete old image if exists
+            if theme.preview_image:
+                if os.path.isfile(theme.preview_image.path):
+                    os.remove(theme.preview_image.path)
+            theme.preview_image = request.FILES['preview_image']
+        
+        # Handle thumbnail upload - remove old if new is uploaded
+        if request.FILES.get('thumbnail'):
+            if theme.thumbnail:
+                if os.path.isfile(theme.thumbnail.path):
+                    os.remove(theme.thumbnail.path)
+            theme.thumbnail = request.FILES['thumbnail']
+        
         theme.save()
         messages.success(request, f'Theme "{theme.name}" updated successfully!')
         return redirect('resellers:theme_list')
     
     return render(request, 'resellers/admin/theme_form.html', {'theme': theme})
-
 
 @login_required
 @user_passes_test(is_admin)
@@ -746,55 +788,100 @@ def theme_delete(request, theme_id):
     theme = get_object_or_404(StoreTheme, id=theme_id)
     if request.method == 'POST':
         theme_name = theme.name
+        # Delete image files from storage
+        if theme.preview_image:
+            if os.path.isfile(theme.preview_image.path):
+                os.remove(theme.preview_image.path)
+        if theme.thumbnail:
+            if os.path.isfile(theme.thumbnail.path):
+                os.remove(theme.thumbnail.path)
         theme.delete()
         messages.success(request, f'Theme "{theme_name}" deleted successfully!')
         return redirect('resellers:theme_list')
     
     return render(request, 'resellers/admin/theme_confirm_delete.html', {'theme': theme})
 
+# resellers/views.py - Updated admin_stores view
 
 @login_required
 @user_passes_test(is_admin)
 def admin_stores(request):
     stores = Store.objects.all().select_related('reseller', 'subscription_plan', 'theme')
-    transactions = StoreTransaction.objects.all().select_related('store', 'user')
+    # Remove prefetch_related('products') since it doesn't exist
+    
+    # Calculate statistics
+    total_stores = stores.count()
+    active_stores = stores.filter(status='active').count()
+    pending_stores = stores.filter(status='pending_payment').count()
+    expired_stores = stores.filter(status='expired').count()
+    suspended_stores = stores.filter(status='suspended').count()
+    
+    # Calculate total revenue from successful transactions
+    transactions = StoreTransaction.objects.filter(status='success')
+    total_revenue = sum(t.amount for t in transactions)
     
     context = {
         'stores': stores,
-        'transactions': transactions,
-        'total_stores': stores.count(),
-        'active_stores': stores.filter(status='active').count(),
-        'total_revenue': sum(t.amount for t in transactions if t.status == 'success'),
+        'total_stores': total_stores,
+        'active_stores': active_stores,
+        'pending_stores': pending_stores,
+        'expired_stores': expired_stores,
+        'suspended_stores': suspended_stores,
+        'total_revenue': total_revenue,
     }
     return render(request, 'resellers/admin_stores.html', context)
-
 
 @login_required
 @user_passes_test(is_admin)
 def admin_store_detail(request, store_id):
     store = get_object_or_404(Store, id=store_id)
-    transactions = store.transactions.all()
+    
+    # Generate correct store URL based on environment
+    current_host = request.get_host()
+    if 'localhost' in current_host or '127.0.0.1' in current_host:
+        port = ':8000' if ':' not in current_host else f":{current_host.split(':')[1]}"
+        store_url = f"http://{store.subdomain}.localhost{port}"
+    else:
+        # Production environment
+        host = request.get_host().split(':')[0]
+        host_parts = host.split('.')
+        if len(host_parts) >= 3:
+            base_domain = '.'.join(host_parts[1:])
+            store_url = f"https://{store.subdomain}.{base_domain}"
+        else:
+            store_url = f"https://{store.subdomain}.{host}"
+    
+    # Calculate subscription info
+    days_until_expiry = store.days_until_expiry()
+    is_expiring_soon = store.is_expiring_soon(7)
     
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'approve':
             store.status = 'active'
             store.is_published = True
+            if not store.subscription_start:
+                store.subscription_start = timezone.now()
             store.save()
-            messages.success(request, f'Store "{store.store_name}" approved')
+            messages.success(request, f'✅ Store "{store.store_name}" has been approved and is now live!')
         elif action == 'suspend':
             store.status = 'suspended'
             store.is_published = False
             store.save()
-            messages.warning(request, f'Store "{store.store_name}" suspended')
+            messages.warning(request, f'⚠️ Store "{store.store_name}" has been suspended.')
+        elif action == 'activate':
+            store.status = 'active'
+            store.is_published = True
+            store.save()
+            messages.success(request, f'✅ Store "{store.store_name}" has been activated.')
         return redirect('resellers:admin_store_detail', store_id=store.id)
     
     return render(request, 'resellers/admin/admin_store_detail.html', {
         'store': store,
-        'transactions': transactions,
+        'store_url': store_url,
+        'days_until_expiry': days_until_expiry,
+        'is_expiring_soon': is_expiring_soon,
     })
-
-
 # resellers/views.py - Add these imports at the top if not already there
 
 from django.utils import timezone

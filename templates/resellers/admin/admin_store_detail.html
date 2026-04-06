@@ -1,10 +1,13 @@
 
+{% load static %}
+
 {% block title %}Store Details - {{ store.store_name }}{% endblock %}
 
 {% block content %}
 <div class="container py-4">
     <div class="row">
         <div class="col-md-8">
+            <!-- Store Information Card -->
             <div class="card shadow">
                 <div class="card-header bg-gradient-primary text-white">
                     <h4 class="mb-0"><i class="fas fa-store"></i> {{ store.store_name }}</h4>
@@ -13,13 +16,29 @@
                     <div class="row">
                         <div class="col-md-6">
                             <p><strong>Store Name:</strong> {{ store.store_name }}</p>
-                            <p><strong>Subdomain:</strong> {{ store.subdomain }}.drapso.com</p>
+                            <p>
+                                <strong>Store URL:</strong><br>
+                                <a href="{{ store_url }}" target="_blank" class="text-primary">
+                                    <i class="fas fa-external-link-alt"></i> {{ store_url }}
+                                </a>
+                                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('{{ store_url }}')">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </p>
+                            <p><strong>Subdomain:</strong> {{ store.subdomain }}</p>
                             <p><strong>Reseller:</strong> {{ store.reseller.username }} ({{ store.reseller.email }})</p>
                             <p><strong>Contact Email:</strong> {{ store.contact_email }}</p>
                             <p><strong>Contact Phone:</strong> {{ store.contact_phone|default:"-" }}</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Plan:</strong> {{ store.subscription_plan.get_name_display|default:"-" }}</p>
+                            <p><strong>Plan:</strong> 
+                                {% if store.subscription_plan %}
+                                    {{ store.subscription_plan.get_name_display|title }} 
+                                    ({{ store.subscription_plan.get_duration_display }})
+                                {% else %}
+                                    <span class="text-muted">No plan selected</span>
+                                {% endif %}
+                            </p>
                             <p><strong>Theme:</strong> {{ store.theme.name|default:"-" }}</p>
                             <p><strong>Theme Type:</strong> 
                                 {% if store.theme.theme_type == 'single' %}
@@ -29,93 +48,80 @@
                                 {% endif %}
                             </p>
                             <p><strong>Max Products:</strong> {{ store.get_max_products }}</p>
+                            <p><strong>Total Visitors:</strong> {{ store.total_visitors }}</p>
                             <p><strong>Status:</strong> 
                                 {% if store.status == 'active' %}
                                     <span class="badge bg-success">Active</span>
+                                {% elif store.status == 'pending_payment' %}
+                                    <span class="badge bg-warning">Pending Payment</span>
+                                {% elif store.status == 'expired' %}
+                                    <span class="badge bg-danger">Expired</span>
+                                {% elif store.status == 'suspended' %}
+                                    <span class="badge bg-secondary">Suspended</span>
                                 {% else %}
-                                    <span class="badge bg-warning">{{ store.status }}</span>
+                                    <span class="badge bg-secondary">{{ store.status }}</span>
                                 {% endif %}
                             </p>
                         </div>
                     </div>
                     
                     {% if store.store_description %}
+                        <hr>
                         <p><strong>Description:</strong><br>{{ store.store_description }}</p>
                     {% endif %}
                     
                     {% if store.store_address %}
+                        <hr>
                         <p><strong>Address:</strong><br>{{ store.store_address }}</p>
-                    {% endif %}
-                    
-                    {% if store.subscription_start %}
-                        <p><strong>Subscription Start:</strong> {{ store.subscription_start|date:"Y-m-d H:i" }}</p>
-                    {% endif %}
-                    {% if store.subscription_end %}
-                        <p><strong>Subscription End:</strong> {{ store.subscription_end|date:"Y-m-d H:i" }}</p>
                     {% endif %}
                 </div>
             </div>
             
-            <!-- Transactions -->
+            <!-- Subscription Information Card -->
             <div class="card shadow mt-4">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-history"></i> Transaction History</h5>
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Subscription Information</h5>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr><th>Order ID</th><th>Amount</th><th>Status</th><th>Date</th><th>Razorpay ID</th></tr>
-                            </thead>
-                            <tbody>
-                                {% for transaction in transactions %}
-                                <tr>
-                                    <td>{{ transaction.order_id }}</td>
-                                    <td>${{ transaction.amount }}</td>
-                                    <td>
-                                        {% if transaction.status == 'success' %}
-                                            <span class="badge bg-success">Success</span>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Subscription Start:</strong><br>
+                                {% if store.subscription_start %}
+                                    {{ store.subscription_start|date:"F j, Y H:i" }}
+                                {% else %}
+                                    <span class="text-muted">Not started</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Subscription End:</strong><br>
+                                {% if store.subscription_end %}
+                                    {{ store.subscription_end|date:"F j, Y H:i" }}
+                                    {% if days_until_expiry %}
+                                        {% if is_expiring_soon %}
+                                            <span class="badge bg-warning ms-2">Expires in {{ days_until_expiry }} days</span>
                                         {% else %}
-                                            <span class="badge bg-warning">{{ transaction.status }}</span>
+                                            <span class="badge bg-info ms-2">{{ days_until_expiry }} days left</span>
                                         {% endif %}
-                                    </td>
-                                    <td>{{ transaction.created_at|date:"Y-m-d H:i" }}</td>
-                                    <td><small>{{ transaction.razorpay_payment_id|default:"-" }}</small></td>
-                                 </tr>
-                                {% empty %}
-                                <td><td colspan="5" class="text-center">No transactions found</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                    {% endif %}
+                                {% elif store.subscription_plan and store.subscription_plan.duration == 'lifetime' %}
+                                    <span class="badge bg-success">Lifetime Plan</span>
+                                {% else %}
+                                    <span class="text-muted">Not set</span>
+                                {% endif %}
+                            </p>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4">
-            <!-- Actions Card -->
-            <div class="card shadow">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-cog"></i> Actions</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST">
-                        {% csrf_token %}
-                        {% if store.status != 'active' %}
-                            <button type="submit" name="action" value="approve" class="btn btn-success w-100 mb-2">
-                                <i class="fas fa-check-circle"></i> Approve Store
-                            </button>
-                        {% endif %}
-                        {% if store.status == 'active' %}
-                            <button type="submit" name="action" value="suspend" class="btn btn-danger w-100">
-                                <i class="fas fa-ban"></i> Suspend Store
-                            </button>
-                        {% endif %}
-                    </form>
-                    <hr>
-                    <a href="{{ store.get_full_url }}" target="_blank" class="btn btn-info w-100">
-                        <i class="fas fa-external-link-alt"></i> View Store
-                    </a>
+                    
+                    {% if store.subscription_plan %}
+                        <hr>
+                        <h6>Plan Features:</h6>
+                        <ul>
+                            {% for feature in store.subscription_plan.get_features_list %}
+                                <li><i class="fas fa-check text-success"></i> {{ feature }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
                 </div>
             </div>
             
@@ -138,6 +144,134 @@
                 </div>
             {% endif %}
         </div>
+        
+        <div class="col-md-4">
+            <!-- Actions Card -->
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-cog"></i> Admin Actions</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        {% if store.status == 'pending_payment' or store.status == 'expired' %}
+                            <button type="submit" name="action" value="approve" class="btn btn-success w-100 mb-2">
+                                <i class="fas fa-check-circle"></i> Approve & Activate Store
+                            </button>
+                        {% endif %}
+                        
+                        {% if store.status == 'suspended' %}
+                            <button type="submit" name="action" value="activate" class="btn btn-success w-100 mb-2">
+                                <i class="fas fa-play-circle"></i> Activate Store
+                            </button>
+                        {% endif %}
+                        
+                        {% if store.status == 'active' %}
+                            <button type="submit" name="action" value="suspend" class="btn btn-danger w-100">
+                                <i class="fas fa-ban"></i> Suspend Store
+                            </button>
+                        {% endif %}
+                    </form>
+                    
+                    <hr>
+                    
+                    <a href="{{ store_url }}" target="_blank" class="btn btn-info w-100 mb-2">
+                        <i class="fas fa-external-link-alt"></i> View Live Store
+                    </a>
+                    
+                    {% if store.reseller %}
+                        <a href="mailto:{{ store.reseller.email }}" class="btn btn-secondary w-100">
+                            <i class="fas fa-envelope"></i> Contact Reseller
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Store Statistics Card -->
+            <div class="card shadow mt-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Store Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h2 class="text-primary">{{ store.total_visitors }}</h2>
+                        <p class="text-muted">Total Visitors</p>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Created:</small>
+                            <p class="mb-0"><strong>{{ store.created_at|date:"Y-m-d" }}</strong></p>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Last Updated:</small>
+                            <p class="mb-0"><strong>{{ store.updated_at|date:"Y-m-d" }}</strong></p>
+                        </div>
+                    </div>
+                    {% if store.published_at %}
+                        <hr>
+                        <div class="row">
+                            <div class="col-12">
+                                <small class="text-muted">Published:</small>
+                                <p class="mb-0"><strong>{{ store.published_at|date:"Y-m-d H:i" }}</strong></p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Quick Info Card -->
+            <div class="card shadow mt-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Quick Info</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Store ID:</strong> {{ store.id }}</p>
+                    <p><strong>Payment Status:</strong>
+                        {% if store.payment_status %}
+                            <span class="badge bg-success">Paid</span>
+                        {% else %}
+                            <span class="badge bg-warning">Pending</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Published:</strong>
+                        {% if store.is_published %}
+                            <span class="badge bg-success">Yes</span>
+                        {% else %}
+                            <span class="badge bg-danger">No</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Subscription Active:</strong>
+                        {% if store.is_subscription_active %}
+                            <span class="badge bg-success">Yes</span>
+                        {% else %}
+                            <span class="badge bg-danger">No</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show temporary success message
+        var btn = event.target.closest('button');
+        var originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(function() {
+            btn.innerHTML = originalHtml;
+        }, 2000);
+    });
+}
+</script>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+</style>
 {% endblock %}

@@ -25,8 +25,8 @@
                                     </div>
                                 {% endif %}
                                 <div class="card-body">
-                                    <h5>{{ theme.name }}</h5>
-                                    <p class="text-muted">{{ theme.description|truncatewords:15 }}</p>
+                                    <h5 class="card-title">{{ theme.name }}</h5>
+                                    <p class="card-text text-muted">{{ theme.description|truncatewords:15|default:"No description provided" }}</p>
                                     <p>
                                         <span class="badge {% if theme.theme_type == 'single' %}bg-info{% else %}bg-success{% endif %}">
                                             {{ theme.get_theme_type_display }}
@@ -37,6 +37,11 @@
                                             <span class="badge bg-danger">Inactive</span>
                                         {% endif %}
                                     </p>
+                                    {% if theme.preview_image %}
+                                        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#previewModal{{ theme.id }}">
+                                            <i class="fas fa-eye"></i> Preview
+                                        </button>
+                                    {% endif %}
                                 </div>
                                 <div class="card-footer bg-white">
                                     <a href="{% url 'resellers:theme_edit' theme.id %}" class="btn btn-sm btn-warning">
@@ -48,12 +53,33 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Preview Modal -->
+                        {% if theme.preview_image %}
+                        <div class="modal fade" id="previewModal{{ theme.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">{{ theme.name }} - Preview</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body text-center">
+                                        <img src="{{ theme.preview_image.url }}" alt="{{ theme.name }}" class="img-fluid">
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
             {% else %}
                 <div class="text-center py-5">
                     <i class="fas fa-palette display-1 text-muted"></i>
                     <h3>No Themes Created</h3>
+                    <p class="text-muted">Get started by creating your first theme</p>
                     <a href="{% url 'resellers:theme_create' %}" class="btn btn-primary">Create First Theme</a>
                 </div>
             {% endif %}
