@@ -1,78 +1,624 @@
-
-{% block title %}{% if theme %}Edit{% else %}Create{% endif %} Theme{% endblock %}
-
+{% extends "dashboard_base.html" %}
 {% block content %}
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-palette"></i> {% if theme %}Edit{% else %}Create{% endif %} Theme</h4>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Font Awesome 6 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<!-- Google Fonts: Space Grotesk + Inter mix -->
+<link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+<style>
+    :root {
+        --primary: #4f46e5;
+        --primary-light: #6366f1;
+        --primary-gradient: linear-gradient(135deg, #4f46e5, #6366f1);
+        --secondary-bg: #f8fafc;
+        --border-glow: rgba(99, 102, 241, 0.2);
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        font-family: 'Inter', sans-serif;
+        min-height: 100vh;
+        padding: 2rem 1.5rem;
+        position: relative;
+    }
+
+    /* animated grain texture */
+    body::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .container-fluid-custom {
+        max-width: 1400px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Main card - split layout inspiration */
+    .theme-studio-card {
+        background: #ffffff;
+        border-radius: var(--card-radius);
+        overflow: hidden;
+        box-shadow: 0 35px 60px -20px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.02);
+        transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+
+    /* sidebar-like visual accent */
+    .studio-header {
+        background: var(--primary-gradient);
+        padding: 1.5rem 2rem;
+        position: relative;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .studio-header h2 {
+        font-family: 'Space Grotesk', monospace;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        font-size: 1.8rem;
+    }
+
+    .studio-header .badge-creative {
+        background: rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(4px);
+        padding: 0.3rem 0.9rem;
+        border-radius: 60px;
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+
+    /* Two column layout inside card */
+    .form-split {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .form-main {
+        flex: 2;
+        padding: 2rem 2rem 1rem 2rem;
+        background: #ffffff;
+    }
+
+    .form-sidebar {
+        flex: 1.2;
+        background: #fbfdff;
+        border-left: 1px solid #eef2f8;
+        padding: 2rem 1.8rem 1rem;
+        position: relative;
+    }
+
+    @media (max-width: 992px) {
+        .form-split {
+            flex-direction: column;
+        }
+
+        .form-sidebar {
+            border-left: none;
+            border-top: 1px solid #eef2f8;
+        }
+    }
+
+    /* modern input groups */
+    .input-group-modern {
+        margin-bottom: 1.8rem;
+    }
+
+    .input-label {
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: #2c4b6e;
+        margin-bottom: 0.6rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .input-label i {
+        color: var(--primary);
+        font-size: 0.9rem;
+    }
+
+    .input-field {
+        width: 100%;
+        border: 2px solid #e9edf2;
+        border-radius: 18px;
+        padding: 0.85rem 1.2rem;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        background: #ffffff;
+        font-weight: 500;
+    }
+
+    .input-field:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+
+        outline: none;
+    }
+
+    textarea.input-field {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    /* creative radio toggle for theme type */
+    .type-switch {
+        display: flex;
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .type-option {
+        flex: 1;
+        background: #f9fbfe;
+        border: 2px solid #e9edf2;
+        border-radius: 20px;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: center;
+    }
+
+    .type-option.active {
+        border-color: var(--primary);
+        background: linear-gradient(135deg, #eef2ff, #ffffff);
+        box-shadow: 0 8px 18px rgba(99, 102, 241, 0.2);
+    }
+
+    .type-option i {
+        font-size: 1.8rem;
+        color: var(--primary);
+        margin-bottom: 8px;
+    }
+
+    .type-option h6 {
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    /* Image dropzones in sidebar */
+    .image-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 1rem;
+        margin-bottom: 1.8rem;
+        border: 1px solid #eef2f8;
+        transition: all 0.2s;
+    }
+
+    .image-title {
+        font-weight: 700;
+        font-size: 0.85rem;
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #1e3a5f;
+    }
+
+    .dropzone {
+        border: 2px dashed #cfdfed;
+        border-radius: 18px;
+        padding: 1.2rem 0.8rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: #fafdff;
+    }
+
+    .dropzone:hover {
+        border-color: var(--primary);
+        background: #eef2ff;
+    }
+
+    .preview-mini {
+        margin-top: 0.8rem;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #f1f5f9;
+        position: relative;
+    }
+
+    .preview-mini img {
+        width: 100%;
+        object-fit: cover;
+        max-height: 140px;
+    }
+
+    .btn-remove-img {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(0, 0, 0, 0.6);
+        border: none;
+        border-radius: 30px;
+        color: white;
+        padding: 4px 8px;
+        font-size: 0.7rem;
+        transition: 0.2s;
+    }
+
+    .btn-remove-img:hover {
+        background: #dc2626;
+    }
+
+    /* alert glassmorphism */
+    .glass-alert {
+        background: rgba(231, 245, 255, 0.8);
+        backdrop-filter: blur(4px);
+        border-radius: 18px;
+        padding: 1rem;
+        border: 1px solid rgba(37, 106, 146, 0.2);
+        margin: 1.5rem 0 1rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    /* action buttons */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 1.5rem;
+    }
+
+    .btn-creative {
+        padding: 0.7rem 1.8rem;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+
+    .btn-primary-creative {
+        background: var(--primary-gradient);
+        box-shadow: 0 6px 14px rgba(79, 70, 229, 0.3);
+
+        border: none;
+        color: white;
+    }
+
+    .btn-primary-creative:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 22px rgba(26, 76, 122, 0.3);
+    }
+
+    .btn-outline-creative {
+        background: transparent;
+        border: 2px solid #dce3ec;
+        color: #2c4b6e;
+    }
+
+    .btn-outline-creative:hover {
+        border-color: var(--primary);
+        background: #f0f7fe;
+    }
+
+    hr {
+        margin: 1.2rem 0;
+        opacity: 0.5;
+    }
+
+    .main-content {
+        margin-left: 260px;
+        /* sidebar width */
+        width: calc(100% - 260px);
+        transition: 0.3s;
+    }
+
+    @media (max-width: 768px) {
+        .main-content {
+            margin-left: 0;
+            width: 100%;
+        }
+    }
+
+    .theme-studio-card {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-split {
+        flex: 1;
+    }
+
+    .bottom-bar {
+        padding: 15px;
+        border-top: 1px solid #eee;
+        text-align: center;
+        background: white;
+        margin-top: -10px;
+        /* 🔥 pulls it up */
+    }
+
+    .action-buttons-center {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 10px;
+    }
+</style>
+
+
+<div class="main-content">
+    <div class="container-fluid-custom">
+        <div class="theme-studio-card">
+            <div class="studio-header text-white">
+                <div class="d-flex flex-wrap justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-1"><i class="fas fa-gem me-2"></i> <span id="studioTitle">Theme Studio</span>
+                        </h2>
+                        <p class="mb-0 opacity-75 small">Craft stunning visual identities</p>
+                    </div>
+                    <div class="badge-creative mt-2 mt-sm-0">
+                        <i class="fas fa-palette me-1"></i> Designer mode
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form method="POST" enctype="multipart/form-data">
+            </div>
+
+            <div class="form-split">
+                <!-- MAIN FORM SECTION -->
+                <div class="form-main">
+                    <form method="POST" enctype="multipart/form-data" id="creativeForm">
                         {% csrf_token %}
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Theme Name *</label>
-                            <input type="text" name="name" class="form-control" value="{{ theme.name|default:'' }}" required>
+                        <!-- Theme Name -->
+                        <div class="input-group-modern">
+                            <div class="input-label">
+                                <i class="fas fa-feather-alt"></i> Theme Name
+                                <span class="text-danger">*</span>
+                            </div>
+                            <input type="text" name="name" id="themeNameCreative" class="input-field"
+                                value="{{ theme.name|default:'' }}">
+                            <div class="small text-muted mt-1"><i class="fas fa-lightbulb"></i> Unique & memorable
+                            </div>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Theme Type *</label>
-                            <select name="theme_type" class="form-control" required>
-                                <option value="single" {% if theme.theme_type == 'single' %}selected{% endif %}>Single Product Theme</option>
-                                <option value="multiple" {% if theme.theme_type == 'multiple' %}selected{% endif %}>Multiple Products Theme</option>
+
+                        <!-- Theme Type: creative toggle -->
+                        <div class="input-group-modern">
+                            <div class="input-label">
+                                <i class="fas fa-cubes"></i> Theme Type
+                                <span class="text-danger">*</span>
+                            </div>
+                            <div class="type-switch" id="typeToggleContainer">
+                                <div class="type-option" data-value="single">
+                                    <i class="fas fa-crown"></i>
+                                    <h6>Single</h6>
+                                    <small class="text-muted">Hero product focus</small>
+                                </div>
+                                <div class="type-option" data-value="multiple">
+                                    <i class="fas fa-store"></i>
+                                    <h6>Multiple</h6>
+                                    <small class="text-muted">Collection ready</small>
+                                </div>
+                            </div>
+                            <select name="theme_type" id="themeTypeCreative" class="d-none" required>
+                                <option value="single">Single Product Theme</option>
+                                <option value="multiple">Multiple Products Theme</option>
                             </select>
-                            <small class="text-muted">Single: Only 1 product | Multiple: Multiple products based on plan</small>
+                            <small class="text-muted d-block mt-2">Single: 1 product spotlight | Multiple: dynamic
+                                product grid</small>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            <textarea name="description" class="form-control" rows="3">{{ theme.description|default:'' }}</textarea>
+
+                        <!-- Description -->
+                        <div class="input-group-modern">
+                            <div class="input-label">
+                                <i class="fas fa-align-left"></i> Description
+                            </div>
+                            <textarea name="description" id="descCreative" class="input-field">
+{{ theme.description|default:'' }}
+</textarea>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Preview Image</label>
-                            {% if theme and theme.preview_image %}
-                                <div class="mb-2">
-                                    <img src="{{ theme.preview_image.url }}" alt="Current Preview" class="img-fluid rounded" style="max-height: 200px;">
-                                    <p class="text-muted small mt-1">Current preview image</p>
-                                </div>
-                            {% endif %}
-                            <input type="file" name="preview_image" class="form-control" accept="image/*">
-                            <small class="text-muted">Recommended size: 1200x800px. Allowed formats: JPG, PNG, GIF</small>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Thumbnail</label>
-                            {% if theme and theme.thumbnail %}
-                                <div class="mb-2">
-                                    <img src="{{ theme.thumbnail.url }}" alt="Current Thumbnail" class="img-fluid rounded" style="max-height: 150px;">
-                                    <p class="text-muted small mt-1">Current thumbnail</p>
-                                </div>
-                            {% endif %}
-                            <input type="file" name="thumbnail" class="form-control" accept="image/*">
-                            <small class="text-muted">Recommended size: 400x300px. Allowed formats: JPG, PNG, GIF</small>
-                        </div>
-                        
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> 
-                            <strong>Note:</strong> Images will be automatically resized and optimized. Leave file fields empty to keep current images.
-                        </div>
-                        
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{% url 'resellers:theme_list' %}" class="btn btn-secondary me-md-2">
-                                <i class="fas fa-times"></i> Cancel
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> {% if theme %}Update{% else %}Create{% endif %} Theme
-                            </button>
-                        </div>
-                    </form>
+
+                        <!-- creative alert -->
+
+
+
+
                 </div>
+
+                <!-- SIDEBAR: IMAGE ZONES (preview & thumbnail) -->
+                <div class="form-sidebar">
+                    <div class="image-card">
+                        <div class="image-title">
+                            <i class="fas fa-desktop"></i> Preview Image
+                            <span class="ms-auto badge bg-light text-dark">1200x800</span>
+                        </div>
+                        <div class="dropzone" id="previewDropzone">
+                            <i class="fas fa-cloud-upload-alt fa-2x" style="color: var(--primary);"></i>
+                            <p class="mb-0 small mt-2">Click or drag & drop</p>
+                            <input type="file" id="previewFileCreative" name="preview_image" accept="image/*"
+                                style="display: none;">
+                        </div>
+                        <div id="previewWrapperCreative" style="display: none;" class="preview-mini mt-2">
+                            <img id="previewImgCreative" src="#" alt="preview">
+                            <button type="button" id="removePreviewCreative" class="btn-remove-img"><i
+                                    class="fas fa-trash"></i></button>
+                            <div class="small text-center py-1 bg-light">current preview</div>
+                        </div>
+                    </div>
+
+                    <div class="image-card">
+                        <div class="image-title">
+                            <i class="fas fa-th-large"></i> Thumbnail
+                            <span class="ms-auto badge bg-light text-dark">400x300</span>
+                        </div>
+                        <div class="dropzone" id="thumbnailDropzone">
+                            <i class="fas fa-image fa-2x" style="color: var(--primary);"></i>
+                            <p class="mb-0 small mt-2">Upload thumbnail</p>
+                            <input type="file" id="thumbnailFileCreative" name="thumbnail" accept="image/*"
+                                style="display: none;">
+                        </div>
+                        <div id="thumbnailWrapperCreative" style="display: none;" class="preview-mini mt-2">
+                            <img id="thumbnailImgCreative" src="#" alt="thumbnail">
+                            <button type="button" id="removeThumbnailCreative" class="btn-remove-img"><i
+                                    class="fas fa-trash"></i></button>
+                            <div class="small text-center py-1 bg-light">thumbnail</div>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <div class="text-center small text-muted">
+                        <i class="fas fa-info-circle"></i> Supported: JPG, PNG, GIF, WebP
+                    </div>
+                </div>
+            </div>
+        </div> <!-- form-split -->
+
+        <div class="bottom-bar">
+            <div class="glass-alert">
+                <i class="fas fa-magic me-2"></i>
+                <strong>Auto-optimization active</strong> — Images will be resized & compressed automatically.
+            </div>
+
+            <div class="action-buttons-center">
+                <a href="{% url 'resellers:theme_list' %}" class="btn btn-outline-creative btn-creative"
+                    onclick="return confirm('Are you sure? Unsaved changes will be lost!')">
+                    Cancel
+                </a>
+
+                <button type="submit" form="creativeForm" class="btn btn-primary-creative btn-creative">
+                    Publish Theme
+                </button>
             </div>
         </div>
     </div>
 </div>
+</div>
+<script>
+    (function () {
+
+        const previewInput = document.getElementById('previewFileCreative');
+        const thumbnailInput = document.getElementById('thumbnailFileCreative');
+
+        const previewDrop = document.getElementById('previewDropzone');
+        const thumbnailDrop = document.getElementById('thumbnailDropzone');
+
+        const previewImg = document.getElementById('previewImgCreative');
+        const thumbnailImg = document.getElementById('thumbnailImgCreative');
+
+        const previewWrapper = document.getElementById('previewWrapperCreative');
+        const thumbnailWrapper = document.getElementById('thumbnailWrapperCreative');
+
+        const removePreview = document.getElementById('removePreviewCreative');
+        const removeThumbnail = document.getElementById('removeThumbnailCreative');
+
+        const typeOptions = document.querySelectorAll('.type-option');
+        const themeTypeSelect = document.getElementById('themeTypeCreative');
+
+        // =========================
+        // THEME TYPE CLICK
+        // =========================
+        function setType(value) {
+            themeTypeSelect.value = value;
+            typeOptions.forEach(opt => {
+                opt.classList.remove('active');
+                if (opt.dataset.value === value) {
+                    opt.classList.add('active');
+                }
+            });
+        }
+
+        typeOptions.forEach(opt => {
+            opt.addEventListener('click', () => {
+                setType(opt.dataset.value);
+            });
+        });
+
+        // default
+        setType('single');
+
+        // =========================
+        // CLICK TO OPEN FILE
+        // =========================
+        previewDrop.addEventListener('click', () => previewInput.click());
+        thumbnailDrop.addEventListener('click', () => thumbnailInput.click());
+
+        // =========================
+        // PREVIEW FUNCTION
+        // =========================
+        function showPreview(input, img, wrapper) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    img.src = e.target.result;
+                    wrapper.style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        previewInput.addEventListener('change', () => {
+            showPreview(previewInput, previewImg, previewWrapper);
+        });
+
+        thumbnailInput.addEventListener('change', () => {
+            showPreview(thumbnailInput, thumbnailImg, thumbnailWrapper);
+        });
+
+        // =========================
+        // REMOVE IMAGE
+        // =========================
+        removePreview.addEventListener('click', (e) => {
+            e.stopPropagation();
+            previewInput.value = '';
+            previewWrapper.style.display = 'none';
+        });
+
+        removeThumbnail.addEventListener('click', (e) => {
+            e.stopPropagation();
+            thumbnailInput.value = '';
+            thumbnailWrapper.style.display = 'none';
+        });
+
+        // =========================
+        // DRAG & DROP FIXED
+        // =========================
+        function handleDrop(zone, input, img, wrapper) {
+
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.style.borderColor = '#4f46e5';
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.style.borderColor = '#cfdfed';
+            });
+
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    input.files = files;   // 🔥 IMPORTANT FIX
+                    showPreview(input, img, wrapper);
+                }
+            });
+        }
+
+        handleDrop(previewDrop, previewInput, previewImg, previewWrapper);
+        handleDrop(thumbnailDrop, thumbnailInput, thumbnailImg, thumbnailWrapper);
+
+    })();
+</script>
+<!-- Bootstrap JS bundle (optional) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
 {% endblock %}

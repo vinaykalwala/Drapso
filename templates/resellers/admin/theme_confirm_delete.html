@@ -1,40 +1,176 @@
-
-{% block title %}Delete Theme{% endblock %}
+{% block title %}{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-danger text-white">
-                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Delete Theme</h4>
-                </div>
-                <div class="card-body">
-                    <p class="lead">Are you sure you want to delete the theme <strong>"{{ theme.name }}"</strong>?</p>
-                    <p class="text-danger">This action cannot be undone and will remove all associated images.</p>
-                    
-                    {% if theme.preview_image %}
-                        <div class="alert alert-warning">
-                            <i class="fas fa-image"></i> Preview image will also be deleted.
-                        </div>
-                    {% endif %}
-                    
-                    {% if theme.thumbnail %}
-                        <div class="alert alert-warning">
-                            <i class="fas fa-image"></i> Thumbnail image will also be deleted.
-                        </div>
-                    {% endif %}
-                    
-                    <form method="POST">
-                        {% csrf_token %}
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{% url 'resellers:theme_list' %}" class="btn btn-secondary me-md-2">Cancel</a>
-                            <button type="submit" class="btn btn-danger">Yes, Delete Theme</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<div class="delete-wrapper">
+    <div class="delete-card">
+
+        <!-- Icon -->
+        <div class="icon-box">
+            <i class="fas fa-trash-alt"></i>
         </div>
+
+        <!-- Title -->
+        <h2 class="delete-title">Delete Theme</h2>
+
+        <!-- Message -->
+        <p class="delete-text">
+            Are you sure you want to delete 
+            <span>"{{ theme.name }}"</span> ?
+        </p>
+
+        <p class="warning-text">
+            ⚠ This action cannot be undone and all associated images will be permanently removed.
+        </p>
+
+        {% if theme.preview_image %}
+        <div class="warning-box">
+            <i class="fas fa-image"></i> Preview image will be deleted
+        </div>
+        {% endif %}
+
+        {% if theme.thumbnail %}
+        <div class="warning-box">
+            <i class="fas fa-image"></i> Thumbnail image will be deleted
+        </div>
+        {% endif %}
+
+        <!-- Buttons -->
+        <form method="POST" class="btn-group">
+            {% csrf_token %}
+            <a href="{% url 'resellers:theme_list' %}" class="btn cancel-btn">Cancel</a>
+            <button type="submit" class="btn delete-btn">Delete</button>
+        </form>
+
     </div>
 </div>
+
+<style>
+:root {
+    --primary: #4f46e5;
+    --primary-light: #6366f1;
+    --primary-gradient: linear-gradient(135deg, #4f46e5, #6366f1);
+    --secondary-bg: #f8fafc;
+    --border-glow: rgba(99, 102, 241, 0.2);
+}
+
+/* Wrapper */
+.delete-wrapper {
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--secondary-bg);
+}
+
+/* Card */
+.delete-card {
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+    box-shadow: 0 10px 30px var(--border-glow);
+    animation: fadeIn 0.4s ease-in-out;
+    border: 1px solid var(--border-glow);
+}
+
+/* Icon */
+.icon-box {
+    width: 70px;
+    height: 70px;
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+    font-size: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+}
+
+/* Text */
+.delete-title {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--primary);
+}
+
+.delete-text {
+    font-size: 16px;
+    color: #444;
+}
+
+.delete-text span {
+    font-weight: bold;
+    color: #000;
+}
+
+/* Warning */
+.warning-text {
+    font-size: 14px;
+    color: var(--primary);
+    margin: 15px 0;
+}
+
+.warning-box {
+    background: rgba(99, 102, 241, 0.08);
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 14px;
+    border: 1px solid var(--border-glow);
+}
+
+/* Buttons */
+.btn-group {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* Cancel */
+.cancel-btn {
+    background: #6c757d;
+    color: #fff;
+}
+
+.cancel-btn:hover {
+    background: #5a6268;
+}
+
+/* Delete */
+.delete-btn {
+    background: var(--primary-gradient);
+    color: #fff;
+    border: none;
+}
+
+.delete-btn:hover {
+    background: linear-gradient(135deg, #4338ca, #4f46e5);
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
 {% endblock %}
