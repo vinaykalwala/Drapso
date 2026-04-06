@@ -23,8 +23,8 @@ class SubscriptionPlan(models.Model):
     
     name = models.CharField(max_length=50, choices=PLAN_TYPES, unique=True)
     duration = models.CharField(max_length=20, choices=DURATION_CHOICES, default='monthly')
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    multiple_theme_limit = models.IntegerField(help_text="Max products for multiple products theme")
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Added default
+    multiple_theme_limit = models.IntegerField(help_text="Max products for multiple products theme", default=0)  # Added default
     features = models.TextField(help_text="Comma-separated list of features", blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -35,12 +35,21 @@ class SubscriptionPlan(models.Model):
     
     def get_features_list(self):
         if self.features:
-            return [f.strip() for f in self.features.split(',')]
+            return [f.strip() for f in self.features.split(',') if f.strip()]
         return []
     
+    def get_price_display(self):
+        """Safe method to display price"""
+        try:
+            return f"${self.price:.2f}"
+        except:
+            return "0.00"
+    
     def __str__(self):
-        return f"{self.get_name_display()} - {self.get_duration_display()} (${self.price})"
-
+        try:
+            return f"{self.get_name_display()} - {self.get_duration_display()} (${self.price})"
+        except:
+            return f"{self.get_name_display()} - {self.get_duration_display()}"
 
 class StoreTheme(models.Model):
     """Themes for stores - Only 2 themes total"""
@@ -138,7 +147,10 @@ class Store(models.Model):
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+    expiry_notified_7 = models.BooleanField(default=False)
+    expiry_notified_3 = models.BooleanField(default=False)
+    expiry_notified_expired = models.BooleanField(default=False)
+        
     class Meta:
         ordering = ['-created_at']
         indexes = [
