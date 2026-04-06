@@ -1,8 +1,229 @@
-<h2>Delete Contact</h2>
+{% extends "dashboard_base.html" %}
+{% load static %}
 
-<p>Are you sure you want to delete "{{ contact.subject }}"?</p>
+{% block content %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+
+.delete-center-wrapper{
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:85vh;
+padding:20px;
+}
+
+/* main card */
+.delete-card{
+width:100%;
+max-width:460px;
+background:white;
+border-radius:22px;
+padding:40px 35px;
+text-align:center;
+border:1px solid #ececf2;
+box-shadow:
+0 10px 30px rgba(0,0,0,0.06),
+0 2px 8px rgba(99,102,241,0.08);
+position:relative;
+overflow:hidden;
+animation:fadeUp .4s ease;
+}
+
+/* subtle top gradient line */
+.delete-card::before{
+content:"";
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:4px;
+background:linear-gradient(90deg,#6366f1,#ec4899);
+}
+
+/* icon circle */
+.delete-icon{
+width:72px;
+height:72px;
+border-radius:18px;
+margin:auto;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:30px;
+background:linear-gradient(135deg,#fee2e2,#fecaca);
+color:#dc2626;
+margin-bottom:20px;
+box-shadow:0 6px 18px rgba(220,38,38,.15);
+}
+
+/* title */
+.delete-title{
+font-size:24px;
+font-weight:700;
+color:#111827;
+margin-bottom:8px;
+letter-spacing:.3px;
+}
+
+/* text */
+.delete-text{
+font-size:15px;
+color:#6b7280;
+margin-bottom:20px;
+line-height:1.6;
+}
+
+/* subject tag */
+.subject-box{
+display:inline-flex;
+align-items:center;
+gap:6px;
+background:#f1f5f9;
+padding:7px 14px;
+border-radius:10px;
+font-size:13px;
+font-weight:600;
+color:#475569;
+margin-top:8px;
+}
+
+/* buttons */
+.delete-actions{
+display:flex;
+gap:14px;
+margin-top:28px;
+}
+
+/* delete button */
+.btn-delete{
+flex:1;
+background:linear-gradient(135deg,#ef4444,#dc2626);
+color:white;
+border:none;
+padding:13px;
+border-radius:12px;
+font-weight:600;
+font-size:14px;
+cursor:pointer;
+display:flex;
+align-items:center;
+justify-content:center;
+gap:8px;
+transition:.25s;
+box-shadow:0 6px 18px rgba(239,68,68,.25);
+}
+
+.btn-delete:hover{
+transform:translateY(-2px);
+box-shadow:0 10px 25px rgba(239,68,68,.35);
+}
+
+/* cancel button */
+.btn-cancel{
+flex:1;
+background:white;
+border:1px solid #e5e7eb;
+padding:13px;
+border-radius:12px;
+font-weight:600;
+font-size:14px;
+color:#374151;
+text-decoration:none;
+display:flex;
+align-items:center;
+justify-content:center;
+gap:8px;
+transition:.25s;
+}
+
+.btn-cancel:hover{
+background:#f8fafc;
+border-color:#d1d5db;
+}
+
+/* animation */
+@keyframes fadeUp{
+from{
+opacity:0;
+transform:translateY(18px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+/* mobile */
+@media(max-width:480px){
+
+.delete-card{
+padding:30px 22px;
+}
+
+.delete-actions{
+flex-direction:column;
+}
+
+}
+
+</style>
+
+
+
+<div class="content">
+
+<div class="delete-center-wrapper">
+
+<div class="delete-card">
+
+<div class="delete-icon">
+<i class="fas fa-trash"></i>
+</div>
+
+<div class="delete-title">
+Delete Contact
+</div>
+
+<div class="delete-text">
+
+Are you sure you want to permanently delete this message?
+
+<br>
+
+<span class="subject-box">
+<i class="fas fa-tag"></i>
+{{ contact.subject }}
+</span>
+
+</div>
 
 <form method="post">
-    {% csrf_token %}
-    <button type="submit">Delete</button>
+
+{% csrf_token %}
+
+<div class="delete-actions">
+
+<button type="submit" class="btn-delete">
+<i class="fas fa-trash-alt"></i>
+Delete
+</button>
+
+<a href="{% url 'contact_list' %}" class="btn-cancel">
+<i class="fas fa-arrow-left"></i>
+Cancel
+</a>
+
+</div>
+
 </form>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

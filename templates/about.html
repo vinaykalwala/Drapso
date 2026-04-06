@@ -2,67 +2,547 @@
 {% load static %}
 
 {% block content %}
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
 <style>
 :root {
-    --primary-dark: #111827;
-    --secondary-gray: #374151;
-    --accent-blue: #6366f1; /* A deep indigo that pairs well with dark themes */
-    --glass-bg: rgba(255, 255, 255, 0.95);
+    --primary: #6366f1;
+    --accent: #a855f7;
+    --dark: #0f172a;
+    --gray: #475569;
+    --light-gray: #f1f5f9;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-    background-color: #f8fafc;
-    scroll-behavior: smooth;
+    margin: 0;
+    padding: 0;
+    color: var(--dark);
+    overflow-x: hidden;
+    background: #ffffff;
 }
 
-/* Hero Section with Parallax & Mesh Gradient */
-.hero-bg {
-  
+/* Hero banner with gradient + image */
+.hero-header {
+    min-height: 70vh;
     display: flex;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: white;
     position: relative;
-    text-align: center;
+    background: linear-gradient(
+        135deg,
+        rgba(0, 102, 255, 0.5),
+        rgba(128, 0, 255, 0.7),
+        rgba(0, 191, 255, 0.4)
+    ),
+    url("{% static 'images/banner.jpg' %}");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-bottom: 0;
 }
-.hero-bg{
 
-background-image: url("{% static 'images/bg.avif' %}");
-background-size: cover;
-background-position: center;
-background-repeat: no-repeat;
-
-padding:120px 0;
-color:white;
-position:relative;
-overflow:hidden;
-
-}
 .hero-content {
+    text-align: center;
+    max-width: 900px;
+    padding: 2rem;
+    position: relative;
     z-index: 2;
 }
 
-.hero-title {
-    font-family: 'Inter', sans-serif;
-    font-size: 40px;
-    font-weight: 600;
-    letter-spacing: -1.5px;
-    margin-bottom: 10px;
-    text-shadow: 0 10px 20px rgba(0,0,0,0.2);
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    padding: 0.6rem 1.8rem;
+    border-radius: 100px;
+    margin-bottom: 1.8rem;
 }
 
+.hero-badge i, .hero-badge span {
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
 
+.hero-title {
+    font-size: 4rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+}
+
+.hero-title span {
+    color: #f0e6ff;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: rgba(255,255,255,0.92);
+    max-width: 850px;
+    margin: 0 auto;
+    font-weight: 500;
+}
+
+/* 3 Cards row */
+.cards-row {
+    max-width: 1200px;
+    margin: -50px auto 0;
+    padding: 0 2rem;
+    position: relative;
+    z-index: 10;
+}
+
+.three-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.card-simple {
+    background: white;
+    border-radius: 1.5rem;
+    padding: 2rem 1.8rem;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    border: 1px solid #eef2ff;
+    transition: all 0.3s ease;
+}
+
+.card-simple:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 15px 30px rgba(99, 102, 241, 0.12);
+    border-color: #c7d2fe;
+}
+
+.card-icon {
+    width: 65px;
+    height: 65px;
+    background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+    border-radius: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.2rem;
+}
+
+.card-icon i {
+    font-size: 1.8rem;
+    color: #4f46e5;
+}
+
+.card-simple h3 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+    color: #0f172a;
+}
+
+.card-simple p {
+    color: #475569;
+    line-height: 1.6;
+    font-size: 0.9rem;
+}
+
+/* Main container */
+.about-container {
+    max-width: 1200px;
+    margin: 4rem auto;
+    padding: 0 2rem;
+}
+
+/* Section 1: Connect section WITH image */
+.connect-section {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    margin-bottom: 4rem;
+    background: #fafcff;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    border: 1px solid #eef2ff;
+}
+
+.connect-image {
+    flex: 1;
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.connect-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.connect-text {
+    flex: 1;
+}
+
+.connect-text h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #0f172a;
+}
+
+.connect-text p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #334155;
+}
+
+/* Section 2: Operations - Simple centered card */
+.ops-section {
+    background: #f8fafc;
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    text-align: center;
+    margin-bottom: 3rem;
+    border: 1px solid #eef2ff;
+}
+
+.ops-section h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #0f172a;
+}
+
+.ops-section p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #334155;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Section 3: Trust & Transparency - Three column stats */
+.trust-section {
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+.trust-section h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #0f172a;
+}
+
+.trust-section > p {
+    color: #475569;
+    max-width: 750px;
+    margin: 0 auto 2rem;
+    line-height: 1.6;
+}
+
+.trust-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.stat-card {
+    background: #f8fafc;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid #eef2ff;
+    transition: all 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    background: white;
+    border-color: #c7d2fe;
+}
+
+.stat-card i {
+    font-size: 2rem;
+    color: #4f46e5;
+    margin-bottom: 0.8rem;
+    display: inline-block;
+}
+
+.stat-card h4 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+}
+
+.stat-card p {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+/* Section 4: Belief - ATTRACTIVE MODERN SECTION */
+.belief-section {
+    text-align: center;
+    padding: 3.5rem 2rem;
+    margin: 2rem 0 1rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+    border-radius: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.belief-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #4f46e5, #a855f7, #ec4899, #4f46e5);
+    background-size: 200% 100%;
+    animation: gradientMove 3s ease infinite;
+}
+
+@keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.belief-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(145deg, #4f46e5, #a855f7);
+    border-radius: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 15px 30px -10px rgba(79, 70, 229, 0.4);
+}
+
+.belief-icon i {
+    font-size: 2.2rem;
+    color: white;
+}
+
+.belief-section h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 1.2rem;
+    background: linear-gradient(135deg, #1e1b4b, #4f46e5, #a855f7);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+.belief-section p {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #1e293b;
+    max-width: 850px;
+    margin: 0 auto;
+    font-weight: 500;
+}
+
+/* Audience tags */
+.audience-tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.audience-tag {
+    background: white;
+    padding: 0.6rem 1.5rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4f46e5;
+    border: 1px solid #c7d2fe;
+    transition: all 0.2s;
+}
+
+.audience-tag:hover {
+    background: #4f46e5;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Footer */
+.footer-note {
+    text-align: center;
+    padding: 2rem 0;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .hero-title {
+        font-size: 2.8rem;
+    }
+    .three-cards {
+        grid-template-columns: 1fr;
+        gap: 1.2rem;
+    }
+    .cards-row {
+        margin: -30px auto 0;
+    }
+    .connect-section {
+        flex-direction: column;
+    }
+    .trust-stats {
+        grid-template-columns: 1fr;
+    }
+    .belief-section {
+        padding: 2rem 1.5rem;
+    }
+    .belief-section h2 {
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 550px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+    .about-container {
+        padding: 0 1rem;
+    }
+    .connect-text h2 {
+        font-size: 1.5rem;
+    }
+}
 </style>
 
-<div class="hero-bg">
-    <div class="hero-content" data-aos="fade-up">
-        <h1 class="hero-title">About</h1>
+<!-- HERO SECTION WITH GRADIENT + BACKGROUND IMAGE -->
+<div class="hero-header">
+    <div class="hero-content">
+        <div class="hero-badge">
+            <i class="fas fa-crown"></i>
+            <span>NEXT-GEN SOCIAL COMMERCE</span>
+        </div>
+        <h1 class="hero-title">About <span>Drapso</span></h1>
+        <p class="hero-subtitle">Our mission is to empower individuals and businesses to start and grow their online stores without the need for inventory, large investments, or technical expertise.</p>
     </div>
 </div>
 
+<!-- 3 CARDS -->
+<div class="cards-row">
+    <div class="three-cards">
+        <div class="card-simple" data-aos="fade-up" data-aos-delay="50">
+            <div class="card-icon">
+                <i class="fas fa-rocket"></i>
+            </div>
+            <h3>Next-Gen Social Commerce</h3>
+            <p>Drapso is a next-generation social commerce platform designed to simplify online selling for everyone.</p>
+        </div>
+        <div class="card-simple" data-aos="fade-up" data-aos-delay="150">
+            <div class="card-icon">
+                <i class="fas fa-handshake"></i>
+            </div>
+            <h3>Seamless Collaboration</h3>
+            <p>We connect wholesalers and resellers on a single platform, enabling seamless collaboration.</p>
+        </div>
+        <div class="card-simple" data-aos="fade-up" data-aos-delay="250">
+            <div class="card-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>Simplified Operations</h3>
+            <p>We handle complex eCommerce operations so you can focus on selling and growing.</p>
+        </div>
+    </div>
+</div>
 
+<!-- MAIN CONTENT -->
+<main class="about-container">
+    
+    <!-- CONNECT SECTION (WITH IMAGE) - EXACT CONTENT -->
+    <div class="connect-section" data-aos="fade-right">
+        <div class="connect-image">
+            <img src="https://images.pexels.com/photos/3183197/pexels-photo-3183197.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Connecting Wholesalers and Resellers">
+        </div>
+        <div class="connect-text">
+            <h2>Connecting Wholesalers & Resellers</h2>
+            <p>We connect wholesalers and resellers on a single platform, enabling seamless collaboration. Wholesellers can list their products and reach a wide network of resellers, while resellers can instantly create their own online stores, add products with one click, and start selling without managing stock or logistics.</p>
+        </div>
+    </div>
+
+    <!-- OPERATIONS SECTION - EXACT CONTENT -->
+    <div class="ops-section" data-aos="fade-up">
+        <h2>Handling Complex eCommerce</h2>
+        <p>At Drapso, we handle the complex parts of eCommerce — including payment processing, order flow, and payout distribution — so that our users can focus on what matters most: selling and growing their business.</p>
+    </div>
+
+    <!-- TRUST & TRANSPARENCY SECTION - EXACT CONTENT -->
+    <div class="trust-section" data-aos="fade-up">
+        <h2>Built on Transparency & Trust</h2>
+        <p>Our platform is built on transparency and trust. All payments are securely processed, and earnings are distributed only after successful delivery verification. We ensure a fair and structured system where wholesalers, resellers, and the platform all benefit from each transaction.</p>
+        <div class="trust-stats">
+            <div class="stat-card">
+                <i class="fas fa-lock"></i>
+                <h4>Secure Payments</h4>
+                <p>Encrypted & verified transactions</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-truck-fast"></i>
+                <h4>Delivery Verification</h4>
+                <p>Payout only after confirmation</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-hand-holding-usd"></i>
+                <h4>Fair Distribution</h4>
+                <p>All parties benefit equally</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- BELIEF SECTION - EXACT CONTENT + ATTRACTIVE DESIGN -->
+    <div class="belief-section" data-aos="fade-up">
+        <div class="belief-icon">
+            <i class="fas fa-seedling"></i>
+        </div>
+        <h2>Democratizing Online Business</h2>
+        <p>We believe that anyone should be able to start an online business without barriers. Whether you are a student, a small business owner, or an aspiring entrepreneur, Drapso provides the tools you need to succeed in the digital marketplace.</p>
+        <div class="audience-tags">
+            <span class="audience-tag"><i class="fas fa-graduation-cap"></i> Students</span>
+            <span class="audience-tag"><i class="fas fa-store"></i> Small Business Owners</span>
+            <span class="audience-tag"><i class="fas fa-chart-line"></i> Aspiring Entrepreneurs</span>
+            <span class="audience-tag"><i class="fas fa-home"></i> Freelancers</span>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer-note">
+        <i class="fas fa-heart" style="color: #4f46e5;"></i> Join the commerce revolution — Start selling with Drapso today
+        <i class="fas fa-sparkles" style="color: #a855f7; margin-left: 0.5rem;"></i>
+    </div>
+</main>
+
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>
+    AOS.init({
+        duration: 600,
+        once: true,
+        offset: 50
+    });
+</script>
 
 {% endblock %}

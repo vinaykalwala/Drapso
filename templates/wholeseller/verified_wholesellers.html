@@ -1,73 +1,467 @@
-
+{% extends "dashboard_base.html" %}
 {% load static %}
 
-{% block title %}Verified Wholesellers - Admin{% endblock %}
+{% block title %}Verified Wholesellers{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">Verified Wholesellers</h2>
-        <span class="badge bg-success fs-6 px-3 py-2">{{ total_verified }} Verified</span>
-    </div>
+
+<style>
+
+/* page */
+.vw-page {
+    padding: 25px;
+    background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+    min-height: 100vh;
+}
+
+/* header */
+.vw-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.vw-title-area h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #1e293b, #4f46e5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.vw-title-area h2 i {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 26px;
+}
+
+/* controls */
+.vw-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* search */
+.vw-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #e5e7eb;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: white;
+    width: 260px;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.vw-search:focus-within {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.vw-search i {
+    color: #94a3b8;
+}
+
+.vw-search input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 13px;
+}
+
+/* verified count */
+.vw-count {
+    padding: 8px 18px;
+    border-radius: 40px;
+    font-size: 13px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+    color: #4f46e5;
+    border: 1px solid #c7d2fe;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vw-count i {
+    font-size: 14px;
+}
+
+/* table card */
+.vw-table-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    background: white;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.vw-table-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* scroll wrapper */
+.vw-table-wrapper {
+    overflow-x: auto;
+    width: 100%;
+}
+
+/* table */
+.vw-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    min-width: 750px;
+}
+
+/* header color */
+.vw-table thead {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+/* header cells */
+.vw-table th {
+    color: white;
+    font-weight: 600;
+    padding: 16px 14px;
+    text-align: left;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.vw-table th i {
+    margin-right: 8px;
+    font-size: 12px;
+}
+
+/* body cells */
+.vw-table td {
+    padding: 16px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    border-right: 1px solid #eef2f7;
+    vertical-align: middle;
+}
+
+/* remove last column line */
+.vw-table th:last-child,
+.vw-table td:last-child {
+    border-right: none;
+}
+
+/* alternate rows */
+.vw-table tbody tr:nth-child(even) {
+    background: #fafcff;
+}
+
+.vw-table tbody tr:hover {
+    background: #f5f3ff;
+    transition: all 0.2s;
+}
+
+/* text */
+.vw-main {
+    font-weight: 700;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.vw-main i {
+    color: #4f46e5;
+    font-size: 13px;
+    width: 18px;
+}
+
+.vw-sub {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.vw-sub i {
+    font-size: 10px;
+    color: #94a3b8;
+}
+
+/* badge */
+.vw-status {
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    color: #047857;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid #a7f3d0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.vw-status i {
+    font-size: 11px;
+}
+
+/* empty state */
+.vw-empty {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.vw-empty i {
+    font-size: 64px;
+    color: #cbd5e1;
+    margin-bottom: 16px;
+}
+
+.vw-empty h4 {
+    margin: 0 0 8px 0;
+    color: #475569;
+    font-size: 18px;
+}
+
+.vw-empty p {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+/* stats summary */
+.vw-stats-summary {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.vw-stat-box {
+    background: white;
+    border-radius: 16px;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    flex: 1;
+    min-width: 180px;
+}
+
+.vw-stat-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vw-stat-icon i {
+    font-size: 24px;
+    color: #4f46e5;
+}
+
+.vw-stat-info h3 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    color: #111827;
+}
+
+.vw-stat-info p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* mobile */
+@media(max-width: 900px) {
+    .vw-page {
+        padding: 15px;
+    }
     
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
+    .vw-stats-summary {
+        flex-direction: column;
+    }
+    
+    .vw-stat-box {
+        min-width: auto;
+    }
+    
+    .content {
+        margin-top: 60px;
+    }
+}
+
+@media(max-width: 640px) {
+    .vw-table {
+        min-width: 600px;
+    }
+}
+
+/* animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.vw-table-card {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+</style>
+
+<div class="content">
+    <div class="vw-page">
+        
+      
+        
+        <!-- Top Bar -->
+        <div class="vw-topbar">
+            <div class="vw-title-area">
+                <h2>
+                   
+                    Verified Wholesellers
+                </h2>
+            </div>
+            
+            <div class="vw-controls">
+                <div class="vw-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search by business, owner, location...">
+                </div>
+                
+                <div class="vw-count">
+                    <i class="fas fa-check-circle"></i>
+                    {{ total_verified }} Verified
+                </div>
+            </div>
+        </div>
+        
+        <!-- Table Card -->
+        <div class="vw-table-card">
             {% if verified_inventories %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Business Name</th>
-                                <th>Wholeseller</th>
-                                <th>Contact</th>
-                                <th>Location</th>
-                                <th>Verified Date</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for inventory in verified_inventories %}
-                            <tr>
-                                <td class="fw-semibold">{{ inventory.business_name }}</td>
-                                <td>
-                                    {{ inventory.wholeseller.get_full_name|default:inventory.wholeseller.username }}<br>
-                                    <small class="text-muted">{{ inventory.wholeseller.email }}</small>
-                                </td>
-                                <td>
-                                    {{ inventory.contact_person }}<br>
-                                    <small class="text-muted">{{ inventory.contact_phone }}</small>
-                                </td>
-                                <td>
-                                    {{ inventory.warehouse_name }}<br>
-                                    <small class="text-muted">{{ inventory.city }}, {{ inventory.state }}</small>
-                                </td>
-                                <td>{{ inventory.updated_at|date:"d M Y" }}</td>
-                                <td>
-                                    <span class="badge bg-success">Verified</span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            <div class="vw-table-wrapper">
+                <table id="dataTable" class="vw-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-building"></i> Business</th>
+                            <th><i class="fas fa-user-circle"></i> Owner</th>
+                            <th><i class="fas fa-address-card"></i> Contact</th>
+                            <th><i class="fas fa-map-marker-alt"></i> Location</th>
+                            <th><i class="fas fa-calendar-check"></i> Verified Date</th>
+                            <th><i class="fas fa-shield-alt"></i> Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inventory in verified_inventories %}
+                        <tr>
+                            <td>
+                                <div class="vw-main">
+                                   
+                                    {{ inventory.business_name }}
+                                </div>
+                                <div class="vw-sub">
+                                   
+                                    {{ inventory.warehouse_name }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="vw-main">
+                                    {{ inventory.wholeseller.get_full_name|default:inventory.wholeseller.username }}
+                                </div>
+                                <div class="vw-sub">
+                                    {{ inventory.wholeseller.email }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="vw-main">
+                                    {{ inventory.contact_person }}
+                                </div>
+                                <div class="vw-sub">
+                                    {{ inventory.contact_phone }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="vw-main">
+                                    {{ inventory.city|default:"—" }}
+                                </div>
+                                <div class="vw-sub">
+                                    {{ inventory.state|default:"—" }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="vw-main">
+                                    {{ inventory.updated_at|date:"d M Y" }}
+                                </div>
+                                <div class="vw-sub">
+                                    {{ inventory.updated_at|date:"h:i A" }}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="vw-status">
+                                    <i class="fas fa-check-circle"></i>
+                                    Verified
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-store fa-4x text-muted mb-3"></i>
-                    <h5>No verified wholesellers yet</h5>
-                    <p class="text-muted">Wholesellers will appear here after verification.</p>
-                </div>
+            <div class="vw-empty">
+                <i class="fas fa-user-check"></i>
+                <h4>No Verified Wholesellers</h4>
+                <p>Verified wholesellers will appear here once approved.</p>
+            </div>
             {% endif %}
         </div>
+        
     </div>
 </div>
 
-<style>
-    .table th {
-        border-top: none;
-        background-color: #f8f9fa;
-    }
-    .table td {
-        vertical-align: middle;
-    }
-</style>
+<script>
+document.getElementById("searchInput").addEventListener("keyup", function() {
+    let value = this.value.toLowerCase();
+    let rows = document.querySelectorAll("#dataTable tbody tr");
+    
+    rows.forEach(row => {
+        let text = row.innerText.toLowerCase();
+        row.style.display = text.includes(value) ? "" : "none";
+    });
+});
+</script>
+
 {% endblock %}

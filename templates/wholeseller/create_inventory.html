@@ -1,215 +1,342 @@
-
+{% extends "dashboard_base.html" %}
 {% load static %}
 
 {% block title %}Create Inventory - Drapso{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white py-3 border-0">
-                    <h4 class="mb-0 text-success">Create Your Inventory</h4>
-                    <p class="text-muted mb-0">Step 1 of 2: Tell us about your business</p>
-                </div>
-                <div class="card-body">
-                    <!-- Display non-field errors -->
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    
-                    <div class="progress mb-4" style="height: 8px;">
-                        <div class="progress-bar bg-success" style="width: 50%"></div>
-                    </div>
-                    
-                    <form method="POST" novalidate>
-                        {% csrf_token %}
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Business Name *</label>
-                                {{ form.business_name }}
-                                {% if form.business_name.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.business_name.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <small class="text-muted">Official business name as per registration</small>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Business Type *</label>
-                                {{ form.business_type }}
-                                {% if form.business_type.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.business_type.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <h5 class="mt-4 mb-3 text-success">🏭 Warehouse Location</h5>
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label fw-semibold">Warehouse Name *</label>
-                                {{ form.warehouse_name }}
-                                {% if form.warehouse_name.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.warehouse_name.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <small class="text-muted">e.g., Main Warehouse, Mumbai Branch</small>
-                            </div>
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label fw-semibold">Address Line 1 *</label>
-                                {{ form.address_line1 }}
-                                {% if form.address_line1.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.address_line1.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label">Address Line 2</label>
-                                {{ form.address_line2 }}
-                                {% if form.address_line2.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.address_line2.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">City *</label>
-                                {{ form.city }}
-                                {% if form.city.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.city.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">State *</label>
-                                {{ form.state }}
-                                {% if form.state.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.state.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Postal Code *</label>
-                                {{ form.postal_code }}
-                                {% if form.postal_code.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.postal_code.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label fw-semibold">Country *</label>
-                                {{ form.country }}
-                                {% if form.country.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.country.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <h5 class="mt-4 mb-3 text-success">📞 Contact Information</h5>
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Contact Person *</label>
-                                {{ form.contact_person }}
-                                {% if form.contact_person.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.contact_person.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Contact Phone *</label>
-                                {{ form.contact_phone }}
-                                {% if form.contact_phone.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.contact_phone.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Contact Email *</label>
-                                {{ form.contact_email }}
-                                {% if form.contact_email.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.contact_email.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <div class="alert alert-info mt-3">
-                            <i class="fas fa-info-circle"></i> 
-                            After creating inventory, you'll need to submit KYC documents for verification.
-                        </div>
-                        
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                Continue to KYC Submission <i class="fas fa-arrow-right ms-2"></i>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-    .form-control:focus {
-        border-color: #28a745;
-        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.15);
+    :root {
+        --primary-indigo: #4f46e5;
+        --secondary-violet: #7c3aed;
+        --glass: rgba(255, 255, 255, 0.9);
+        --glass-border: rgba(255, 255, 255, 0.6);
     }
-    .card {
-        border-radius: 15px;
+
+    .inventory-setup-wrapper {
+        padding: 40px 20px;
+        max-width: 900px;
+        margin: 0 auto 100px auto;
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
-    .progress-bar {
-        border-radius: 4px;
+
+    /* --- Header & Progress --- */
+    .setup-header {
+        text-align: center;
+        margin-bottom: 40px;
+        animation: fadeInDown 0.6s ease-out;
     }
-    .errorlist {
-        list-style: none;
-        padding-left: 0;
-        margin-top: 5px;
+
+    .setup-header h1 {
+        font-size: clamp(24px, 5vw, 36px);
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: -1.5px;
+        margin-bottom: 10px;
     }
-    .errorlist li {
-        color: #dc3545;
-        font-size: 0.875rem;
+
+    .progress-track {
+        background: #e2e8f0;
+        height: 10px;
+        border-radius: 50px;
+        max-width: 400px;
+        margin: 20px auto;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        background: linear-gradient(90deg, var(--primary-indigo), var(--secondary-violet));
+        height: 100%;
+        width: 50%; /* Step 1 of 2 */
+        border-radius: 50px;
+        transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 0 15px rgba(79, 70, 229, 0.3);
+    }
+
+    /* --- Form Card --- */
+    .form-glass-card {
+        background: var(--glass);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid var(--glass-border);
+        border-radius: 35px;
+        padding: 40px;
+        box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.08);
+        animation: slideUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    }
+
+    .section-divider {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--primary-indigo);
+        margin: 35px 0 20px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-divider i {
+        background: #eef2ff;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 16px;
+    }
+
+    /* --- Form Elements --- */
+    .form-group-custom {
+        margin-bottom: 24px;
+    }
+
+    .form-group-custom label {
+        display: block;
+        font-size: 14px;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 8px;
+        margin-left: 4px;
+    }
+
+    /* Styles standard Django form inputs */
+    .form-group-custom input, 
+    .form-group-custom select, 
+    .form-group-custom textarea {
+        width: 100%;
+        padding: 14px 20px;
+        border-radius: 16px;
+        border: 2px solid #f1f5f9;
+        background: white;
+        font-size: 15px;
+        font-weight: 500;
+        color: #1e293b;
+        transition: all 0.3s ease;
+    }
+
+    .form-group-custom input:focus,
+    .form-group-custom select:focus {
+        border-color: var(--primary-indigo);
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        outline: none;
+        background: #fff;
+    }
+
+    /* --- Error & Hint UI --- */
+    .error-text {
+        color: #ef4444;
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .hint-text {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-top: 6px;
+    }
+
+    .alert-premium {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        padding: 16px;
+        border-radius: 18px;
+        margin-bottom: 25px;
+        font-weight: 600;
+    }
+
+    .info-bar {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 18px;
+        border-radius: 20px;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        color: #475569;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .info-bar i { color: var(--primary-indigo); font-size: 20px; }
+
+    /* --- Submit Button --- */
+    .btn-submit-premium {
+        background: linear-gradient(135deg, var(--primary-indigo), var(--secondary-violet));
+        color: white !important;
+        padding: 18px;
+        border-radius: 20px;
+        border: none;
+        font-weight: 800;
+        font-size: 16px;
+        width: 100%;
+        margin-top: 30px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.4);
+    }
+
+    .btn-submit-premium:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.5);
+    }
+
+    /* --- Grid System --- */
+    .form-row-custom {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Mobile Adaptations */
+    @media (max-width: 768px) {
+        .form-row-custom { grid-template-columns: 1fr; }
+        .form-glass-card { padding: 25px; }
+        .inventory-setup-wrapper { padding: 20px 15px; }
     }
 </style>
+<div class="content">
+<div class="inventory-setup-wrapper">
+    <div class="setup-header">
+        <h1>Create Your Inventory</h1>
+        <p style="color: #64748b; font-weight: 500;">Let's get your business profile ready for selling</p>
+        <div class="progress-track">
+            <div class="progress-fill"></div>
+        </div>
+    </div>
+
+    <div class="form-glass-card">
+        {% if form.non_field_errors %}
+            <div class="alert-premium">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="POST" novalidate>
+            {% csrf_token %}
+
+            <div class="section-divider">
+                <i class="fa-solid fa-briefcase"></i> Business Profile
+            </div>
+            
+            <div class="form-row-custom">
+                <div class="form-group-custom">
+                    <label>Business Name *</label>
+                    {{ form.business_name }}
+                    {% if form.business_name.errors %}
+                        <div class="error-text"><i class="fa-solid fa-triangle-exclamation"></i> {{ form.business_name.errors.0 }}</div>
+                    {% endif %}
+                    <p class="hint-text">Official name as per your registration</p>
+                </div>
+
+                <div class="form-group-custom">
+                    <label>Business Type *</label>
+                    {{ form.business_type }}
+                    {% if form.business_type.errors %}
+                        <div class="error-text">{{ form.business_type.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <i class="fa-solid fa-warehouse"></i> Warehouse Details
+            </div>
+
+            <div class="form-group-custom">
+                <label>Warehouse Name *</label>
+                {{ form.warehouse_name }}
+                {% if form.warehouse_name.errors %}
+                    <div class="error-text">{{ form.warehouse_name.errors.0 }}</div>
+                {% endif %}
+                <p class="hint-text">e.g., Main Distribution Center, North Wing Hub</p>
+            </div>
+
+            <div class="form-group-custom">
+                <label>Address Line 1 *</label>
+                {{ form.address_line1 }}
+                {% if form.address_line1.errors %}
+                    <div class="error-text">{{ form.address_line1.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group-custom">
+                <label>Address Line 2</label>
+                {{ form.address_line2 }}
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px;">
+                <div class="form-group-custom">
+                    <label>City *</label>
+                    {{ form.city }}
+                </div>
+                <div class="form-group-custom">
+                    <label>State *</label>
+                    {{ form.state }}
+                </div>
+                <div class="form-group-custom">
+                    <label>Postal Code *</label>
+                    {{ form.postal_code }}
+                </div>
+            </div>
+
+            <div class="form-group-custom">
+                <label>Country *</label>
+                {{ form.country }}
+            </div>
+
+            <div class="section-divider">
+                <i class="fa-solid fa-address-book"></i> Point of Contact
+            </div>
+
+            <div class="form-row-custom">
+                <div class="form-group-custom">
+                    <label>Contact Person *</label>
+                    {{ form.contact_person }}
+                </div>
+                <div class="form-group-custom">
+                    <label>Contact Phone *</label>
+                    {{ form.contact_phone }}
+                </div>
+            </div>
+
+            <div class="form-group-custom">
+                <label>Contact Email *</label>
+                {{ form.contact_email }}
+            </div>
+
+            <div class="info-bar">
+                <i class="fa-solid fa-circle-info"></i>
+                <div>
+                    <strong>KYC Notice:</strong> After submitting these details, Step 2 will require you to upload legal documents for business verification.
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit-premium">
+                Continue to KYC Submission <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </form>
+    </div>
+</div>
+</div>
 {% endblock %}

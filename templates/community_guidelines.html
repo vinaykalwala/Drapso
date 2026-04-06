@@ -1,0 +1,458 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+
+
+/* Hero Section with Bubbles */
+.hero-section {
+background-image:url("{% static 'images/bg.avif' %}");
+background-size:cover;
+background-position:center;    padding: 80px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    min-height: auto;
+}
+
+/* Animated Bubbles */
+.bubble {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: floatBubble linear infinite;
+}
+
+@keyframes floatBubble {
+    0% {
+        transform: translateY(100vh) scale(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.5;
+    }
+    90% {
+        opacity: 0.3;
+    }
+    100% {
+        transform: translateY(-100vh) scale(1);
+        opacity: 0;
+    }
+}
+
+/* Hide bubbles on mobile for better performance */
+@media (max-width: 768px) {
+    .bubble {
+        display: none;
+    }
+}
+
+.bubble-1 { width: 60px; height: 60px; left: 10%; animation-duration: 12s; animation-delay: 0s; }
+.bubble-2 { width: 100px; height: 100px; left: 20%; animation-duration: 15s; animation-delay: 2s; }
+.bubble-3 { width: 40px; height: 40px; left: 35%; animation-duration: 10s; animation-delay: 4s; }
+.bubble-4 { width: 80px; height: 80px; left: 50%; animation-duration: 14s; animation-delay: 1s; }
+.bubble-5 { width: 50px; height: 50px; left: 65%; animation-duration: 11s; animation-delay: 3s; }
+.bubble-6 { width: 120px; height: 120px; left: 75%; animation-duration: 16s; animation-delay: 5s; }
+.bubble-7 { width: 30px; height: 30px; left: 85%; animation-duration: 9s; animation-delay: 2.5s; }
+.bubble-8 { width: 70px; height: 70px; left: 95%; animation-duration: 13s; animation-delay: 4.5s; }
+.bubble-9 { width: 45px; height: 45px; left: 15%; animation-duration: 11s; animation-delay: 6s; }
+.bubble-10 { width: 90px; height: 90px; left: 55%; animation-duration: 17s; animation-delay: 3.5s; }
+
+.hero-section .container {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.hero-title {
+    font-size: 42px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 16px;
+    letter-spacing: -1px;
+    line-height: 1.2;
+    word-wrap: break-word;
+    margin-top: 30px;
+}
+
+.hero-subtitle {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.95);
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+/* Main Content */
+.main-content {
+    padding: 60px 20px;
+    background: #f8fafc;
+}
+
+
+
+/* Guidelines Grid */
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.guideline-card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    transition: all 0.3s ease;
+    border: 1px solid #eef2ff;
+    position: relative;
+    overflow: hidden;
+}
+
+.guideline-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #4f46e5, #8b5cf6, #ec4899);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+.guideline-card:hover::before {
+    transform: translateX(0);
+}
+
+.guideline-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.1);
+    border-color: #c7d2fe;
+}
+
+.guideline-number {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 40px;
+    font-weight: 800;
+    color: rgba(79, 70, 229, 0.06);
+    font-family: 'Inter', monospace;
+}
+
+.card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.card-icon i {
+    font-size: 24px;
+}
+
+.guideline-card p {
+    font-size: 14px;
+    color: #334155;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Card Icon Variants */
+.guideline-card:nth-child(1) .card-icon { background: linear-gradient(135deg, #eef2ff, #e0e7ff); }
+.guideline-card:nth-child(1) .card-icon i { color: #4f46e5; }
+
+.guideline-card:nth-child(2) .card-icon { background: linear-gradient(135deg, #fef2f2, #fee2e2); }
+.guideline-card:nth-child(2) .card-icon i { color: #ef4444; }
+
+.guideline-card:nth-child(3) .card-icon { background: linear-gradient(135deg, #fefce8, #fef08a); }
+.guideline-card:nth-child(3) .card-icon i { color: #eab308; }
+
+.guideline-card:nth-child(4) .card-icon { background: linear-gradient(135deg, #ecfdf5, #d1fae5); }
+.guideline-card:nth-child(4) .card-icon i { color: #10b981; }
+
+.guideline-card:nth-child(5) .card-icon { background: linear-gradient(135deg, #fff7ed, #ffedd5); }
+.guideline-card:nth-child(5) .card-icon i { color: #f97316; }
+
+.guideline-card:nth-child(6) .card-icon { background: linear-gradient(135deg, #fdf4ff, #f3e8ff); }
+.guideline-card:nth-child(6) .card-icon i { color: #8b5cf6; }
+
+.guideline-card:nth-child(7) .card-icon { background: linear-gradient(135deg, #f0fdf4, #dcfce7); }
+.guideline-card:nth-child(7) .card-icon i { color: #22c55e; }
+
+.guideline-card:nth-child(8) .card-icon { background: linear-gradient(135deg, #fff1f1, #ffe4e4); }
+.guideline-card:nth-child(8) .card-icon i { color: #ec4899; }
+
+.guideline-card:nth-child(9) .card-icon { background: linear-gradient(135deg, #fefce8, #fef08a); }
+.guideline-card:nth-child(9) .card-icon i { color: #ca8a04; }
+
+.guideline-card:nth-child(10) .card-icon { background: linear-gradient(135deg, #eef2ff, #e0e7ff); }
+.guideline-card:nth-child(10) .card-icon i { color: #4f46e5; }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 100px 16px;
+    }
+    
+    .hero-title {
+        font-size: 28px;
+        margin-bottom: 12px;
+    }
+    
+    .hero-subtitle {
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    
+    .main-content {
+        padding: 40px 16px;
+    }
+    
+    .guidelines-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .guideline-card {
+        padding: 20px;
+    }
+    
+    .guideline-number {
+        font-size: 32px;
+        top: 12px;
+        right: 12px;
+    }
+    
+    .card-icon {
+        width: 42px;
+        height: 42px;
+        margin-bottom: 16px;
+    }
+    
+    .card-icon i {
+        font-size: 20px;
+    }
+    
+    .guideline-card p {
+        font-size: 13px;
+        line-height: 1.55;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .hero-section {
+        padding: 70px 20px;
+    }
+    
+    .hero-title {
+        font-size: 36px;
+    }
+    
+    .guidelines-grid {
+        gap: 20px;
+    }
+    
+    .guideline-card {
+        padding: 24px;
+    }
+    
+    .guideline-number {
+        font-size: 36px;
+    }
+}
+
+@media (min-width: 1025px) {
+    .hero-section {
+        padding: 100px 20px;
+    }
+    
+    .hero-title {
+        font-size: 48px;
+    }
+    
+    .guidelines-grid {
+        gap: 24px;
+    }
+    
+    .guideline-card {
+        padding: 28px;
+    }
+    
+    .guideline-card p {
+        font-size: 15px;
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+    .hero-section {
+        padding: 80px 14px;
+    }
+    
+    .hero-title {
+        font-size: 24px;
+    }
+    
+    .hero-subtitle {
+        font-size: 13px;
+    }
+    
+    .guideline-card {
+        border-radius: 16px;
+    }
+    
+    .guideline-number {
+        font-size: 28px;
+        top: 10px;
+        right: 10px;
+    }
+    
+    .card-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+    }
+    
+    .card-icon i {
+        font-size: 18px;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) {
+    .guideline-card:hover {
+        transform: none;
+    }
+    
+    .guideline-card::before {
+        display: none;
+    }
+}
+</style>
+
+<div class="hero-section">
+    <!-- Animated Bubbles -->
+    <div class="bubble bubble-1"></div>
+    <div class="bubble bubble-2"></div>
+    <div class="bubble bubble-3"></div>
+    <div class="bubble bubble-4"></div>
+    <div class="bubble bubble-5"></div>
+    <div class="bubble bubble-6"></div>
+    <div class="bubble bubble-7"></div>
+    <div class="bubble bubble-8"></div>
+    <div class="bubble bubble-9"></div>
+    <div class="bubble bubble-10"></div>
+    
+    <div class="container">
+        <h1 class="hero-title">Community Guidelines – Drapso</h1>
+        <p class="hero-subtitle">Drapso is committed to maintaining a safe, trustworthy, and professional environment for wholesalers, resellers, and customers. By using the platform, all users agree to follow these community guidelines.</p>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="container">
+        <div class="guidelines-grid">
+            <!-- Guideline 1 -->
+            <div class="guideline-card">
+                <div class="guideline-number">01</div>
+                <div class="card-icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <p>Users must always provide accurate and honest information while using the platform. Any attempt to mislead customers, manipulate product details, or provide false claims is strictly prohibited.</p>
+            </div>
+
+            <!-- Guideline 2 -->
+            <div class="guideline-card">
+                <div class="guideline-number">02</div>
+                <div class="card-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <p>Users must behave respectfully toward other users and customers. Harassment, abusive language, threats, or any form of harmful behavior will not be tolerated.</p>
+            </div>
+
+            <!-- Guideline 3 -->
+            <div class="guideline-card">
+                <div class="guideline-number">03</div>
+                <div class="card-icon">
+                    <i class="fas fa-ban"></i>
+                </div>
+                <p>All users are strictly prohibited from engaging in fraudulent activities, including but not limited to creating fake orders, manipulating delivery confirmations, abusing the wallet or payout system, or attempting to exploit platform loopholes.</p>
+            </div>
+
+            <!-- Guideline 4 -->
+            <div class="guideline-card">
+                <div class="guideline-number">04</div>
+                <div class="card-icon">
+                    <i class="fas fa-gavel"></i>
+                </div>
+                <p>Users must not upload, list, or promote illegal, restricted, or prohibited products. This includes counterfeit goods, stolen items, or products that violate applicable laws and regulations.</p>
+            </div>
+
+            <!-- Guideline 5 -->
+            <div class="guideline-card">
+                <div class="guideline-number">05</div>
+                <div class="card-icon">
+                    <i class="fas fa-undo-alt"></i>
+                </div>
+                <p>To maintain trust in transactions, users must not misuse the return or refund system. Submitting false claims, intentionally damaging products, or providing fake or AI-generated proof (including manipulated unboxing videos) is strictly prohibited and may result in permanent suspension.</p>
+            </div>
+
+            <!-- Guideline 6 -->
+            <div class="guideline-card">
+                <div class="guideline-number">06</div>
+                <div class="card-icon">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <p>Users must not attempt to bypass the Drapso platform for transactions. Any attempt to take orders, payments, or communication outside the platform to avoid fees or policies is not allowed.</p>
+            </div>
+
+            <!-- Guideline 7 -->
+            <div class="guideline-card">
+                <div class="guideline-number">07</div>
+                <div class="card-icon">
+                    <i class="fas fa-copyright"></i>
+                </div>
+                <p>Content uploaded to the platform, including product images, descriptions, or any media, must be original or properly authorized. Users must not copy or reuse content from other sellers without permission.</p>
+            </div>
+
+            <!-- Guideline 8 -->
+            <div class="guideline-card">
+                <div class="guideline-number">08</div>
+                <div class="card-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <p>Users must ensure that their activities do not negatively impact the platform's performance, reputation, or user trust.</p>
+            </div>
+
+            <!-- Guideline 9 -->
+            <div class="guideline-card">
+                <div class="guideline-number">09</div>
+                <div class="card-icon">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <p>Drapso reserves the right to monitor activity and take appropriate action in case of violations. This may include content removal, account suspension, permanent banning, wallet freezing, or legal action where necessary.</p>
+            </div>
+
+            <!-- Guideline 10 -->
+            <div class="guideline-card">
+                <div class="guideline-number">10</div>
+                <div class="card-icon">
+                    <i class="fas fa-skull-crossbones"></i>
+                </div>
+                <p>Repeated violations or serious misconduct may result in immediate termination of the account without prior notice.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
