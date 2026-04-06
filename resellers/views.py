@@ -789,7 +789,7 @@ def admin_store_detail(request, store_id):
             messages.warning(request, f'Store "{store.store_name}" suspended')
         return redirect('resellers:admin_store_detail', store_id=store.id)
     
-    return render(request, 'resellers/admin_store_detail.html', {
+    return render(request, 'resellers/admin/admin_store_detail.html', {
         'store': store,
         'transactions': transactions,
     })

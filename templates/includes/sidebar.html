@@ -533,7 +533,7 @@ text-align:center;
 
     <a href="{% url 'accounts:dashboard' %}" class="active">
         <i class="fa-solid fa-chart-line"></i>
-        Dashboard
+        Home
     </a>
 
    
@@ -541,7 +541,8 @@ text-align:center;
     <!-- ADMIN / SUPERADMIN ONLY -->
 
     {% if request.user.role == "admin" %}
-    
+  
+
     <a href="{% url 'contact_list' %}">
         <i class="fa-solid fa-envelope"></i>
         Contact Messages
@@ -561,6 +562,19 @@ text-align:center;
         <i class="fa-solid fa-envelope"></i>
      Verified Wholesellers
     </a>
+      <a href="{% url 'resellers:admin_stores' %}">
+        <i class="fa-solid fa-envelope"></i>
+    Reseller Stores
+    </a>
+     <a href="{% url 'resellers:plan_list' %}">
+        <i class="fa-solid fa-envelope"></i>
+    Plans
+    </a>
+     <a href="{% url 'resellers:theme_list' %}">
+        <i class="fa-solid fa-envelope"></i>
+     Themes
+    </a>
+   
 
     
     {% endif %}
@@ -595,7 +609,10 @@ text-align:center;
     {% if request.user.role == "reseller" %}
 
    
-
+        <a href="{% url 'resellers:reseller_dashboard' %}">
+        <i class="fa-solid fa-chart-line"></i>
+        Dashboard
+    </a>
     <a href="{% url 'accounts:bank_accounts' %}">
         <i class="fa-solid fa-building-columns"></i>
         Bank Details
