@@ -1,0 +1,194 @@
+
+{% block content %}
+<div class="container py-5">
+    <!-- Step Indicator -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">Step {{ step }} of {{ total_steps }}</h5>
+                            <small class="text-muted">Step {{ step }}: {{ step_title }}</small>
+                        </div>
+                        <div>
+                            <div class="progress" style="width: 200px; height: 8px;">
+                                <div class="progress-bar bg-success" style="width: {{ step|divisibleby:total_steps|yesno:"100,25" }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h3 class="mb-0"><i class="fas fa-plus-circle"></i> Create Your Store</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb"></i>
+                        <strong>Store Name Tip:</strong> Your store URL will be <strong id="url-preview" class="text-primary">yourstorename.drapso.com</strong>
+                        <br>
+                        <small>Use only letters, numbers, and hyphens (no spaces or special characters)</small>
+                    </div>
+                    
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="store_name" class="form-label">Store Name *</label>
+                            <input type="text" 
+                                   name="store_name" 
+                                   id="store_name" 
+                                   class="form-control form-control-lg {% if form.store_name.errors %}is-invalid{% endif %}"
+                                   value="{{ form.store_name.value|default:'' }}"
+                                   placeholder="myawesomestore"
+                                   required>
+                            {% if form.store_name.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.store_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="store_description" class="form-label">Store Description</label>
+                            <textarea name="store_description" 
+                                      id="store_description" 
+                                      class="form-control {% if form.store_description.errors %}is-invalid{% endif %}"
+                                      rows="3"
+                                      placeholder="Describe what your store sells...">{{ form.store_description.value|default:'' }}</textarea>
+                            {% if form.store_description.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.store_description.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="contact_email" class="form-label">Contact Email *</label>
+                                    <input type="email" 
+                                           name="contact_email" 
+                                           id="contact_email" 
+                                           class="form-control {% if form.contact_email.errors %}is-invalid{% endif %}"
+                                           value="{{ form.contact_email.value|default:'' }}"
+                                           placeholder="store@example.com"
+                                           required>
+                                    {% if form.contact_email.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.contact_email.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="contact_phone" class="form-label">Contact Phone</label>
+                                    <input type="text" 
+                                           name="contact_phone" 
+                                           id="contact_phone" 
+                                           class="form-control {% if form.contact_phone.errors %}is-invalid{% endif %}"
+                                           value="{{ form.contact_phone.value|default:'' }}"
+                                           placeholder="+1234567890">
+                                    {% if form.contact_phone.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.contact_phone.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="store_address" class="form-label">Store Address</label>
+                            <textarea name="store_address" 
+                                      id="store_address" 
+                                      class="form-control {% if form.store_address.errors %}is-invalid{% endif %}"
+                                      rows="2"
+                                      placeholder="Your business address">{{ form.store_address.value|default:'' }}</textarea>
+                            {% if form.store_address.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.store_address.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="store_logo" class="form-label">Store Logo</label>
+                                    <input type="file" 
+                                           name="store_logo" 
+                                           id="store_logo" 
+                                           class="form-control"
+                                           accept="image/*">
+                                    <div class="form-text">Optional. Recommended size: 200x200px</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="store_banner" class="form-label">Store Banner</label>
+                                    <input type="file" 
+                                           name="store_banner" 
+                                           id="store_banner" 
+                                           class="form-control"
+                                           accept="image/*">
+                                    <div class="form-text">Optional. Recommended size: 1200x400px</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-arrow-right"></i> Continue to Plan Selection
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const storeNameInput = document.getElementById('store_name');
+    const previewUrlSpan = document.getElementById('url-preview');
+    const domain = window.location.hostname;
+    
+    function updatePreview() {
+        let storeName = storeNameInput.value.toLowerCase();
+        storeName = storeName.replace(/[^a-z0-9-]/g, '');
+        storeName = storeName.replace(/\s+/g, '-');
+        if (storeName) {
+            previewUrlSpan.innerHTML = storeName + '.' + domain;
+            previewUrlSpan.style.color = '#28a745';
+            previewUrlSpan.style.fontWeight = 'bold';
+        } else {
+            previewUrlSpan.innerHTML = 'yourstorename.' + domain;
+            previewUrlSpan.style.color = '#0d6efd';
+            previewUrlSpan.style.fontWeight = 'normal';
+        }
+    }
+    
+    if (storeNameInput) {
+        storeNameInput.addEventListener('input', updatePreview);
+        updatePreview();
+    }
+</script>
+{% endblock %}

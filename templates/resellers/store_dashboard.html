@@ -1,0 +1,286 @@
+<!-- resellers/store_dashboard.html -->
+
+{% block title %}Dashboard - {{ store.store_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <h1><i class="fas fa-store"></i> {{ store.store_name }}</h1>
+                            <p class="mb-0">{{ store.store_description|default:"Your store is live!" }}</p>
+                        </div>
+                        <div class="mt-3 mt-md-0">
+                            <div class="bg-white text-dark p-3 rounded">
+                                <small class="text-muted">Your Store URL:</small>
+                                <h5 class="mb-0">
+                                    <a href="{{ store_url }}" target="_blank" id="store-url" class="text-primary">{{ store_url }}</a>
+                                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyStoreLink()">
+                                        <i class="fas fa-copy"></i> Copy Link
+                                    </button>
+                                </h5>
+                                {% if 'localhost' in store_url %}
+                                    <small class="text-muted d-block mt-1">
+                                        ⚠️ Local Development: Add to hosts file: <code>127.0.0.1 {{ store.subdomain }}.localhost</code>
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-bars"></i> Store Menu</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'resellers:store_dashboard' store.id %}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a href="{% url 'resellers:preview_store' store.id %}" class="list-group-item list-group-item-action" target="_blank">
+                        <i class="fas fa-eye"></i> Preview Store
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="fas fa-box"></i> Products 
+                        <span class="badge bg-primary float-end">0/{{ max_products }}</span>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="fas fa-chart-line"></i> Analytics
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Store Status Card -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Store Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <strong>Status:</strong>
+                        <span class="badge bg-success"><i class="fas fa-check-circle"></i> Active</span>
+                    </div>
+                    <div class="mb-2">
+                        <strong>Published:</strong>
+                        <span class="badge bg-success"><i class="fas fa-globe"></i> Live</span>
+                    </div>
+                    <div class="mb-2">
+                        <strong>Plan:</strong>
+                        {{ store.subscription_plan.get_name_display|title }}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Theme:</strong>
+                        {{ store.theme.name }}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Theme Type:</strong>
+                        {% if theme_type == 'single' %}
+                            <span class="badge bg-info">Single Product</span>
+                        {% else %}
+                            <span class="badge bg-success">Multiple Products</span>
+                        {% endif %}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Max Products:</strong>
+                        {{ max_products }}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Subdomain:</strong>
+                        <code>{{ store.subdomain }}</code>
+                    </div>
+                    {% if store.subscription_end %}
+                        <div class="mb-2">
+                            <strong>Subscription Expires:</strong>
+                            {{ store.subscription_end|date:"M d, Y" }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Add this somewhere in your store_dashboard.html template -->
+{% if days_until_expiry %}
+    <div class="alert {% if is_expiring_soon %}alert-warning{% else %}alert-info{% endif %} mt-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas {% if is_expiring_soon %}fa-exclamation-triangle{% else %}fa-clock{% endif %}"></i>
+                <strong>Subscription Status:</strong>
+                {% if is_expiring_soon %}
+                    Your subscription will expire in <strong>{{ days_until_expiry }} days</strong> ({{ subscription_end|date:"F j, Y" }}).
+                    <a href="{% url 'resellers:manage_subscription' store.id %}" class="alert-link">Renew now →</a>
+                {% else %}
+                    Your subscription is active and expires on {{ subscription_end|date:"F j, Y" }}.
+                    <a href="{% url 'resellers:manage_subscription' store.id %}" class="alert-link">Manage subscription →</a>
+                {% endif %}
+            </div>
+            {% if is_expiring_soon %}
+                <a href="{% url 'resellers:renew_subscription' store.id %}" class="btn btn-warning btn-sm">
+                    <i class="fas fa-sync-alt"></i> Renew Now
+                </a>
+            {% endif %}
+        </div>
+    </div>
+{% elif subscription_plan.duration == 'lifetime' %}
+    <div class="alert alert-success mt-3">
+        <i class="fas fa-crown"></i>
+        <strong>Lifetime Plan!</strong> Your subscription never expires. Thank you for being a valued customer!
+    </div>
+{% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <!-- Quick Actions -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card shadow-sm text-center h-100">
+                        <div class="card-body">
+                            <div class="display-4 text-primary"><i class="fas fa-box"></i></div>
+                            <h5>Add Products</h5>
+                            <p class="text-muted">Start adding products to your store</p>
+                            <a href="#" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Add Product
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm text-center h-100">
+                        <div class="card-body">
+                            <div class="display-4 text-success"><i class="fas fa-eye"></i></div>
+                            <h5>Preview Store</h5>
+                            <p class="text-muted">See how your store looks to customers</p>
+                            <a href="{% url 'resellers:preview_store' store.id %}" class="btn btn-success btn-sm" target="_blank">
+                                <i class="fas fa-external-link-alt"></i> Preview Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm text-center h-100">
+                        <div class="card-body">
+                            <div class="display-4 text-info"><i class="fas fa-share-alt"></i></div>
+                            <h5>Share Store</h5>
+                            <p class="text-muted">Share your store link with customers</p>
+                            <button class="btn btn-info btn-sm" onclick="copyStoreLink()">
+                                <i class="fas fa-copy"></i> Copy Link
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Store Information -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-store"></i> Store Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-tag"></i> Store Name:</strong> {{ store.store_name }}</p>
+                            <p><strong><i class="fas fa-envelope"></i> Contact Email:</strong> {{ store.contact_email }}</p>
+                            {% if store.contact_phone %}
+                                <p><strong><i class="fas fa-phone"></i> Contact Phone:</strong> {{ store.contact_phone }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if store.store_address %}
+                                <p><strong><i class="fas fa-map-marker-alt"></i> Address:</strong> {{ store.store_address }}</p>
+                            {% endif %}
+                            <p><strong><i class="fas fa-link"></i> Store URL:</strong> 
+                                <a href="{{ store_url }}" target="_blank">{{ store_url }}</a>
+                            </p>
+                        </div>
+                    </div>
+                    {% if store.store_description %}
+                        <div class="mt-3">
+                            <strong><i class="fas fa-align-left"></i> Description:</strong>
+                            <p class="text-muted mt-2">{{ store.store_description }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if store.store_logo or store.store_banner %}
+                        <hr>
+                        <div class="row">
+                            {% if store.store_logo %}
+                                <div class="col-md-6">
+                                    <strong>Store Logo:</strong><br>
+                                    <img src="{{ store.store_logo.url }}" alt="Logo" style="max-height: 100px;" class="mt-2">
+                                </div>
+                            {% endif %}
+                            {% if store.store_banner %}
+                                <div class="col-md-6">
+                                    <strong>Store Banner:</strong><br>
+                                    <img src="{{ store.store_banner.url }}" alt="Banner" style="max-height: 100px;" class="mt-2">
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Getting Started Guide -->
+            <div class="card shadow-sm mt-4 bg-light">
+                <div class="card-body">
+                    <h5><i class="fas fa-rocket text-primary"></i> Getting Started Guide</h5>
+                    <div class="row mt-3 text-center">
+                        <div class="col-md-3">
+                            <div class="badge bg-success rounded-circle p-3 mb-2">✓</div>
+                            <p><strong>Create Store</strong><br><small class="text-success">Complete</small></p>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="badge bg-success rounded-circle p-3 mb-2">✓</div>
+                            <p><strong>Payment</strong><br><small class="text-success">Complete</small></p>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="badge bg-secondary rounded-circle p-3 mb-2">3</div>
+                            <p><strong>Add Products</strong><br><small>Start selling</small></p>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="badge bg-secondary rounded-circle p-3 mb-2">4</div>
+                            <p><strong>Start Selling!</strong><br><small>Share your link</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyStoreLink() {
+    const url = "{{ store_url }}";
+    navigator.clipboard.writeText(url).then(function() {
+        alert('✅ Store link copied to clipboard!\n\n' + url);
+    }).catch(function() {
+        alert('❌ Failed to copy link. Please copy manually: ' + url);
+    });
+}
+
+// Auto-fix for any malformed URLs in the page
+document.addEventListener('DOMContentLoaded', function() {
+    let storeUrlElement = document.getElementById('store-url');
+    if (storeUrlElement) {
+        let currentUrl = storeUrlElement.href;
+        if (currentUrl.includes('0.0.1')) {
+            let subdomain = "{{ store.subdomain }}";
+            let fixedUrl = "http://" + subdomain + ".localhost:8000";
+            storeUrlElement.href = fixedUrl;
+            storeUrlElement.textContent = fixedUrl;
+        }
+    }
+});
+</script>
+{% endblock %}

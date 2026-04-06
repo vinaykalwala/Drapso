@@ -1,70 +1,608 @@
+{% extends "dashboard_base.html" %}
 
 {% load static %}
 
-{% block title %}Pending KYC Verifications - Admin{% endblock %}
+{% block title %}Pending KYC Verifications{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">Pending KYC Verifications</h2>
-        <span class="badge bg-warning fs-6 px-3 py-2">{{ total_pending }} Pending</span>
-    </div>
+
+<style>
+  /* ----- reset & base ----- */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  /* main container with proper spacing */
+  .kyc-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  /* ----- modern header area ----- */
+  .kyc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .header-title {
+    display: flex;
+ align-items: baseline;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .header-title h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    background: linear-gradient(135deg, #1e293b, #2d3a5e);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    margin: 0;
+  }
+
+  .pending-pill {
+    background: #fef9e3;
+    color: #b45309;
+    padding: 0.3rem 1rem;
+    border-radius: 40px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid #ffe4b5;
+  }
+
+  .count-badge-modern {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: white;
+    padding: 0.45rem 1.2rem;
+    border-radius: 40px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+  }
+
+  /* ----- responsive grid ----- */
+  .kyc-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  /* ----- main card design ----- */
+  .kyc-card-modern {
+    background: #ffffff;
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    transition: all 0.3s ease;
+    border: 1px solid #edf2f7;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .kyc-card-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #4f46e5, #818cf8, #a78bfa);
+    border-radius: 1.25rem 1.25rem 0 0;
+  }
+
+  .kyc-card-modern:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 32px -12px rgba(79, 70, 229, 0.12);
+    border-color: #e2e8f0;
+  }
+
+  /* card body */
+  .card-body {
+    padding: 1.25rem;
+    flex: 1;
+  }
+
+  /* top row */
+  .card-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .business-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #0f172a;
+    letter-spacing: -0.2px;
+    line-height: 1.3;
+    word-break: break-word;
+  }
+
+  .status-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.25rem 0.9rem;
+    border-radius: 30px;
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+    white-space: nowrap;
+  }
+
+  /* ===== TWO COLUMN GRID FOR NAME + PHONE ===== */
+  .two-col-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    background: #f8fafc;
+    padding: 0.9rem;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid #eef2ff;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .field-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .field-label i {
+    font-size: 0.7rem;
+    color: #6366f1;
+  }
+
+  .field-value {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #1e293b;
+    word-break: break-word;
+    line-height: 1.4;
+  }
+
+  /* clean info rows */
+  .info-row-clean {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #f8fafc;
+  }
+
+  .info-row-clean:last-of-type {
+    border-bottom: none;
+  }
+
+  .info-row-clean i {
+    width: 22px;
+    font-size: 0.85rem;
+    color: #818cf8;
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+  }
+
+  .info-row-clean .info-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #94a3b8;
+    width: 85px;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+  }
+
+  .info-row-clean .info-value {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #334155;
+    flex: 1;
+    word-break: break-word;
+    line-height: 1.4;
+  }
+
+  /* divider */
+  .soft-divider {
+    margin: 0.9rem 0 0.8rem 0;
+    height: 1px;
+    background: linear-gradient(90deg, #eef2ff, #e2e8f0, #eef2ff);
+  }
+
+  /* bottom stats */
+  .card-footer-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.75rem;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .doc-badge-modern {
+    background: #eef2ff;
+    padding: 0.35rem 1rem;
+    border-radius: 40px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #4f46e5;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .date-modern {
+    font-size: 0.7rem;
+    color: #64748b;
+    font-weight: 500;
+    background: #f1f5f9;
+    padding: 0.3rem 0.9rem;
+    border-radius: 40px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  /* review button */
+  .review-btn-modern {
+    display: block;
+    text-align: center;
+    padding: 0.8rem;
+    margin: 0 1.2rem 1.2rem 1.2rem;
+    background: #4f46e5;
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+  }
+
+  .review-btn-modern:hover {
+    background: #4338ca;
+    transform: scale(0.98);
+    box-shadow: 0 6px 14px rgba(79, 70, 229, 0.25);
+  }
+
+  /* empty state */
+  .empty-modern {
+    background: white;
+    border-radius: 1.25rem;
+    padding: 3rem 1.5rem;
+    text-align: center;
+    border: 1px solid #eef2ff;
+  }
+
+  .empty-modern p {
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  /* ========== RESPONSIVE DESIGN - PERFECT MOBILE & TABLET ========== */
+  
+  /* Tablet view */
+  @media (max-width: 900px) {
+    .kyc-grid-modern {
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
     
+    .kyc-wrapper {
+      padding: 1.25rem;
+    }
+    .content{
+        margin-top: 70px;
+    }
+  }
+
+  /* Mobile view - extra spacing and margin for breathing room */
+  @media (max-width: 640px) {
+    .kyc-wrapper {
+      padding: 0.9rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+     .content{
+        margin-top: 70px;
+     }
+    /* header spacing on mobile */
+    .kyc-header {
+      margin-bottom: 1.5rem;
+      padding: 0 0.25rem;
+    }
+    
+    .header-title h1 {
+      font-size: 1.35rem;
+    }
+    
+    .pending-pill {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.85rem;
+    }
+    
+    .count-badge-modern {
+      font-size: 0.75rem;
+      padding: 0.35rem 1rem;
+    }
+    
+    /* card adjustments */
+    .kyc-card-modern {
+      margin: 0 0.25rem;
+      border-radius: 1.1rem;
+    }
+    
+    .card-body {
+      padding: 1rem;
+    }
+    
+    .business-name {
+      font-size: 1rem;
+    }
+    
+    /* TWO COLUMN BECOMES STACKED ON MOBILE - clean vertical layout */
+    .two-col-row {
+      grid-template-columns: 1fr;
+      gap: 0.8rem;
+      padding: 0.8rem;
+      margin-bottom: 0.9rem;
+    }
+    
+    .field-group {
+      gap: 0.25rem;
+    }
+    
+    .field-label {
+      font-size: 0.6rem;
+    }
+    
+    .field-value {
+      font-size: 0.85rem;
+    }
+    
+    /* info rows responsive */
+    .info-row-clean {
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      padding: 0.5rem 0;
+    }
+    
+    .info-row-clean .info-label {
+      width: auto;
+      min-width: 70px;
+      font-size: 0.65rem;
+    }
+    
+    .info-row-clean .info-value {
+      font-size: 0.82rem;
+    }
+    
+    .info-row-clean i {
+      width: 18px;
+      font-size: 0.75rem;
+    }
+    
+    /* divider spacing */
+    .soft-divider {
+      margin: 0.7rem 0;
+    }
+    
+    /* bottom stats */
+    .card-footer-stats {
+      margin-top: 0.6rem;
+      gap: 0.6rem;
+    }
+    
+    .doc-badge-modern {
+      font-size: 0.68rem;
+      padding: 0.3rem 0.85rem;
+    }
+    
+    .date-modern {
+      font-size: 0.65rem;
+      padding: 0.25rem 0.75rem;
+    }
+    
+    /* button */
+    .review-btn-modern {
+      margin: 0 1rem 1rem 1rem;
+      padding: 0.7rem;
+      font-size: 0.8rem;
+    }
+  }
+
+  /* Very small devices (phones under 480px) */
+  @media (max-width: 480px) {
+    .kyc-wrapper {
+      padding: 0.7rem;
+      margin-top: 0.25rem;
+    }
+    
+    .kyc-header {
+      margin-bottom: 1.2rem;
+    }
+    
+    .header-title h1 {
+      font-size: 1.2rem;
+    }
+    
+    .card-body {
+      padding: 0.85rem;
+    }
+    
+    .two-col-row {
+      padding: 0.7rem;
+      gap: 0.7rem;
+    }
+    
+    .field-value {
+      font-size: 0.8rem;
+    }
+    
+    .info-row-clean .info-label {
+      min-width: 60px;
+      font-size: 0.6rem;
+    }
+    
+    .info-row-clean .info-value {
+      font-size: 0.75rem;
+    }
+    
+    .review-btn-modern {
+      margin: 0 0.85rem 0.85rem 0.85rem;
+      padding: 0.65rem;
+      font-size: 0.75rem;
+    }
+    
+    .doc-badge-modern {
+      font-size: 0.65rem;
+      padding: 0.25rem 0.75rem;
+    }
+    
+    .date-modern {
+      font-size: 0.6rem;
+      padding: 0.2rem 0.7rem;
+    }
+  }
+
+  /* Landscape mode fix for mobile */
+  @media (max-width: 850px) and (orientation: landscape) {
+    .kyc-grid-modern {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+    
+    .kyc-wrapper {
+      padding: 1rem;
+    }
+    
+    .card-body {
+      padding: 0.9rem;
+    }
+  }
+</style>
+
+<div class="content">
+  <div class="kyc-wrapper">
+    
+    <!-- header area -->
+    <div class="kyc-header">
+      <div class="header-title">
+        <h1>KYC Verification</h1>
+        <div class="pending-pill">Pending reviews</div>
+      </div>
+      <div class="count-badge-modern">
+        {{ total_pending }} pending
+      </div>
+    </div>
+
     {% if pending_kyc %}
-        <div class="row">
-            {% for kyc in pending_kyc %}
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card shadow-sm border-0 h-100">
-                        <div class="card-header bg-white border-0 py-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0 fw-semibold">{{ kyc.wholeseller.inventory.business_name }}</h6>
-                                <span class="badge bg-warning">Pending</span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <p class="mb-1">
-                                    <i class="fas fa-user text-success me-2"></i>
-                                    <strong>{{ kyc.wholeseller.get_full_name|default:kyc.wholeseller.username }}</strong>
-                                </p>
-                                <p class="mb-1 text-muted small">
-                                    <i class="fas fa-envelope me-2"></i>{{ kyc.wholeseller.email }}
-                                </p>
-                                <p class="mb-1 text-muted small">
-                                    <i class="fas fa-phone me-2"></i>{{ kyc.wholeseller.phone }}
-                                </p>
-                            </div>
-                            <hr>
-                            <div class="mb-2">
-                                <i class="fas fa-warehouse text-success me-2"></i>
-                                <strong>{{ kyc.wholeseller.inventory.warehouse_name }}</strong>
-                                <br>
-                                <small class="text-muted">{{ kyc.wholeseller.inventory.city }}, {{ kyc.wholeseller.inventory.state }}</small>
-                            </div>
-                            <div class="mt-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="badge bg-info">📄 {{ kyc.get_documents_count }}/5 Documents</span>
-                                    <span class="badge bg-secondary">📅 {{ kyc.submitted_at|date:"d M Y" }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-white border-0">
-                            <a href="{% url 'wholesellers:admin_review_kyc' kyc.id %}" class="btn btn-primary btn-sm w-100">
-                                Review Application <i class="fas fa-arrow-right ms-2"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="card shadow-sm border-0">
-            <div class="card-body text-center py-5">
-                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
-                <h4>No Pending Verifications</h4>
-                <p class="text-muted">All wholeseller applications have been reviewed.</p>
+    <div class="kyc-grid-modern">
+      {% for kyc in pending_kyc %}
+      <div class="kyc-card-modern">
+        <div class="card-body">
+          <!-- top row with business name -->
+          <div class="card-row-top">
+            <div class="business-name">
+              {{ kyc.wholeseller.inventory.business_name }}
             </div>
+            <div class="status-badge">
+              ⏳ Pending
+            </div>
+          </div>
+
+          <!-- NAME + PHONE - two column grid (stacks nicely on mobile) -->
+          <div class="two-col-row">
+            <div class="field-group">
+              <div class="field-label">
+                <i class="fas fa-user-circle"></i>
+                FULL NAME
+              </div>
+              <div class="field-value">
+                {{ kyc.wholeseller.get_full_name|default:kyc.wholeseller.username }}
+              </div>
+            </div>
+            <div class="field-group">
+              <div class="field-label">
+                <i class="fas fa-phone-alt"></i>
+                PHONE NUMBER
+              </div>
+              <div class="field-value">
+                {{ kyc.wholeseller.phone }}
+              </div>
+            </div>
+          </div>
+
+          <!-- email row -->
+          <div class="info-row-clean">
+            <i class="fas fa-envelope"></i>
+            <span class="info-label">EMAIL</span>
+            <span class="info-value">{{ kyc.wholeseller.email }}</span>
+          </div>
+
+          <!-- warehouse row -->
+          <div class="info-row-clean">
+            <i class="fas fa-warehouse"></i>
+            <span class="info-label">WAREHOUSE</span>
+            <span class="info-value">{{ kyc.wholeseller.inventory.warehouse_name }}</span>
+          </div>
+
+          <!-- location row -->
+          <div class="info-row-clean">
+            <i class="fas fa-map-marker-alt"></i>
+            <span class="info-label">LOCATION</span>
+            <span class="info-value">{{ kyc.wholeseller.inventory.city }}, {{ kyc.wholeseller.inventory.state }}</span>
+          </div>
+
+          <div class="soft-divider"></div>
+
+          <!-- bottom stats -->
+          <div class="card-footer-stats">
+            <div class="doc-badge-modern">
+              📄 {{ kyc.get_documents_count }}/5 documents
+            </div>
+            <div class="date-modern">
+              📅 {{ kyc.submitted_at|date:"d M Y" }}
+            </div>
+          </div>
         </div>
+
+        <!-- review button -->
+        <a href="{% url 'wholesellers:admin_review_kyc' kyc.id %}" class="review-btn-modern">
+          Review application →
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-modern">
+      <p>✨ No pending KYC verifications</p>
+    </div>
     {% endif %}
+
+  </div>
 </div>
+
 {% endblock %}

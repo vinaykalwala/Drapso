@@ -1,0 +1,74 @@
+
+
+{% block title %}Manage Subscription Plans{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card shadow">
+        <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-tags"></i> Subscription Plans</h4>
+            <a href="{% url 'resellers:plan_create' %}" class="btn btn-light">
+                <i class="fas fa-plus"></i> Add New Plan
+            </a>
+        </div>
+        <div class="card-body">
+            {% if plans %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Duration</th>
+                                <th>Price</th>
+                                <th>Multiple Theme Limit</th>
+                                <th>Features</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for plan in plans %}
+                            <tr>
+                                <td><strong>{{ plan.get_name_display }}</strong></td>
+                                <td>{{ plan.get_duration_display }}</td>
+                                <td>${{ plan.price }}</td>
+                                <td>{{ plan.multiple_theme_limit }} products</td>
+                                <td>
+                                    {% for feature in plan.get_features_list %}
+                                        <span class="badge bg-info mb-1">{{ feature }}</span>
+                                    {% empty %}
+                                        <span class="text-muted">No features listed</span>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% if plan.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'resellers:plan_edit' plan.id %}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit">Edit</i>
+                                    </a>
+                                    <a href="{% url 'resellers:plan_delete' plan.id %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash">Delete</i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-tags display-1 text-muted"></i>
+                    <h3>No Plans Created</h3>
+                    <p class="text-muted">Create subscription plans to offer different pricing tiers</p>
+                    <a href="{% url 'resellers:plan_create' %}" class="btn btn-primary">Create First Plan</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

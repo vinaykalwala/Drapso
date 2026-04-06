@@ -1,0 +1,236 @@
+
+{% load static %}
+
+{% block title %}Complete Payment - {{ store.store_name }}{% endblock %}
+
+{% block extra_css %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<style>
+    .summary-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    .step-completed {
+        color: #28a745;
+    }
+    .step-pending {
+        color: #6c757d;
+    }
+    .order-summary {
+        border-left: 3px solid #28a745;
+    }
+    .detail-row {
+        padding: 10px 0;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Step Indicator -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-light border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <h5 class="mb-0">Step {{ step }} of {{ total_steps }}</h5>
+                            <small class="text-muted">{{ step_title }}</small>
+                        </div>
+                        <div class="mt-2 mt-sm-0">
+                            <div class="progress" style="width: 250px; height: 10px;">
+                                <div class="progress-bar bg-success" style="width: {% widthratio step total_steps 100 %}%"></div>
+                            </div>
+                            <small class="text-muted">{{ step }}/{{ total_steps }} completed</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Left Column - Previous Steps Summary -->
+        <div class="col-md-5 mb-4">
+            <div class="card shadow sticky-top" style="top: 20px;">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-list-check"></i> Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Store Details Step -->
+                    <div class="detail-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="step-completed"><i class="fas fa-check-circle"></i></span>
+                                <strong class="ms-2">Store Details</strong>
+                            </div>
+                            {% if can_go_back %}
+                                <a href="{% url 'resellers:create_store_step1' %}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            {% endif %}
+                        </div>
+                        <div class="ms-4 mt-2">
+                            <p class="mb-1"><small><strong>Store Name:</strong> {{ store.store_name }}</small></p>
+                            <p class="mb-1"><small><strong>Contact Email:</strong> {{ store.contact_email }}</small></p>
+                            {% if store.contact_phone %}
+                                <p class="mb-0"><small><strong>Contact Phone:</strong> {{ store.contact_phone }}</small></p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Plan Selection Step -->
+                    <div class="detail-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="step-completed"><i class="fas fa-check-circle"></i></span>
+                                <strong class="ms-2">Subscription Plan</strong>
+                            </div>
+                            {% if can_go_back %}
+                                <a href="{% url 'resellers:select_plan' %}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-edit"></i> Change
+                                </a>
+                            {% endif %}
+                        </div>
+                        <div class="ms-4 mt-2">
+                            <p class="mb-1"><small><strong>Plan:</strong> {{ plan.get_name_display|title }} ({{ plan.get_duration_display }})</small></p>
+                            <p class="mb-1"><small><strong>Price:</strong> ${{ plan.price }}/{{ plan.get_duration_display }}</small></p>
+                            <p class="mb-0"><small><strong>Max Products:</strong> 
+                                {% if store.theme and store.theme.theme_type == 'single' %}
+                                    1 product
+                                {% else %}
+                                    {{ plan.multiple_theme_limit }} products
+                                {% endif %}
+                            </small></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Theme Selection Step -->
+                    <div class="detail-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="step-completed"><i class="fas fa-check-circle"></i></span>
+                                <strong class="ms-2">Store Theme</strong>
+                            </div>
+                            {% if can_go_back %}
+                                <a href="{% url 'resellers:select_theme' %}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-edit"></i> Change
+                                </a>
+                            {% endif %}
+                        </div>
+                        <div class="ms-4 mt-2">
+                            <p class="mb-1"><small><strong>Theme:</strong> {{ store.theme.name }}</small></p>
+                            <p class="mb-0"><small><strong>Theme Type:</strong> {{ store.theme.get_theme_type_display }}</small></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Total Amount -->
+                    <div class="detail-row bg-light mt-3 pt-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>Total Amount</strong>
+                            <h4 class="text-primary mb-0">${{ amount }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column - Payment Form -->
+        <div class="col-md-7">
+            <div class="card shadow">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-credit-card"></i> Complete Payment</h4>
+                </div>
+                
+                   
+                    
+                    <!-- Payment Warning -->
+                    <div class="alert alert-warning">
+                        <i class="fas fa-shield-alt"></i>
+                        <strong>Secure Payment</strong> - Your payment is processed securely via Razorpay.
+                    </div>
+                    
+                    <!-- Payment Button -->
+                    <div class="d-grid gap-2">
+                        {% if can_go_back %}
+                            <a href="{% url back_url %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-arrow-left"></i> Back to Theme Selection
+                            </a>
+                        {% endif %}
+                        <button id="pay-button" class="btn btn-success btn-lg">
+                            <i class="fas fa-rupee-sign"></i> Pay ${{ amount }} Now
+                        </button>
+                    </div>
+                    
+                    <p class="text-center text-muted mt-3 small">
+                        <i class="fas fa-lock"></i> 100% Secure Payment
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var options = {
+        "key": "{{ razorpay_key_id }}",
+        "amount": {{ amount }} * 100,
+        "currency": "INR",
+        "name": "Drapso",
+        "description": "Store Subscription - {{ store.store_name }}",
+        "order_id": "{{ razorpay_order_id }}",
+        "handler": function (response) {
+            // Create form and submit
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{% url 'resellers:payment_success' %}";
+            
+            var csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = '{{ csrf_token }}';
+            form.appendChild(csrfInput);
+            
+            var orderInput = document.createElement('input');
+            orderInput.type = 'hidden';
+            orderInput.name = 'razorpay_order_id';
+            orderInput.value = response.razorpay_order_id;
+            form.appendChild(orderInput);
+            
+            var paymentInput = document.createElement('input');
+            paymentInput.type = 'hidden';
+            paymentInput.name = 'razorpay_payment_id';
+            paymentInput.value = response.razorpay_payment_id;
+            form.appendChild(paymentInput);
+            
+            var signatureInput = document.createElement('input');
+            signatureInput.type = 'hidden';
+            signatureInput.name = 'razorpay_signature';
+            signatureInput.value = response.razorpay_signature;
+            form.appendChild(signatureInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        },
+        "theme": {
+            "color": "#28a745"
+        },
+        "modal": {
+            "ondismiss": function() {
+                window.location.href = "{% url 'resellers:payment_failed' %}";
+            }
+        }
+    };
+    
+    var rzp = new Razorpay(options);
+    
+    document.getElementById('pay-button').onclick = function(e) {
+        rzp.open();
+        e.preventDefault();
+    }
+</script>
+{% endblock %}

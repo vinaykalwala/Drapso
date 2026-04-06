@@ -1,0 +1,226 @@
+
+{% block title %}{{ store.store_name }} - Featured Product{% endblock %}
+
+{% block content %}
+<div class="single-product-store single-product-theme">
+    <!-- Store Header -->
+    <header class="bg-white shadow-sm">
+        <div class="container py-4">
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center text-md-start">
+                    {% if store.store_logo %}
+                        <img src="{{ store.store_logo.url }}" alt="{{ store.store_name }}" style="max-height: 80px;">
+                    {% else %}
+                        <div class="bg-gradient-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                            <h2 class="mb-0">{{ store.store_name|slice:":2"|upper }}</h2>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 text-center">
+                    <h1>{{ store.store_name }}</h1>
+                    <p class="text-muted">{{ store.store_description|default:"Welcome to our single product store!" }}</p>
+                </div>
+                <div class="col-md-3 text-center text-md-end">
+                    <p><i class="fas fa-envelope"></i> {{ store.contact_email }}</p>
+                    {% if store.contact_phone %}
+                        <p><i class="fas fa-phone"></i> {{ store.contact_phone }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Store Banner -->
+    {% if store.store_banner %}
+        <div class="store-banner">
+            <img src="{{ store.store_banner.url }}" alt="Store Banner" class="img-fluid w-100" style="max-height: 300px; object-fit: cover;">
+        </div>
+    {% endif %}
+    
+    <!-- Single Product Hero Section -->
+    <main class="container py-5">
+        {% if products %}
+            {% with products|first as product %}
+                {% if product %}
+                    <div class="row justify-content-center">
+                        <div class="col-lg-10">
+                            <div class="card shadow-lg border-0 product-hero">
+                                <div class="row g-0">
+                                    <!-- Product Image Column -->
+                                    <div class="col-md-6">
+                                        {% if product.main_image %}
+                                            <img src="{{ product.main_image.url }}" class="img-fluid rounded-start product-image" alt="{{ product.name }}">
+                                        {% else %}
+                                            <div class="bg-light d-flex align-items-center justify-content-center product-placeholder">
+                                                <i class="fas fa-image fa-5x text-muted"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Product Details Column -->
+                                    <div class="col-md-6">
+                                        <div class="card-body p-4 p-lg-5">
+                                            <div class="product-badge mb-3">
+                                                <span class="badge bg-primary">Featured Product</span>
+                                                {% if product.discount_percentage %}
+                                                    <span class="badge bg-danger ms-2">{{ product.discount_percentage }}% OFF</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <h2 class="product-title">{{ product.name }}</h2>
+                                            
+                                            <!-- Pricing -->
+                                            <div class="product-price mb-4">
+                                                {% if product.compare_price %}
+                                                    <span class="h1 text-primary">${{ product.price }}</span>
+                                                    <span class="text-muted ms-2"><del>${{ product.compare_price }}</del></span>
+                                                {% else %}
+                                                    <span class="h1 text-primary">${{ product.price }}</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <!-- Stock Status -->
+                                            <div class="product-stock mb-3">
+                                                {% if product.stock_quantity > 0 %}
+                                                    <span class="text-success">
+                                                        <i class="fas fa-check-circle"></i> In Stock ({{ product.stock_quantity }} available)
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-danger">
+                                                        <i class="fas fa-times-circle"></i> Out of Stock
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <!-- Description -->
+                                            <div class="product-description mb-4">
+                                                <h5>Description</h5>
+                                                <p class="text-muted">{{ product.description|linebreaks }}</p>
+                                            </div>
+                                            
+                                            <!-- Action Buttons -->
+                                            <div class="product-actions">
+                                                {% if product.stock_quantity > 0 %}
+                                                    <div class="d-grid gap-2">
+                                                        <button class="btn btn-primary btn-lg" onclick="alert('Add to cart functionality coming soon!')">
+                                                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                                                        </button>
+                                                        <button class="btn btn-success btn-lg" onclick="alert('Buy now functionality coming soon!')">
+                                                            <i class="fas fa-bolt"></i> Buy Now
+                                                        </button>
+                                                    </div>
+                                                {% else %}
+                                                    <button class="btn btn-secondary btn-lg w-100" disabled>
+                                                        <i class="fas fa-times-circle"></i> Out of Stock
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Empty State - No Product Yet -->
+                    <div class="text-center py-5">
+                        <div class="empty-state">
+                            <i class="fas fa-gem display-1 text-primary mb-4"></i>
+                            <h3>Our Signature Product is Coming!</h3>
+                            <p class="lead">We're crafting something special just for you.</p>
+                            <p>Stay tuned for the big reveal!</p>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endwith %}
+        {% else %}
+            <!-- Empty State - No Products at All -->
+            <div class="text-center py-5">
+                <div class="empty-state">
+                    <i class="fas fa-star display-1 text-primary mb-4"></i>
+                    <h3>Something Amazing is Coming!</h3>
+                    <p class="lead">{{ store.store_name }} is preparing a special product.</p>
+                    <p>Be the first to know when it launches!</p>
+                </div>
+            </div>
+        {% endif %}
+    </main>
+    
+    <!-- Store Address Section -->
+    {% if store.store_address %}
+        <div class="container mb-5">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5><i class="fas fa-map-marker-alt"></i> Location</h5>
+                            <p class="mb-0">{{ store.store_address }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Store Footer -->
+    <footer class="bg-light py-4 mt-5">
+        <div class="container text-center">
+            <p>&copy; {% now "Y" %} {{ store.store_name }}. All rights reserved.</p>
+            <p class="small text-muted">Powered by Drapso | Single Product Theme</p>
+        </div>
+    </footer>
+</div>
+
+<style>
+    .single-product-theme {
+        min-height: 100vh;
+    }
+    .product-hero {
+        border: none;
+        overflow: hidden;
+    }
+    .product-image {
+        width: 100%;
+        height: 100%;
+        min-height: 400px;
+        object-fit: cover;
+    }
+    .product-placeholder {
+        width: 100%;
+        height: 400px;
+        background: #f8f9fa;
+    }
+    .product-title {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    .product-price {
+        border-bottom: 1px solid #e0e0e0;
+        padding-bottom: 1rem;
+    }
+    .product-description {
+        line-height: 1.6;
+    }
+    .empty-state {
+        padding: 3rem;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    @media (max-width: 768px) {
+        .product-image {
+            min-height: 300px;
+        }
+        .product-title {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<script>
+    console.log("Single Product Theme Loaded for: {{ store.store_name }}");
+</script>
+{% endblock %}

@@ -1,95 +1,779 @@
-
-{% block title %}Wholeseller Addresses{% endblock %}
+{% extends "dashboard_base.html" %}
+{% load static %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-warehouse me-2"></i>Warehouse Addresses
-                        <a href="{% url 'accounts:add_wholeseller_address' %}" class="btn btn-light btn-sm float-end">
-                            <i class="fas fa-plus me-1"></i>Add Address
-                        </a>
-                    </h4>
-                </div>
-                <div class="card-body">
-                    {% if addresses %}
-                        <div class="row">
-                            {% for address in addresses %}
-                                <div class="col-md-6 mb-3">
-                                    <div class="card {% if address.is_primary %}border-primary{% endif %}">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <h5 class="card-title">
-                                                        {{ address.address_name }}
-                                                        {% if address.is_primary %}
-                                                            <span class="badge bg-primary ms-2">Primary</span>
-                                                        {% endif %}
-                                                        {% if not address.is_active %}
-                                                            <span class="badge bg-secondary ms-2">Inactive</span>
-                                                        {% endif %}
-                                                    </h5>
-                                                    <p class="card-text">
-                                                        <strong>Address:</strong> {{ address.address_line1 }}, 
-                                                        {% if address.address_line2 %}{{ address.address_line2 }}, {% endif %}
-                                                        {{ address.city }}, {{ address.state }} - {{ address.postal_code }}<br>
-                                                        <strong>Country:</strong> {{ address.country }}<br>
-                                                        <strong>Contact Person:</strong> {{ address.contact_person }}<br>
-                                                        <strong>Contact Phone:</strong> {{ address.contact_phone }}
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                            Actions
-                                                        </button>
-                                                        <ul class="dropdown-menu">
-                                                            <li>
-                                                                <a class="dropdown-item" href="{% url 'accounts:edit_wholeseller_address' address.id %}">
-                                                                    <i class="fas fa-edit me-2"></i>Edit
-                                                                </a>
-                                                            </li>
-                                                            {% if not address.is_primary %}
-                                                                <li>
-                                                                    <a class="dropdown-item" href="{% url 'accounts:set_primary_wholeseller_address' address.id %}">
-                                                                        <i class="fas fa-star me-2"></i>Set as Primary
-                                                                    </a>
-                                                                </li>
-                                                                <li>
-                                                                    <hr class="dropdown-divider">
-                                                                </li>
-                                                                <li>
-                                                                    <a class="dropdown-item text-danger" href="{% url 'accounts:delete_wholeseller_address' address.id %}" 
-                                                                       onclick="return confirm('Are you sure you want to delete this address?')">
-                                                                        <i class="fas fa-trash me-2"></i>Delete
-                                                                    </a>
-                                                                </li>
-                                                            {% endif %}
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-map-marker-alt fa-4x text-muted mb-3"></i>
-                            <h5>No Addresses Added</h5>
-                            <p class="text-muted">Add warehouse addresses to manage shipping locations.</p>
-                            <a href="{% url 'accounts:add_wholeseller_address' %}" class="btn btn-primary">
-                                <i class="fas fa-plus me-2"></i>Add Address
-                            </a>
-                        </div>
-                    {% endif %}
-                </div>
+
+<style>
+/* Professional Clean Design */
+.content {
+    background: #f8fafc;
+}
+
+/* Page Container */
+.page-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
+
+/* Modern Header */
+.page-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.header-left h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0 0 6px 0;
+    letter-spacing: -0.3px;
+}
+
+.header-left p {
+    color: #64748b;
+    font-size: 14px;
+    margin: 0;
+}
+
+.btn-primary-modern {
+    background: #3b82f6;
+    color: white;
+    padding: 10px 24px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary-modern:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59,130,246,0.2);
+}
+
+/* Address Grid */
+.address-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 24px;
+}
+
+/* Address Card - New Design */
+.address-card {
+    background: white;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.address-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.1);
+    border-color: #cbd5e1;
+}
+
+/* Primary Card Highlight */
+.address-card.primary {
+    border: 2px solid #3b82f6;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.address-card.primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -100% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Primary Badge - Enhanced */
+.primary-badge-enhanced {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+}
+
+.primary-badge-enhanced i {
+    font-size: 12px;
+}
+
+/* Card Header */
+.card-header {
+    padding: 20px 20px 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.address-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.address-title h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0;
+}
+
+.badge-modern {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge-inactive {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+/* Card Body */
+.card-body {
+    padding: 0 20px;
+}
+
+/* Person & Contact Section */
+.person-section {
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 20px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.person-avatar {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.person-avatar i {
+    font-size: 28px;
+    color: white;
+}
+
+.person-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 14px;
+    height: 14px;
+    background: #10b981;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+.person-details {
+    flex: 1;
+}
+
+.person-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.person-name i {
+    font-size: 14px;
+    color: #3b82f6;
+}
+
+.contact-info-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #475569;
+}
+
+.contact-item i {
+    font-size: 12px;
+    color: #3b82f6;
+}
+
+.contact-item strong {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+/* Location Section */
+.location-section {
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.address-line {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.address-line i {
+    color: #3b82f6;
+    font-size: 14px;
+    margin-top: 2px;
+}
+
+.address-text {
+    color: #334155;
+    font-size: 14px;
+    line-height: 1.5;
+    flex: 1;
+}
+
+.location-tags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.location-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #475569;
+    background: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+.location-tag i {
+    color: #3b82f6;
+    font-size: 11px;
+}
+
+/* Additional Info Grid */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.info-card {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.info-card-icon {
+    width: 34px;
+    height: 34px;
+    background: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-card-icon i {
+    font-size: 16px;
+    color: #3b82f6;
+}
+
+.info-card-content {
+    flex: 1;
+}
+
+.info-card-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.info-card-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+/* Action Buttons - 3 Buttons with Light Colors */
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px 20px 20px;
+    background: white;
+    border-top: 1px solid #f1f5f9;
+}
+
+.btn-action {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Edit Button - Light Blue */
+.btn-edit {
+    background: #eff6ff;
+    color: #3b82f6;
+    border: 1px solid #bfdbfe;
+}
+
+.btn-edit:hover {
+    background: #dbeafe;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(59,130,246,0.15);
+}
+
+/* Set Primary Button - Light Green */
+.btn-set-primary {
+    background: #f0fdf4;
+    color: #10b981;
+    border: 1px solid #bbf7d0;
+}
+
+.btn-set-primary:hover {
+    background: #dcfce7;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(16,185,129,0.15);
+}
+
+/* Delete Button - Light Red */
+.btn-delete {
+    background: #fef2f2;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+}
+
+.btn-delete:hover {
+    background: #fee2e2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(239,68,68,0.15);
+}
+
+/* Empty State */
+.empty-state-modern {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 24px;
+    border: 1px solid #e2e8f0;
+}
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    background: #f8fafc;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+}
+
+.empty-icon i {
+    font-size: 40px;
+    color: #94a3b8;
+}
+
+.empty-state-modern h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+}
+
+.empty-state-modern p {
+    color: #64748b;
+    font-size: 14px;
+    margin: 0 0 24px 0;
+}
+
+/* Responsive Design - Enhanced */
+@media (max-width: 1024px) {
+    .address-grid {
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 20px;
+    }
+}
+@media (max-width: 925px) {
+    .content {
+        padding-top: 10px;
+    }
+}
+@media (max-width: 768px) {
+    .content {
+        padding-top: 10px;
+    }
+    
+    .page-container {
+        padding: 20px 16px;
+        margin-top: 10px;
+    }
+    
+    .page-header-modern {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .header-left h1 {
+        font-size: 24px;
+    }
+    
+    .address-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        margin-top: 10px;
+    }
+    
+    .address-card {
+        margin-bottom: 0;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 10px;
+        padding: 16px 16px 20px 16px;
+    }
+    
+    .btn-action {
+        width: 100%;
+        padding: 12px;
+    }
+    
+    .contact-info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .person-section {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+    
+    .contact-info-row {
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .person-name {
+        justify-content: center;
+    }
+    
+    .location-tags {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .location-tag {
+        width: auto;
+    }
+    
+    /* Extra spacing for mobile */
+    .card-header {
+        padding: 16px 16px 0 16px;
+    }
+    
+    .card-body {
+        padding: 0 16px;
+    }
+    
+    .person-section,
+    .location-section {
+        padding: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-container {
+        padding: 16px 12px;
+        margin-top: 5px;
+    }
+    
+    .page-header-modern {
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .header-left h1 {
+        font-size: 22px;
+    }
+    
+    .header-left p {
+        font-size: 13px;
+    }
+    
+    .btn-primary-modern {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+    }
+    
+    .address-title {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .address-title h3 {
+        font-size: 16px;
+    }
+    
+    .person-avatar {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .person-avatar i {
+        font-size: 24px;
+    }
+    
+    .person-name {
+        font-size: 14px;
+    }
+    
+    .contact-item {
+        font-size: 12px;
+    }
+    
+    .location-tag {
+        font-size: 11px;
+        padding: 4px 10px;
+    }
+    
+    .info-card {
+        padding: 10px;
+    }
+    
+    .info-card-value {
+        font-size: 12px;
+    }
+    
+    .btn-action {
+        font-size: 12px;
+        padding: 10px;
+    }
+}
+
+/* Landscape mode fix */
+@media (max-width: 768px) and (orientation: landscape) {
+    .address-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    }
+    
+    .page-container {
+        padding: 16px;
+    }
+}
+</style>
+
+<div class="content">
+<div class="page-container">
+
+<!-- Modern Header -->
+<div class="page-header-modern">
+    <div class="header-left">
+        <h1>
+            <i class="fas fa-warehouse" style="color: #3b82f6;"></i> 
+            Warehouse Addresses
+        </h1>
+    </div>
+    <a href="{% url 'accounts:add_wholeseller_address' %}" class="btn-primary-modern">
+        <i class="fas fa-plus-circle"></i> Add New Address
+    </a>
+</div>
+
+<!-- Address Cards Grid -->
+{% if addresses %}
+<div class="address-grid">
+    {% for address in addresses %}
+    <div class="address-card {% if address.is_primary %}primary{% endif %}">
+        
+        <!-- Card Header -->
+        <div class="card-header">
+            <div class="address-title">
+                <h3>{{ address.address_name }}</h3>
+                {% if address.is_primary %}
+                <span class="primary-badge-enhanced">
+                    <i class="fas fa-crown"></i> PRIMARY LOCATION
+                </span>
+                {% endif %}
+                {% if not address.is_active %}
+                <span class="badge-modern badge-inactive">
+                    <i class="fas fa-clock"></i> Inactive
+                </span>
+                {% endif %}
             </div>
         </div>
+        
+        <!-- Card Body -->
+        <div class="card-body">
+            
+            <!-- Person & Contact Section -->
+            <div class="person-section">
+                <div class="person-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="person-details">
+                    <div class="person-name">
+                        <i class="fas fa-user-tie"></i> {{ address.contact_person }}
+                    </div>
+                    <div class="contact-info-row">
+                        <div class="contact-item">
+                            <i class="fas fa-phone-alt"></i>
+                            <strong>Phone:</strong> {{ address.contact_phone }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Location Section -->
+            <div class="location-section">
+                <div class="address-line">
+                    <i class="fas fa-location-dot"></i>
+                    <div class="address-text">
+                        {{ address.address_line1 }}
+                        {% if address.address_line2 %}
+                        <br>{{ address.address_line2 }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="location-tags">
+                    <span class="location-tag">
+                        <i class="fas fa-city"></i> {{ address.city }}
+                    </span>
+                    <span class="location-tag">
+                        <i class="fas fa-map-pin"></i> {{ address.state }}
+                    </span>
+                    <span class="location-tag">
+                        <i class="fas fa-code"></i> {{ address.postal_code }}
+                    </span>
+                    <span class="location-tag">
+                        <i class="fas fa-globe"></i> {{ address.country }}
+                    </span>
+                </div>
+            </div>
+            
+           </div>
+        
+        <!-- Action Buttons - 3 Light Colors -->
+        <div class="action-buttons">
+            <a href="{% url 'accounts:edit_wholeseller_address' address.id %}" class="btn-action btn-edit">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            
+            {% if not address.is_primary %}
+            <a href="{% url 'accounts:set_primary_wholeseller_address' address.id %}" class="btn-action btn-set-primary">
+                <i class="fas fa-star"></i> Set Primary
+            </a>
+            {% endif %}
+            
+            {% if not address.is_primary %}
+            <a href="{% url 'accounts:delete_wholeseller_address' address.id %}"
+               onclick="return confirm('Are you sure you want to delete this address?')"
+               class="btn-action btn-delete">
+                <i class="fas fa-trash-alt"></i> Delete
+            </a>
+            {% endif %}
+        </div>
+        
     </div>
+    {% endfor %}
 </div>
+
+<!-- Empty State -->
+{% else %}
+<div class="empty-state-modern">
+    <div class="empty-icon">
+        <i class="fas fa-map-marked-alt"></i>
+    </div>
+    <h3>No Warehouse Addresses</h3>
+    <p>Add your first warehouse address to start managing shipments</p>
+    <a href="{% url 'accounts:add_wholeseller_address' %}" class="btn-primary-modern">
+        <i class="fas fa-plus-circle"></i> Add Address
+    </a>
+</div>
+{% endif %}
+
+</div>
+</div>
+
 {% endblock %}

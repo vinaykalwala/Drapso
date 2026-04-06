@@ -1,0 +1,63 @@
+
+{% block content %}
+<div class="container py-5">
+    <!-- Step Indicator -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="progress">
+                <div class="progress-bar bg-success" style="width: 50%">Step {{ step }} of {{ total_steps }}</div>
+            </div>
+            <div class="text-center mt-2">
+                <small class="text-muted">Step {{ step }}: Select Subscription Plan</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12 text-center mb-5">
+            <h1>Choose Your Subscription Plan</h1>
+            <p class="lead">Select the perfect plan for your store</p>
+        </div>
+    </div>
+    
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="row">
+            {% for plan in plans %}
+            <div class="col-md-4 mb-4">
+                <div class="card plan-card h-100 shadow">
+                    <div class="card-header text-center {% if plan.name == 'gold' %}bg-primary text-white{% else %}bg-secondary text-white{% endif %}">
+                        <h3>{{ plan.get_name_display|title }}</h3>
+                        <h2 class="display-4">${{ plan.price }}</h2>
+                        <p class="mb-0">/{{ plan.get_duration_display }}</p>
+                    </div>
+                    <div class="card-body">
+                        <!-- Plan details -->
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="plan_id" value="{{ plan.id }}" id="plan_{{ plan.id }}" {% if store.subscription_plan.id == plan.id %}checked{% endif %}>
+                            <label class="form-check-label" for="plan_{{ plan.id }}">
+                                Select {{ plan.get_name_display }} Plan
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                {% if can_go_back %}
+                    <button type="submit" name="back" value="back" class="btn btn-secondary btn-lg px-4 me-2">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                {% endif %}
+                <button type="submit" name="next" value="next" class="btn btn-primary btn-lg px-5">
+                    Continue to Theme Selection <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

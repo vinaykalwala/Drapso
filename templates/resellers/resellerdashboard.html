@@ -1,0 +1,80 @@
+
+{% block title %}Reseller Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h3 class="mb-0"><i class="fas fa-chart-line"></i> Reseller Dashboard</h3>
+                </div>
+                <div class="card-body">
+                    <h4>Welcome, {{ user.first_name }}! 👋</h4>
+                    
+                    {% if stores %}
+                        <div class="row mt-4">
+                            {% for store in stores %}
+                                <div class="col-md-6 mb-4">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h5>{{ store.store_name }}</h5>
+                                            <p class="text-muted">{{ store.store_description|truncatewords:20 }}</p>
+                                            
+                                            <div class="mb-3">
+                                                <strong>Status:</strong>
+                                                {% if store.status == 'active' and store.is_published %}
+                                                    <span class="badge bg-success">Live</span>
+                                                {% elif store.status == 'pending_payment' %}
+                                                    <span class="badge bg-warning">Payment Pending</span>
+                                                {% elif store.status == 'expired' %}
+                                                    <span class="badge bg-danger">Expired</span>
+                                                {% elif store.status == 'suspended' %}
+                                                    <span class="badge bg-danger">Suspended</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ store.status }}</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <strong>Plan:</strong>
+                                                {% if store.subscription_plan %}
+                                                    {{ store.subscription_plan.get_name_display|title }}
+                                                {% else %}
+                                                    <span class="text-muted">Not selected</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <strong>Theme:</strong>
+                                                {% if store.theme %}
+                                                    {{ store.theme.name }}
+                                                {% else %}
+                                                    <span class="text-muted">Not selected</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <a href="{{ store.next_step_url }}" class="btn btn-primary">
+                                                <i class="{{ store.next_step_icon }}"></i> {{ store.next_step }}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-store display-1 text-muted"></i>
+                            <h3 class="mt-3">No Store Yet</h3>
+                            <p>Create your first store to start selling!</p>
+                            <a href="{% url 'resellers:create_store_step1' %}" class="btn btn-primary btn-lg">
+                                Create Store →
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,148 +1,674 @@
-
+{% extends 'dashboard_base.html' %}
 {% load static %}
 
 {% block title %}Review KYC - {{ inventory.business_name }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-0 py-3">
-                    <h5 class="mb-0">KYC Documents Review</h5>
-                    <p class="text-muted mb-0">{{ inventory.business_name }} - {{ kyc.wholeseller.get_full_name }}</p>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Document Type</th>
-                                    <th>Document Number</th>
-                                    <th>File</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for doc_name, doc_info in documents.items %}
-                                <tr>
-                                    <td>
-                                        <i class="{{ doc_info.icon }} me-2"></i>
-                                        {{ doc_name }}
-                                    </td>
-                                    <td>{{ doc_info.number|default:"—" }}</td>
-                                    <td>
-                                        {% if doc_info.file %}
-                                            <a href="{{ doc_info.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i> View
-                                            </a>
-                                        {% else %}
-                                            <span class="text-danger">Not Uploaded</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if doc_info.file %}
-                                            <span class="badge bg-success">Uploaded</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">Missing</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    .kyc-wrapper {
+        padding: 20px;
+        background: #f3f4f6;
+        min-height: 100vh;
+    }
+    
+    .kyc-container {
+        max-width: 1300px;
+        margin: 0 auto;
+    }
+    
+    /* Modern Card Style */
+    .modern-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+        overflow: hidden;
+    }
+    
+    .card-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+        padding: 16px 20px;
+        background: white;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .card-title i {
+        color: #4f46e5;
+        font-size: 18px;
+    }
+    
+    /* Main Layout - Simple Flex */
+    .kyc-layout {
+        display: flex;
+        gap: 20px;
+    }
+    
+    /* Left Column */
+    .kyc-left {
+        flex: 1.5;
+        min-width: 0;
+    }
+    
+    /* Right Column */
+    .kyc-right {
+        flex: 1;
+        min-width: 280px;
+    }
+    
+    /* Document Cards Grid - 2 per row */
+    .docs-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        padding: 20px;
+    }
+    
+    .doc-card {
+        background: #fafcff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 16px;
+        transition: all 0.2s;
+    }
+    
+    .doc-card:hover {
+        border-color: #c7d2fe;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .doc-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .doc-icon {
+        width: 44px;
+        height: 44px;
+        background: #eef2ff;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #4f46e5;
+        font-size: 20px;
+    }
+    
+    .doc-info {
+        flex: 1;
+    }
+    
+    .doc-name {
+        font-weight: 700;
+        font-size: 14px;
+        color: #1f2937;
+        margin-bottom: 4px;
+    }
+    
+    .doc-status {
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 20px;
+    }
+    
+    .status-uploaded {
+        background: #d1fae5;
+        color: #059669;
+    }
+    
+    .status-missing {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+    
+    .doc-number {
+        background: #f3f4f6;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin: 12px 0;
+        font-size: 12px;
+    }
+    
+    .doc-number label {
+        font-size: 10px;
+        color: #6b7280;
+        display: block;
+        margin-bottom: 2px;
+    }
+    
+    .doc-number p {
+        font-weight: 600;
+        color: #1f2937;
+        font-family: monospace;
+        font-size: 13px;
+    }
+    
+    .doc-action {
+        margin-top: 12px;
+    }
+    
+    .btn-view-doc {
+        background: #4f46e5;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .btn-view-doc:hover {
+        background: #4338ca;
+        transform: translateY(-1px);
+    }
+    
+    .btn-disabled {
+        background: #e5e7eb;
+        color: #9ca3af;
+        cursor: not-allowed;
+    }
+    
+    .btn-disabled:hover {
+        background: #e5e7eb;
+        transform: none;
+    }
+    
+    /* Info Cards */
+    .info-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        overflow: hidden;
+    }
+    
+    .info-card:last-child {
+        margin-bottom: 0;
+    }
+    
+    .info-card-header {
+        padding: 14px 16px;
+        background: #fafcff;
+        border-bottom: 1px solid #e5e7eb;
+        font-weight: 600;
+        font-size: 14px;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .info-card-header i {
+        color: #4f46e5;
+        width: 20px;
+    }
+    
+    .info-card-body {
+        padding: 14px 16px;
+    }
+    
+   .info-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    align-items: start;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.info-label {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.info-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+    word-break: break-word;
+}
+    
+    .info-row:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+    
+   
+    
+    /* Action Buttons */
+   .action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.action-buttons button {
+    flex: 1;
+}
+    .btn-approve {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-approve:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-reject {
+        background: white;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-reject:hover {
+        background: #fef2f2;
+        transform: translateY(-1px);
+    }
+    
+    .reject-box {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #e5e7eb;
+        display: none;
+    }
+    
+    .reject-box textarea {
+        width: 100%;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 13px;
+        font-family: inherit;
+        resize: vertical;
+    }
+    
+    .reject-box textarea:focus {
+        outline: none;
+        border-color: #4f46e5;
+    }
+    
+    .reject-box small {
+        font-size: 11px;
+        color: #6b7280;
+        display: block;
+        margin: 6px 0;
+    }
+    
+    .btn-confirm {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 13px;
+        width: 100%;
+        margin-top: 10px;
+        cursor: pointer;
+    }
+    
+    .btn-confirm:hover {
+        background: #b91c1c;
+    }
+    
+    /* Summary Bar */
+    .summary-bar {
+        background: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .summary-stats {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .stat {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .stat i {
+        font-size: 18px;
+    }
+    
+    .stat-total i { color: #4f46e5; }
+    .stat-uploaded i { color: #10b981; }
+    .stat-missing i { color: #ef4444; }
+    
+    .stat span {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #4f46e5;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+    }
+    
+    .back-link:hover {
+        color: #4338ca;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1100px) {
+        .kyc-layout {
+            flex-direction: column;
+        }
         
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-0 py-3">
-                    <h5 class="mb-0">Business Information</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="text-muted small text-uppercase">Business Name</label>
-                        <p class="mb-0 fw-semibold">{{ inventory.business_name }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="text-muted small text-uppercase">Business Type</label>
-                        <p class="mb-0">{{ inventory.get_business_type_display }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="text-muted small text-uppercase">Years in Business</label>
-                        <p class="mb-0">{{ kyc.years_in_business }} years</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="text-muted small text-uppercase">Annual Turnover</label>
-                        <p class="mb-0">₹ {{ kyc.annual_turnover|default:"Not specified" }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="text-muted small text-uppercase">Warehouse</label>
-                        <p class="mb-0">{{ inventory.warehouse_name }}</p>
-                        <p class="text-muted small mb-0">{{ inventory.full_address }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="text-muted small text-uppercase">Contact</label>
-                        <p class="mb-0">{{ inventory.contact_person }}</p>
-                        <p class="mb-0">{{ inventory.contact_phone }}</p>
-                        <p class="mb-0">{{ inventory.contact_email }}</p>
-                    </div>
-                </div>
-            </div>
+        .summary-bar {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .docs-grid {
+            grid-template-columns: 1fr;
+        }
+        
+       
+    }
+    /* Responsive */
+    @media (max-width: 900px) {
+        .kyc-layout {
+            flex-direction: column;
+        }
+        
+        .summary-bar {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .docs-grid {
+            grid-template-columns: 1fr;
+        }
+          .content{
+            margin-top: 80px;
+        }
+       
+    }
+    
+    @media (max-width: 640px) {
+        .kyc-wrapper {
+            padding: 12px;
+        }
+        
+        .info-row {
+            flex-direction: column;
+        }
+        
+        .info-label {
+            width: auto;
+            margin-bottom: 4px;
+        }
+    }
+    
+    /* Empty State */
+    .empty-docs {
+        text-align: center;
+        padding: 40px;
+        color: #9ca3af;
+    }
+    
+    .empty-docs i {
+        font-size: 48px;
+        margin-bottom: 12px;
+    }
+    
+</style>
+
+<div class="content">
+    <div class="kyc-wrapper">
+        <div class="kyc-container">
             
-            <div class="card shadow-sm border-0 mt-4">
-                <div class="card-header bg-white border-0 py-3">
-                    <h5 class="mb-0">Verification Action</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST">
-                        {% csrf_token %}
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Decision</label>
-                            <div class="d-grid gap-2">
-                                <button type="submit" name="action" value="approve" class="btn btn-success">
-                                    <i class="fas fa-check-circle"></i> Approve
-                                </button>
-                                <button type="button" class="btn btn-danger" onclick="showRejectForm()">
-                                    <i class="fas fa-times-circle"></i> Reject
-                                </button>
-                            </div>
+          
+            
+            <!-- Main Layout -->
+            <div class="kyc-layout">
+                
+                <!-- LEFT: Document Cards -->
+                <div class="kyc-left">
+                    <div class="modern-card">
+                        <div class="card-title">
+                            <i class="fas fa-file-alt"></i>
+                            KYC Documents
+                            <span style="margin-left: auto; font-size: 12px; font-weight: normal; color: #6b7280;">
+                                {{ inventory.business_name }}
+                            </span>
                         </div>
                         
-                        <div id="rejectForm" style="display: none;">
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Rejection Reason *</label>
-                                <textarea name="rejection_reason" class="form-control" rows="3" placeholder="Please provide reason for rejection..."></textarea>
-                                <small class="text-muted">This will be sent to the wholeseller via email</small>
+                        <div class="docs-grid">
+                            {% for doc_name, doc_info in documents.items %}
+                            <div class="doc-card">
+                                <div class="doc-card-header">
+                                    <div class="doc-icon">
+                                        <i class="fas fa-file-invoice"></i>
+                                    </div>
+                                    <div class="doc-info">
+                                        <div class="doc-name">{{ doc_name }}</div>
+                                        {% if doc_info.file %}
+                                            <span class="doc-status status-uploaded">
+                                                <i class="fas fa-check-circle"></i> Uploaded
+                                            </span>
+                                        {% else %}
+                                            <span class="doc-status status-missing">
+                                                <i class="fas fa-exclamation-circle"></i> Missing
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                {% if doc_info.number %}
+                                <div class="doc-number">
+                                    <label><i class="fas fa-hashtag"></i> Document Number</label>
+                                    <p>{{ doc_info.number }}</p>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="doc-action">
+                                    {% if doc_info.file %}
+                                        <a href="{{ doc_info.file.url }}" target="_blank" class="btn-view-doc">
+                                            <i class="fas fa-eye"></i> View Document
+                                        </a>
+                                    {% else %}
+                                        <span class="btn-view-doc btn-disabled">
+                                            <i class="fas fa-ban"></i> Not Available
+                                        </span>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <div class="d-grid">
-                                <button type="submit" name="action" value="reject" class="btn btn-danger">
-                                    Confirm Rejection
-                                </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- RIGHT: Information Cards -->
+                <div class="kyc-right">
+                    
+                    <!-- Business Info -->
+                    <div class="info-card">
+                        <div class="info-card-header">
+                            <i class="fas fa-building"></i>
+                            Business Information
+                        </div>
+                        <div class="info-card-body">
+                            <div class="info-row">
+                                <div class="info-label">Business Name</div>
+                                <div class="info-value">{{ inventory.business_name }}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Business Type</div>
+                                <div class="info-value">{{ inventory.get_business_type_display }}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Years in Business</div>
+                                <div class="info-value">{{ kyc.years_in_business }} years</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Annual Turnover</div>
+                                <div class="info-value">₹ {{ kyc.annual_turnover|default:"Not specified" }}</div>
                             </div>
                         </div>
-                    </form>
-                </div>
-            </div>
+                    </div>
+                    
+                    <!-- Warehouse Info -->
+                    <div class="info-card">
+                        <div class="info-card-header">
+                            <i class="fas fa-warehouse"></i>
+                            Warehouse Details
+                        </div>
+                        <div class="info-card-body">
+                            <div class="info-row">
+                                <div class="info-label">Warehouse Name</div>
+                                <div class="info-value">{{ inventory.warehouse_name }}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Address</div>
+                                <div class="info-value">{{ inventory.full_address }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact Info -->
+                    <div class="info-card">
+                        <div class="info-card-header">
+                            <i class="fas fa-address-card"></i>
+                            Contact Information
+                        </div>
+                        <div class="info-card-body">
+                            <div class="info-row">
+                                <div class="info-label">Contact Person</div>
+                                <div class="info-value">{{ inventory.contact_person }}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Phone</div>
+                                <div class="info-value">{{ inventory.contact_phone }}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Email</div>
+                                <div class="info-value">{{ inventory.contact_email }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                  
+            
         </div>
     </div>
+    <br>
+      <!-- Action Card -->
+                    <div class="info-card">
+                       
+                        <div class="info-card-body">
+                            <form method="POST">
+                                {% csrf_token %}
+                                
+                                <div class="action-buttons">
+                                    <button type="submit" name="action" value="approve" class="btn-approve">
+                                        <i class="fas fa-check-circle"></i> Approve KYC
+                                    </button>
+                                    
+                                    <button type="button" class="btn-reject" onclick="toggleReject()">
+                                        <i class="fas fa-times-circle"></i> Reject Application
+                                    </button>
+                                </div>
+                                
+                                <div id="rejectBox" class="reject-box">
+                                    <textarea name="rejection_reason" rows="3" placeholder="Please provide reason for rejection..."></textarea>
+                                    <small>
+                                        <i class="fas fa-info-circle"></i> This will be sent to the wholeseller via email
+                                    </small>
+                                    <button type="submit" name="action" value="reject" class="btn-confirm">
+                                        <i class="fas fa-check-circle"></i> Confirm Rejection
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
 </div>
 
 <script>
-function showRejectForm() {
-    document.getElementById('rejectForm').style.display = 'block';
+function toggleReject() {
+    const box = document.getElementById('rejectBox');
+    if (box.style.display === 'none' || box.style.display === '') {
+        box.style.display = 'block';
+        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+        box.style.display = 'none';
+    }
 }
-</script>
 
-<style>
-    .table th {
-        border-top: none;
+// Make sure Font Awesome icons are loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if Font Awesome is loaded
+    if (typeof FontAwesome === 'undefined') {
+        console.log('Font Awesome icons should be available from dashboard_base.html');
     }
-    .card {
-        border-radius: 12px;
-    }
-</style>
+});
+</script>
 {% endblock %}

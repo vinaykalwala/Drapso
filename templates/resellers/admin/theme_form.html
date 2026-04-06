@@ -1,0 +1,78 @@
+
+{% block title %}{% if theme %}Edit{% else %}Create{% endif %} Theme{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-palette"></i> {% if theme %}Edit{% else %}Create{% endif %} Theme</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Theme Name *</label>
+                            <input type="text" name="name" class="form-control" value="{{ theme.name|default:'' }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Theme Type *</label>
+                            <select name="theme_type" class="form-control" required>
+                                <option value="single" {% if theme.theme_type == 'single' %}selected{% endif %}>Single Product Theme</option>
+                                <option value="multiple" {% if theme.theme_type == 'multiple' %}selected{% endif %}>Multiple Products Theme</option>
+                            </select>
+                            <small class="text-muted">Single: Only 1 product | Multiple: Multiple products based on plan</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="3">{{ theme.description|default:'' }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Preview Image</label>
+                            {% if theme and theme.preview_image %}
+                                <div class="mb-2">
+                                    <img src="{{ theme.preview_image.url }}" alt="Current Preview" class="img-fluid rounded" style="max-height: 200px;">
+                                    <p class="text-muted small mt-1">Current preview image</p>
+                                </div>
+                            {% endif %}
+                            <input type="file" name="preview_image" class="form-control" accept="image/*">
+                            <small class="text-muted">Recommended size: 1200x800px. Allowed formats: JPG, PNG, GIF</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Thumbnail</label>
+                            {% if theme and theme.thumbnail %}
+                                <div class="mb-2">
+                                    <img src="{{ theme.thumbnail.url }}" alt="Current Thumbnail" class="img-fluid rounded" style="max-height: 150px;">
+                                    <p class="text-muted small mt-1">Current thumbnail</p>
+                                </div>
+                            {% endif %}
+                            <input type="file" name="thumbnail" class="form-control" accept="image/*">
+                            <small class="text-muted">Recommended size: 400x300px. Allowed formats: JPG, PNG, GIF</small>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Note:</strong> Images will be automatically resized and optimized. Leave file fields empty to keep current images.
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'resellers:theme_list' %}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> {% if theme %}Update{% else %}Create{% endif %} Theme
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

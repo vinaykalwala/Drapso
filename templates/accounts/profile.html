@@ -1,452 +1,1264 @@
-{% extends 'base.html' %}
+{% extends 'dashboard_base.html' %}
 {% block title %}My Profile{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-user-circle me-2"></i>My Profile
-                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-light btn-sm float-end">
-                            <i class="fas fa-edit me-1"></i>Edit Profile
-                        </a>
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <!-- Profile Picture Section -->
-                        <div class="col-md-3 text-center">
-                            {% if profile and profile.avatar %}
-                                <img src="{{ profile.avatar.url }}" alt="Avatar" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
-                            {% else %}
-                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 150px; height: 150px;">
-                                    <i class="fas fa-user fa-4x text-white"></i>
-                                </div>
-                            {% endif %}
-                            <h4>{{ user.full_name }}</h4>
-                            <p class="text-muted">{{ role }}</p>
-                            {% if is_superuser %}
-                                <span class="badge bg-danger">Superuser</span>
-                            {% endif %}
+{% load static %}
+
+<style>
+    /* Unique Profile Styles - No conflict with existing classes */
+    .profile-main-wrapper {
+        padding: 1.5rem;
+        background: linear-gradient(145deg, #f3f4f6 0%, #eef2ff 100%);
+        min-height: 100vh;
+    }
+    
+    .profile-card-premium {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Header */
+    .profile-header-premium {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        padding: 1rem 1.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .profile-title {
+        color: white;
+        font-weight: 700;
+        font-size: 1.3rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+    }
+    
+    /* Two Column Layout */
+    .profile-two-columns {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    /* Left Sidebar - Only Profile and Buttons */
+    .profile-left-sidebar {
+        width: 300px;
+        background: #fafcff;
+        border-right: 1px solid #eef2ff;
+        padding: 2rem 1.5rem;
+        position: sticky;
+        top: 0;
+        align-self: flex-start;
+      
+    }
+    
+    .profile-avatar-area {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .profile-avatar-img {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid white;
+        box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.12);
+    }
+    
+    .profile-avatar-placeholder {
+        width: 140px;
+        height: 140px;
+        background: linear-gradient(145deg, #cbd5e1, #94a3b8);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.12);
+    }
+    
+    .profile-avatar-placeholder i {
+        font-size: 3.5rem;
+        color: white;
+    }
+    
+    .profile-display-name {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-top: 0.8rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .profile-role-badge {
+        font-size: 0.75rem;
+        color: #4f46e5;
+        background: #eef2ff;
+        display: inline-block;
+        padding: 0.2rem 1rem;
+        border-radius: 30px;
+    }
+    
+    .profile-superuser-tag {
+        display: inline-block;
+        background: #dc2626;
+        color: white;
+        font-size: 0.65rem;
+        padding: 0.2rem 0.8rem;
+        border-radius: 30px;
+        margin-top: 0.5rem;
+    }
+    
+    /* Navigation Buttons on Sidebar */
+    .profile-nav-buttons {
+        margin-top: 1rem;
+        padding-top: 1rem;
+    }
+    
+    .profile-nav-title {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #94a3b8;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .profile-nav-btn {
+        width: 100%;
+        text-align: left;
+        padding: 0.8rem 1rem;
+        margin-bottom: 0.5rem;
+        border: none;
+        background: #f8fafc;
+        border-radius: 12px;
+        color: #1e293b;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+    
+    .profile-nav-btn i {
+        width: 24px;
+        color: #4f46e5;
+        font-size: 1rem;
+    }
+    
+    .profile-nav-btn:hover {
+        background: #eef2ff;
+        transform: translateX(5px);
+    }
+    
+    .profile-nav-btn.active {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: white;
+    }
+    
+    .profile-nav-btn.active i {
+        color: white;
+    }
+    
+    /* Right Content Area */
+    .profile-right-content {
+        flex: 1;
+        padding: 1.8rem;
+        background: white;
+    }
+    
+    /* 3 Stats Cards on Top of Right Side */
+    .profile-top-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .profile-stat-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 1px solid #eef2ff;
+    }
+    
+    .profile-stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.12);
+        border-color: #c7d2fe;
+    }
+    
+    /* Different gradient backgrounds for stats cards */
+    .profile-stat-card:nth-child(1) {
+        background: linear-gradient(145deg, #eff6ff, #ffffff);
+        border-bottom: 3px solid #3b82f6;
+    }
+    
+    .profile-stat-card:nth-child(2) {
+        background: linear-gradient(145deg, #f0fdf4, #ffffff);
+        border-bottom: 3px solid #10b981;
+    }
+    
+    .profile-stat-card:nth-child(3) {
+        background: linear-gradient(145deg, #fffbe9, #ffffff);
+        border-bottom: 3px solid #f59e0b;
+    }
+    
+    .profile-stat-card i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+    }
+    
+    .profile-stat-card:nth-child(1) i {
+        color: #3b82f6;
+    }
+    
+    .profile-stat-card:nth-child(2) i {
+        color: #10b981;
+    }
+    
+    .profile-stat-card:nth-child(3) i {
+        color: #f59e0b;
+    }
+    
+    .profile-stat-card h3 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin: 0;
+        color: #0f172a;
+    }
+    
+    .profile-stat-card p {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #64748b;
+        margin: 0.3rem 0 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Admin Stats Cards Different Colors */
+    .profile-stat-card.admin-stat:nth-child(1) {
+        background: linear-gradient(145deg, #fbf6ff, #ffffff);
+        border-bottom: 3px solid #a855f7;
+    }
+    
+    .profile-stat-card.admin-stat:nth-child(1) i {
+        color: #a855f7;
+    }
+    
+    .profile-stat-card.admin-stat:nth-child(2) {
+        background: linear-gradient(145deg, #fff0f1, #ffffff);
+        border-bottom: 3px solid #f43f5e;
+    }
+    
+    .profile-stat-card.admin-stat:nth-child(2) i {
+        color: #f43f5e;
+    }
+    
+    .profile-stat-card.admin-stat:nth-child(3) {
+        background: linear-gradient(145deg, #f1faff, #ffffff);
+        border-bottom: 3px solid #0ea5e9;
+    }
+    
+    .profile-stat-card.admin-stat:nth-child(3) i {
+        color: #0ea5e9;
+    }
+    
+    /* Info Cards on Right - Dynamic Content */
+    .profile-info-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid #eef2ff;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        display: none;
+    }
+    
+    .profile-info-card.active-card {
+        display: block;
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .profile-info-card:hover {
+        border-color: #c7d2fe;
+        box-shadow: 0 8px 20px -12px rgba(99, 102, 241, 0.12);
+    }
+    
+    .profile-info-header {
+        background: linear-gradient(145deg, #fafcff, #ffffff);
+        padding: 1rem 1.3rem;
+        border-bottom: 1px solid #eef2ff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .profile-info-header h5 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .profile-info-header h5 i {
+        color: #4f46e5;
+        font-size: 1rem;
+    }
+    
+    .profile-info-body {
+        padding: 1.2rem 1.3rem;
+    }
+    
+    .profile-info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .profile-info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        padding: 0.5rem;
+        border-radius: 12px;
+        transition: all 0.2s;
+        border-bottom: 1px solid #eeeeee;
+    }
+    
+    .profile-info-item:hover {
+        background: #f5f7ff;
+        transform: translateX(3px);
+    }
+    
+    .profile-info-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .profile-info-label i {
+        font-size: 0.6rem;
+        color: #4f46e5;
+    }
+    
+    .profile-info-value {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #1e293b;
+        word-break: break-word;
+    }
+    
+    .profile-info-value a {
+        color: #4f46e5;
+        text-decoration: none;
+    }
+    
+    .profile-info-value a:hover {
+        text-decoration: underline;
+    }
+    
+    .profile-empty-state {
+        text-align: center;
+        padding: 1.5rem;
+    }
+    
+    .profile-empty-state i {
+        font-size: 2rem;
+        color: #cbd5e1;
+        margin-bottom: 0.5rem;
+    }
+    
+    .profile-empty-state p {
+        color: #64748b;
+        font-size: 0.8rem;
+    }
+    
+    .profile-btn-sm {
+        padding: 0.3rem 1rem;
+        border-radius: 40px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s;
+    }
+    
+    .profile-btn-primary {
+        background: #eef2ff;
+        color: #4f46e5;
+    }
+    
+    .profile-btn-primary:hover {
+        background: #e0e7ff;
+        transform: translateY(-1px);
+    }
+    
+    .profile-badge-active {
+        background: #10b981;
+        color: white;
+        padding: 0.2rem 0.7rem;
+        border-radius: 30px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .profile-badge-inactive {
+        background: #ef4444;
+        color: white;
+        padding: 0.2rem 0.7rem;
+        border-radius: 30px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .profile-badge-warning {
+        background: #f59e0b;
+        color: white;
+        padding: 0.2rem 0.7rem;
+        border-radius: 30px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .profile-badge-info {
+        background: #3b82f6;
+        color: white;
+        padding: 0.2rem 0.7rem;
+        border-radius: 30px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .profile-badge-secondary {
+        background: #64748b;
+        color: white;
+        padding: 0.2rem 0.7rem;
+        border-radius: 30px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    /* Account Info Sidebar at bottom of left */
+    .profile-account-info {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eef2ff;
+    }
+    
+    .profile-account-title {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #94a3b8;
+        margin-bottom: 0.8rem;
+    }
+    
+    .profile-account-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        font-size: 0.75rem;
+    }
+    
+    .profile-account-label {
+        color: #64748b;
+    }
+    
+    .profile-account-value {
+        font-weight: 600;
+        color: #0f172a;
+    }
+    
+    /* 3 Small Stats Cards Row (like in original) */
+    .profile-small-stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .profile-small-stat-card {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .profile-small-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .profile-small-stat-card i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+    }
+    
+    .profile-small-stat-card h4 {
+        font-size: 1.2rem;
+        font-weight: 800;
+        margin: 0;
+        color: #0f172a;
+    }
+    
+    .profile-small-stat-card p {
+        font-size: 0.65rem;
+        font-weight: 600;
+        color: #64748b;
+        margin: 0.2rem 0 0;
+        text-transform: uppercase;
+    }
+    
+    .profile-small-stat-card:nth-child(1) i { color: #3b82f6; }
+    .profile-small-stat-card:nth-child(2) i { color: #10b981; }
+    .profile-small-stat-card:nth-child(3) i { color: #f59e0b; }
+    
+    @media (max-width: 900px) {
+        .profile-main-wrapper {
+            padding: 1rem;
+        }
+        .profile-left-sidebar {
+            width: 100%;
+            border-right: none;
+            border-bottom: 1px solid #eef2ff;
+            position: relative;
+            height: auto;
+        }
+        .profile-info-grid {
+            grid-template-columns: 1fr;
+        }
+        .profile-top-stats {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.8rem;
+        }
+        .profile-header-premium {
+            flex-direction: column;
+            text-align: center;
+        }
+        .profile-right-content {
+            padding: 1.2rem;
+        }
+        .profile-small-stats-row {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+        .content{
+            margin-top: 80px;
+        }
+    }
+    
+    @media (max-width: 550px) {
+        .profile-top-stats {
+            grid-template-columns: 1fr;
+        }
+        .profile-small-stats-row {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @keyframes profileFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .profile-card-premium {
+        animation: profileFadeIn 0.5s ease-out;
+    }
+</style>
+
+<div class="content">
+<div class="profile-main-wrapper">
+    <div class="profile-card-premium">
+        
+        <!-- Header -->
+        <div class="profile-header-premium">
+            <div class="profile-title">
+                <i class="fas fa-user-circle"></i>
+                My Profile
+            </div>
+            <a href="{% url 'accounts:edit_profile' %}" class="profile-edit-btn" style="background-color: #ffffff;padding: 10px; color: #1f6ff0;text-decoration: none;border-radius: 10px;">
+                <i class="fas fa-edit"></i> Edit Profile
+            </a>
+        </div>
+        
+        <!-- Two Column Layout -->
+        <div class="profile-two-columns">
+            
+            <!-- LEFT SIDEBAR - Only Profile Image and Buttons -->
+            <div class="profile-left-sidebar">
+                <div class="profile-avatar-area">
+                    {% if profile and profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" alt="Avatar" class="profile-avatar-img">
+                    {% else %}
+                        <div class="profile-avatar-placeholder">
+                            <i class="fas fa-user"></i>
                         </div>
-                        
-                        <!-- Personal Information -->
-                        <div class="col-md-9">
-                            <div class="card mb-3">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>Personal Information</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <p><strong>Username:</strong> {{ user.username|default:"No data available" }}</p>
-                                            <p><strong>First Name:</strong> {{ user.first_name|default:"No data available" }}</p>
-                                            <p><strong>Middle Name:</strong> {{ user.middle_name|default:"No data available" }}</p>
-                                            <p><strong>Last Name:</strong> {{ user.last_name|default:"No data available" }}</p>
-                                            <p><strong>Email:</strong> {{ user.email|default:"No data available" }}</p>
-                                            <p><strong>Phone:</strong> {{ user.phone|default:"No data available" }}</p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <p><strong>Role:</strong> {{ user.get_role_display|default:"No data available" }}</p>
-                                            <p><strong>Member Since:</strong> {{ user.date_joined|date:"F d, Y H:i"|default:"No data available" }}</p>
-                                            <p><strong>Last Login:</strong> {{ user.last_login|date:"F d, Y H:i"|default:"Never" }}</p>
-                                            <p><strong>Status:</strong> 
-                                                {% if user.is_active %}
-                                                    <span class="badge bg-success">Active</span>
-                                                {% else %}
-                                                    <span class="badge bg-danger">Inactive</span>
-                                                {% endif %}
-                                            </p>
-                                            <p><strong>Verified:</strong> 
-                                                {% if user.is_verified %}
-                                                    <span class="badge bg-success">Yes</span>
-                                                {% else %}
-                                                    <span class="badge bg-warning">No</span>
-                                                {% endif %}
-                                            </p>
-                                            <p><strong>Staff Access:</strong> 
-                                                {% if user.is_staff %}
-                                                    <span class="badge bg-info">Yes</span>
-                                                {% else %}
-                                                    <span class="badge bg-secondary">No</span>
-                                                {% endif %}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
+                    {% endif %}
+                    <div class="profile-display-name">{{ user.full_name }}</div>
+                    <div><span class="profile-role-badge">{{ role }}</span></div>
+                    {% if is_superuser %}
+                        <div><span class="profile-superuser-tag"><i class="fas fa-shield-alt"></i> Superuser</span></div>
+                    {% endif %}
+                </div>
+                
+                <!-- NAVIGATION BUTTONS -->
+                <div class="profile-nav-buttons">
+                    <div class="profile-nav-title">
+                        <i class="fas fa-compass"></i> Quick Navigation
+                    </div>
+                    <button class="profile-nav-btn active" onclick="showTab('personal')">
+                        <i class="fas fa-user-circle"></i> Personal Information
+                    </button>
+                    <button class="profile-nav-btn" onclick="showTab('bank')">
+                        <i class="fas fa-university"></i> Bank Account
+                    </button>
+                    
+                    {% if user.role == 'wholeseller' %}
+                    <button class="profile-nav-btn" onclick="showTab('business')">
+                        <i class="fas fa-building"></i> Business Information
+                    </button>
+                    <button class="profile-nav-btn" onclick="showTab('address')">
+                        <i class="fas fa-warehouse"></i> Warehouse Address
+                    </button>
+                    {% endif %}
+                    
+                    {% if user.role == 'reseller' %}
+                    <button class="profile-nav-btn" onclick="showTab('business')">
+                        <i class="fas fa-chart-line"></i> Reseller Information
+                    </button>
+                    <button class="profile-nav-btn" onclick="showTab('address')">
+                        <i class="fas fa-address-card"></i> Address
+                    </button>
+                    {% endif %}
+                    
+                    {% if user.role == 'admin' %}
+                    <button class="profile-nav-btn" onclick="showTab('admin_info')">
+                        <i class="fas fa-user-shield"></i> Admin Information
+                    </button>
+                    {% endif %}
+                </div>
+                
+                <!-- Small Account Info at Bottom -->
+                <div class="profile-account-info">
+                    <div class="profile-account-title">
+                        <i class="fas fa-info-circle"></i> Account Status
+                    </div>
+                    <div class="profile-account-row">
+                        <span class="profile-account-label">Member Since:</span>
+                        <span class="profile-account-value">{{ user.date_joined|date:"M d, Y"|default:"—" }}</span>
+                    </div>
+                    <div class="profile-account-row">
+                        <span class="profile-account-label">Last Login:</span>
+                        <span class="profile-account-value">{{ user.last_login|date:"M d, Y"|default:"Never" }}</span>
+                    </div>
+                  
+                    
+                </div>
+            </div>
+            
+            <!-- RIGHT CONTENT - Top Stats Cards + Dynamic Content -->
+            <div class="profile-right-content">
+                
+                <!-- RESELLER: 3 STATS CARDS ON TOP -->
+                {% if user.role == 'reseller' and profile %}
+                <div class="profile-top-stats">
+                    <div class="profile-stat-card">
+                        <i class="fas fa-chart-simple"></i>
+                        <h3>₹{{ profile.total_sales|default:"0" }}</h3>
+                        <p>Total Sales</p>
+                    </div>
+                    <div class="profile-stat-card">
+                        <i class="fas fa-coins"></i>
+                        <h3>₹{{ profile.total_commission_earned|default:"0" }}</h3>
+                        <p>Commission Earned</p>
+                    </div>
+                    <div class="profile-stat-card">
+                        <i class="fas fa-users"></i>
+                        <h3>{{ profile.number_of_referrals|default:"0" }}</h3>
+                        <p>Total Referrals</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- WHOLESELLER: 3 STATS CARDS ON TOP -->
+                {% if user.role == 'wholeseller' and profile %}
+                <div class="profile-top-stats">
+                    <div class="profile-stat-card">
+                        <i class="fas fa-users"></i>
+                        <h3>{{ profile.number_of_employees|default:"0" }}</h3>
+                        <p>Employees</p>
+                    </div>
+                    <div class="profile-stat-card">
+                        <i class="fas fa-calendar"></i>
+                        <h3>{{ profile.years_in_business|default:"0" }} yrs</h3>
+                        <p>Experience</p>
+                    </div>
+                    <div class="profile-stat-card">
+                        <i class="fas fa-rupee-sign"></i>
+                        <h3>₹{{ profile.annual_turnover|default:"0" }}Cr</h3>
+                        <p>Annual Turnover</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- ADMIN: 3 STATS CARDS ON TOP -->
+                {% if user.role == 'admin' and profile %}
+                <div class="profile-top-stats">
+                    <div class="profile-stat-card admin-stat">
+                        <i class="fas fa-id-card"></i>
+                        <h3>{{ profile.employee_id|default:"—"|truncatechars:8 }}</h3>
+                        <p>Employee ID</p>
+                    </div>
+                    <div class="profile-stat-card admin-stat">
+                        <i class="fas fa-calendar-alt"></i>
+                        <h3>{{ profile.joining_date|date:"M Y"|default:"—" }}</h3>
+                        <p>Joined</p>
+                    </div>
+                    <div class="profile-stat-card admin-stat">
+                        <i class="fas fa-building"></i>
+                        <h3>{{ profile.department|default:"—"|truncatechars:10 }}</h3>
+                        <p>Department</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Personal Information Tab -->
+                <div id="personal-tab" class="profile-info-card active-card">
+                    <div class="profile-info-header">
+                        <h5><i class="fas fa-user-circle"></i> Personal Information</h5>
+                    </div>
+                    <div class="profile-info-body">
+                        <div class="profile-info-grid">
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-at"></i> Username</span>
+                                <span class="profile-info-value">{{ user.username|default:"—" }}</span>
                             </div>
-                            
-                            <!-- Primary Bank Account Section - For ALL Users -->
-                            <div class="card mb-3">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0">
-                                        <i class="fas fa-university me-2"></i>Primary Bank Account
-                                        <a href="{% url 'accounts:bank_accounts' %}" class="btn btn-sm btn-primary float-end">
-                                            <i class="fas fa-edit me-1"></i>Manage Accounts
-                                        </a>
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    {% if primary_bank %}
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <p><strong>Account Holder:</strong> {{ primary_bank.account_holder_name }}</p>
-                                                <p><strong>Bank Name:</strong> {{ primary_bank.bank_name }}</p>
-                                                <p><strong>Account Number:</strong> ****{{ primary_bank.account_number|slice:"-4:" }}</p>
-                                                <p><strong>IFSC Code:</strong> {{ primary_bank.ifsc_code }}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Branch:</strong> {{ primary_bank.branch_name }}</p>
-                                                <p><strong>Account Type:</strong> {{ primary_bank.get_account_type_display }}</p>
-                                                {% if primary_bank.upi_id %}
-                                                    <p><strong>UPI ID:</strong> {{ primary_bank.upi_id }}</p>
-                                                {% endif %}
-                                                <div class="mt-2">
-                                                    <a href="{% url 'accounts:edit_bank_account' primary_bank.id %}" class="btn btn-sm btn-warning">
-                                                        <i class="fas fa-edit me-1"></i>Edit
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% if user.bank_accounts.count > 1 %}
-                                            <div class="mt-3">
-                                                <small class="text-muted">
-                                                    <i class="fas fa-info-circle me-1"></i>
-                                                    You have {{ user.bank_accounts.count|add:"-1" }} other bank account(s). 
-                                                    <a href="{% url 'accounts:bank_accounts' %}">View all accounts</a>
-                                                </small>
-                                            </div>
-                                        {% endif %}
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-envelope"></i> Email Address</span>
+                                <span class="profile-info-value">{{ user.email|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-user"></i> First Name</span>
+                                <span class="profile-info-value">{{ user.first_name|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-user"></i> Middle Name</span>
+                                <span class="profile-info-value">{{ user.middle_name|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-user"></i> Last Name</span>
+                                <span class="profile-info-value">{{ user.last_name|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-phone"></i> Phone Number</span>
+                                <span class="profile-info-value">{{ user.phone|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-briefcase"></i> Role</span>
+                                <span class="profile-info-value">{{ user.get_role_display|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-user-tag"></i> Staff Access</span>
+                                <span class="profile-info-value">
+                                    {% if user.is_staff %}
+                                        <span class="profile-badge-info">Yes</span>
                                     {% else %}
-                                        <div class="text-center py-3">
-                                            <i class="fas fa-university fa-3x text-muted mb-2"></i>
-                                            <p class="text-muted">No bank account added yet.</p>
-                                            <a href="{% url 'accounts:add_bank_account' %}" class="btn btn-primary btn-sm">
-                                                <i class="fas fa-plus me-1"></i>Add Bank Account
-                                            </a>
-                                        </div>
+                                        <span class="profile-badge-secondary">No</span>
                                     {% endif %}
-                                </div>
+                                </span>
                             </div>
-                            
-                            <!-- Wholeseller Profile -->
-                            {% if user.role == 'wholeseller' and profile %}
-                            <div class="card mb-3">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0"><i class="fas fa-building me-2"></i>Business Information</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <p><strong>Business Name:</strong> {{ profile.business_name|default:"No data available" }}</p>
-                                            <p><strong>Business Type:</strong> {{ profile.get_business_type_display|default:"No data available" }}</p>
-                                            <p><strong>Registration Number:</strong> {{ profile.business_registration_number|default:"No data available" }}</p>
-                                            <p><strong>Tax ID:</strong> {{ profile.tax_id|default:"No data available" }}</p>
-                                            <p><strong>GST Number:</strong> {{ profile.gst_number|default:"No data available" }}</p>
-                                            <p><strong>Business Phone:</strong> {{ profile.business_phone|default:"No data available" }}</p>
-                                            <p><strong>Business Email:</strong> {{ profile.business_email|default:"No data available" }}</p>
-                                            <p><strong>Website:</strong> 
-                                                {% if profile.website %}
-                                                    <a href="{{ profile.website }}" target="_blank">{{ profile.website }}</a>
-                                                {% else %}
-                                                    No data available
-                                                {% endif %}
-                                            </p>
-                                            <p><strong>Years in Business:</strong> 
-                                                {% if profile.years_in_business %}
-                                                    {{ profile.years_in_business }} years
-                                                {% else %}
-                                                    No data available
-                                                {% endif %}
-                                            </p>
-                                            <p><strong>Number of Employees:</strong> 
-                                                {% if profile.number_of_employees %}
-                                                    {{ profile.number_of_employees }}
-                                                {% else %}
-                                                    No data available
-                                                {% endif %}
-                                            </p>
-                                            <p><strong>Annual Turnover:</strong> 
-                                                {% if profile.annual_turnover %}
-                                                    ₹{{ profile.annual_turnover }}
-                                                {% else %}
-                                                    No data available
-                                                {% endif %}
-                                            </p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <p><strong>Business Address:</strong> {{ profile.business_address|default:"No data available" }}</p>
-                                            <p><strong>City:</strong> {{ profile.city|default:"No data available" }}</p>
-                                            <p><strong>State:</strong> {{ profile.state|default:"No data available" }}</p>
-                                            <p><strong>Country:</strong> {{ profile.country|default:"No data available" }}</p>
-                                            <p><strong>Postal Code:</strong> {{ profile.postal_code|default:"No data available" }}</p>
-                                            <p><strong>Registration Certificate:</strong>
-                                                {% if profile.registration_certificate %}
-                                                    <a href="{{ profile.registration_certificate.url }}" target="_blank" class="btn btn-sm btn-info">
-                                                        <i class="fas fa-download me-1"></i>Download Certificate
-                                                    </a>
-                                                {% else %}
-                                                    <span class="text-muted">No file uploaded</span>
-                                                {% endif %}
-                                            </p>
-                                            <p><strong>Approval Status:</strong>
-                                                {% if profile.is_approved %}
-                                                    <span class="badge bg-success">Approved</span>
-                                                    {% if profile.approved_at %}
-                                                        <small>({{ profile.approved_at|date:"F d, Y" }})</small>
-                                                    {% endif %}
-                                                {% else %}
-                                                    <span class="badge bg-warning">Pending Approval</span>
-                                                {% endif %}
-                                            </p>
-                                            <p><strong>Description:</strong> {{ profile.description|default:"No data available" }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="row mt-2">
-                                        <div class="col-md-12">
-                                            <small class="text-muted">
-                                                <i class="fas fa-clock me-1"></i>Created: {{ profile.created_at|date:"F d, Y H:i"|default:"No data available" }} | 
-                                                Last Updated: {{ profile.updated_at|date:"F d, Y H:i"|default:"No data available" }}
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Wholeseller Primary Address -->
-                            <div class="card mb-3">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0">
-                                        <i class="fas fa-warehouse me-2"></i>Primary Warehouse Address
-                                        <a href="{% url 'accounts:wholeseller_addresses' %}" class="btn btn-sm btn-primary float-end">
-                                            <i class="fas fa-edit me-1"></i>Manage Addresses
-                                        </a>
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    {% if primary_address %}
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <p><strong>Address Name:</strong> {{ primary_address.address_name }}</p>
-                                                <p><strong>Address:</strong> {{ primary_address.address_line1 }}{% if primary_address.address_line2 %}, {{ primary_address.address_line2 }}{% endif %}</p>
-                                                <p><strong>City:</strong> {{ primary_address.city }}</p>
-                                                <p><strong>State:</strong> {{ primary_address.state }}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Country:</strong> {{ primary_address.country }}</p>
-                                                <p><strong>Postal Code:</strong> {{ primary_address.postal_code }}</p>
-                                                <p><strong>Contact Person:</strong> {{ primary_address.contact_person }}</p>
-                                                <p><strong>Contact Phone:</strong> {{ primary_address.contact_phone }}</p>
-                                                <div class="mt-2">
-                                                    <a href="{% url 'accounts:edit_wholeseller_address' primary_address.id %}" class="btn btn-sm btn-warning">
-                                                        <i class="fas fa-edit me-1"></i>Edit
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% if user.wholeseller_addresses.count > 1 %}
-                                            <div class="mt-3">
-                                                <small class="text-muted">
-                                                    <i class="fas fa-info-circle me-1"></i>
-                                                    You have {{ user.wholeseller_addresses.count|add:"-1" }} other warehouse address(es). 
-                                                    <a href="{% url 'accounts:wholeseller_addresses' %}">View all addresses</a>
-                                                </small>
-                                            </div>
-                                        {% endif %}
-                                    {% else %}
-                                        <div class="text-center py-3">
-                                            <i class="fas fa-map-marker-alt fa-3x text-muted mb-2"></i>
-                                            <p class="text-muted">No warehouse address added yet.</p>
-                                            <a href="{% url 'accounts:add_wholeseller_address' %}" class="btn btn-primary btn-sm">
-                                                <i class="fas fa-plus me-1"></i>Add Address
-                                            </a>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Reseller Profile -->
-                            {% if user.role == 'reseller' and profile %}
-                            <div class="card mb-3">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Reseller Information</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <p><strong>Company Name:</strong> {{ profile.company_name|default:"No data available" }}</p>
-                                            <p><strong>Reseller Type:</strong> {{ profile.get_reseller_type_display|default:"No data available" }}</p>
-                                            <p><strong>Reseller Code:</strong> <code>{{ profile.reseller_code|default:"No data available" }}</code></p>
-                                            <p><strong>Tax ID:</strong> {{ profile.tax_id|default:"No data available" }}</p>
-                                            <p><strong>Business Phone:</strong> {{ profile.business_phone|default:"No data available" }}</p>
-                                            <p><strong>Business Email:</strong> {{ profile.business_email|default:"No data available" }}</p>
-                                            <p><strong>Commission Rate:</strong> 
-                                                {% if profile.commission_rate %}
-                                                    {{ profile.commission_rate }}%
-                                                {% else %}
-                                                    No data available
-                                                {% endif %}
-                                            </p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <p><strong>Business Address:</strong> {{ profile.business_address|default:"No data available" }}</p>
-                                            <p><strong>City:</strong> {{ profile.city|default:"No data available" }}</p>
-                                            <p><strong>State:</strong> {{ profile.state|default:"No data available" }}</p>
-                                            <p><strong>Country:</strong> {{ profile.country|default:"No data available" }}</p>
-                                            <p><strong>Postal Code:</strong> {{ profile.postal_code|default:"No data available" }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="row mt-2">
-                                        <div class="col-md-4">
-                                            <div class="card bg-light">
-                                                <div class="card-body text-center">
-                                                    <h6 class="text-muted">Total Sales</h6>
-                                                    <h4 class="text-primary">₹{{ profile.total_sales|default:"0" }}</h4>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="card bg-light">
-                                                <div class="card-body text-center">
-                                                    <h6 class="text-muted">Commission Earned</h6>
-                                                    <h4 class="text-success">₹{{ profile.total_commission_earned|default:"0" }}</h4>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="card bg-light">
-                                                <div class="card-body text-center">
-                                                    <h6 class="text-muted">Number of Referrals</h6>
-                                                    <h4 class="text-info">{{ profile.number_of_referrals|default:"0" }}</h4>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row mt-2">
-                                        <div class="col-md-12">
-                                            <p><strong>Approval Status:</strong>
-                                                {% if profile.is_approved %}
-                                                    <span class="badge bg-success">Approved</span>
-                                                    {% if profile.approved_at %}
-                                                        <small>({{ profile.approved_at|date:"F d, Y" }})</small>
-                                                    {% endif %}
-                                                {% else %}
-                                                    <span class="badge bg-warning">Pending Approval</span>
-                                                {% endif %}
-                                            </p>
-                                            <small class="text-muted">
-                                                <i class="fas fa-clock me-1"></i>Created: {{ profile.created_at|date:"F d, Y H:i"|default:"No data available" }} | 
-                                                Last Updated: {{ profile.updated_at|date:"F d, Y H:i"|default:"No data available" }}
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Reseller Primary Address -->
-                            <div class="card mb-3">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0">
-                                        <i class="fas fa-address-card me-2"></i>Primary Address
-                                        <a href="{% url 'accounts:reseller_addresses' %}" class="btn btn-sm btn-primary float-end">
-                                            <i class="fas fa-edit me-1"></i>Manage Addresses
-                                        </a>
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    {% if primary_address %}
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <p><strong>Address:</strong> {{ primary_address.address_line1 }}{% if primary_address.address_line2 %}, {{ primary_address.address_line2 }}{% endif %}</p>
-                                                <p><strong>City:</strong> {{ primary_address.city }}</p>
-                                                <p><strong>State:</strong> {{ primary_address.state }}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Country:</strong> {{ primary_address.country }}</p>
-                                                <p><strong>Postal Code:</strong> {{ primary_address.postal_code }}</p>
-                                                <p><strong>Contact Person:</strong> {{ primary_address.contact_person }}</p>
-                                                <p><strong>Contact Phone:</strong> {{ primary_address.contact_phone }}</p>
-                                                <div class="mt-2">
-                                                    <a href="{% url 'accounts:edit_reseller_address' primary_address.id %}" class="btn btn-sm btn-warning">
-                                                        <i class="fas fa-edit me-1"></i>Edit
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% if user.reseller_addresses.count > 1 %}
-                                            <div class="mt-3">
-                                                <small class="text-muted">
-                                                    <i class="fas fa-info-circle me-1"></i>
-                                                    You have {{ user.reseller_addresses.count|add:"-1" }} other address(es). 
-                                                    <a href="{% url 'accounts:reseller_addresses' %}">View all addresses</a>
-                                                </small>
-                                            </div>
-                                        {% endif %}
-                                    {% else %}
-                                        <div class="text-center py-3">
-                                            <i class="fas fa-map-marker-alt fa-3x text-muted mb-2"></i>
-                                            <p class="text-muted">No address added yet.</p>
-                                            <a href="{% url 'accounts:add_reseller_address' %}" class="btn btn-primary btn-sm">
-                                                <i class="fas fa-plus me-1"></i>Add Address
-                                            </a>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Admin Profile -->
-                            {% if user.role == 'admin' and profile %}
-                            <div class="card mb-3">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0"><i class="fas fa-user-shield me-2"></i>Admin Information</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <p><strong>Employee ID:</strong> {{ profile.employee_id|default:"No data available" }}</p>
-                                            <p><strong>Department:</strong> {{ profile.department|default:"No data available" }}</p>
-                                            <p><strong>Designation:</strong> {{ profile.designation|default:"No data available" }}</p>
-                                            <p><strong>Office Phone:</strong> {{ profile.office_phone|default:"No data available" }}</p>
-                                            <p><strong>Emergency Contact:</strong> {{ profile.emergency_contact|default:"No data available" }}</p>
-                                            <p><strong>Joining Date:</strong> {{ profile.joining_date|date:"F d, Y"|default:"No data available" }}</p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <p><strong>Office Address:</strong> {{ profile.office_address|default:"No data available" }}</p>
-                                            <p><strong>City:</strong> {{ profile.city|default:"No data available" }}</p>
-                                            <p><strong>State:</strong> {{ profile.state|default:"No data available" }}</p>
-                                            <p><strong>Country:</strong> {{ profile.country|default:"No data available" }}</p>
-                                            <p><strong>Postal Code:</strong> {{ profile.postal_code|default:"No data available" }}</p>
-                                            <p><strong>ID Proof:</strong>
-                                                {% if profile.id_proof %}
-                                                    <a href="{{ profile.id_proof.url }}" target="_blank" class="btn btn-sm btn-info">
-                                                        <i class="fas fa-download me-1"></i>Download ID Proof
-                                                    </a>
-                                                {% else %}
-                                                    <span class="text-muted">No file uploaded</span>
-                                                {% endif %}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div class="row mt-2">
-                                        <div class="col-md-12">
-                                            <small class="text-muted">
-                                                <i class="fas fa-clock me-1"></i>Created: {{ profile.created_at|date:"F d, Y H:i"|default:"No data available" }} | 
-                                                Last Updated: {{ profile.updated_at|date:"F d, Y H:i"|default:"No data available" }}
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
+                            <div class="profile-info-item">
+    <span class="profile-info-label">
+        <i class="fas fa-check-circle"></i> Verification Status
+    </span>
+    <span class="profile-info-value">
+        {% if user.is_verified %}
+            <span class="profile-badge-active">Verified</span>
+        {% else %}
+            <span class="profile-badge-warning">Pending</span>
+        {% endif %}
+    </span>
+</div>
+<div class="profile-info-item">
+    <span class="profile-info-label">
+        <i class="fas fa-toggle-on"></i> Account Status
+    </span>
+    <span class="profile-info-value">
+        {% if user.is_active %}
+            <span class="profile-badge-active">Active</span>
+        {% else %}
+            <span class="profile-badge-inactive">Inactive</span>
+        {% endif %}
+    </span>
+</div>
                         </div>
                     </div>
                 </div>
+                
+                <!-- Bank Account Tab -->
+                <div id="bank-tab" class="profile-info-card">
+                    <div class="profile-info-header">
+                        <h5><i class="fas fa-university"></i> Primary Bank Account</h5>
+                        <a href="{% url 'accounts:bank_accounts' %}" class="profile-btn-sm profile-btn-primary">
+                            <i class="fas fa-edit"></i> Manage Accounts
+                        </a>
+                    </div>
+                    <div class="profile-info-body">
+                        {% if primary_bank %}
+                            <div class="profile-info-grid">
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-user"></i> Account Holder</span>
+                                    <span class="profile-info-value">{{ primary_bank.account_holder_name }}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-building"></i> Bank Name</span>
+                                    <span class="profile-info-value">{{ primary_bank.bank_name }}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-credit-card"></i> Account Number</span>
+                                    <span class="profile-info-value">****{{ primary_bank.account_number|slice:"-4:" }}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-code"></i> IFSC Code</span>
+                                    <span class="profile-info-value">{{ primary_bank.ifsc_code }}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-location-dot"></i> Branch</span>
+                                    <span class="profile-info-value">{{ primary_bank.branch_name }}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-tag"></i> Account Type</span>
+                                    <span class="profile-info-value">{{ primary_bank.get_account_type_display }}</span>
+                                </div>
+                                {% if primary_bank.upi_id %}
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-mobile-alt"></i> UPI ID</span>
+                                    <span class="profile-info-value">{{ primary_bank.upi_id }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="mt-3" style="margin-top: 15px; font-size: 18px;">
+                                <a href="{% url 'accounts:edit_bank_account' primary_bank.id %}" class="profile-btn-sm profile-btn-primary">
+                                    <i class="fas fa-edit"></i> Edit Account
+                                </a>
+                            </div>
+                            {% if user.bank_accounts.count > 1 %}
+                                <div class="mt-2" style="margin-top: 0.8rem;">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle"></i> You have {{ user.bank_accounts.count|add:"-1" }} other bank account(s). 
+                                        <a href="{% url 'accounts:bank_accounts' %}">View all</a>
+                                    </small>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                        <br>
+                            <div class="profile-empty-state">
+                                <i class="fas fa-university"></i>
+                                <p>No bank account added yet.</p>
+                                <a href="{% url 'accounts:add_bank_account' %}" class="profile-btn-sm profile-btn-primary">Add Bank Account</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Wholeseller Business Information Tab -->
+                {% if user.role == 'wholeseller' and profile %}
+                <div id="business-tab" class="profile-info-card">
+                    <div class="profile-info-header">
+                        <h5><i class="fas fa-building"></i> Business Information</h5>
+                    </div>
+                    <div class="profile-info-body">
+                        <div class="profile-info-grid">
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-store"></i> Business Name</span>
+                                <span class="profile-info-value">{{ profile.business_name|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-chart-pie"></i> Business Type</span>
+                                <span class="profile-info-value">{{ profile.get_business_type_display|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-id-card"></i> Registration Number</span>
+                                <span class="profile-info-value">{{ profile.business_registration_number|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-file-invoice"></i> Tax ID / GST</span>
+                                <span class="profile-info-value">{{ profile.tax_id|default:"—" }} / {{ profile.gst_number|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-phone"></i> Business Phone</span>
+                                <span class="profile-info-value">{{ profile.business_phone|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-envelope"></i> Business Email</span>
+                                <span class="profile-info-value">{{ profile.business_email|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-globe"></i> Website</span>
+                                <span class="profile-info-value">{% if profile.website %}<a href="{{ profile.website }}" target="_blank">{{ profile.website }}</a>{% else %}—{% endif %}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-location-dot"></i> Business Address</span>
+                                <span class="profile-info-value">{{ profile.business_address|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-city"></i> City / State</span>
+                                <span class="profile-info-value">{{ profile.city|default:"—" }} / {{ profile.state|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-globe"></i> Country / Postal</span>
+                                <span class="profile-info-value">{{ profile.country|default:"—" }} / {{ profile.postal_code|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-check-circle"></i> Approval Status</span>
+                                <span class="profile-info-value">
+                                    {% if profile.is_approved %}
+                                        <span class="profile-badge-active">Approved</span>
+                                        {% if profile.approved_at %}
+                                            <small>({{ profile.approved_at|date:"M d, Y" }})</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="profile-badge-warning">Pending Approval</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        {% if profile.registration_certificate %}
+                            <div class="mt-3">
+                                <a href="{{ profile.registration_certificate.url }}" target="_blank" class="profile-btn-sm profile-btn-primary">
+                                    <i class="fas fa-download"></i> Download Certificate
+                                </a>
+                            </div>
+                            <br>
+                        {% endif %}
+                        <div class="mt-2">
+                            <small class="text-muted" style="margin-top: 15px;">
+                                <i class="fas fa-clock"></i> Profile Created: {{ profile.created_at|date:"M d, Y" }} | Updated: {{ profile.updated_at|date:"M d, Y" }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Wholeseller Warehouse Address Tab -->
+                <div id="address-tab" class="profile-info-card">
+                    <div class="profile-info-header">
+                        <h5><i class="fas fa-warehouse"></i> Primary Warehouse Address</h5>
+                        <a href="{% url 'accounts:wholeseller_addresses' %}" class="profile-btn-sm profile-btn-primary">Manage Addresses</a>
+                    </div>
+                    <div class="profile-info-body">
+                        {% if primary_address %}
+                            <div class="profile-info-grid">
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-tag"></i> Address Name</span>
+                                    <span class="profile-info-value">{{ primary_address.address_name }}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-map-pin"></i> Address</span>
+                                    <span class="profile-info-value">{{ primary_address.address_line1 }}{% if primary_address.address_line2 %}, {{ primary_address.address_line2 }}{% endif %}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-city"></i> City / State</span>
+                                    <span class="profile-info-value">{{ primary_address.city }}, {{ primary_address.state }}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-globe"></i> Country / Postal</span>
+                                    <span class="profile-info-value">{{ primary_address.country }}, {{ primary_address.postal_code }}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-user"></i> Contact Person</span>
+                                    <span class="profile-info-value">{{ primary_address.contact_person }}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-phone"></i> Contact Phone</span>
+                                    <span class="profile-info-value">{{ primary_address.contact_phone }}</span>
+                                </div>
+                            </div>
+                            <div class="mt-3" style="margin-top: 15px;">
+                                <a href="{% url 'accounts:edit_wholeseller_address' primary_address.id %}" class="profile-btn-sm profile-btn-primary">
+                                    <i class="fas fa-edit"></i> Edit Address
+                                </a>
+                            </div>
+                            {% if user.wholeseller_addresses.count > 1 %}
+                                <div class="mt-2">
+                                    <small class="text-muted" style="margin-top: 15px;">
+                                        <i class="fas fa-info-circle"></i> You have {{ user.wholeseller_addresses.count|add:"-1" }} other address(es). 
+                                        <a href="{% url 'accounts:wholeseller_addresses' %}">View all</a>
+                                    </small>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="profile-empty-state">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <p>No warehouse address added yet.</p>
+                                <a href="{% url 'accounts:add_wholeseller_address' %}" class="profile-btn-sm profile-btn-primary" style="margin-top: 10px;">Add Address</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Reseller Business Information Tab -->
+                {% if user.role == 'reseller' and profile %}
+                <div id="business-tab" class="profile-info-card">
+                    <div class="profile-info-header">
+                        <h5><i class="fas fa-chart-line"></i> Reseller Information</h5>
+                    </div>
+                    <div class="profile-info-body">
+                        <div class="profile-info-grid">
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-building"></i> Company Name</span>
+                                <span class="profile-info-value">{{ profile.company_name|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-tag"></i> Reseller Type</span>
+                                <span class="profile-info-value">{{ profile.get_reseller_type_display|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-code"></i> Reseller Code</span>
+                                <span class="profile-info-value"><code>{{ profile.reseller_code|default:"—" }}</code></span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-percent"></i> Commission Rate</span>
+                                <span class="profile-info-value">{{ profile.commission_rate|default:"—" }}%</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-location-dot"></i> Business Address</span>
+                                <span class="profile-info-value">{{ profile.business_address|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-city"></i> City / State</span>
+                                <span class="profile-info-value">{{ profile.city|default:"—" }} / {{ profile.state|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-globe"></i> Country / Postal</span>
+                                <span class="profile-info-value">{{ profile.country|default:"—" }} / {{ profile.postal_code|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-check-circle"></i> Approval Status</span>
+                                <span class="profile-info-value">
+                                    {% if profile.is_approved %}
+                                        <span class="profile-badge-active">Approved</span>
+                                        {% if profile.approved_at %}
+                                            <small>({{ profile.approved_at|date:"M d, Y" }})</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="profile-badge-warning">Pending Approval</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="mt-2">
+                            <small class="text-muted" style="margin-top: 15px; padding-top: 20px;">
+                                <i class="fas fa-clock"></i> Profile Created: {{ profile.created_at|date:"M d, Y" }} | Updated: {{ profile.updated_at|date:"M d, Y" }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reseller Address Tab -->
+                <div id="address-tab" class="profile-info-card">
+                    <div class="profile-info-header">
+                        <h5><i class="fas fa-address-card"></i> Primary Address</h5>
+                        <a href="{% url 'accounts:reseller_addresses' %}" class="profile-btn-sm profile-btn-primary">Manage Addresses</a>
+                    </div>
+                    <div class="profile-info-body">
+                        {% if primary_address %}
+                            <div class="profile-info-grid">
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-map-pin"></i> Address</span>
+                                    <span class="profile-info-value">{{ primary_address.address_line1 }}{% if primary_address.address_line2 %}, {{ primary_address.address_line2 }}{% endif %}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-city"></i> City / State</span>
+                                    <span class="profile-info-value">{{ primary_address.city }}, {{ primary_address.state }}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-globe"></i> Country / Postal</span>
+                                    <span class="profile-info-value">{{ primary_address.country }}, {{ primary_address.postal_code }}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-user"></i> Contact Person</span>
+                                    <span class="profile-info-value">{{ primary_address.contact_person }}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label"><i class="fas fa-phone"></i> Contact Phone</span>
+                                    <span class="profile-info-value">{{ primary_address.contact_phone }}</span>
+                                </div>
+                            </div>
+                            <br>
+                            <div class="mt-3">
+                                <a href="{% url 'accounts:edit_reseller_address' primary_address.id %}" class="profile-btn-sm profile-btn-primary">
+                                    <i class="fas fa-edit"></i> Edit Address
+                                </a>
+                            </div>
+                            {% if user.reseller_addresses.count > 1 %}
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle"></i> You have {{ user.reseller_addresses.count|add:"-1" }} other address(es). 
+                                        <a href="{% url 'accounts:reseller_addresses' %}">View all</a>
+                                    </small>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="profile-empty-state">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <p>No address added yet.</p>
+                                <a href="{% url 'accounts:add_reseller_address' %}" class="profile-btn-sm profile-btn-primary">Add Address</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Admin Information Tab -->
+                {% if user.role == 'admin' and profile %}
+                <div id="admin_info-tab" class="profile-info-card">
+                    <div class="profile-info-header">
+                        <h5><i class="fas fa-user-shield"></i> Admin Information</h5>
+                    </div>
+                    <div class="profile-info-body">
+                        <div class="profile-info-grid">
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-id-card"></i> Employee ID</span>
+                                <span class="profile-info-value">{{ profile.employee_id|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-building"></i> Department</span>
+                                <span class="profile-info-value">{{ profile.department|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-user-tie"></i> Designation</span>
+                                <span class="profile-info-value">{{ profile.designation|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-phone"></i> Office Phone</span>
+                                <span class="profile-info-value">{{ profile.office_phone|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-phone-alt"></i> Emergency Contact</span>
+                                <span class="profile-info-value">{{ profile.emergency_contact|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-calendar"></i> Joining Date</span>
+                                <span class="profile-info-value">{{ profile.joining_date|date:"F d, Y"|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-location-dot"></i> Office Address</span>
+                                <span class="profile-info-value">{{ profile.office_address|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-city"></i> City / State</span>
+                                <span class="profile-info-value">{{ profile.city|default:"—" }} / {{ profile.state|default:"—" }}</span>
+                            </div>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label"><i class="fas fa-globe"></i> Country / Postal</span>
+                                <span class="profile-info-value">{{ profile.country|default:"—" }} / {{ profile.postal_code|default:"—" }}</span>
+                            </div>
+                        </div>
+                        {% if profile.id_proof %}
+                            <div class="mt-3">
+                                <a href="{{ profile.id_proof.url }}" target="_blank" class="profile-btn-sm profile-btn-primary">
+                                    <i class="fas fa-download"></i> Download ID Proof
+                                </a>
+                            </div>
+                            <br>
+                        {% endif %}
+                        <div class="mt-2">
+                            <small class="text-muted" style="margin-top: 15px;">
+                                <i class="fas fa-clock"></i> Profile Created: {{ profile.created_at|date:"M d, Y" }} | Updated: {{ profile.updated_at|date:"M d, Y" }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
             </div>
         </div>
     </div>
 </div>
+</div>
+
+<script>
+    function showTab(tabName) {
+        // Hide all tabs
+        const allTabs = document.querySelectorAll('.profile-info-card');
+        allTabs.forEach(tab => {
+            tab.classList.remove('active-card');
+        });
+        
+        // Show selected tab
+        const selectedTab = document.getElementById(tabName + '-tab');
+        if (selectedTab) {
+            selectedTab.classList.add('active-card');
+        }
+        
+        // Update active button state
+        const allButtons = document.querySelectorAll('.profile-nav-btn');
+        allButtons.forEach(button => {
+            button.classList.remove('active');
+        });
+        
+        // Find and activate the clicked button
+        event.currentTarget.classList.add('active');
+    }
+</script>
 {% endblock %}

@@ -1,0 +1,40 @@
+
+{% block title %}Delete Theme{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Delete Theme</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Are you sure you want to delete the theme <strong>"{{ theme.name }}"</strong>?</p>
+                    <p class="text-danger">This action cannot be undone and will remove all associated images.</p>
+                    
+                    {% if theme.preview_image %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-image"></i> Preview image will also be deleted.
+                        </div>
+                    {% endif %}
+                    
+                    {% if theme.thumbnail %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-image"></i> Thumbnail image will also be deleted.
+                        </div>
+                    {% endif %}
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'resellers:theme_list' %}" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-danger">Yes, Delete Theme</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -262,7 +262,51 @@ font-size:24px;
 body{
 background:#f8fafc;
 }
+@media(max-width:768px){
 
+/* HERO MOBILE SPACING */
+.hero-section{
+padding:30px 20px 20px;   /* more top padding */
+margin-bottom:10px;       /* gap between hero & form */
+}
+
+/* hero layout */
+.hero-inner{
+grid-template-columns:1fr;
+text-align:center;
+gap:25px; /* spacing between text & image */
+}
+
+/* hero image */
+.hero-image img{
+margin:auto;
+margin-top:10px;
+max-width:220px;
+}
+
+/* form grid single column */
+.form-grid{
+grid-template-columns:1fr;
+}
+
+/* title smaller */
+.hero-text h1{
+font-size:24px;
+}
+
+/* BUTTONS STACK COLUMN */
+.actions{
+flex-direction:column;
+gap:12px;
+}
+
+.primary-btn,
+.cancel-btn{
+width:100%;
+text-align:center;
+}
+
+}
 </style>
 
 <div class="content">

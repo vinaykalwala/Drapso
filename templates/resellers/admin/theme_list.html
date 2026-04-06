@@ -1,0 +1,89 @@
+
+
+{% block title %}Manage Store Themes{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card shadow">
+        <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-palette"></i> Store Themes</h4>
+            <a href="{% url 'resellers:theme_create' %}" class="btn btn-light">
+                <i class="fas fa-plus"></i> Add New Theme
+            </a>
+        </div>
+        <div class="card-body">
+            {% if themes %}
+                <div class="row">
+                    {% for theme in themes %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100 shadow-sm">
+                                {% if theme.thumbnail %}
+                                    <img src="{{ theme.thumbnail.url }}" class="card-img-top" alt="{{ theme.name }}" style="height: 200px; object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+                                        <i class="fas fa-image fa-3x"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ theme.name }}</h5>
+                                    <p class="card-text text-muted">{{ theme.description|truncatewords:15|default:"No description provided" }}</p>
+                                    <p>
+                                        <span class="badge {% if theme.theme_type == 'single' %}bg-info{% else %}bg-success{% endif %}">
+                                            {{ theme.get_theme_type_display }}
+                                        </span>
+                                        {% if theme.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                    </p>
+                                    {% if theme.preview_image %}
+                                        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#previewModal{{ theme.id }}">
+                                            <i class="fas fa-eye"></i> Preview
+                                        </button>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer bg-white">
+                                    <a href="{% url 'resellers:theme_edit' theme.id %}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <a href="{% url 'resellers:theme_delete' theme.id %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Preview Modal -->
+                        {% if theme.preview_image %}
+                        <div class="modal fade" id="previewModal{{ theme.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">{{ theme.name }} - Preview</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body text-center">
+                                        <img src="{{ theme.preview_image.url }}" alt="{{ theme.name }}" class="img-fluid">
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-palette display-1 text-muted"></i>
+                    <h3>No Themes Created</h3>
+                    <p class="text-muted">Get started by creating your first theme</p>
+                    <a href="{% url 'resellers:theme_create' %}" class="btn btn-primary">Create First Theme</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

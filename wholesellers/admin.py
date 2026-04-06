@@ -3,3 +3,4 @@ from . models import *
 
 # Register your models here.
 admin.site.register(WholesellerInventory)
+admin.site.register(WholesellerKYC)
