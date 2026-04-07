@@ -4,602 +4,691 @@
 {% block content %}
 
 <style>
-
-/* hero */
-
-.hero-bg{
-
-background-image:url("{% static 'images/bg.avif' %}");
-background-size:cover;
-background-position:center;
-
-padding:100px 20px;
-padding-top: 150px;
-
-display:flex;
-align-items:center;
-justify-content:center;
-
-}
-
-/* glass title */
-
-.hero-title{
-
-background:rgba(255,255,255,.15);
-
-backdrop-filter:blur(12px);
-
-padding:14px 28px;
-
-border-radius:12px;
-
-color:white;
-
-font-size:26px;
-
-font-weight:600;
-
-letter-spacing:.3px;
-
-box-shadow:0 8px 25px rgba(0,0,0,.15);
-
-}
-
-
-
-/* layout */
-
-.policy-wrapper{
-
-max-width:1100px;
-
-margin:30px auto;
-
-padding:0 20px;
-
-}
-
-
-
-/* card */
-
-.policy-container{
-
-background:white;
-
-border-radius:18px;
-
-padding:28px;
-
-box-shadow:0 15px 35px rgba(0,0,0,.05);
-
-border:1px solid #eef2f7;
-
-}
-
-
-
-/* vertical layout */
-
-.policy-block{
-
-margin-bottom:22px;
-
-padding-left:18px;
-
-border-left:3px solid #eef2ff;
-
-}
-
-
-
-/* heading */
-
-.policy-heading{
-
-font-size:16px;
-
-font-weight:600;
-
-color:#111827;
-
-margin-bottom:8px;
-
-}
-
-
-
-/* content box */
-
-.policy-box{
-
-background:#f8faff;
-
-border:1px solid #eef2ff;
-
-border-radius:12px;
-
-padding:14px 16px;
-
-margin-top:6px;
-
-}
-
-
-
-/* list */
-
-.policy-list{
-
-margin-top:8px;
-
-display:grid;
-
-gap:6px;
-
-}
-
-.policy-item{
-
-background:white;
-
-border:1px solid #f1f5f9;
-
-border-radius:8px;
-
-padding:8px 10px;
-
-font-size:14px;
-
-color:#475569;
-
-}
-
-
-
-/* normal text */
-
-.policy-text{
-
-font-size:14px;
-
-color:#475569;
-
-line-height:1.65;
-
-margin-top:6px;
-
-}
-
-
-
-/* mobile */
-
-@media(max-width:600px){
-
-.hero-bg{
-
-padding:55px 15px;
-padding-top: 100px;
-
-}
-
-.hero-title{
-
-font-size:20px;
-
-padding:12px 18px;
-
-}
-
-.policy-container{
-
-padding:20px;
-
-border-radius:14px;
-
-}
-
-.policy-heading{
-
-font-size:15px;
-
-}
-
-.policy-text{
-
-font-size:13.5px;
-
-}
-
-.policy-item{
-
-font-size:13.5px;
-
-padding:7px 9px;
-
-}
-
-}
-
+  /* ========================================
+     MODERN PROFESSIONAL DESIGN SYSTEM
+     Clean • Neat • Responsive • Premium
+  ======================================== */
+  
+  :root {
+    --primary: #4f46e5;
+    --primary-dark: #4338ca;
+    --primary-light: #818cf8;
+    --primary-soft: #eef2ff;
+    --secondary: #0f172a;
+    --accent: #06b6d4;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --shadow-xs: 0 1px 2px rgba(0,0,0,0.03);
+    --shadow-sm: 0 4px 6px -2px rgba(0,0,0,0.04), 0 1px 2px -1px rgba(0,0,0,0.03);
+    --shadow-md: 0 12px 24px -8px rgba(0,0,0,0.08);
+    --shadow-lg: 0 25px 35px -12px rgba(0,0,0,0.12);
+    --shadow-xl: 0 35px 45px -15px rgba(0,0,0,0.15);
+    --radius-sm: 12px;
+    --radius-md: 20px;
+    --radius-lg: 28px;
+    --radius-xl: 36px;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(145deg, #f7f9fc 0%, #eef2f6 100%);
+    line-height: 1.5;
+  }
+
+  /* ===== HERO SECTION (EXACT AS PROVIDED) ===== */
+  .hero-bg {
+    background-image: url("{% static 'images/bg.avif' %}");
+    background-size: cover;
+    background-position: center;
+    padding: 100px 20px;
+    padding-top: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    isolation: isolate;
+  }
+
+  .hero-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.25) 100%);
+    z-index: 0;
+  }
+
+  .hero-title {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(16px);
+    padding: 18px 40px;
+    border-radius: 100px;
+    color: white;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    box-shadow: 0 20px 40px -12px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 1;
+    border: 1px solid rgba(255,255,255,0.25);
+    text-align: center;
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  .main-container {
+    max-width: 1280px;
+    margin: -45px auto 70px;
+    padding: 0 28px;
+    position: relative;
+    z-index: 5;
+  }
+
+  /* ===== POLICY GRID ===== */
+  .policy-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* ===== POLICY CARD ===== */
+  .policy-card {
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    border: 1px solid rgba(79, 70, 229, 0.08);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .policy-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(79, 70, 229, 0.15);
+  }
+
+  /* left accent bar */
+  .policy-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, var(--primary), var(--primary-light));
+  }
+
+  /* card inner */
+  .card-content {
+    padding: 28px 36px 30px 48px;
+  }
+
+  /* header area */
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .number {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    width: 52px;
+    height: 52px;
+    border-radius: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: white;
+    box-shadow: 0 8px 16px -6px rgba(79, 70, 229, 0.3);
+  }
+
+  .title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    letter-spacing: -0.02em;
+  }
+
+  /* text styles */
+  .description {
+    color: var(--gray-600);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .strong-text {
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  /* pill / tag list */
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 16px 0 14px;
+  }
+
+  .tag {
+    background: var(--primary-soft);
+    padding: 7px 18px;
+    border-radius: 40px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--primary-dark);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+
+  .tag i {
+    font-size: 0.8rem;
+  }
+
+  .tag:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  /* note boxes */
+  .note {
+    background: #f8fafc;
+    border-left: 3px solid var(--primary);
+    border-radius: 16px;
+    padding: 14px 20px;
+    margin-top: 16px;
+    font-size: 0.9rem;
+    color: var(--gray-700);
+  }
+
+  .note-warning {
+    background: #fffbeb;
+    border-left-color: var(--warning);
+  }
+
+  .note-danger {
+    background: #fef2f2;
+    border-left-color: var(--danger);
+  }
+
+  .note i {
+    margin-right: 10px;
+  }
+
+  /* ===== SPECIAL SECTION 7 & 8 (TWO COLUMN) ===== */
+  .special-row {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 24px;
+    margin-top: 8px;
+  }
+
+  /* dispute card (section 7) */
+  .dispute-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(79, 70, 229, 0.08);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .dispute-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, var(--primary), var(--primary-light));
+  }
+
+  .dispute-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .dispute-content {
+    padding: 28px 32px 32px 44px;
+  }
+
+  .dispute-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .dispute-number {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: white;
+  }
+
+  .dispute-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--gray-900);
+  }
+
+  .two-col-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .info-box {
+    background: #fafcff;
+    border-radius: 20px;
+    padding: 18px 20px;
+    border: 1px solid #eef2ff;
+    transition: all 0.2s;
+  }
+
+  .info-box:hover {
+    border-color: #c7d2fe;
+    background: white;
+  }
+
+  .info-box h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 10px;
+    border-bottom: 1.5px solid #eef2ff;
+  }
+
+  .info-list {
+    list-style: none;
+  }
+
+  .info-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 0;
+    font-size: 0.87rem;
+    color: var(--gray-600);
+    border-bottom: 1px dashed #f0f2f8;
+  }
+
+  .info-list li:last-child {
+    border-bottom: none;
+  }
+
+  .info-list li i {
+    color: var(--primary);
+    width: 18px;
+    font-size: 0.8rem;
+  }
+
+  /* agreement card (section 8) - elegant */
+  .agreement-card {
+    background: linear-gradient(145deg, #f0f4fe 0%, #e9edfc 100%);
+    border: 1px solid rgba(79, 70, 229, 0.15);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+  }
+
+  .agreement-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .agreement-content {
+    text-align: center;
+    padding: 32px 24px;
+  }
+
+  .agreement-icon {
+    background: white;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px;
+    font-size: 1.8rem;
+    color: var(--success);
+    box-shadow: 0 12px 20px -10px rgba(16, 185, 129, 0.2);
+  }
+
+  .agreement-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 16px;
+  }
+
+  .agreement-text {
+    background: white;
+    padding: 16px 22px;
+    border-radius: 60px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-top: 8px;
+    box-shadow: var(--shadow-xs);
+  }
+
+  .agreement-text i {
+    color: var(--success);
+    margin-right: 8px;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .special-row {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .card-content {
+      padding: 22px 28px 24px 40px;
+    }
+    .title {
+      font-size: 1.3rem;
+    }
+    .number {
+      width: 46px;
+      height: 46px;
+      font-size: 1.3rem;
+    }
+    .dispute-content {
+      padding: 24px 26px 28px 38px;
+    }
+    .dispute-title {
+      font-size: 1.25rem;
+    }
+    .two-col-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero-title {
+      font-size: 18px;
+      padding: 12px 24px;
+    }
+    .hero-bg {
+      padding: 60px 15px;
+      padding-top: 110px;
+    }
+    .main-container {
+      padding: 0 18px;
+      margin-top: -35px;
+    }
+    .card-content {
+      padding: 18px 22px 20px 34px;
+    }
+    .title {
+      font-size: 1.1rem;
+    }
+    .number {
+      width: 40px;
+      height: 40px;
+      font-size: 1.1rem;
+    }
+    .tag {
+      font-size: 0.75rem;
+      padding: 5px 14px;
+    }
+    .dispute-title {
+      font-size: 1.1rem;
+    }
+    .dispute-number {
+      width: 42px;
+      height: 42px;
+      font-size: 1.1rem;
+    }
+    .agreement-title {
+      font-size: 1.2rem;
+    }
+    .agreement-text {
+      font-size: 0.8rem;
+      padding: 12px 16px;
+    }
+  }
+
+  /* subtle footer */
+  .footer-note {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(79, 70, 229, 0.1);
+    font-size: 0.75rem;
+    color: #94a3b8;
+  }
+
+  /* animations */
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .policy-card, .special-row > * {
+    animation: fadeUp 0.5s ease-out forwards;
+  }
+
+  .policy-card:nth-child(1) { animation-delay: 0.02s; }
+  .policy-card:nth-child(2) { animation-delay: 0.05s; }
+  .policy-card:nth-child(3) { animation-delay: 0.08s; }
+  .policy-card:nth-child(4) { animation-delay: 0.11s; }
+  .policy-card:nth-child(5) { animation-delay: 0.14s; }
+  .policy-card:nth-child(6) { animation-delay: 0.17s; }
+  .special-row { animation-delay: 0.2s; animation: fadeUp 0.5s ease-out 0.2s both; }
 </style>
 
-
-
+<!-- HERO SECTION (EXACTLY AS PROVIDED) -->
 <div class="hero-bg">
-
-<div class="hero-title">
-
-Wholeseller (Vendor) Policy – Drapso
-
-</div>
-
-</div>
-
-
-
-<div class="policy-wrapper">
-
-<div class="policy-container">
-
-
-
-<div class="policy-block">
-
-<div class="policy-heading">
-
-1. Role of Wholeseller
-
-</div>
-
-<div class="policy-box">
-
-<div class="policy-text">
-
-A wholeseller (vendor) on Drapso is responsible for listing products, managing inventory, fulfilling orders, and ensuring product quality. By using the platform, you agree to comply with all Drapso policies and operational standards.
-
-</div>
-
-</div>
-
-</div>
-
-
-
-
-<div class="policy-block">
-
-<div class="policy-heading">
-
-2. Product Listing Responsibility
-
-</div>
-
-<div class="policy-box">
-
-<div class="policy-text">
-
-Wholesellers must ensure:
-
-</div>
-
-<div class="policy-list">
-
-<div class="policy-item">
-
-Accurate product descriptions, images, and pricing
-
-</div>
-
-<div class="policy-item">
-
-Correct stock availability
-
-</div>
-
-<div class="policy-item">
-
-No misleading or false information
-
-</div>
-
-</div>
-
-</div>
-
-<div class="policy-text">
-
-Drapso reserves the right to remove or suspend listings that violate these rules.
-
-</div>
-
-</div>
-
-
-
-
-<div class="policy-block">
-
-<div class="policy-heading">
-
-3. Order Fulfillment & Shipping
-
-</div>
-
-<div class="policy-box">
-
-<div class="policy-text">
-
-Wholesellers are responsible for:
-
-</div>
-
-<div class="policy-list">
-
-<div class="policy-item">
-
-Timely processing and dispatch of orders
-
-</div>
-
-<div class="policy-item">
-
-Proper packaging of products
-
-</div>
-
-<div class="policy-item">
-
-Ensuring the correct product is shipped
-
-</div>
-
-</div>
-
-</div>
-
-<div class="policy-text">
-
-Failure to fulfill orders properly may result in penalties, account suspension, or reduced visibility.
-
-</div>
-
-</div>
-
-
-
-
-<div class="policy-block">
-
-<div class="policy-heading">
-
-4. Product Quality & Returns
-
-</div>
-
-<div class="policy-box">
-
-<div class="policy-text">
-
-Wholesellers are accountable for:
-
-</div>
-
-<div class="policy-list">
-
-<div class="policy-item">
-
-Damaged or defective products
-
-</div>
-
-<div class="policy-item">
-
-Incorrect items shipped
-
-</div>
-
-</div>
-
-</div>
-
-<div class="policy-text">
-
-If a return or refund request is approved (based on Drapso policy), the wholeseller must accept the return and bear the applicable cost as per platform rules.
-
-</div>
-
-</div>
-
-
-
-
-<div class="policy-block">
-
-<div class="policy-heading">
-
-5. Payment & Earnings
-
-</div>
-
-<div class="policy-list">
-
-<div class="policy-item">
-
-Wholesellers receive payment only after successful delivery confirmation (OTP-based)
-
-</div>
-
-<div class="policy-item">
-
-Payments are credited to the wallet and processed weekly
-
-</div>
-
-<div class="policy-item">
-
-Payments may be held in case of disputes or policy violations
-
-</div>
-
-</div>
-
-</div>
-
-
-
-
-<div class="policy-block">
-
-<div class="policy-heading">
-
-6. Prohibited Activities
-
-</div>
-
-<div class="policy-box">
-
-<div class="policy-text">
-
-Wholesellers must not:
-
-</div>
-
-<div class="policy-list">
-
-<div class="policy-item">
-
-Upload counterfeit or illegal products
-
-</div>
-
-<div class="policy-item">
-
-Provide false information
-
-</div>
-
-<div class="policy-item">
-
-Manipulate orders or deliveries
-
-</div>
-
-</div>
-
-</div>
-
-<div class="policy-text">
-
-Violations may result in account suspension or permanent removal.
-
-</div>
-
-</div>
-
-
-
-
-<div class="policy-block">
-
-<div class="policy-heading">
-
-7. Dispute Management & Accountability
-
-</div>
-
-<div class="policy-box">
-
-<div class="policy-text">
-
-In case of disputes (returns, refunds, delivery issues, or complaints):
-
-</div>
-
-<div class="policy-list">
-
-<div class="policy-item">
-
-Drapso will act as the final authority in decision-making
-
-</div>
-
-<div class="policy-item">
-
-Decisions will be based on platform policies, submitted proof (including unboxing videos), and transaction records
-
-</div>
-
-<div class="policy-item">
-
-Wholesellers must comply with Drapso’s final decision
-
-</div>
-
-</div>
-
-</div>
-
-<div class="policy-text">
-
-Drapso reserves the right to:
-
-</div>
-
-<div class="policy-list">
-
-<div class="policy-item">
-
-Deduct amounts from wholeseller earnings
-
-</div>
-
-<div class="policy-item">
-
-Hold payouts
-
-</div>
-
-<div class="policy-item">
-
-Penalize accounts for repeated issues
-
-</div>
-
-</div>
-
-</div>
-
-
-
-
-<div class="policy-block">
-
-<div class="policy-heading">
-
-8. Agreement
-
-</div>
-
-<div class="policy-box">
-
-<div class="policy-text">
-
-By using Drapso, wholesellers agree to follow all policies and accept Drapso’s authority in dispute resolution.
-
-</div>
-
-</div>
-
-</div>
-
-
-
-</div>
-
-</div>
-
-
+  <div class="hero-title">
+    Wholeseller (Vendor) Policy – Drapso
+  </div>
+</div>
+
+<div class="main-container">
+  <div class="policy-grid">
+
+    <!-- 1. Role of Wholeseller -->
+    <div class="policy-card">
+      <div class="card-content">
+        <div class="card-header">
+          <div class="number">01</div>
+          <div class="title">Role of Wholeseller</div>
+        </div>
+        <div class="description">
+          A wholeseller (vendor) on Drapso is responsible for listing products, managing inventory, fulfilling orders, and ensuring product quality. By using the platform, you agree to comply with all Drapso policies and operational standards.
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Product Listing Responsibility -->
+    <div class="policy-card">
+      <div class="card-content">
+        <div class="card-header">
+          <div class="number">02</div>
+          <div class="title">Product Listing Responsibility</div>
+        </div>
+        <div class="strong-text">Wholesellers must ensure:</div>
+        <div class="tags">
+          <div class="tag"><i class="fas fa-check-circle"></i> Accurate descriptions, images & pricing</div>
+          <div class="tag"><i class="fas fa-check-circle"></i> Correct stock availability</div>
+          <div class="tag"><i class="fas fa-check-circle"></i> No misleading or false information</div>
+        </div>
+        <div class="note">
+          <i class="fas fa-gavel"></i> Drapso reserves the right to remove or suspend listings that violate these rules.
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Order Fulfillment & Shipping -->
+    <div class="policy-card">
+      <div class="card-content">
+        <div class="card-header">
+          <div class="number">03</div>
+          <div class="title">Order Fulfillment & Shipping</div>
+        </div>
+        <div class="strong-text">Wholesellers are responsible for:</div>
+        <div class="tags">
+          <div class="tag"><i class="fas fa-clock"></i> Timely processing & dispatch</div>
+          <div class="tag"><i class="fas fa-box"></i> Proper packaging</div>
+          <div class="tag"><i class="fas fa-clipboard-list"></i> Ensuring correct product shipped</div>
+        </div>
+        <div class="note note-warning">
+          <i class="fas fa-exclamation-triangle"></i> Failure to fulfill orders properly may result in penalties, account suspension, or reduced visibility.
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Product Quality & Returns -->
+    <div class="policy-card">
+      <div class="card-content">
+        <div class="card-header">
+          <div class="number">04</div>
+          <div class="title">Product Quality & Returns</div>
+        </div>
+        <div class="strong-text">Wholesellers are accountable for:</div>
+        <div class="tags">
+          <div class="tag"><i class="fas fa-box-open"></i> Damaged or defective products</div>
+          <div class="tag"><i class="fas fa-exchange-alt"></i> Incorrect items shipped</div>
+        </div>
+        <div class="note">
+          <i class="fas fa-undo-alt"></i> If a return or refund request is approved (based on Drapso policy), the wholeseller must accept the return and bear the applicable cost as per platform rules.
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Payment & Earnings -->
+    <div class="policy-card">
+      <div class="card-content">
+        <div class="card-header">
+          <div class="number">05</div>
+          <div class="title">Payment & Earnings</div>
+        </div>
+        <div class="tags">
+          <div class="tag"><i class="fas fa-check-double"></i> Payment only after successful delivery (OTP-based)</div>
+          <div class="tag"><i class="fas fa-calendar-week"></i> Wallet credits & weekly processing</div>
+          <div class="tag"><i class="fas fa-shield-alt"></i> Payments may be held in case of disputes</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Prohibited Activities -->
+    <div class="policy-card">
+      <div class="card-content">
+        <div class="card-header">
+          <div class="number">06</div>
+          <div class="title">Prohibited Activities</div>
+        </div>
+        <div class="strong-text">Wholesellers must not:</div>
+        <div class="tags">
+          <div class="tag"><i class="fas fa-copyright"></i> Upload counterfeit or illegal products</div>
+          <div class="tag"><i class="fas fa-info-circle"></i> Provide false information</div>
+          <div class="tag"><i class="fas fa-chart-line"></i> Manipulate orders or deliveries</div>
+        </div>
+        <div class="note note-danger">
+          <i class="fas fa-skull-crosswalk"></i> Violations may result in account suspension or permanent removal.
+        </div>
+      </div>
+    </div>
+
+    <!-- 7 & 8: SPECIAL ROW - PERFECT ALIGNMENT -->
+    <div class="special-row">
+      
+      <!-- SECTION 7: Dispute Management -->
+      <div class="dispute-card">
+        <div class="dispute-content">
+          <div class="dispute-header">
+            <div class="dispute-number">07</div>
+            <div class="dispute-title">Dispute Management & Accountability</div>
+          </div>
+          <div class="two-col-grid">
+            <div class="info-box">
+              <h4><i class="fas fa-scale-balanced"></i> When disputes arise</h4>
+              <ul class="info-list">
+                <li><i class="fas fa-gavel"></i> Drapso acts as final authority</li>
+                <li><i class="fas fa-file-alt"></i> Decisions based on policies & proof (including unboxing videos)</li>
+                <li><i class="fas fa-handshake"></i> Wholesellers must comply with Drapso's final decision</li>
+              </ul>
+            </div>
+            <div class="info-box">
+              <h4><i class="fas fa-chart-line"></i> Drapso reserves the right to</h4>
+              <ul class="info-list">
+                <li><i class="fas fa-dollar-sign"></i> Deduct amounts from wholeseller earnings</li>
+                <li><i class="fas fa-pause-circle"></i> Hold payouts</li>
+                <li><i class="fas fa-chart-simple"></i> Penalize accounts for repeated issues</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 8: Agreement - Clean & Beautiful -->
+      <div class="agreement-card">
+        <div class="agreement-content">
+          <div class="agreement-icon">
+            <i class="fas fa-file-signature"></i>
+          </div>
+          <div class="agreement-title">Agreement</div>
+          <div class="agreement-text">
+            <i class="fas fa-check-circle"></i> 
+            By using Drapso, wholesellers agree to follow all policies and accept Drapso's authority in dispute resolution.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  
+  
+</div>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 {% endblock %}
