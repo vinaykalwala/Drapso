@@ -1,158 +1,90 @@
-
 {% load static %}
-
-{% block title %}{{ store.store_name }} - Single Product{% endblock %}
-
 {% block content %}
-<div class="store-frontend single-product-theme">
-    <!-- Store Header -->
-    <header class="bg-white shadow-sm">
-        <div class="container py-4">
-            <div class="row align-items-center">
-                <div class="col-md-3 text-center text-md-start">
-                    {% if store.store_logo %}
-                        <img src="{{ store.store_logo.url }}" alt="{{ store.store_name }}" style="max-height: 80px;">
-                    {% else %}
-                        <div class="bg-gradient-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                            <h2 class="mb-0">{{ store.store_name|slice:":2"|upper }}</h2>
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="col-md-6 text-center">
-                    <h1>{{ store.store_name }}</h1>
-                    <p class="text-muted">{{ store.store_description|default:"Welcome to our store!" }}</p>
-                </div>
-                <div class="col-md-3 text-center text-md-end">
-                    <p><i class="fas fa-envelope"></i> {{ store.contact_email }}</p>
-                    {% if store.contact_phone %}
-                        <p><i class="fas fa-phone"></i> {{ store.contact_phone }}</p>
-                    {% endif %}
-                </div>
+
+<div class="container py-5">
+
+    {% if products %}
+    {% with product=products.first %}
+
+    <div class="row">
+
+        <!-- LEFT: IMAGES -->
+        <div class="col-md-6">
+
+            <!-- MAIN IMAGE -->
+            {% if product.main_image %}
+                <img src="{{ product.main_image.url }}" class="img-fluid mb-3"
+                     style="width:100%; height:400px; object-fit:cover;">
+            {% endif %}
+
+            <!-- GALLERY -->
+            <div>
+                {% for img in product.additional_images.all %}
+                    <img src="{{ img.image.url }}" style="height:70px; margin-right:5px;">
+                {% endfor %}
             </div>
+
         </div>
-    </header>
-    
-    <!-- Single Product Section -->
-    <main class="container py-5">
-        {% if products %}
-            {# For single product theme, show the first published product #}
-            {% with product=products.first %}
-                <div class="row">
-                    <div class="col-md-6">
-                        {% if product.main_image %}
-                            <img src="{{ product.main_image.url }}" class="img-fluid rounded shadow" alt="{{ product.name }}">
-                        {% else %}
-                            <div class="bg-light d-flex align-items-center justify-content-center rounded shadow" style="height: 400px;">
-                                <i class="fas fa-image fa-5x text-muted"></i>
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-6">
-                        <h1 class="mb-3">{{ product.name }}</h1>
-                        <div class="mb-3">
-                            <h2 class="text-primary d-inline-block">₹{{ product.selling_price }}</h2>
-                            {% if product.source_price and product.source_price > product.selling_price %}
-                                <span class="text-muted ms-2"><del>₹{{ product.source_price }}</del></span>
-                            {% endif %}
-                        </div>
-                        
-                        {% if product.brand or product.model_name %}
-                            <div class="mb-3">
-                                {% if product.brand %}
-                                    <span class="badge bg-secondary">Brand: {{ product.brand }}</span>
-                                {% endif %}
-                                {% if product.model_name %}
-                                    <span class="badge bg-secondary ms-1">Model: {{ product.model_name }}</span>
-                                {% endif %}
-                            </div>
-                        {% endif %}
-                        
-                        <div class="mb-4">
-                            <h5>Description</h5>
-                            <p>{{ product.description }}</p>
-                        </div>
-                        
-                        {% if product.specification %}
-                            <div class="mb-4">
-                                <h5>Specifications</h5>
-                                <p>{{ product.specification }}</p>
-                            </div>
-                        {% endif %}
-                        
-                        <div class="mb-4">
-                            {% if product.stock > 0 %}
-                                <div class="alert alert-success">
-                                    <i class="fas fa-check-circle"></i> In Stock ({{ product.stock }} available)
+
+        <!-- RIGHT: DETAILS -->
+        <div class="col-md-6">
+
+            <h2>{{ product.name }}</h2>
+            <h3 class="text-primary">₹{{ product.selling_price }}</h3>
+
+            <p>{{ product.description }}</p>
+
+            <!-- VARIANTS -->
+            {% if product.variants.all %}
+                <div class="mt-4">
+                    <h5>Select Variant</h5>
+
+                    {% for variant in product.variants.all %}
+                        <div class="border p-2 mb-2">
+
+                            <strong>{{ variant.variant_name }}</strong>
+                            - ₹{{ variant.selling_price }}
+
+                            {% if variant.main_image %}
+                                <div>
+                                    <img src="{{ variant.main_image.url }}" style="height:60px;">
                                 </div>
-                                <button class="btn btn-primary btn-lg w-100" onclick="alert('Add to cart coming soon!')">
-                                    <i class="fas fa-shopping-cart"></i> Buy Now
-                                </button>
-                            {% else %}
-                                <div class="alert alert-danger">
-                                    <i class="fas fa-times-circle"></i> Out of Stock
-                                </div>
-                                <button class="btn btn-secondary btn-lg w-100" disabled>
-                                    <i class="fas fa-times-circle"></i> Out of Stock
-                                </button>
                             {% endif %}
+
+                            {% if variant.additional_images.all %}
+                                <div>
+                                    {% for vimg in variant.additional_images.all %}
+                                        <img src="{{ vimg.image.url }}" style="height:50px;">
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
                         </div>
-                    </div>
+                    {% endfor %}
                 </div>
-            {% endwith %}
-        {% else %}
-            <!-- Empty State for Single Product Theme -->
-            <div class="text-center py-5">
-                <div class="empty-state">
-                    <i class="fas fa-box-open display-1 text-muted mb-4"></i>
-                    <h3>Product Coming Soon!</h3>
-                    <p class="lead">We're preparing something special for you.</p>
-                    <p>Check back soon!</p>
-                </div>
+            {% endif %}
+
+            <!-- STOCK -->
+            <div class="mt-3">
+                {% if product.stock > 0 %}
+                    <span class="badge bg-success">In Stock</span>
+                {% else %}
+                    <span class="badge bg-danger">Out of Stock</span>
+                {% endif %}
             </div>
-        {% endif %}
-    </main>
-    
-    <!-- Store Address Section -->
-    {% if store.store_address %}
-        <div class="container mb-5">
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <div class="card bg-light">
-                        <div class="card-body text-center">
-                            <h5><i class="fas fa-map-marker-alt"></i> Visit Us</h5>
-                            <p class="mb-0">{{ store.store_address }}</p>
-                        </div>
-                    </div>
-                </div>
+
+            <!-- CTA -->
+            <div class="mt-4">
+                <button class="btn btn-primary w-100">Buy Now</button>
             </div>
+
         </div>
+
+    </div>
+
+    {% endwith %}
     {% endif %}
-    
-    <!-- Store Footer -->
-    <footer class="bg-light py-4 mt-5">
-        <div class="container text-center">
-            <p>&copy; {% now "Y" %} {{ store.store_name }}. All rights reserved.</p>
-            <p class="small text-muted">Powered by Drapso | Single Product Theme</p>
-        </div>
-    </footer>
+
 </div>
 
-<style>
-    .single-product-theme {
-        min-height: 100vh;
-    }
-    .empty-state {
-        padding: 3rem;
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        max-width: 500px;
-        margin: 0 auto;
-    }
-</style>
-
-<script>
-    console.log("Single Product Theme Loaded for: {{ store.store_name }}");
-    console.log("Products count: {{ products_count }}");
-</script>
 {% endblock %}

@@ -603,36 +603,41 @@ def store_dashboard(request, store_id):
 @login_required
 @user_passes_test(is_reseller)
 def preview_store(request, store_id):
-    """Preview store with fixed URL - shows ALL products (including drafts) for preview"""
     store = get_object_or_404(Store, id=store_id, reseller=request.user)
-    
-    # Fix URL for local development
+
     current_host = request.get_host()
     if 'localhost' in current_host or '127.0.0.1' in current_host:
         port = ':8000' if ':' not in current_host else f":{current_host.split(':')[1]}"
         store_url = f"http://{store.subdomain}.localhost{port}"
     else:
         store_url = store.get_full_url(request)
-    
-    # ✅ For preview: Show ALL ResellerProducts (including drafts) so reseller can see everything
-    try:
-        all_products = store.products.filter(is_active=True).select_related('category', 'subcategory')
-        published_products = all_products.filter(is_published=True)
-        draft_products = all_products.filter(is_published=False)
-    except Exception:
-        all_products = []
-        published_products = []
-        draft_products = []
-    
+
+    # 🔥 FULL DATA LOAD
+    all_products = store.products.filter(
+        is_active=True
+    ).select_related(
+        'category', 'subcategory'
+    ).prefetch_related(
+        'additional_images',
+        Prefetch(
+            'variants',
+            queryset=ResellerProductVariant.objects.filter(is_active=True)
+            .prefetch_related('additional_images')
+        )
+    )
+
+    published_products = all_products.filter(is_published=True)
+    draft_products = all_products.filter(is_published=False)
+
     context = {
         'store': store,
         'store_url': store_url,
-        'products': all_products,  # These are ResellerProduct objects
+        'products': all_products,
         'published_products': published_products,
         'draft_products': draft_products,
         'published_count': published_products.count(),
         'draft_count': draft_products.count(),
-        'is_preview': True,  # Flag to indicate preview mode
+        'is_preview': True,
     }
     return render(request, 'resellers/preview_store.html', context)
 
@@ -665,52 +670,27 @@ from general.views import home
 
 from django.shortcuts import render
 from django.http import Http404
-
+from django.db.models import Prefetch
+from products.models import *
 
 def store_frontend(request):
-    """
-    Handles ALL subdomain requests
-    """
 
-    # Not a subdomain → let Django handle normal routes
     if not getattr(request, 'is_store_request', False):
         raise Http404("Not a store request")
 
     store = getattr(request, 'current_store', None)
 
-    # ❌ Store does not exist
     if not store:
-        return render(request, 'resellers/store_not_found.html', {
-            'subdomain': getattr(request, 'subdomain', 'unknown'),
-            'reason': 'Store not found'
-        })
+        return render(request, 'resellers/store_not_found.html')
 
-    # ❌ Handle different failure states clearly
-    if store.status == 'expired':
-        return render(request, 'resellers/store_not_found.html', {
-            'subdomain': store.subdomain,
-            'reason': 'Subscription expired'
-        })
+    if store.status in ['expired', 'suspended'] or not store.is_published:
+        return render(request, 'resellers/store_not_found.html')
 
-    if store.status == 'suspended':
-        return render(request, 'resellers/store_not_found.html', {
-            'subdomain': store.subdomain,
-            'reason': 'Store suspended'
-        })
-
-    if not store.is_published or store.status != 'active':
-        return render(request, 'resellers/store_not_found.html', {
-            'subdomain': store.subdomain,
-            'reason': 'Store not published'
-        })
-
-    # ✅ ACTIVE STORE → SHOW FRONTEND
     try:
         store.increment_visitor()
     except Exception:
         pass
 
-    # Generate URL
     current_host = request.get_host()
     if 'localhost' in current_host or '127.0.0.1' in current_host:
         port = ':8000' if ':' not in current_host else f":{current_host.split(':')[1]}"
@@ -718,33 +698,31 @@ def store_frontend(request):
     else:
         store_url = store.get_full_url(request)
 
-    # ✅ FIX: Get ResellerProducts with BOTH is_active=True AND is_published=True
-    try:
-        products = store.products.filter(
-            is_active=True, 
-            is_published=True
-        ).select_related('category', 'subcategory')
-    except Exception:
-        products = []
-
-    # Calculate product count for display
-    products_count = products.count()
+    # 🔥 FULL DATA LOAD (ONLY PUBLISHED)
+    products = store.products.filter(
+        is_active=True,
+        is_published=True
+    ).select_related(
+        'category', 'subcategory'
+    ).prefetch_related(
+        'additional_images',
+        Prefetch(
+            'variants',
+            queryset=ResellerProductVariant.objects.filter(is_active=True)
+            .prefetch_related('additional_images')
+        )
+    )
 
     context = {
         'store': store,
         'store_url': store_url,
-        'products': products,  # These are ResellerProduct objects
-        'products_count': products_count,
-        'is_preview': False,
+        'products': products,
+        'products_count': products.count(),
     }
 
-    # Theme-based rendering
-    if store.theme and store.theme.theme_type == 'single':
-        template = 'resellers/single_product_theme.html'
-    else:
-        template = 'resellers/store_frontend.html'
-
+    template = 'resellers/store_frontend.html'
     return render(request, template, context)
+
 
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
