@@ -1,4 +1,5 @@
 
+{% load static %}
 
 {% block title %}{{ store.store_name }} - Multiple Products Store{% endblock %}
 
@@ -55,19 +56,16 @@
                             {% endif %}
                             <div class="card-body">
                                 <h5 class="card-title">{{ product.name }}</h5>
-                                <p class="card-text text-muted small">{{ product.short_description|truncatewords:12|default:product.description|truncatewords:12 }}</p>
+                                <p class="card-text text-muted small">{{ product.description|truncatewords:12 }}</p>
                                 <div class="d-flex justify-content-between align-items-center mt-2">
-                                    <h4 class="text-primary mb-0">${{ product.price }}</h4>
-                                    {% if product.compare_price %}
-                                        <small class="text-muted"><del>${{ product.compare_price }}</del></small>
+                                    <h4 class="text-primary mb-0">₹{{ product.selling_price }}</h4>
+                                    {% if product.source_price and product.source_price > product.selling_price %}
+                                        <small class="text-muted"><del>₹{{ product.source_price }}</del></small>
                                     {% endif %}
                                 </div>
-                                {% if product.discount_percentage %}
-                                    <span class="badge bg-danger mt-2">-{{ product.discount_percentage }}% OFF</span>
-                                {% endif %}
                             </div>
                             <div class="card-footer bg-white">
-                                {% if product.stock_quantity > 0 %}
+                                {% if product.stock > 0 %}
                                     <button class="btn btn-primary w-100" onclick="alert('Add to cart coming soon!')">
                                         <i class="fas fa-shopping-cart"></i> Add to Cart
                                     </button>
@@ -142,5 +140,6 @@
 
 <script>
     console.log("Multiple Products Theme Loaded for: {{ store.store_name }}");
+    console.log("Products count: {{ products_count }}");
 </script>
 {% endblock %}

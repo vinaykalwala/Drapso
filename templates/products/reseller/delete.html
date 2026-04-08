@@ -1,0 +1,31 @@
+
+{% load static %}
+
+{% block title %}Delete Product - {{ store.store_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title mb-0">Confirm Delete</h3>
+                </div>
+                <div class="card-body">
+                    <p>Are you sure you want to delete product <strong>"{{ product.name }}"</strong>?</p>
+                    {% if product.variants.count > 0 %}
+                        <div class="alert alert-warning">
+                            ⚠ This will also delete {{ product.variants.count }} variant(s).
+                        </div>
+                    {% endif %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                        <a href="{% url 'products:reseller_product_list' store.id %}" class="btn btn-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

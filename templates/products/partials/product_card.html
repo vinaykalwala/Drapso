@@ -1,0 +1,38 @@
+{% load static %}
+
+<div class="card h-100 product-card">
+    {% if product.has_price_change_pending %}
+        <div class="price-change-ribbon">
+            <span>Price Changed</span>
+        </div>
+    {% endif %}
+    
+    {% if product.main_image %}
+        <img src="{{ product.main_image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+    {% else %}
+        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+            <i class="fas fa-image fa-3x text-muted"></i>
+        </div>
+    {% endif %}
+    
+    <div class="card-body">
+        <h5 class="card-title">{{ product.name|truncatechars:30 }}</h5>
+        <p class="card-text text-muted small">{{ product.brand|default:"No brand" }}</p>
+        
+        <div class="price-section">
+            <h4 class="text-primary">₹{{ product.selling_price }}</h4>
+            {% if product.source_type == 'imported' %}
+                <small class="text-muted">
+                    Cost: ₹{{ product.source_price }} | Margin: ₹{{ product.margin_rupees }}
+                </small>
+            {% endif %}
+        </div>
+        
+        <div class="stock-section mt-2">
+            <small class="text-muted">Stock: {{ product.total_stock }}</small>
+            {% if product.total_stock <= product.threshold_limit %}
+                <span class="badge badge-danger ml-1">Low Stock</span>
+            {% endif %}
+        </div>
+    </div>
+</div>

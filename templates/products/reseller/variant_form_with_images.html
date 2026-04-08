@@ -1,0 +1,103 @@
+
+{% load static %}
+
+{% block title %}Add Variant - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0"><i class="fas fa-code-branch"></i> Add Variant for {{ product.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Variant Details</h5>
+                                <hr>
+                                {% for field in form %}
+                                    <div class="mb-3">
+                                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                        {{ field }}
+                                        {% if field.help_text %}
+                                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                                        {% endif %}
+                                        {% for error in field.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h5>Variant Images</h5>
+                                <hr>
+                                <div class="mb-3">
+                                    <div class="variant-images-container" style="max-height: 400px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 5px; padding: 10px;">
+                                        {{ image_formset.management_form }}
+                                        <div id="imageFormsList">
+                                            {% for image_form in image_formset %}
+                                                <div class="image-form-item mb-3 p-2 border rounded">
+                                                    <div class="row align-items-center">
+                                                        <div class="col-md-5">
+                                                            {{ image_form.image }}
+                                                        </div>
+                                                        <div class="col-md-5">
+                                                            {{ image_form.alt_text }}
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            {{ image_form.DELETE }} Delete
+                                                        </div>
+                                                    </div>
+                                                    {{ image_form.id }}
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-secondary mt-2" id="addImageBtn">
+                                        <i class="fas fa-plus"></i> Add Image
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Variant
+                            </button>
+                            <a href="{% url 'products:reseller_product_list' store.id %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('addImageBtn')?.addEventListener('click', function() {
+    const forms = document.getElementById('imageFormsList');
+    const totalForms = document.getElementById('id_images-TOTAL_FORMS');
+    if (!totalForms) return;
+    const formNum = parseInt(totalForms.value);
+    
+    const newForm = forms.children[0].cloneNode(true);
+    newForm.querySelectorAll('input[type="file"]').forEach(input => input.value = '');
+    newForm.querySelectorAll('input[type="text"]').forEach(input => input.value = '');
+    
+    newForm.querySelectorAll('[name]').forEach(field => {
+        const name = field.getAttribute('name');
+        field.setAttribute('name', name.replace(/-\d+-/, `-${formNum}-`));
+    });
+    
+    forms.appendChild(newForm);
+    totalForms.value = formNum + 1;
+});
+</script>
+{% endblock %}

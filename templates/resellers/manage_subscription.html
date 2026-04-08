@@ -61,9 +61,7 @@
                                     <h5><i class="fas fa-store"></i> Store Information</h5>
                                     <hr>
                                     <p><strong>Store Name:</strong> {{ store.store_name }}</p>
-                                    <p><strong>Store URL:</strong> 
-                                        <a href="{{ store.get_full_url }}" target="_blank">{{ store.get_full_url }}</a>
-                                    </p>
+                                    
                                     <p><strong>Theme:</strong> {{ store.theme.name|default:"Not selected" }}</p>
                                     <p><strong>Max Products:</strong> {{ store.get_max_products }}</p>
                                 </div>

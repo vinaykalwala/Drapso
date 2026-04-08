@@ -1,0 +1,229 @@
+{% load static %}
+
+{% block title %}Variants - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0">Product Variants</h2>
+            <p class="text-muted mb-0">Manage variants for: {{ product.name }}</p>
+        </div>
+
+        <a href="{% url 'products:wholeseller_variant_create' product.id %}" class="btn btn-primary">
+            + Add Variant
+        </a>
+    </div>
+
+    <!-- PRODUCT DETAILS SECTION -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0 fw-bold">Product Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-2 text-center">
+                    {% if product.main_image %}
+                        <img src="{{ product.main_image.url }}" 
+                             width="120" height="120"
+                             class="rounded"
+                             style="object-fit: cover;">
+                    {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center rounded"
+                             style="width:120px; height:120px; margin: 0 auto;">
+                            No Image
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-5">
+                    <h4 class="fw-bold mb-2">{{ product.name }}</h4>
+                    <p class="text-muted mb-1">{{ product.description|truncatewords:30 }}</p>
+                    <div class="mt-2">
+                        <span class="badge bg-primary">Base Price: ₹{{ product.price }}</span>
+                        <span class="badge bg-secondary">Category: {{ product.category.name|default:"Uncategorized" }}</span>
+                        <span class="badge bg-info">Total Variants: {{ variants.count }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VARIANTS GRID -->
+    <div class="row">
+        {% for variant in variants %}
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <!-- IMAGES SIDE-BY-SIDE -->
+                <div class="variant-images-inline">
+                    {% if variant.main_image %}
+                        <img src="{{ variant.main_image.url }}" class="variant-img" alt="Main image">
+                    {% endif %}
+                    
+                    {% for img in variant.additional_images.all %}
+                        <img src="{{ img.image.url }}" class="variant-img" alt="{{ img.alt_text|default:'Variant image' }}">
+                    {% endfor %}
+                    
+                    {% if not variant.main_image and not variant.additional_images.all %}
+                        <div class="text-muted small p-2">No images</div>
+                    {% endif %}
+                </div>
+
+                <!-- VARIANT BODY -->
+                <div class="card-body">
+                    <h6 class="fw-bold mb-2">{{ variant.variant_name }}</h6>
+                    
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            Size: {{ variant.size|default:"-" }} | Color: {{ variant.color|default:"-" }}
+                        </small>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <span class="fw-bold text-primary fs-5">₹{{ variant.price }}</span>
+                        {% if variant.previous_price %}
+                            <small class="text-muted text-decoration-line-through ms-2">
+                                ₹{{ variant.previous_price }}
+                            </small>
+                            <small class="text-success ms-1">
+                                (₹{{ variant.previous_price|floatformat:2 }} off)
+                            </small>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-2">
+                        <span class="badge {% if variant.stock > 10 %}bg-success{% elif variant.stock > 0 %}bg-warning{% else %}bg-danger{% endif %}">
+                            Stock: {{ variant.stock }}
+                        </span>
+                        {% if variant.is_low_stock and variant.stock > 0 %}
+                            <span class="badge bg-warning text-dark">Low Stock (≤{{ variant.threshold_limit }})</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if variant.sku %}
+                        <div class="small text-muted">
+                            <i class="bi bi-upc-scan"></i> SKU: {{ variant.sku }}
+                        </div>
+                    {% endif %}
+                    
+                    {% if variant.price_updated_at %}
+                        <div class="small text-muted mt-1">
+                            Price updated: {{ variant.price_updated_at|date:"d M Y" }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- VARIANT FOOTER - SIMPLE DELETE LINK -->
+                <div class="card-footer bg-white d-flex justify-content-between">
+                    <a href="{% url 'products:wholeseller_variant_edit' variant.id %}" 
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                    
+                    <a href="{% url 'products:wholeseller_variant_delete' variant.id %}" 
+                       class="btn btn-sm btn-outline-danger"
+                       onclick="return confirm('Are you sure you want to delete variant \"{{ variant.variant_name }}\"? This will also delete all associated images for this variant.');">
+                        <i class="bi bi-trash"></i> Delete
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i class="bi bi-box" style="font-size: 64px; color: #ccc;"></i>
+                </div>
+                <h4>No Variants Yet</h4>
+                <p class="text-muted">This product doesn't have any variants. Add variants to offer different options like sizes, colors, etc.</p>
+                <a href="{% url 'products:wholeseller_variant_create' product.id %}" class="btn btn-primary mt-2">
+                    + Add First Variant
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- PRODUCT ACTIONS SECTION -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h6 class="mb-1">Need to add more variants?</h6>
+                    <small class="text-muted">You can add multiple variants with different prices, stock, and images.</small>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="{% url 'products:wholeseller_variant_create' product.id %}" class="btn btn-primary me-2">
+                        <i class="bi bi-plus-circle"></i> Add Another Variant
+                    </a>
+                    <a href="{% url 'products:wholeseller_product_edit' product.id %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-pencil-square"></i> Edit Product
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BACK BUTTON -->
+    <div class="mt-3">
+        <a href="{% url 'products:wholeseller_product_list' %}" class="btn btn-secondary">
+            ← Back to Products List
+        </a>
+    </div>
+
+</div>
+
+<style>
+.variant-images-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    min-height: 94px;
+    align-items: center;
+}
+
+.variant-img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    transition: transform 0.2s ease;
+}
+
+.variant-img:hover {
+    transform: scale(1.05);
+    cursor: pointer;
+}
+
+.card {
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.card-footer {
+    background-color: #f8f9fa;
+}
+
+@media (max-width: 768px) {
+    .variant-img {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .variant-images-inline {
+        padding: 8px;
+        gap: 6px;
+    }
+}
+</style>
+
+{% endblock %}

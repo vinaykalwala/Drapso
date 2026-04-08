@@ -1,0 +1,123 @@
+
+{% load static %}
+
+{% block title %}{{ title }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom">
+                    <h3 class="card-title mb-0">{{ title }}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.category.id_for_label }}" class="form-label fw-semibold">
+                                Parent Category *
+                            </label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                                <div class="text-danger small mt-1">{{ form.category.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label fw-semibold">
+                                Subcategory Name *
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.image.id_for_label }}" class="form-label fw-semibold">
+                                Subcategory Image
+                            </label>
+                            {{ form.image }}
+                            <small class="form-text text-muted">Optional image/icon for this subcategory</small>
+                            
+                            {% if subcategory and subcategory.image %}
+                                <div class="mt-2">
+                                    <img src="{{ subcategory.image.url }}" width="80" class="img-thumbnail">
+                                    <br>
+                                    <small class="text-muted">Current image</small>
+                                </div>
+                            {% endif %}
+                            
+                            {% if form.image.errors %}
+                                <div class="text-danger small mt-1">{{ form.image.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.order.id_for_label }}" class="form-label fw-semibold">
+                                        Display Order
+                                    </label>
+                                    {{ form.order }}
+                                    <small class="form-text text-muted">Lower numbers appear first</small>
+                                    {% if form.order.errors %}
+                                        <div class="text-danger small mt-1">{{ form.order.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group form-check mt-4">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label fw-semibold" for="{{ form.is_active.id_for_label }}">
+                                        Active
+                                    </label>
+                                    <br>
+                                    <small class="text-muted">Inactive subcategories won't appear in store</small>
+                                    {% if form.is_active.errors %}
+                                        <div class="text-danger small mt-1">{{ form.is_active.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Subcategory
+                            </button>
+                            <a href="{% url 'products:subcategory_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Optional: Preview image before upload
+    document.getElementById('{{ form.image.id_for_label }}').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const previewDiv = document.querySelector('.img-thumbnail');
+                if (previewDiv) {
+                    previewDiv.src = event.target.result;
+                } else {
+                    const img = document.createElement('img');
+                    img.src = event.target.result;
+                    img.width = 80;
+                    img.className = 'img-thumbnail mt-2';
+                    document.getElementById('{{ form.image.id_for_label }}').parentNode.appendChild(img);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %}

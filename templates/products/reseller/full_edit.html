@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Product</title>
+</head>
+<body>
+
+<h2>Edit Product</h2>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- 🔴 SHOW ERRORS -->
+    {{ product_form.errors }}
+    {{ image_formset.errors }}
+    {{ variant_formset.errors }}
+
+    <!-- PRODUCT -->
+    <h3>Product</h3>
+    {{ product_form.as_p }}
+
+    <!-- PRODUCT IMAGES -->
+    <h3>Product Images</h3>
+    {{ image_formset.management_form }}
+
+    {% for form in image_formset %}
+        {{ form.id }}
+
+        {% if form.instance.image %}
+            <img src="{{ form.instance.image.url }}" width="80">
+        {% endif %}
+
+        {{ form.image }}
+        {{ form.alt_text }}
+        {{ form.order }}
+        {{ form.DELETE }} Delete
+    {% endfor %}
+
+    <div id="image-formset"></div>
+
+    <div id="empty-image-form" style="display:none;">
+        {{ image_formset.empty_form.as_p }}
+    </div>
+
+    <button type="button" onclick="addImage()">+ Add Image</button>
+
+    <hr>
+
+    <!-- VARIANTS -->
+    <h3>Variants</h3>
+    {{ variant_formset.management_form }}
+
+    <div id="variant-formset">
+
+        {% for form in variant_formset %}
+        <div data-index="{{ forloop.counter0 }}">
+
+            {{ form.id }}
+            {{ form.as_p }}
+            {{ form.DELETE }} Delete Variant
+
+            <!-- EXISTING IMAGES -->
+            {% for img in form.instance.additional_images.all %}
+                <img src="{{ img.image.url }}" width="70">
+                <input type="checkbox" name="delete_variant_image_{{ img.id }}"> Delete
+            {% endfor %}
+
+            <!-- NEW IMAGES -->
+            <div class="variant-images"></div>
+
+            <button type="button" onclick="addVariantImage(this)">
+                + Add Variant Image
+            </button>
+
+            <hr>
+        </div>
+        {% endfor %}
+
+    </div>
+
+    <!-- EMPTY -->
+    <div id="empty-variant-form" style="display:none;">
+        <div data-index="__prefix__">
+            {{ variant_formset.empty_form.as_p }}
+
+            <div class="variant-images"></div>
+
+            <button type="button" onclick="addVariantImage(this)">
+                + Add Variant Image
+            </button>
+        </div>
+    </div>
+
+    <button type="button" onclick="addVariant()">+ Add Variant</button>
+
+    <br><br>
+    <button type="submit">Update</button>
+
+</form>
+
+<script>
+
+function addImage() {
+    let total = document.getElementById('id_images-TOTAL_FORMS');
+    let index = parseInt(total.value);
+
+    let template = document.getElementById('empty-image-form').innerHTML
+        .replace(/__prefix__/g, index);
+
+    document.getElementById('image-formset')
+        .insertAdjacentHTML('beforeend', template);
+
+    total.value = index + 1;
+}
+
+function addVariant() {
+    let total = document.getElementById('id_variants-TOTAL_FORMS');
+    let index = parseInt(total.value);
+
+    let template = document.getElementById('empty-variant-form').innerHTML
+        .replace(/__prefix__/g, index);
+
+    document.getElementById('variant-formset')
+        .insertAdjacentHTML('beforeend', template);
+
+    total.value = index + 1;
+}
+
+function addVariantImage(button) {
+    let parent = button.closest('[data-index]');
+    let index = parent.getAttribute('data-index');
+
+    let container = parent.querySelector('.variant-images');
+
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.name = `variant_images_${index}`;
+    input.multiple = true;
+
+    container.appendChild(input);
+}
+
+</script>
+
+</body>
+</html>

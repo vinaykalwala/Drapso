@@ -1,32 +1,89 @@
 
+{% load static %}
+
 {% block title %}Preview - {{ store.store_name }}{% endblock %}
 
 {% block content %}
-<!-- Preview Mode Banner -->
-<div class="preview-banner">
-    <div class="alert alert-warning text-center mb-0" style="border-radius: 0;">
+<div class="container-fluid py-4">
+    <!-- Preview Mode Banner -->
+    <div class="alert alert-info alert-dismissible fade show mb-4">
         <div class="d-flex justify-content-between align-items-center flex-wrap">
             <div>
-                <i class="fas fa-eye"></i>
-                <strong> PREVIEW MODE</strong> - This is how your store appears to customers
+                <i class="fas fa-eye fa-lg"></i>
+                <strong>Preview Mode:</strong> You're seeing all products (including drafts). 
+                Customers will only see published products.
             </div>
             <div class="mt-2 mt-sm-0">
-                <button class="btn btn-sm btn-outline-primary me-2" onclick="copyStoreLink()">
-                    <i class="fas fa-copy"></i> Copy Store Link
-                </button>
-                <a href="{% url 'resellers:store_dashboard' store.id %}" class="btn btn-sm btn-primary">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                <a href="{{ store_url }}" target="_blank" class="btn btn-sm btn-success">
+                    <i class="fas fa-external-link-alt"></i> View Live Store
                 </a>
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="alert">
+                    <i class="fas fa-times"></i> Dismiss
+                </button>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Store Frontend Preview -->
-<div class="store-frontend">
-    <!-- Store Header -->
-    <header class="bg-white shadow-sm">
-        <div class="container py-4">
+    <!-- Store Stats Summary -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">Total Products</h6>
+                            <h2 class="mb-0">{{ products|length }}</h2>
+                        </div>
+                        <i class="fas fa-boxes fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">Published</h6>
+                            <h2 class="mb-0">{{ published_count }}</h2>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">Drafts</h6>
+                            <h2 class="mb-0">{{ draft_count }}</h2>
+                        </div>
+                        <i class="fas fa-pencil-alt fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">Max Products</h6>
+                            <h2 class="mb-0">{{ store.get_max_products }}</h2>
+                        </div>
+                        <i class="fas fa-chart-line fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Store Preview Content -->
+    <div class="store-preview-wrapper border rounded bg-light p-4">
+        <!-- Store Header - Same as live store -->
+        <div class="store-header bg-white rounded shadow-sm mb-4 p-4">
             <div class="row align-items-center">
                 <div class="col-md-3 text-center text-md-start">
                     {% if store.store_logo %}
@@ -39,55 +96,263 @@
                 </div>
                 <div class="col-md-6 text-center">
                     <h1>{{ store.store_name }}</h1>
-                    <p class="text-muted">{{ store.store_description|default:"Welcome to our store!" }}</p>
+                    <p class="text-muted mb-0">{{ store.store_description|default:"Welcome to our store!" }}</p>
                 </div>
                 <div class="col-md-3 text-center text-md-end">
-                    <p><i class="fas fa-envelope"></i> {{ store.contact_email }}</p>
+                    <p class="mb-1"><i class="fas fa-envelope"></i> {{ store.contact_email }}</p>
                     {% if store.contact_phone %}
-                        <p><i class="fas fa-phone"></i> {{ store.contact_phone }}</p>
+                        <p class="mb-0"><i class="fas fa-phone"></i> {{ store.contact_phone }}</p>
                     {% endif %}
                 </div>
             </div>
         </div>
-    </header>
-    
-    {% if store.store_banner %}
-        <div class="store-banner">
-            <img src="{{ store.store_banner.url }}" alt="Store Banner" class="img-fluid w-100" style="max-height: 300px; object-fit: cover;">
-        </div>
-    {% endif %}
-    
-    <!-- Store Content -->
-    <main class="container py-5">
-        <div class="text-center py-5">
-            <i class="fas fa-store display-1 text-muted"></i>
-            <h3>Welcome to {{ store.store_name }}</h3>
-            <p>Your store is ready! Start adding products to see them here.</p>
-            <div class="mt-4">
-                <a href="{% url 'resellers:store_dashboard' store.id %}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Add Products
-                </a>
+
+        <!-- Store Banner -->
+        {% if store.store_banner %}
+            <div class="store-banner mb-4">
+                <img src="{{ store.store_banner.url }}" alt="Store Banner" class="img-fluid w-100 rounded shadow-sm" style="max-height: 300px; object-fit: cover;">
             </div>
+        {% endif %}
+
+        <!-- Theme-based Content Preview -->
+        {% if store.theme.theme_type == 'single' %}
+            {# SINGLE PRODUCT THEME PREVIEW #}
+            <div class="single-product-preview">
+                <h2 class="text-center mb-4">Featured Product</h2>
+                {% if published_products %}
+                    {% with product=published_products.first %}
+                        <div class="card shadow-sm">
+                            <div class="row g-0">
+                                <div class="col-md-6">
+                                    {% if product.main_image %}
+                                        <img src="{{ product.main_image.url }}" class="img-fluid rounded-start" alt="{{ product.name }}" style="height: 400px; width: 100%; object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 400px;">
+                                            <i class="fas fa-image fa-5x text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card-body">
+                                        <h3 class="card-title">{{ product.name }}</h3>
+                                        <h4 class="text-primary">₹{{ product.selling_price }}</h4>
+                                        <p class="card-text">{{ product.description|truncatewords:30 }}</p>
+                                        {% if product.stock > 0 %}
+                                            <span class="badge bg-success">In Stock ({{ product.stock }})</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Out of Stock</span>
+                                        {% endif %}
+                                        <div class="mt-3">
+                                            <button class="btn btn-primary" disabled>
+                                                <i class="fas fa-shopping-cart"></i> Add to Cart
+                                            </button>
+                                            <small class="text-muted ms-2">(Preview Mode)</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endwith %}
+                {% else %}
+                    <div class="alert alert-warning text-center">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        No published products yet. <a href="{% url 'products:reseller_product_list' store.id %}" class="alert-link">Add and publish products</a> to display them here.
+                    </div>
+                {% endif %}
+            </div>
+        {% else %}
+            {# MULTIPLE PRODUCTS THEME PREVIEW #}
+            <div class="multiple-products-preview">
+                <h2 class="text-center mb-4">Our Products</h2>
+                
+                {% if products %}
+                    <div class="row">
+                        {% for product in products %}
+                            <div class="col-md-4 col-lg-3 mb-4">
+                                <div class="card h-100 shadow-sm {% if not product.is_published %}border-warning{% endif %}">
+                                    <!-- Draft Badge -->
+                                    {% if not product.is_published %}
+                                        <div class="position-absolute top-0 end-0 m-2">
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-pencil-alt"></i> Draft
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <!-- Product Image -->
+                                    {% if product.main_image %}
+                                        <img src="{{ product.main_image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                            <i class="fas fa-image fa-3x text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ product.name }}</h5>
+                                        <p class="card-text text-muted small">{{ product.description|truncatewords:12 }}</p>
+                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                            <h4 class="text-primary mb-0">₹{{ product.selling_price }}</h4>
+                                            {% if product.source_price and product.source_price > product.selling_price %}
+                                                <small class="text-muted"><del>₹{{ product.source_price }}</del></small>
+                                            {% endif %}
+                                        </div>
+                                        {% if product.stock <= 0 %}
+                                            <span class="badge bg-danger mt-2">Out of Stock</span>
+                                        {% elif product.stock < 10 %}
+                                            <span class="badge bg-warning mt-2">Only {{ product.stock }} left</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-footer bg-white">
+                                        {% if product.is_published and product.stock > 0 %}
+                                            <button class="btn btn-primary w-100" disabled>
+                                                <i class="fas fa-shopping-cart"></i> Add to Cart
+                                            </button>
+                                        {% elif product.is_published and product.stock <= 0 %}
+                                            <button class="btn btn-secondary w-100" disabled>
+                                                <i class="fas fa-times-circle"></i> Out of Stock
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-secondary w-100" disabled>
+                                                <i class="fas fa-pencil-alt"></i> Draft Mode
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="empty-state bg-white rounded shadow-sm p-5">
+                            <i class="fas fa-box-open display-1 text-muted mb-4"></i>
+                            <h3>No Products Yet</h3>
+                            <p class="lead">Start adding products to your store.</p>
+                            <div class="mt-4">
+                                <a href="{% url 'products:reseller_import_products' store.id %}" class="btn btn-primary me-2">
+                                    <i class="fas fa-download"></i> Import Products
+                                </a>
+                                <a href="{% url 'products:reseller_own_product_create' store.id %}" class="btn btn-success">
+                                    <i class="fas fa-plus"></i> Create Own Product
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <!-- Store Address Section -->
+        {% if store.store_address %}
+            <div class="container mt-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card bg-white shadow-sm">
+                            <div class="card-body text-center">
+                                <h5><i class="fas fa-map-marker-alt text-primary"></i> Visit Us</h5>
+                                <p class="mb-0">{{ store.store_address }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Store Footer Preview -->
+        <footer class="bg-white rounded shadow-sm mt-4 p-4 text-center">
+            <p class="mb-0">&copy; {% now "Y" %} {{ store.store_name }}. All rights reserved.</p>
+            <p class="small text-muted mb-0">Powered by Drapso | {{ store.theme.name }} Theme</p>
+            <p class="small text-muted mt-2">
+                <i class="fas fa-eye"></i> Preview Mode - 
+                {% if store.theme.theme_type == 'single' %}
+                    Showing 1 featured product
+                {% else %}
+                    Showing {{ products|length }} product(s) ({{ published_count }} published, {{ draft_count }} draft)
+                {% endif %}
+            </p>
+        </footer>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="{% url 'resellers:store_dashboard' store.id %}" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <a href="{% url 'products:reseller_product_list' store.id %}" class="btn btn-primary me-2">
+                <i class="fas fa-box"></i> Manage Products
+            </a>
+            <a href="{{ store_url }}" target="_blank" class="btn btn-success">
+                <i class="fas fa-external-link-alt"></i> View Live Store
+            </a>
         </div>
-    </main>
-    
-    <!-- Store Footer -->
-    <footer class="bg-light py-4 mt-5">
-        <div class="container text-center">
-            <p>&copy; {% now "Y" %} {{ store.store_name }}. All rights reserved.</p>
-            <p class="small text-muted">Powered by Drapso</p>
-        </div>
-    </footer>
+    </div>
 </div>
 
+<style>
+    .store-preview-wrapper {
+        border: 2px solid #0d6efd;
+        position: relative;
+    }
+    
+    .store-preview-wrapper::before {
+        content: 'PREVIEW MODE';
+        position: absolute;
+        top: -12px;
+        left: 20px;
+        background: #0d6efd;
+        color: white;
+        padding: 2px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        z-index: 10;
+    }
+    
+    .product-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .empty-state {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .border-warning {
+        border-width: 2px;
+    }
+</style>
+
 <script>
-function copyStoreLink() {
-    const url = "{{ store_url }}";
-    navigator.clipboard.writeText(url).then(function() {
-        alert('✅ Store link copied to clipboard!\n\n' + url);
-    }).catch(function() {
-        alert('❌ Failed to copy link. Please copy manually: ' + url);
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Preview Mode Active for: {{ store.store_name }}');
+        console.log('Total Products: {{ products|length }}');
+        console.log('Published: {{ published_count }}');
+        console.log('Drafts: {{ draft_count }}');
+        
+        // Optional: Add tooltips for draft products
+        var draftCards = document.querySelectorAll('.border-warning');
+        draftCards.forEach(function(card) {
+            card.setAttribute('title', 'This product is in draft mode and not visible to customers');
+        });
     });
-}
+    
+    // Optional: Add keyboard shortcut (Ctrl+P) to go to products
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+            e.preventDefault();
+            window.location.href = "{% url 'products:reseller_product_list' store.id %}";
+        }
+    });
 </script>
 {% endblock %}

@@ -4,7 +4,7 @@ from .models import Store
 
 class SubdomainMiddleware(MiddlewareMixin):
     """
-    Detect subdomain and switch URLConf dynamically
+    Detect subdomain and route ALL subdomain traffic to store system
     """
 
     def process_request(self, request):
@@ -14,7 +14,7 @@ class SubdomainMiddleware(MiddlewareMixin):
         request.current_store = None
         request.is_store_request = False
 
-        # Skip localhost without subdomain
+        # Skip main domain
         if host in ['localhost', '127.0.0.1']:
             return None
 
@@ -36,19 +36,15 @@ class SubdomainMiddleware(MiddlewareMixin):
                 request.subdomain = subdomain
                 request.is_store_request = True
 
-        # Fetch store
+        # 🔥 CRITICAL: ALWAYS route subdomain requests
         if request.is_store_request:
-            store = Store.objects.filter(
-                subdomain=request.subdomain,
-                is_published=True,
-                status='active'
-            ).first()
+            store = Store.objects.filter(subdomain=request.subdomain).first()
 
-            if store:
-                request.current_store = store
+            # even if store is None → pass to view
+            request.current_store = store
 
-                # 🔥 CRITICAL FIX: switch URL routing
-                request.urlconf = 'resellers.urls'
+            # force routing to reseller URLs
+            request.urlconf = 'resellers.urls'
 
         return None
 
@@ -60,10 +56,7 @@ class StoreContextMiddleware(MiddlewareMixin):
 
     def process_template_response(self, request, response):
         if hasattr(response, 'context_data'):
-
-            if getattr(request, 'current_store', None):
-                response.context_data['current_store'] = request.current_store
-
+            response.context_data['current_store'] = getattr(request, 'current_store', None)
             response.context_data['subdomain'] = getattr(request, 'subdomain', None)
             response.context_data['is_store_request'] = getattr(request, 'is_store_request', False)
 

@@ -1,0 +1,51 @@
+<tr>
+    <td>
+        {% if variant.main_image %}
+            <img src="{{ variant.main_image.url }}" width="40" height="40" style="object-fit: cover;" class="rounded">
+        {% else %}
+            <i class="fas fa-image text-muted"></i>
+        {% endif %}
+    </td>
+    <td><strong>{{ variant.variant_name }}</strong></td>
+    <td>{{ variant.size|default:"-" }}</td>
+    <td>{{ variant.color|default:"-" }}</td>
+    <td class="text-primary">₹{{ variant.selling_price }}</td>
+    <td>
+        {{ variant.stock }}
+        {% if variant.stock <= variant.threshold_limit %}
+            <span class="badge badge-danger">Low</span>
+        {% endif %}
+    </td>
+    <td>
+        <div class="btn-group">
+            <a href="{% url 'products:reseller_edit_variant' store.id variant.id %}" class="btn btn-sm btn-primary">
+                <i class="fas fa-edit"></i>
+            </a>
+            <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteVariantModal{{ variant.id }}">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        
+        <!-- Delete Modal -->
+        <div class="modal fade" id="deleteVariantModal{{ variant.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="{% url 'products:reseller_delete_variant' store.id variant.id %}">
+                        {% csrf_token %}
+                        <div class="modal-header">
+                            <h5 class="modal-title">Confirm Delete</h5>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            Are you sure you want to delete variant "{{ variant.variant_name }}"?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </td>
+</tr>

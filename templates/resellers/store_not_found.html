@@ -1,6 +1,4 @@
-
-
-{% block title %}Store Not Found{% endblock %}
+{% block title %}Store Not Available{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -8,10 +6,26 @@
         <div class="col-md-6 text-center">
             <div class="card shadow">
                 <div class="card-body">
+
                     <i class="fas fa-store-slash display-1 text-muted mb-4"></i>
-                    <h2>Store Not Found</h2>
-                    <p>The store "<strong>{{ subdomain }}</strong>" does not exist or is not published yet.</p>
-                    <a href="/" class="btn btn-primary">Go to Homepage</a>
+
+                    <h2>Store Not Available</h2>
+
+                    <p>
+                        The store "<strong>{{ subdomain }}</strong>" is currently not accessible.
+                    </p>
+
+                    <p class="text-muted">
+                        This may be because:
+                    </p>
+
+                    <ul class="list-unstyled text-muted mb-4">
+                        <li>• The store does not exist</li>
+                        <li>• The store is not published yet</li>
+                        <li>• The subscription may have expired</li>
+                    </ul>
+
+                
                 </div>
             </div>
         </div>

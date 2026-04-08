@@ -1,0 +1,164 @@
+<!-- Alternative template with AJAX (if you prefer) -->
+{% load static %}
+
+{% block title %}Import Product - {{ source_product.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+
+            <div class="card shadow-sm">
+
+                <div class="card-header bg-white">
+                    <h4>Import: {{ source_product.name }}</h4>
+                </div>
+
+                <div class="card-body">
+
+                    <!-- PRODUCT PREVIEW -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            {% if source_product.main_image %}
+                                <img src="{{ source_product.main_image.url }}" class="img-fluid rounded">
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <h5>{{ source_product.name }}</h5>
+                            <p>{{ source_product.description|truncatewords:15 }}</p>
+                            <p><strong>Base Price:</strong> ₹{{ source_product.price }}</p>
+                            <p><strong>Stock:</strong> {{ source_product.stock }}</p>
+                        </div>
+                    </div>
+
+                    <!-- PRODUCT GALLERY -->
+                    <div class="mb-4">
+                        <h6>Product Images</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% if source_product.main_image %}
+                                <img src="{{ source_product.main_image.url }}" class="thumb">
+                            {% endif %}
+                            {% for img in source_product.additional_images.all %}
+                                <img src="{{ img.image.url }}" class="thumb">
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- FORM -->
+                    <form method="post" id="importForm">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label>Margin (₹)</label>
+                            <input type="number" name="margin_rupees" id="margin_rupees" class="form-control" step="0.01" value="0">
+                            <small class="text-muted">Enter your profit margin in rupees</small>
+                        </div>
+
+                        <div class="alert alert-success">
+                            <strong>Source Price:</strong> ₹{{ source_product.price }}<br>
+                            <strong>Margin:</strong> ₹<span id="marginPreview">0.00</span>
+                            <hr>
+                            <h5><strong>Your Selling Price:</strong> ₹<span id="sellingPricePreview">{{ source_product.price }}</span></h5>
+                        </div>
+
+                        <!-- VARIANTS -->
+                        <div class="mb-4">
+                            <h5>Variants</h5>
+                            <div style="max-height:400px; overflow-y:auto;">
+                                {% for variant in source_product.variants.all %}
+                                <div class="border rounded p-3 mb-2">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            {% if variant.main_image %}
+                                                <img src="{{ variant.main_image.url }}" class="img-fluid rounded" style="max-height: 80px;">
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-9">
+                                            <strong>{{ variant.variant_name }}</strong><br>
+                                            <div class="row mt-2">
+                                                <div class="col-md-6">
+                                                    <small>Original Price: ₹<span class="variant-price" data-price="{{ variant.price }}">{{ variant.price }}</span></small>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <strong>Your Price: ₹<span class="variant-selling-price">{{ variant.price }}</span></strong>
+                                                </div>
+                                            </div>
+                                            <small>Stock: {{ variant.stock }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Import Product</button>
+                        <a href="{% url 'products:reseller_import_products' store.id %}" class="btn btn-secondary">Cancel</a>
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+.thumb {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    const marginInput = document.getElementById('margin_rupees');
+    const sourcePrice = parseFloat("{{ source_product.price }}");
+    const marginPreview = document.getElementById('marginPreview');
+    const sellingPricePreview = document.getElementById('sellingPricePreview');
+    
+    // Get all variant elements
+    const variantPriceSpans = document.querySelectorAll('.variant-price');
+    const variantSellingSpans = document.querySelectorAll('.variant-selling-price');
+    
+    // Store original variant prices
+    const variantOriginalPrices = Array.from(variantPriceSpans).map(span => parseFloat(span.getAttribute('data-price')));
+    
+    function updatePrices() {
+        let margin = parseFloat(marginInput.value);
+        if (isNaN(margin)) margin = 0;
+        
+        // Update product price
+        const productPrice = sourcePrice + margin;
+        marginPreview.textContent = margin.toFixed(2);
+        sellingPricePreview.textContent = productPrice.toFixed(2);
+        
+        // Update variant prices
+        variantOriginalPrices.forEach((originalPrice, index) => {
+            const variantPrice = originalPrice + margin;
+            if (variantSellingSpans[index]) {
+                variantSellingSpans[index].textContent = variantPrice.toFixed(2);
+            }
+        });
+    }
+    
+    marginInput.addEventListener('input', updatePrices);
+    marginInput.addEventListener('change', updatePrices);
+    updatePrices(); // Initial update
+    
+    // Form validation
+    document.getElementById('importForm').addEventListener('submit', function(e) {
+        const margin = parseFloat(marginInput.value);
+        if (isNaN(margin) || margin < 0) {
+            e.preventDefault();
+            alert('Please enter a valid margin amount (0 or greater)');
+            return false;
+        }
+    });
+});
+</script>
+
+{% endblock %}
