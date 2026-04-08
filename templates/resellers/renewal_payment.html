@@ -1,146 +1,551 @@
-
+{% extends 'dashboard_base.html' %}
 {% load static %}
 
 {% block title %}Complete Payment - {{ store.store_name }}{% endblock %}
+{% block content %}
 
-{% block extra_css %}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <style>
-    .summary-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* ============================================
+       PREMIUM PAYMENT CHECKOUT PAGE
+       Clean | Modern | Professional | Responsive
+       ============================================ */
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --primary-light: #eef2ff;
+        --success: #10b981;
+        --success-dark: #059669;
+        --success-light: #d1fae5;
+        --warning: #f59e0b;
+        --warning-light: #fef3c7;
+        --danger: #ef4444;
+        --info: #3b82f6;
+        --info-light: #dbeafe;
+        --dark: #0f172a;
+        --dark-800: #1e293b;
+        --dark-700: #334155;
+        --gray-500: #64748b;
+        --gray-400: #94a3b8;
+        --gray-300: #cbd5e1;
+        --gray-200: #e2e8f0;
+        --gray-100: #f1f5f9;
+        --gray-50: #f8fafc;
+        --white: #ffffff;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        --radius-sm: 8px;
+        --radius: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 20px;
+        --radius-2xl: 24px;
+        --transition: all 0.3s ease;
+    }
+
+    body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        color: var(--dark-800);
+    }
+
+    /* Main Container */
+    .payment-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px 24px;
+    }
+
+    /* Payment Card */
+    .payment-card {
+        background: var(--white);
+        border-radius: var(--radius-2xl);
+        overflow: hidden;
+        box-shadow: var(--shadow-xl);
+        transition: var(--transition);
+    }
+
+    /* Header */
+    .payment-header {
+        background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+        padding: 28px 32px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .payment-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -30%;
+        width: 80%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    }
+
+    .payment-header h4 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin: 0;
         color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        position: relative;
+        z-index: 1;
     }
+
+    /* Body */
+    .payment-body {
+        padding: 32px;
+    }
+
+    /* Store Summary Card */
+    .store-summary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: var(--radius-xl);
+        padding: 28px;
+        text-align: center;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .store-summary::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -30%;
+        width: 80%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    }
+
+    .store-logo {
+        max-height: 65px;
+        margin-bottom: 12px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .store-summary h3 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: white;
+        margin: 8px 0 4px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .store-summary p {
+        color: rgba(255,255,255,0.85);
+        font-size: 0.85rem;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Alert Boxes */
+    .alert {
+        border-radius: var(--radius-lg);
+        padding: 14px 18px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        font-size: 0.85rem;
+    }
+
+    .alert i {
+        font-size: 1rem;
+        margin-top: 2px;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, var(--success-light), #d1fae5);
+        border-left: 4px solid var(--success);
+        color: #065f46;
+    }
+
+    .alert-info {
+        background: linear-gradient(135deg, var(--info-light), #dbeafe);
+        border-left: 4px solid var(--info);
+        color: #1e40af;
+    }
+
+    .alert-warning {
+        background: linear-gradient(135deg, var(--warning-light), #fef3c7);
+        border-left: 4px solid var(--warning);
+        color: #92400e;
+    }
+
+    /* Order Summary */
     .order-summary {
-        border-left: 3px solid #28a745;
+        background: linear-gradient(135deg, var(--gray-50), var(--white));
+        border-radius: var(--radius-xl);
+        padding: 24px;
+        margin-bottom: 20px;
+        border: 1px solid var(--gray-200);
     }
-    .detail-row {
-        padding: 10px 0;
-        border-bottom: 1px solid #e0e0e0;
+
+    .order-summary h5 {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--dark-800);
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--gray-200);
     }
-    .detail-row:last-child {
+
+    .order-summary h5 i {
+        color: var(--primary);
+    }
+
+    .summary-table {
+        width: 100%;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .summary-row:last-child {
         border-bottom: none;
+        padding-bottom: 0;
     }
+
+    .summary-label {
+        font-weight: 600;
+        color: var(--gray-600);
+        font-size: 0.85rem;
+    }
+
+    .summary-value {
+        font-weight: 600;
+        color: var(--dark-800);
+        font-size: 0.85rem;
+    }
+
+    .summary-amount {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    .badge-custom {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+
+    .badge-info {
+        background: var(--info-light);
+        color: var(--info);
+    }
+
+    .badge-success {
+        background: var(--success-light);
+        color: var(--success);
+    }
+
+    /* URL Box */
+    .url-box {
+        background: linear-gradient(135deg, var(--gray-50), var(--white));
+        border-radius: var(--radius-lg);
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        border: 1px solid var(--gray-200);
+        text-align: center;
+    }
+
+    .url-box strong {
+        font-size: 0.8rem;
+        color: var(--gray-600);
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .url-code {
+        background: var(--gray-100);
+        padding: 8px 16px;
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--primary);
+        word-break: break-all;
+        display: inline-block;
+    }
+
+    /* Buttons */
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 14px 24px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        transition: var(--transition);
+        text-decoration: none;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, var(--success), var(--success-dark));
+        color: white;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.05);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-secondary {
+        background: var(--gray-100);
+        color: var(--dark-700);
+        border: 1px solid var(--gray-200);
+    }
+
+    .btn-secondary:hover {
+        background: var(--gray-200);
+        transform: translateY(-1px);
+    }
+
+    /* Secure Text */
+    .secure-text {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 0.7rem;
+        color: var(--gray-500);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .secure-text i {
+        font-size: 0.8rem;
+    }
+
+    /* Bonus Badge */
     .bonus-badge {
-        background: #ffc107;
-        color: #333;
-        padding: 5px 10px;
-        border-radius: 5px;
-        font-size: 12px;
+        background: linear-gradient(135deg, var(--warning), #d97706);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    /* Divider */
+    .divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--gray-200), transparent);
+        margin: 16px 0;
+    }
+       @media (max-width: 900px) {
+        .content{
+            margin-top: 50px;
+        }
+    }
+    /* Responsive */
+    @media (max-width: 768px) {
+        .payment-wrapper {
+            padding: 30px 20px;
+        }
+        .payment-body {
+            padding: 24px;
+        }
+        .store-summary {
+            padding: 20px;
+        }
+        .store-summary h3 {
+            font-size: 1.1rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .payment-wrapper {
+            padding: 20px 16px;
+        }
+        .payment-header {
+            padding: 20px 24px;
+        }
+        .payment-header h4 {
+            font-size: 1.2rem;
+        }
+        .payment-body {
+            padding: 20px;
+        }
+        .summary-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+        .btn {
+            padding: 12px 20px;
+            font-size: 0.85rem;
+        }
+        .order-summary {
+            padding: 18px;
+        }
     }
 </style>
-{% endblock %}
+<div class="content">
+<div class="payment-wrapper">
+    <div class="payment-card">
+        <!-- Header -->
+        <div class="payment-header">
+            <h4>
+                {% if is_upgrade %}
+                    <i class="fas fa-arrow-up"></i> Upgrade Your Plan
+                {% else %}
+                    <i class="fas fa-sync-alt"></i> Renew Subscription
+                {% endif %}
+            </h4>
+        </div>
 
-{% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h4 class="mb-0">
-                        {% if is_upgrade %}
-                            <i class="fas fa-arrow-up"></i> Upgrade Your Plan
-                        {% else %}
-                            <i class="fas fa-sync-alt"></i> Renew Subscription
-                        {% endif %}
-                    </h4>
+        <!-- Body -->
+        <div class="payment-body">
+            <!-- Store Summary Card -->
+            <div class="store-summary">
+                {% if store.store_logo %}
+                    <img src="{{ store.store_logo.url }}" alt="{{ store.store_name }}" class="store-logo">
+                {% else %}
+                    <i class="fas fa-store fa-3x" style="color: rgba(255,255,255,0.8);"></i>
+                {% endif %}
+                <h3>{{ store.store_name }}</h3>
+                <p>{{ store.store_description|default:"Your store" }}</p>
+            </div>
+
+            <!-- Data Preservation Notice -->
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <div>
+                    <strong>Your data is safe!</strong> All your products, theme, and settings will be preserved.
                 </div>
-                <div class="card-body">
-                    <!-- Store Summary -->
-                    <div class="summary-card p-4 rounded mb-4">
-                        <div class="text-center">
-                            {% if store.store_logo %}
-                                <img src="{{ store.store_logo.url }}" alt="{{ store.store_name }}" style="max-height: 60px;">
+            </div>
+
+            <!-- Order Summary -->
+            <div class="order-summary">
+                <h5>
+                    <i class="fas fa-receipt"></i> Order Summary
+                </h5>
+                <div class="summary-table">
+                    <div class="summary-row">
+                        <span class="summary-label">Store</span>
+                        <span class="summary-value">{{ store.store_name }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Current Plan</span>
+                        <span class="summary-value">
+                            {% if old_plan %}
+                                <span class="badge-custom badge-info">{{ old_plan.get_name_display|title }} ({{ old_plan.get_duration_display }})</span>
                             {% else %}
-                                <i class="fas fa-store fa-3x"></i>
+                                <span class="badge-custom" style="background:var(--gray-200);">No active plan</span>
                             {% endif %}
-                            <h3 class="mt-2">{{ store.store_name }}</h3>
-                            <p class="mb-0">{{ store.store_description|default:"Your store" }}</p>
-                        </div>
+                        </span>
                     </div>
-
-                    <!-- Data Preservation Notice -->
-                    <div class="alert alert-success">
-                        <i class="fas fa-check-circle"></i>
-                        <strong>Your data is safe!</strong> All your products, theme, and settings will be preserved.
+                    {% if not is_upgrade and remaining_days > 0 %}
+                    <div class="summary-row">
+                        <span class="summary-label">Remaining Days</span>
+                        <span class="summary-value">
+                            <span class="badge-custom badge-info">{{ remaining_days }} days left</span>
+                        </span>
                     </div>
-
-                    <!-- Order Summary -->
-                    <div class="order-summary p-3 mb-4">
-                        <h5><i class="fas fa-receipt"></i> Order Summary</h5>
-                        <table class="table table-borderless">
-                            <tr>
-                                <td><strong>Store:</strong></td>
-                                <td>{{ store.store_name }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Current Plan:</strong></td>
-                                <td>
-                                    {% if old_plan %}
-                                        {{ old_plan.get_name_display|title }} ({{ old_plan.get_duration_display }})
-                                    {% else %}
-                                        No active plan
-                                    {% endif %}
-                                 
-                             
-                            {% if not is_upgrade and remaining_days > 0 %}
-                                <tr>
-                                    <td><strong>Remaining Days:</strong></td>
-                                    <td>
-                                        <span class="badge bg-info">{{ remaining_days }} days left</span>
-                                     
-                                 
-                            {% endif %}
-                            <tr class="border-top">
-                                <td><strong>Amount:</strong></td>
-                                <td><h4 class="text-primary mb-0">${{ amount }}</h4></td>
-                             
-                        </table>
-
-                        {% if will_get_extra_days and remaining_days > 0 %}
-                            <div class="alert alert-success">
-                                <i class="fas fa-gift"></i> 
-                                <strong>Bonus!</strong> You will get <strong>{{ remaining_days }} extra days</strong> added to your new subscription period!
-                            </div>
-                        {% endif %}
-
-                        {% if is_upgrade %}
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle"></i>
-                                Your existing subscription value has been applied. You only pay the difference!
-                            </div>
-                        {% endif %}
+                    {% endif %}
+                    <div class="divider"></div>
+                    <div class="summary-row">
+                        <span class="summary-label">Amount</span>
+                        <span class="summary-value summary-amount">₹{{ amount }}</span>
                     </div>
-
-                    <!-- Store URL Preview -->
-                    <div class="alert alert-info">
-                        <i class="fas fa-link"></i>
-                        <strong>Your store URL remains:</strong><br>
-                        <code class="text-primary">{{ store_url }}</code>
-                    </div>
-
-                    <!-- Payment Button -->
-                    <div class="d-grid gap-2">
-                        <button id="pay-button" class="btn btn-success btn-lg">
-                            {% if is_upgrade %}
-                                <i class="fas fa-arrow-up"></i> Pay ${{ amount }} and Upgrade
-                            {% else %}
-                                <i class="fas fa-sync-alt"></i> Pay ${{ amount }} and Renew
-                            {% endif %}
-                        </button>
-                        <a href="{% url 'resellers:manage_subscription' store.id %}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Cancel
-                        </a>
-                    </div>
-
-                    <p class="text-center text-muted mt-3 small">
-                        <i class="fas fa-lock"></i> Secure payment powered by Razorpay
-                    </p>
                 </div>
+
+                {% if will_get_extra_days and remaining_days > 0 %}
+                <div class="alert alert-warning" style="margin-top: 16px; margin-bottom: 0;">
+                    <i class="fas fa-gift"></i>
+                    <div>
+                        <strong>Bonus!</strong> You will get <strong>{{ remaining_days }} extra days</strong> added to your new subscription period!
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if is_upgrade %}
+                <div class="alert alert-info" style="margin-top: 16px; margin-bottom: 0;">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        Your existing subscription value has been applied. You only pay the difference!
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Store URL Preview -->
+            <div class="url-box">
+                <strong><i class="fas fa-link"></i> Your store URL remains:</strong>
+                <div class="url-code">
+                    {{ store_url }}
+                </div>
+            </div>
+
+            <!-- Payment Buttons -->
+            <div class="btn-group">
+                <button id="pay-button" class="btn btn-success">
+                    {% if is_upgrade %}
+                        <i class="fas fa-arrow-up"></i> Pay ₹{{ amount }} and Upgrade
+                    {% else %}
+                        <i class="fas fa-sync-alt"></i> Pay ₹{{ amount }} and Renew
+                    {% endif %}
+                </button>
+                <a href="{% url 'resellers:manage_subscription' store.id %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Cancel
+                </a>
+            </div>
+
+            <!-- Secure Payment Text -->
+            <div class="secure-text">
+                <i class="fas fa-lock"></i> Secure payment powered by Razorpay
+                <i class="fas fa-shield-alt"></i> 100% encrypted
             </div>
         </div>
     </div>
 </div>
-
+</div>
 <script>
     var options = {
         "key": "{{ razorpay_key_id }}",
@@ -182,7 +587,7 @@
             form.submit();
         },
         "theme": {
-            "color": "#28a745"
+            "color": "#10b981"
         },
         "modal": {
             "ondismiss": function() {

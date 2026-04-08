@@ -2,22 +2,14 @@
 {% load static %}
 
 {% block title %}Subscribe to {{ plan.get_name_display|title }} - {{ store.store_name }}{% endblock %}
+{% block content %}
 
-{% block extra_css %}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <style>
-    .summary-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-    .order-summary {
-        border-left: 3px solid #28a745;
-    }
+   
 </style>
-{% endblock %}
 
-{% block content %}
-<div class="container py-5">
+<div class="content">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card shadow">
