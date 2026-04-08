@@ -1,287 +1,642 @@
+{% extends "dashboard_base.html" %}
+{% load static %}
 
-
-{% block title %}Select Store Theme - Step 3{% endblock %}
-
-{% block extra_css %}
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<!-- Google Fonts: Inter for clean modern typography -->
+<link
+    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
+    rel="stylesheet">
 <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .main-content {
+        margin-left: 280px;
+        /* sidebar width same ga petu */
+        transition: all 0.3s ease;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background: #f1f5f9;
+        /* soft background matching secondary-bg vibe */
+        color: #0f172a;
+        line-height: 1.5;
+    }
+
+    /* root variables from requirement */
+    :root {
+        --primary: #4f46e5;
+        --primary-light: #6366f1;
+        --primary-gradient: linear-gradient(135deg, #4f46e5, #6366f1);
+        --secondary-bg: #f8fafc;
+        --border-glow: rgba(99, 102, 241, 0.2);
+    }
+
+    .container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+    }
+
+    /* Progress bar */
+    .progress-wrapper {
+        margin-bottom: 2rem;
+    }
+
+    .progress-track {
+        background: #e2e8f0;
+        border-radius: 100px;
+        height: 8px;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        background: var(--primary-gradient);
+        width: 75%;
+        height: 100%;
+        border-radius: 100px;
+        transition: width 0.3s ease;
+    }
+
+    .step-text {
+        text-align: center;
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #475569;
+    }
+
+    /* Headline & alert */
+    .hero-section {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .hero-section h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: var(--primary-gradient);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.5rem;
+    }
+
+    .hero-section .lead {
+        font-size: 1.2rem;
+        color: #334155;
+        margin-bottom: 1.25rem;
+    }
+
+    .alert-info {
+        background: var(--secondary-bg);
+        border-left: 4px solid var(--primary);
+        padding: 0.9rem 1.5rem;
+        border-radius: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.03);
+        backdrop-filter: blur(2px);
+        font-weight: 500;
+    }
+
+    .alert-info i {
+        color: var(--primary);
+        font-size: 1.2rem;
+    }
+
+    .badge-lifetime {
+        background: #10b981;
+        color: white;
+        font-size: 0.7rem;
+        padding: 0.25rem 0.7rem;
+        border-radius: 30px;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+
+    /* Theme cards grid */
+    .themes-grid {
+        display: grid;
+        flex-wrap: wrap;
+        gap: 2rem;
+        justify-content: center;
+        margin-bottom: 3rem;
+    }
+
     .theme-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        flex: 1;
+        min-width: 320px;
+        background: #ffffff;
+        border-radius: 2rem;
+        transition: transform 0.25s ease, box-shadow 0.3s ease;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02), 0 2px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #eef2ff;
+        overflow: hidden;
         cursor: pointer;
     }
-    
+
     .theme-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+        transform: translateY(-6px);
+        box-shadow: 0 20px 30px -12px rgba(79, 70, 229, 0.15), 0 4px 12px rgba(0, 0, 0, 0.05);
     }
-    
+
     .theme-card.selected {
-        border: 3px solid #28a745;
-        box-shadow: 0 0 20px rgba(40,167,69,0.3);
+        border: 2px solid var(--primary);
+        box-shadow: 0 0 0 4px var(--border-glow), 0 12px 28px rgba(79, 70, 229, 0.12);
     }
-    
+
+    .card-header {
+        padding: 1.2rem 1.5rem;
+        background: var(--secondary-bg);
+        border-bottom: 1px solid #eef2ff;
+    }
+
+    .card-header h3 {
+        font-weight: 700;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin: 0;
+        color: #0f172a;
+    }
+
+    .card-header i {
+        color: var(--primary);
+    }
+
+    .card-body {
+        padding: 1.75rem;
+    }
+
     .theme-preview-img {
-        height: 250px;
+        width: 100%;
+        height: 220px;
         object-fit: cover;
-        border-radius: 8px;
+        border-radius: 1.25rem;
+        background: #f1f5f9;
+        border: 1px solid #eef2ff;
+        transition: all 0.2s;
     }
-    
-    .theme-badge {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        z-index: 10;
+
+    .img-placeholder {
+        background: #f8fafc;
+        border-radius: 1.25rem;
+        text-align: center;
+        padding: 2rem;
+        border: 1px dashed #cbd5e1;
     }
-    
-    .preview-link {
-        text-decoration: none;
-        margin-top: 15px;
-        display: inline-block;
-    }
-    
-    .preview-link:hover {
-        text-decoration: underline;
-    }
-    
+
     .radio-card {
+        margin: 1rem 0 1.2rem 0;
+        background: #f8fafc;
+        padding: 0.8rem 1rem;
+        border-radius: 1rem;
+        transition: background 0.2s;
+    }
+
+    .form-check-input {
+        width: 1.2rem;
+        height: 1.2rem;
+        accent-color: var(--primary);
+        margin-right: 0.6rem;
         cursor: pointer;
     }
-    
-    .radio-card input[type="radio"] {
+
+    .form-check-label {
+        font-weight: 600;
+        font-size: 1rem;
         cursor: pointer;
+        color: #1e293b;
     }
-    
+
     .feature-list {
         list-style: none;
         padding-left: 0;
+        margin-top: 1rem;
     }
-    
+
     .feature-list li {
-        padding: 5px 0;
-        border-bottom: 1px solid #eee;
+        padding: 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.95rem;
+        border-bottom: 1px solid #f1f5f9;
     }
-    
+
     .feature-list li:last-child {
         border-bottom: none;
     }
-    
-    .feature-list i {
-        margin-right: 8px;
-        color: #28a745;
-    }
-</style>
-{% endblock %}
 
-{% block content %}
-<div class="container py-5">
-    <!-- Step Indicator -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="progress" style="height: 10px;">
-                <div class="progress-bar bg-success" style="width: 75%"></div>
+    .feature-list i {
+        color: var(--primary);
+        width: 1.25rem;
+        font-size: 0.95rem;
+    }
+
+    .btn-outline-preview {
+        background: transparent;
+        border: 1px solid #cbd5e1;
+        border-radius: 2rem;
+        padding: 0.5rem 1.25rem;
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: #334155;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-outline-preview:hover {
+        border-color: var(--primary);
+        background: rgba(79, 70, 229, 0.04);
+        color: var(--primary);
+    }
+
+    .btn-outline-preview i {
+        font-size: 0.9rem;
+    }
+
+    .alert-warning {
+        background: #fffbeb;
+        border-left: 4px solid #f59e0b;
+        padding: 1rem;
+        border-radius: 1rem;
+        font-size: 0.9rem;
+    }
+
+    /* Buttons navigation */
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+    }
+
+    .btn {
+        padding: 0.75rem 2rem;
+        border-radius: 2.5rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: white;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-secondary {
+        background: #f1f5f9;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+        background: #e6edf4;
+        transform: translateY(-1px);
+    }
+
+    .btn-primary {
+        background: var(--primary-gradient);
+        color: white;
+        box-shadow: 0 4px 8px rgba(79, 70, 229, 0.25);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(79, 70, 229, 0.3);
+        filter: brightness(1.02);
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* responsive */
+    @media (max-width: 768px) {
+        .container {
+            padding: 1rem;
+        }
+
+        .hero-section h1 {
+            font-size: 1.8rem;
+        }
+
+        .theme-card {
+            min-width: 280px;
+        }
+    }
+
+    footer {
+        text-align: center;
+        margin-top: 3rem;
+        font-size: 0.75rem;
+        color: #94a3b8;
+    }
+
+    /* 🔥 RESPONSIVE IMPROVEMENTS */
+
+/* Default (Desktop large screens) */
+.themes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+/* Medium screens (tablets) */
+@media (max-width: 1024px) {
+    .themes-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .main-content {
+        margin-left: 0; /* sidebar remove */
+    }
+
+    .container {
+        padding: 1.5rem 1rem;
+    }
+}
+
+/* Small screens (mobile) */
+@media (max-width: 768px) {
+
+    .hero-section h1 {
+        font-size: 1.6rem;
+    }
+
+    .hero-section .lead {
+        font-size: 1rem;
+    }
+
+    .theme-card {
+        width: 100%;
+        min-width: unset;
+        border-radius: 1.5rem;
+    }
+
+    .card-body {
+        padding: 1.2rem;
+    }
+
+    .theme-preview-img {
+        height: 180px;
+    }
+
+    .feature-list li {
+        font-size: 0.85rem;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .alert-info {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* Extra small screens (small mobiles) */
+@media (max-width: 480px) {
+
+    .hero-section h1 {
+        font-size: 1.3rem;
+    }
+
+    .theme-preview-img {
+        height: 150px;
+    }
+
+    .card-header h3 {
+        font-size: 1.1rem;
+    }
+
+    .form-check-label {
+        font-size: 0.9rem;
+    }
+}
+</style>
+
+<div class="main-content">
+    <div class="container">
+        <!-- Step Indicator -->
+        <div class="progress-wrapper">
+            <div class="progress-track">
+                <div class="progress-fill"></div>
             </div>
-            <div class="text-center mt-2">
-                <small class="text-muted">Step {{ step }} of {{ total_steps }}: Select Store Theme</small>
+            <div class="step-text">
+                <i class="fas fa-store me-1"></i> Step 3 of 4 · Select Store Theme
             </div>
         </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-12 text-center mb-5">
-            <h1 class="display-4">Choose Your Store Theme</h1>
-            <p class="lead">Select how your store will look to your customers</p>
-            <div class="alert alert-info shadow-sm">
-                <i class="fas fa-info-circle"></i>
-                Your plan: <strong>{{ plan.get_name_display|title }}</strong> | 
-                Products limit: <strong>{{ plan.multiple_theme_limit }} products</strong>
-                {% if plan.duration == 'lifetime' %}
-                    <span class="badge bg-warning ms-2">Lifetime Access</span>
-                {% endif %}
+
+        <div class="hero-section">
+            <h1>Choose Your Store Theme</h1>
+            <p class="lead">Define the look & feel — tailored to your products</p>
+            <div class="alert-info">
+                <i class="fas fa-gem"></i>
+                <span>Your plan: <strong>{{ plan.get_name_display }}</strong>
+                    <strong>{{ plan.multiple_theme_limit }} products</strong></span>
+                <span class="badge-lifetime"><i class="fas fa-infinity"></i> Lifetime Access</span>
             </div>
         </div>
-    </div>
-    
-    <form method="POST" id="themeForm">
-        {% csrf_token %}
-        
-        <div class="row">
-            <!-- Single Product Theme -->
-            <div class="col-lg-6 mb-4">
-                <div class="card theme-card h-100 shadow" data-theme-type="single">
-                    <div class="card-header bg-gradient-info text-white">
-                        <h3 class="mb-0 text-center">
-                            <i class="fas fa-store"></i> Single Product Theme
-                        </h3>
+
+        <!-- Theme selection form simulation (using same logic but design fresh) -->
+        <form method="POST" id="themeForm">
+            {% csrf_token %}
+            <div class="themes-grid">
+                <!-- Single Product Theme Card -->
+                <div class="theme-card" data-theme-type="single" id="cardSingle">
+                    <div class="card-header">
+                        <h3><i class="fas fa-store"></i> Single Product Theme</h3>
                     </div>
                     <div class="card-body">
-                        {% if single_theme %}
-                            <!-- Preview Image -->
-                            {% if single_theme.preview_image %}
-                                <img src="{{ single_theme.preview_image.url }}" 
-                                     alt="{{ single_theme.name }}" 
-                                     class="img-fluid rounded theme-preview-img w-100 mb-3">
-                            {% else %}
-                                <div class="bg-light text-center py-5 rounded mb-3">
-                                    <i class="fas fa-image fa-4x text-muted"></i>
-                                    <p class="mt-2 text-muted">Preview image coming soon</p>
-                                </div>
-                            {% endif %}
-                            
-                            <div class="form-check radio-card">
-                                <input class="form-check-input" type="radio" 
-                                       name="theme_id" value="{{ single_theme.id }}" 
-                                       id="theme_single" 
-                                       {% if store.theme.id == single_theme.id %}checked{% endif %}
-                                       data-theme-type="single">
-                                <label class="form-check-label fs-5 fw-bold" for="theme_single">
-                                    Select Single Product Theme
-                                </label>
-                            </div>
-                            
-                            <div class="mt-3">
-                                <h5>Theme Features:</h5>
-                                <ul class="feature-list">
-                                    <li><i class="fas fa-check-circle"></i> Focus on a single product</li>
-                                    <li><i class="fas fa-check-circle"></i> Full-screen product display</li>
-                                    <li><i class="fas fa-check-circle"></i> Detailed product information</li>
-                                    <li><i class="fas fa-check-circle"></i> Call-to-action optimization</li>
-                                    <li><i class="fas fa-check-circle"></i> Mobile responsive design</li>
-                                </ul>
-                            </div>
-                            
-                            <!-- Live Preview Link -->
-                            <div class="mt-3 text-center">
-                                <a href="{% url 'resellers:preview_single_theme' theme_id=single_theme.id %}" 
-                                   class="btn btn-outline-info preview-link" 
-                                   target="_blank">
-                                    <i class="fas fa-eye"></i> Live Preview Single Product Theme
-                                </a>
-                            </div>
-                        {% else %}
-                            <div class="alert alert-warning">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                Single product theme is not available. Please contact administrator.
-                            </div>
-                        {% endif %}
+                        <!-- preview image simulation -->
+                        {% if single_theme.preview_image %}
+    <img src="{{ single_theme.preview_image.url }}" 
+         class="theme-preview-img">
+{% else %}
+    <div class="img-placeholder">
+        <i class="fas fa-image"></i>
+        <p>No image available</p>
+    </div>
+{% endif %}
+                        <!-- use img if real? We'll simulate image area -->
+
+                        <div class="radio-card">
+                            <input class="form-check-input" type="radio" name="theme_id" value="{{ single_theme.id }}"
+                                id="theme_single" data-theme-type="single">
+                            <label class="form-check-label" for="theme_single">
+                                Select Single Product Theme
+                            </label>
+                        </div>
+
+                        <div>
+                            <h5 style="font-weight: 600; margin-bottom: 0.5rem;">Theme Features</h5>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check-circle"></i> Focus on a single product</li>
+                                <li><i class="fas fa-check-circle"></i> Full-screen product display</li>
+                                <li><i class="fas fa-check-circle"></i> Detailed product information</li>
+                                <li><i class="fas fa-check-circle"></i> Call-to-action optimization</li>
+                                <li><i class="fas fa-check-circle"></i> Mobile responsive design</li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-3 text-center">
+                            <a href="{% url 'resellers:preview_single_theme' theme_id=single_theme.id %}"
+                                class="btn-outline-preview preview-link" target="_blank">
+                                <i class="fas fa-eye"></i> Live Preview Single Theme
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multiple Products Theme Card -->
+                <div class="theme-card" data-theme-type="multiple" id="cardMultiple">
+                    <div class="card-header">
+                        <h3><i class="fas fa-store-alt"></i> Multiple Products Theme</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if multiple_theme.preview_image %}
+    <img src="{{ multiple_theme.preview_image.url }}" 
+         class="theme-preview-img">
+{% else %}
+    <div class="img-placeholder">
+        <i class="fas fa-image"></i>
+        <p>No image available</p>
+    </div>
+{% endif %}
+
+                        <div class="radio-card">
+                            <input class="form-check-input" type="radio" name="theme_id" value="{{ multiple_theme.id }}"
+                                id="theme_multiple" data-theme-type="multiple">
+                            <label class="form-check-label" for="theme_multiple">
+                                Select Multiple Products Theme
+                            </label>
+                        </div>
+
+                        <div>
+                            <h5 style="font-weight: 600; margin-bottom: 0.5rem;">Theme Features</h5>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check-circle"></i> Display up to <strong>50</strong> products</li>
+                                <li><i class="fas fa-check-circle"></i> Product grid layout</li>
+                                <li><i class="fas fa-check-circle"></i> Search and filter options</li>
+                                <li><i class="fas fa-check-circle"></i> Product categories</li>
+                                <li><i class="fas fa-check-circle"></i> Comparison feature</li>
+                                <li><i class="fas fa-check-circle"></i> Mobile responsive design</li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-3 text-center">
+                            <a href="{% url 'resellers:preview_multiple_theme' theme_id=multiple_theme.id %}"
+                                class="btn-outline-preview preview-link" target="_blank">
+                                <i class="fas fa-eye"></i> Live Preview Multiple Theme
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Multiple Products Theme -->
-            <div class="col-lg-6 mb-4">
-                <div class="card theme-card h-100 shadow" data-theme-type="multiple">
-                    <div class="card-header bg-gradient-success text-white">
-                        <h3 class="mb-0 text-center">
-                            <i class="fas fa-store-alt"></i> Multiple Products Theme
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        {% if multiple_theme %}
-                            <!-- Preview Image -->
-                            {% if multiple_theme.preview_image %}
-                                <img src="{{ multiple_theme.preview_image.url }}" 
-                                     alt="{{ multiple_theme.name }}" 
-                                     class="img-fluid rounded theme-preview-img w-100 mb-3">
-                            {% else %}
-                                <div class="bg-light text-center py-5 rounded mb-3">
-                                    <i class="fas fa-image fa-4x text-muted"></i>
-                                    <p class="mt-2 text-muted">Preview image coming soon</p>
-                                </div>
-                            {% endif %}
-                            
-                            <div class="form-check radio-card">
-                                <input class="form-check-input" type="radio" 
-                                       name="theme_id" value="{{ multiple_theme.id }}" 
-                                       id="theme_multiple" 
-                                       {% if store.theme.id == multiple_theme.id %}checked{% endif %}
-                                       data-theme-type="multiple">
-                                <label class="form-check-label fs-5 fw-bold" for="theme_multiple">
-                                    Select Multiple Products Theme
-                                </label>
-                            </div>
-                            
-                            <div class="mt-3">
-                                <h5>Theme Features:</h5>
-                                <ul class="feature-list">
-                                    <li><i class="fas fa-check-circle"></i> Display up to <strong>{{ plan.multiple_theme_limit }}</strong> products</li>
-                                    <li><i class="fas fa-check-circle"></i> Product grid layout</li>
-                                    <li><i class="fas fa-check-circle"></i> Search and filter options</li>
-                                    <li><i class="fas fa-check-circle"></i> Product categories</li>
-                                    <li><i class="fas fa-check-circle"></i> Comparison feature</li>
-                                    <li><i class="fas fa-check-circle"></i> Mobile responsive design</li>
-                                </ul>
-                            </div>
-                            
-                            <!-- Live Preview Link -->
-                            <div class="mt-3 text-center">
-                                <a href="{% url 'resellers:preview_multiple_theme' theme_id=multiple_theme.id %}" 
-                                   class="btn btn-outline-success preview-link" 
-                                   target="_blank">
-                                    <i class="fas fa-eye"></i> Live Preview Multiple Products Theme
-                                </a>
-                            </div>
-                        {% else %}
-                            <div class="alert alert-warning">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                Multiple products theme is not available. Please contact administrator.
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row mt-4">
-            <div class="col-12 text-center">
-                {% if can_go_back %}
-                    <button type="submit" name="back" value="back" class="btn btn-secondary btn-lg px-4 me-2">
-                        <i class="fas fa-arrow-left"></i> Back to Plans
-                    </button>
-                {% endif %}
-                <button type="submit" name="next" value="next" class="btn btn-primary btn-lg px-5" id="continueBtn" disabled>
+
+            <div class="action-buttons">
+                <button type="submit" name="back" value="back" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Plans
+                </button>
+                <button type="submit" name="next" value="next" class="btn btn-primary" id="continueBtn" disabled>
                     Continue to Payment <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
-        </div>
-    </form>
-</div>
+        </form>
 
-{% block extra_js %}
+    </div>
+</div>
 <script>
-    // Theme card selection
-    document.querySelectorAll('.theme-card input[type="radio"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            // Remove selected class from all cards
-            document.querySelectorAll('.theme-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            
-            // Add selected class to parent card
-            this.closest('.theme-card').classList.add('selected');
-            
-            // Enable continue button
-            document.getElementById('continueBtn').disabled = false;
-        });
-        
-        // If already checked, trigger selection
-        if (radio.checked) {
-            radio.dispatchEvent(new Event('change'));
+    (function () {
+        const radioSingle = document.getElementById('theme_single');
+        const radioMultiple = document.getElementById('theme_multiple');
+        const continueBtn = document.getElementById('continueBtn');
+        const cardSingleEl = document.getElementById('cardSingle');
+        const cardMultipleEl = document.getElementById('cardMultiple');
+        const form = document.getElementById('themeForm');
+
+        function updateSelection() {
+            // Remove selected class
+            cardSingleEl.classList.remove('selected');
+            cardMultipleEl.classList.remove('selected');
+
+            let isChecked = false;
+
+            if (radioSingle.checked) {
+                cardSingleEl.classList.add('selected');
+                isChecked = true;
+            } else if (radioMultiple.checked) {
+                cardMultipleEl.classList.add('selected');
+                isChecked = true;
+            }
+
+            // Enable button only if selected
+            continueBtn.disabled = !isChecked;
         }
-    });
-    
-    // Make entire card clickable
-    document.querySelectorAll('.theme-card').forEach(card => {
-        card.addEventListener('click', function(e) {
-            // Don't trigger if clicking on preview link
-            if (e.target.closest('.preview-link')) {
-                return;
+
+        // Radio change events
+        radioSingle.addEventListener('change', updateSelection);
+        radioMultiple.addEventListener('change', updateSelection);
+
+        // Card click selection
+        function makeCardClickable(card, radio) {
+            card.addEventListener('click', function (e) {
+                if (e.target.closest('.preview-link')) return;
+
+                if (!radio.checked) {
+                    radio.checked = true;
+                    updateSelection();
+                }
+            });
+        }
+
+        makeCardClickable(cardSingleEl, radioSingle);
+        makeCardClickable(cardMultipleEl, radioMultiple);
+
+        // Initial check
+        updateSelection();
+
+        // ✅ ONLY VALIDATION (NO BLOCKING IF VALID)
+        form.addEventListener('submit', function (e) {
+            const selectedTheme = document.querySelector('input[name="theme_id"]:checked');
+
+            if (!selectedTheme) {
+                e.preventDefault();  // stop only if nothing selected
+                alert("Please select a theme before continuing");
             }
-            const radio = this.querySelector('input[type="radio"]');
-            if (radio && !radio.checked) {
-                radio.checked = true;
-                radio.dispatchEvent(new Event('change'));
-            }
+            // else → allow normal Django submit ✅
         });
-    });
+
+    })();
 </script>
-{% endblock %}
 {% endblock %}
