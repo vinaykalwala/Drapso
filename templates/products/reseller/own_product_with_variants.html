@@ -1,0 +1,348 @@
+
+{% load static %}
+
+{% block title %}Create Own Product - {{ store.store_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">Create New Product - {{ store.store_name }}</h4>
+                    <small class="text-muted">Remaining slots: {{ remaining_slots }}</small>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="productForm">
+                        {% csrf_token %}
+                        
+                        <!-- Product Information Tab -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2">Basic Information</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label>Category *</label>
+                                    {{ product_form.category }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Subcategory</label>
+                                    {{ product_form.subcategory }}
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label>Product Name *</label>
+                                    {{ product_form.name }}
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label>Description</label>
+                                    {{ product_form.description }}
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label>Specifications</label>
+                                    {{ product_form.specification }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Product Details -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2">Product Details</h5>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label>Brand</label>
+                                    {{ product_form.brand }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label>Model</label>
+                                    {{ product_form.model_name }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label>Gender</label>
+                                    {{ product_form.gender }}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label>Size</label>
+                                    {{ product_form.size }}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label>Color</label>
+                                    {{ product_form.color }}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label>Material</label>
+                                    {{ product_form.material }}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label>Selling Price (₹) *</label>
+                                    {{ product_form.selling_price }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label>Stock Quantity</label>
+                                    {{ product_form.stock }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label>Low Stock Alert</label>
+                                    {{ product_form.threshold_limit }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Product Images -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2">Product Images</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label>Main Image</label>
+                                    {{ product_form.main_image }}
+                                    <small class="text-muted d-block">Primary product image</small>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label>Additional Images</label>
+                                    {{ product_image_formset.management_form }}
+                                    <div id="product-images-container">
+                                        {% for form in product_image_formset %}
+                                        <div class="product-image-row mb-2">
+                                            {{ form.image }}
+                                            <button type="button" class="btn btn-sm btn-danger remove-image">Remove</button>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-secondary" id="add-product-image">+ Add Image</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Variants Section -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2">Product Variants</h5>
+                            <div id="variants-container">
+                                {{ variant_formset.management_form }}
+                                
+                                {% for form in variant_formset %}
+                                <div class="variant-card card mb-3">
+                                    <div class="card-header bg-light">
+                                        <strong>Variant {{ forloop.counter }}</strong>
+                                        {% if form.instance.pk %}
+                                        <label class="float-end">
+                                            Delete {{ form.DELETE }}
+                                        </label>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-3 mb-2">
+                                                <label>Size</label>
+                                                {{ form.size }}
+                                            </div>
+                                            <div class="col-md-3 mb-2">
+                                                <label>Color</label>
+                                                {{ form.color }}
+                                            </div>
+                                            <div class="col-md-3 mb-2">
+                                                <label>Price (₹)</label>
+                                                {{ form.selling_price }}
+                                            </div>
+                                            <div class="col-md-3 mb-2">
+                                                <label>Stock</label>
+                                                {{ form.stock }}
+                                            </div>
+                                            <div class="col-md-4 mb-2">
+                                                <label>Alert Threshold</label>
+                                                {{ form.threshold_limit }}
+                                            </div>
+                                            <div class="col-md-4 mb-2">
+                                                <label>Display Order</label>
+                                                {{ form.order }}
+                                            </div>
+                                            <div class="col-md-4 mb-2">
+                                                <label>Variant Image</label>
+                                                {{ form.main_image }}
+                                            </div>
+                                            <div class="col-12 mb-2">
+                                                <label>Additional Variant Images</label>
+                                                <input type="file" name="variant_images_{{ forloop.counter0 }}" multiple accept="image/*" class="form-control">
+                                                <small class="text-muted">You can select multiple images</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <button type="button" class="btn btn-outline-primary" id="add-variant">
+                                <i class="fas fa-plus"></i> Add Another Variant
+                            </button>
+                        </div>
+                        
+                        <!-- Publishing Options -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2">Publishing Options</h5>
+                            <div class="form-check mb-2">
+                                {{ product_form.is_published }}
+                                <label class="form-check-label">Publish immediately</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                {{ product_form.is_featured }}
+                                <label class="form-check-label">Feature this product</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                {{ product_form.is_active }}
+                                <label class="form-check-label">Active (visible in store)</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="border-top pt-3">
+                            <button type="submit" class="btn btn-primary">Create Product</button>
+                            <a href="{% url 'products:reseller_product_list' store.id %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                        
+                    </form>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<style>
+.variant-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+.thumb {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin: 5px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Handle category change for subcategory filtering
+    const categorySelect = document.getElementById('id_category');
+    const subcategorySelect = document.getElementById('id_subcategory');
+    
+    if (categorySelect) {
+        categorySelect.addEventListener('change', function() {
+            const categoryId = this.value;
+            if (categoryId) {
+                fetch(`/products/ajax/load-subcategories/?category_id=${categoryId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        subcategorySelect.innerHTML = '<option value="">---------</option>';
+                        data.forEach(sub => {
+                            subcategorySelect.innerHTML += `<option value="${sub.id}">${sub.name}</option>`;
+                        });
+                    });
+            } else {
+                subcategorySelect.innerHTML = '<option value="">---------</option>';
+            }
+        });
+    }
+    
+    // Add new variant dynamically
+    let variantCount = {{ variant_formset.total_form_count }};
+    const addVariantBtn = document.getElementById('add-variant');
+    const variantsContainer = document.getElementById('variants-container');
+    
+    if (addVariantBtn) {
+        addVariantBtn.addEventListener('click', function() {
+            const newIndex = variantCount;
+            const template = document.querySelector('.variant-card').cloneNode(true);
+            
+            // Update all form inputs with new index
+            template.querySelectorAll('input, select').forEach(input => {
+                const name = input.name;
+                if (name) {
+                    input.name = name.replace(/-\d+-/, `-${newIndex}-`);
+                    input.id = input.id.replace(/-\d+-/, `-${newIndex}-`);
+                }
+                if (input.type !== 'file') {
+                    input.value = '';
+                }
+            });
+            
+            // Update labels
+            template.querySelectorAll('label').forEach(label => {
+                const htmlFor = label.htmlFor;
+                if (htmlFor) {
+                    label.htmlFor = htmlFor.replace(/-\d+-/, `-${newIndex}-`);
+                }
+            });
+            
+            // Update card header
+            const header = template.querySelector('.card-header strong');
+            if (header) {
+                header.textContent = `Variant ${newIndex + 1}`;
+            }
+            
+            // Remove delete checkbox if exists
+            const deleteWrapper = template.querySelector('.float-end');
+            if (deleteWrapper) deleteWrapper.remove();
+            
+            variantsContainer.appendChild(template);
+            
+            // Update TOTAL_FORMS
+            const totalForms = document.getElementById('id_variants-TOTAL_FORMS');
+            if (totalForms) {
+                variantCount++;
+                totalForms.value = variantCount;
+            }
+        });
+    }
+    
+    // Add product images dynamically
+    let imageCount = {{ product_image_formset.total_form_count }};
+    const addImageBtn = document.getElementById('add-product-image');
+    const imagesContainer = document.getElementById('product-images-container');
+    
+    if (addImageBtn) {
+        addImageBtn.addEventListener('click', function() {
+            const newIndex = imageCount;
+            const newRow = document.createElement('div');
+            newRow.className = 'product-image-row mb-2';
+            newRow.innerHTML = `
+                <input type="file" name="product_images-${newIndex}-image" accept="image/*" class="form-control">
+                <input type="hidden" name="product_images-${newIndex}-id">
+                <input type="hidden" name="product_images-${newIndex}-order" value="${newIndex}">
+                <button type="button" class="btn btn-sm btn-danger mt-1 remove-image">Remove</button>
+            `;
+            imagesContainer.appendChild(newRow);
+            
+            // Update TOTAL_FORMS
+            const totalForms = document.getElementById('id_product_images-TOTAL_FORMS');
+            if (totalForms) {
+                imageCount++;
+                totalForms.value = imageCount;
+            }
+        });
+    }
+    
+    // Remove image rows
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-image')) {
+            e.target.closest('.product-image-row').remove();
+        }
+    });
+    
+    // Auto-calculate variant prices based on product price (optional)
+    const productPriceInput = document.querySelector('[name="selling_price"]');
+    if (productPriceInput) {
+        productPriceInput.addEventListener('change', function() {
+            const productPrice = parseFloat(this.value) || 0;
+            document.querySelectorAll('.variant-price').forEach(input => {
+                if (!input.value || parseFloat(input.value) === 0) {
+                    input.value = productPrice;
+                }
+            });
+        });
+    }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Product</title>
+
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .box { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 6px; }
+        .variant-box { border: 1px dashed #aaa; padding: 10px; margin-top: 10px; }
+        button { margin-top: 10px; }
+    </style>
+
+</head>
+<body>
+
+<h2>Create Product</h2>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- ================= PRODUCT ================= -->
+    <div class="box">
+        <h3>Product Info</h3>
+
+        
+
+       {{ product_form.as_p }}
+    </div>
+
+    <!-- ================= PRODUCT IMAGES ================= -->
+    <div class="box">
+        <h3>Product Images</h3>
+
+        {{ image_formset.management_form }}
+
+        <div id="image-formset"></div>
+
+        <div id="empty-image-form" style="display:none;">
+            {{ image_formset.empty_form.as_p }}
+        </div>
+
+        <button type="button" onclick="addImage()">+ Add Image</button>
+    </div>
+
+    <!-- ================= VARIANTS ================= -->
+    <div class="box">
+        <h3>Variants</h3>
+
+        {{ variant_formset.management_form }}
+
+        <div id="variant-formset"></div>
+
+        <div id="empty-variant-form" style="display:none;">
+            <div class="variant-box" data-index="__prefix__">
+
+                {{ variant_formset.empty_form.as_p }}
+
+                <div class="variant-images"></div>
+
+                <button type="button" onclick="addVariantImage(this)">
+                    + Add Variant Image
+                </button>
+
+                <hr>
+            </div>
+        </div>
+
+        <button type="button" onclick="addVariant()">+ Add Variant</button>
+    </div>
+
+    <button type="submit">Save Product</button>
+
+</form>
+
+<!-- ================= JAVASCRIPT ================= -->
+
+<script>
+
+const subcategoryUrl = "{% url 'products:load_subcategories' %}";
+
+/* ================= SUBCATEGORY AJAX ================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const categoryField = document.getElementById("id_category");
+    const subcategoryField = document.getElementById("id_subcategory");
+
+    subcategoryField.innerHTML = '<option value="">Select Category First</option>';
+    subcategoryField.disabled = true;
+
+    categoryField.addEventListener("change", function () {
+
+        let categoryId = this.value;
+
+        if (!categoryId) {
+            subcategoryField.innerHTML = '<option value="">Select Category First</option>';
+            subcategoryField.disabled = true;
+            return;
+        }
+
+        fetch(`${subcategoryUrl}?category_id=${categoryId}`)
+            .then(response => response.json())
+            .then(data => {
+
+                subcategoryField.innerHTML = '<option value="">Select Subcategory</option>';
+
+                data.forEach(item => {
+                    let option = document.createElement("option");
+                    option.value = item.id;
+                    option.textContent = item.name;
+                    subcategoryField.appendChild(option);
+                });
+
+                subcategoryField.disabled = false;
+            });
+
+    });
+
+});
+
+
+/* ================= PRODUCT IMAGE ================= */
+
+function addImage() {
+
+    let total = document.getElementById('id_images-TOTAL_FORMS');
+    let index = parseInt(total.value);
+
+    let template = document.getElementById('empty-image-form').innerHTML
+        .replace(/__prefix__/g, index);
+
+    document.getElementById('image-formset')
+        .insertAdjacentHTML('beforeend', template);
+
+    total.value = index + 1;
+}
+
+
+/* ================= VARIANT ================= */
+
+function addVariant() {
+
+    let total = document.getElementById('id_variants-TOTAL_FORMS');
+    let index = parseInt(total.value);
+
+    let template = document.getElementById('empty-variant-form').innerHTML
+        .replace(/__prefix__/g, index);
+
+    document.getElementById('variant-formset')
+        .insertAdjacentHTML('beforeend', template);
+
+    total.value = index + 1;
+}
+
+
+/* ================= VARIANT IMAGE ================= */
+
+function addVariantImage(button) {
+
+    let variantBox = button.closest('.variant-box');
+    let index = variantBox.getAttribute('data-index');
+
+    let container = variantBox.querySelector('.variant-images');
+
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.name = `variant_images_${index}`;
+    input.multiple = true;
+
+    container.appendChild(input);
+}
+
+</script>
+
+</body>
+</html>

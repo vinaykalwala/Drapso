@@ -1,146 +1,90 @@
-
-
-{% block title %}{{ store.store_name }} - Multiple Products Store{% endblock %}
-
+{% load static %}
 {% block content %}
-<div class="store-frontend multiple-products-theme">
-    <!-- Store Header -->
-    <header class="bg-white shadow-sm">
-        <div class="container py-4">
-            <div class="row align-items-center">
-                <div class="col-md-3 text-center text-md-start">
-                    {% if store.store_logo %}
-                        <img src="{{ store.store_logo.url }}" alt="{{ store.store_name }}" style="max-height: 80px;">
-                    {% else %}
-                        <div class="bg-gradient-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                            <h2 class="mb-0">{{ store.store_name|slice:":2"|upper }}</h2>
+
+<div class="container py-5">
+
+    <!-- HEADER -->
+    <div class="text-center mb-5">
+        <h1>{{ store.store_name }}</h1>
+        <p class="text-muted">{{ store.store_description }}</p>
+    </div>
+
+    <div class="row">
+
+        {% for product in products %}
+        <div class="col-md-4 mb-4">
+
+            <div class="card shadow-sm h-100">
+
+                <!-- MAIN IMAGE -->
+                {% if product.main_image %}
+                    <img src="{{ product.main_image.url }}" class="card-img-top"
+                         style="height:220px; object-fit:cover;">
+                {% endif %}
+
+                <div class="card-body">
+
+                    <h5>{{ product.name }}</h5>
+                    <h6 class="text-primary">₹{{ product.selling_price }}</h6>
+
+                    <!-- PRODUCT GALLERY -->
+                    {% if product.additional_images.all %}
+                        <div class="mb-2">
+                            {% for img in product.additional_images.all %}
+                                <img src="{{ img.image.url }}" style="height:60px; margin-right:4px;">
+                            {% endfor %}
                         </div>
                     {% endif %}
-                </div>
-                <div class="col-md-6 text-center">
-                    <h1>{{ store.store_name }}</h1>
-                    <p class="text-muted">{{ store.store_description|default:"Welcome to our multi-product store!" }}</p>
-                </div>
-                <div class="col-md-3 text-center text-md-end">
-                    <p><i class="fas fa-envelope"></i> {{ store.contact_email }}</p>
-                    {% if store.contact_phone %}
-                        <p><i class="fas fa-phone"></i> {{ store.contact_phone }}</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </header>
-    
-    <!-- Store Banner -->
-    {% if store.store_banner %}
-        <div class="store-banner">
-            <img src="{{ store.store_banner.url }}" alt="Store Banner" class="img-fluid w-100" style="max-height: 300px; object-fit: cover;">
-        </div>
-    {% endif %}
-    
-    <!-- Products Grid - Multiple Products Layout -->
-    <main class="container py-5">
-        {% if products %}
-            <h2 class="text-center mb-4">Our Products</h2>
-            <div class="row">
-                {% for product in products %}
-                    <div class="col-md-4 col-lg-3 mb-4">
-                        <div class="card h-100 shadow-sm product-card">
-                            {% if product.main_image %}
-                                <img src="{{ product.main_image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
-                            {% else %}
-                                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                                    <i class="fas fa-image fa-3x text-muted"></i>
-                                </div>
-                            {% endif %}
-                            <div class="card-body">
-                                <h5 class="card-title">{{ product.name }}</h5>
-                                <p class="card-text text-muted small">{{ product.short_description|truncatewords:12|default:product.description|truncatewords:12 }}</p>
-                                <div class="d-flex justify-content-between align-items-center mt-2">
-                                    <h4 class="text-primary mb-0">${{ product.price }}</h4>
-                                    {% if product.compare_price %}
-                                        <small class="text-muted"><del>${{ product.compare_price }}</del></small>
+
+                    <!-- VARIANTS -->
+                    {% if product.variants.all %}
+                        <div class="mt-3">
+                            <strong>Variants:</strong>
+
+                            {% for variant in product.variants.all %}
+                                <div class="border p-2 mt-2">
+
+                                    <div>
+                                        {{ variant.variant_name }} - ₹{{ variant.selling_price }}
+                                    </div>
+
+                                    <!-- VARIANT MAIN IMAGE -->
+                                    {% if variant.main_image %}
+                                        <img src="{{ variant.main_image.url }}" style="height:60px;">
                                     {% endif %}
+
+                                    <!-- VARIANT IMAGES -->
+                                    {% if variant.additional_images.all %}
+                                        <div>
+                                            {% for vimg in variant.additional_images.all %}
+                                                <img src="{{ vimg.image.url }}" style="height:50px;">
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+
                                 </div>
-                                {% if product.discount_percentage %}
-                                    <span class="badge bg-danger mt-2">-{{ product.discount_percentage }}% OFF</span>
-                                {% endif %}
-                            </div>
-                            <div class="card-footer bg-white">
-                                {% if product.stock_quantity > 0 %}
-                                    <button class="btn btn-primary w-100" onclick="alert('Add to cart coming soon!')">
-                                        <i class="fas fa-shopping-cart"></i> Add to Cart
-                                    </button>
-                                {% else %}
-                                    <button class="btn btn-secondary w-100" disabled>
-                                        <i class="fas fa-times-circle"></i> Out of Stock
-                                    </button>
-                                {% endif %}
-                            </div>
+                            {% endfor %}
+
                         </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <!-- Empty State for Multiple Products Theme -->
-            <div class="text-center py-5">
-                <div class="empty-state">
-                    <i class="fas fa-boxes display-1 text-muted mb-4"></i>
-                    <h3>Products Coming Soon!</h3>
-                    <p class="lead">We're stocking up our inventory with amazing products.</p>
-                    <p>Check back soon for our collection!</p>
+                    {% endif %}
+
                 </div>
-            </div>
-        {% endif %}
-    </main>
-    
-    <!-- Store Address Section -->
-    {% if store.store_address %}
-        <div class="container mb-5">
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <div class="card bg-light">
-                        <div class="card-body text-center">
-                            <h5><i class="fas fa-map-marker-alt"></i> Visit Us</h5>
-                            <p class="mb-0">{{ store.store_address }}</p>
-                        </div>
-                    </div>
+
+                <div class="card-footer">
+                    {% if product.stock > 0 %}
+                        <button class="btn btn-primary w-100">Add to Cart</button>
+                    {% else %}
+                        <button class="btn btn-secondary w-100">Out of Stock</button>
+                    {% endif %}
                 </div>
+
             </div>
+
         </div>
-    {% endif %}
-    
-    <!-- Store Footer -->
-    <footer class="bg-light py-4 mt-5">
-        <div class="container text-center">
-            <p>&copy; {% now "Y" %} {{ store.store_name }}. All rights reserved.</p>
-            <p class="small text-muted">Powered by Drapso | Multiple Products Theme</p>
-        </div>
-    </footer>
+        {% endfor %}
+
+    </div>
+
 </div>
 
-<style>
-    .multiple-products-theme {
-        min-height: 100vh;
-    }
-    .product-card {
-        transition: transform 0.3s, box-shadow 0.3s;
-    }
-    .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    .empty-state {
-        padding: 3rem;
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        max-width: 500px;
-        margin: 0 auto;
-    }
-</style>
-
-<script>
-    console.log("Multiple Products Theme Loaded for: {{ store.store_name }}");
-</script>
 {% endblock %}

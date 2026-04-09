@@ -1,0 +1,64 @@
+
+{% load static %}
+
+{% block title %}{{ title }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{{ title }}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label>Category Name *</label>
+                            {{ form.name }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Description</label>
+                            {{ form.description }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Category Image</label>
+                            {{ form.image }}
+                            {% if category and category.image %}
+                                <div class="mt-2">
+                                    <img src="{{ category.image.url }}" width="100" class="img-thumbnail">
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Display Order</label>
+                                    {{ form.order }}
+                                    <small class="form-text text-muted">Lower numbers appear first</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group form-check mt-4">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label">Active</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Save Category</button>
+                            <a href="{% url 'products:category_list' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

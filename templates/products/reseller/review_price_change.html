@@ -1,0 +1,108 @@
+
+{% load static %}
+
+{% block title %}Review Price Change - {{ store.store_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow-sm">
+                <div class="card-header {% if is_increase %}bg-warning{% else %}bg-success{% endif %} text-white">
+                    <h3 class="card-title mb-0">
+                        {% if is_increase %}
+                            <i class="fas fa-arrow-up"></i> Price Increase Alert
+                        {% else %}
+                            <i class="fas fa-arrow-down"></i> Price Decrease Alert
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <h4>{{ product.name }}</h4>
+                    <p class="text-muted">{{ product.brand|default:"No brand" }}</p>
+                    
+                    <!-- Price Comparison -->
+                    <div class="row mt-4">
+                        <div class="col-md-6 text-center">
+                            <div class="card border-secondary">
+                                <div class="card-header bg-secondary text-white">
+                                    Current Price
+                                </div>
+                                <div class="card-body">
+                                    <h2 class="text-muted">₹{{ old_selling_price }}</h2>
+                                    <small>Wholeseller base: ₹{{ product.last_known_source_price }}</small>
+                                    <br>
+                                    <small>Your margin: ₹{{ product.margin_rupees }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <div class="card border-{% if is_increase %}warning{% else %}success{% endif %}">
+                                <div class="card-header bg-{% if is_increase %}warning{% else %}success{% endif %} text-white">
+                                    New Price
+                                </div>
+                                <div class="card-body">
+                                    <h2 class="{% if is_increase %}text-warning{% else %}text-success{% endif %}">
+                                        ₹{{ new_selling_price }}
+                                    </h2>
+                                    <small>Wholeseller base: ₹{{ product.source_price }}</small>
+                                    <br>
+                                    <small>Your margin: ₹{{ product.margin_rupees }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Price Difference -->
+                    <div class="alert {% if is_increase %}alert-warning{% else %}alert-success{% endif %} mt-4 text-center">
+                        <strong>
+                            {% if is_increase %}
+                                <i class="fas fa-arrow-up"></i>
+                                Price increased by ₹{{ price_difference|floatformat:2 }}
+                            {% else %}
+                                <i class="fas fa-arrow-down"></i>
+                                Price decreased by ₹{{ price_difference|floatformat:2|cut:"-" }}
+                            {% endif %}
+                        </strong>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <button type="submit" name="action" value="update" class="btn btn-primary w-100">
+                                    <i class="fas fa-sync-alt"></i> Update Price
+                                </button>
+                                <small class="text-muted">Update to new price</small>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" name="action" value="ignore" class="btn btn-secondary w-100">
+                                    <i class="fas fa-times"></i> Keep Current
+                                </button>
+                                <small class="text-muted">Ignore this change</small>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <input type="number" name="new_margin" class="form-control" placeholder="Custom margin" step="0.01">
+                                    <button type="submit" name="action" value="custom_margin" class="btn btn-info">
+                                        Set Custom
+                                    </button>
+                                </div>
+                                <small class="text-muted">Set your own margin in rupees</small>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4 text-center">
+                        <a href="{% url 'products:reseller_product_list' store.id %}" class="btn btn-link">
+                            <i class="fas fa-arrow-left"></i> Back to Products
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

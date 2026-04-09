@@ -1,89 +1,548 @@
-
-
-{% block title %}Manage Store Themes{% endblock %}
-
+{% extends "dashboard_base.html" %}
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="card shadow">
-        <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0"><i class="fas fa-palette"></i> Store Themes</h4>
-            <a href="{% url 'resellers:theme_create' %}" class="btn btn-light">
-                <i class="fas fa-plus"></i> Add New Theme
-            </a>
-        </div>
-        <div class="card-body">
-            {% if themes %}
-                <div class="row">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        font-family: 'Inter', sans-serif;
+        min-height: 100vh;
+        padding: 1.5rem 0;
+    }
+
+    .main-content {
+        margin-left: 260px;
+        width: calc(100% - 260px);
+        transition: 0.3s;
+    }
+
+    .custom-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1.8rem;
+    }
+
+    /* Modern card design */
+    .card-modern {
+        background: #ffffff;
+        border-radius: 40px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .card-header-modern {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        padding: 1.75rem 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-header-modern::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .card-header-modern::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    /* Theme Card Redesign - Magazine Style */
+    .theme-card {
+        background: white;
+        border-radius: 28px;
+        overflow: hidden;
+        transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .theme-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 30px 45px -12px rgba(79, 70, 229, 0.25);
+        border-color: rgba(99, 102, 241, 0.2);
+    }
+
+    /* Image wrapper with overlay effect */
+    .card-img-top-wrapper {
+        position: relative;
+        height: 220px;
+        overflow: hidden;
+        background: linear-gradient(145deg, #f1f5f9, #eef2ff);
+    }
+
+    .theme-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .theme-card:hover .theme-img {
+        transform: scale(1.05);
+    }
+
+    .img-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+        color: #64748b;
+    }
+
+    /* Overlay badge on image */
+    .image-overlay-badge {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        padding: 0.3rem 0.9rem;
+        border-radius: 100px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: white;
+        z-index: 2;
+    }
+
+    /* Theme content area */
+    .theme-content {
+        padding: 1.25rem 1.25rem 0.75rem;
+        flex: 1;
+    }
+
+    .theme-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #0f172a, #334155);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: -0.3px;
+    }
+
+    .theme-description {
+        color: #64748b;
+        font-size: 0.8rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Badge styles - keeping original colors */
+    .badge-custom {
+        font-weight: 500;
+        padding: 0.35rem 0.9rem;
+        border-radius: 100px;
+        font-size: 0.7rem;
+        letter-spacing: 0.3px;
+    }
+
+    .badge-type-single {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .badge-type-multi {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .badge-active {
+        background: #22c55e;
+        color: white;
+        box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+    }
+
+    .badge-inactive {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    /* Meta info row */
+    .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Preview button */
+    .btn-preview {
+        background: transparent;
+        border: 1px solid #e2e8f0;
+        border-radius: 40px;
+        font-size: 0.7rem;
+        padding: 0.3rem 1rem;
+        color: #4b5563;
+        transition: all 0.2s;
+    }
+
+    .btn-preview:hover {
+        background: #eef2ff;
+        border-color: #6366f1;
+        color: #4f46e5;
+    }
+
+    /* Card footer buttons */
+    .card-footer-clean {
+        background: #fafcff;
+        border-top: 1px solid #f1f5f9;
+        padding: 0.9rem 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .btn-outline-warning-custom {
+        border: 1px solid #fbbf24;
+        background: transparent;
+        color: #b45309;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        padding: 0.4rem 1rem;
+        transition: all 0.2s;
+    }
+
+    .btn-outline-warning-custom:hover {
+        background: #fffbeb;
+        border-color: #f59e0b;
+        color: #b45309;
+    }
+
+    .btn-outline-danger-custom {
+        border: 1px solid #fecaca;
+        background: transparent;
+        color: #dc2626;
+        border-radius: 40px;
+        font-size: 0.75rem;
+        padding: 0.4rem 1rem;
+    }
+
+    .btn-outline-danger-custom:hover {
+        background: #fef2f2;
+        border-color: #f87171;
+        color: #b91c1c;
+    }
+
+    /* Primary button - keeping original gradient */
+    .btn-primary-gradient {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        border: none;
+        border-radius: 60px;
+        padding: 0.6rem 1.8rem;
+        font-weight: 600;
+        color: white;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-primary-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+        color: white;
+    }
+
+    /* Empty state */
+    .empty-state-wrapper {
+        text-align: center;
+        padding: 3rem 1.5rem;
+    }
+
+    .empty-state-icon {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #f1f5f9, #eef2ff);
+        border-radius: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+
+    .text-gradient-primary {
+        background: linear-gradient(135deg, #0f172a, #4f46e5);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    /* Stats bar */
+    .stats-bar {
+        display: flex;
+        gap: 1.2rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .stat-pill {
+        background: #f8fafc;
+        padding: 0.5rem 1.2rem;
+        border-radius: 100px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #1e293b;
+        border: 1px solid #eef2ff;
+    }
+
+    /* Grid layout */
+    .themes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 1.8rem;
+    }
+
+    /* Footer info */
+    .info-footer {
+        background: #fafcff;
+        border-top: 1px solid #edf2f7;
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    /* Modal styles */
+    .modal-content-clean {
+        border-radius: 32px;
+        border: none;
+        overflow: hidden;
+    }
+
+    @media (max-width: 768px) {
+        .main-content {
+            margin-left: 0;
+            width: 100%;
+        }
+        
+        .custom-container {
+            padding: 0 1rem;
+        }
+        
+        .card-header-modern {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 1rem;
+        }
+        
+        .themes-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .info-footer {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+    @media (max-width: 900px) {
+        .content {
+         margin-top: 60px;
+        }
+    }
+</style>
+
+<div class="main-content">
+    <div class="custom-container">
+        <div class="card-modern">
+            <!-- Header Section -->
+            <div class="card-header-modern d-flex justify-content-between align-items-center flex-wrap">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="background: rgba(255,255,255,0.2); padding:10px; border-radius:10px;">
+    <i class="fas fa-palette text-white"></i>
+</div><div>
+                        <h4 class="mb-0 text-white fw-semibold" style="letter-spacing: -0.3px;">Store Themes Studio</h4>
+                        <p class="text-white-50 small mb-0 mt-1">Manage & customize visual identity</p>
+                    </div>
+                </div>
+                <a href="{% url 'resellers:theme_create' %}" class="btn btn-light rounded-pill px-4 shadow-sm fw-semibold">
+                    <i class="fas fa-plus me-1"></i> Add New Theme
+                </a>
+            </div>
+
+            <div class="card-body p-4 p-xl-5">
+                {% if themes %}
+                <!-- Stats Section -->
+                <div class="stats-bar">
+                    <div class="stat-pill">
+                        <i class="fas fa-palette me-1" style="color: #6366f1;"></i>
+                        Total: <strong>{{ themes|length }}</strong>
+                    </div>
+                    <!-- <div class="stat-pill">
+                        <i class="fas fa-check-circle me-1" style="color: #22c55e;"></i>
+                        Active: <strong>{{ themes|length }}</strong>
+                    </div>
+                    <div class="stat-pill">
+                        <i class="fas fa-cubes me-1" style="color: #f59e0b;"></i>
+                        Multi-page: <strong>{{ themes|length }}</strong>
+                    </div> -->
+                </div>
+
+                <!-- Themes Grid -->
+                <div class="themes-grid">
                     {% for theme in themes %}
-                        <div class="col-md-4 mb-4">
-                            <div class="card h-100 shadow-sm">
-                                {% if theme.thumbnail %}
-                                    <img src="{{ theme.thumbnail.url }}" class="card-img-top" alt="{{ theme.name }}" style="height: 200px; object-fit: cover;">
+                    <div class="theme-card">
+                        <!-- Image Area -->
+                        <div class="card-img-top-wrapper">
+                            {% if theme.thumbnail %}
+                            <img src="{{ theme.thumbnail.url }}" class="theme-img" alt="{{ theme.name }}" loading="lazy">
+                            {% else %}
+                            <div class="img-placeholder">
+                                <i class="fas fa-palette fa-4x opacity-50"></i>
+                            </div>
+                            {% endif %}
+                            {% if theme.is_active %}
+                            <!-- <div class="image-overlay-badge">
+                                <i class="fas fa-circle me-1" style="font-size: 0.4rem; color: #22c55e;"></i>
+                                LIVE
+                            </div> -->
+                            {% endif %}
+                        </div>
+
+                        <!-- Content Area -->
+                        <div class="theme-content">
+                            <h5 class="theme-title">{{ theme.name }}</h5>
+                            <p class="theme-description">
+                                {{ theme.description|truncatewords:15|default:"No description provided" }}
+                            </p>
+                            
+                            <div class="meta-row">
+                                <span class="badge-custom {% if theme.theme_type == 'single' %}badge-type-single{% else %}badge-type-multi{% endif %}">
+                                    <i class="fas {% if theme.theme_type == 'single' %}fa-layer-group{% else %}fa-cubes{% endif %} me-1"></i>
+                                    {{ theme.get_theme_type_display }}
+                                </span>
+                                {% if theme.is_active %}
+                                <span class="badge-custom badge-active">
+                                    <i class="fas fa-check-circle me-1"></i> Active
+                                </span>
                                 {% else %}
-                                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
-                                        <i class="fas fa-image fa-3x"></i>
-                                    </div>
+                                <span class="badge-custom badge-inactive">
+                                    <i class="fas fa-circle me-1"></i> Inactive
+                                </span>
                                 {% endif %}
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ theme.name }}</h5>
-                                    <p class="card-text text-muted">{{ theme.description|truncatewords:15|default:"No description provided" }}</p>
-                                    <p>
-                                        <span class="badge {% if theme.theme_type == 'single' %}bg-info{% else %}bg-success{% endif %}">
-                                            {{ theme.get_theme_type_display }}
-                                        </span>
-                                        {% if theme.is_active %}
-                                            <span class="badge bg-success">Active</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">Inactive</span>
-                                        {% endif %}
-                                    </p>
-                                    {% if theme.preview_image %}
-                                        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#previewModal{{ theme.id }}">
-                                            <i class="fas fa-eye"></i> Preview
-                                        </button>
-                                    {% endif %}
+                            </div>
+
+                            {% if theme.preview_image %}
+                            <button type="button" class="btn btn-preview" data-bs-toggle="modal"
+                                data-bs-target="#previewModal{{ theme.id }}">
+                                <i class="fas fa-eye me-1"></i> Preview Design
+                            </button>
+                            {% endif %}
+                        </div>
+
+                        <!-- Footer Actions -->
+                        <div class="card-footer-clean">
+                            <a href="{% url 'resellers:theme_edit' theme.id %}" class="btn btn-outline-warning-custom">
+                                <i class="fas fa-edit me-1"></i> Edit
+                            </a>
+                            <a href="{% url 'resellers:theme_delete' theme.id %}" class="btn btn-outline-danger-custom">
+                                <i class="fas fa-trash-alt me-1"></i> Delete
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Preview Modal -->
+                    {% if theme.preview_image %}
+                    <div class="modal fade" id="previewModal{{ theme.id }}" tabindex="-1"
+                        aria-labelledby="previewModalLabel{{ theme.id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-xl modal-dialog-centered">
+                            <div class="modal-content modal-content-clean">
+                                <div class="modal-header border-0 py-3 px-4" style="background: linear-gradient(135deg, #f8fafc, #ffffff);">
+                                    <div>
+                                        <h5 class="modal-title fw-bold" id="previewModalLabel{{ theme.id }}">
+                                            <i class="fas fa-palette" style="color: #6366f1;"></i>
+                                            <span class="ms-2">{{ theme.name }} · Design Preview</span>
+                                        </h5>
+                                        <p class="text-muted small mb-0 mt-1">Full preview of how your store theme looks</p>
+                                    </div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
-                                <div class="card-footer bg-white">
-                                    <a href="{% url 'resellers:theme_edit' theme.id %}" class="btn btn-sm btn-warning">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                    <a href="{% url 'resellers:theme_delete' theme.id %}" class="btn btn-sm btn-danger">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </a>
+                                <div class="modal-body p-0 bg-dark bg-opacity-5 text-center">
+                                    <div class="p-4 bg-light">
+                                        <img src="{{ theme.preview_image.url }}" alt="{{ theme.name }} preview"
+                                            class="img-fluid rounded-3 shadow-lg"
+                                            style="max-height: 75vh; object-fit: contain;">
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 justify-content-between py-3">
+                                    <small class="text-muted"><i class="fas fa-info-circle"></i> Visual representation of your theme</small>
+                                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close preview</button>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Preview Modal -->
-                        {% if theme.preview_image %}
-                        <div class="modal fade" id="previewModal{{ theme.id }}" tabindex="-1">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">{{ theme.name }} - Preview</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body text-center">
-                                        <img src="{{ theme.preview_image.url }}" alt="{{ theme.name }}" class="img-fluid">
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
+                    </div>
+                    {% endif %}
                     {% endfor %}
                 </div>
-            {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-palette display-1 text-muted"></i>
-                    <h3>No Themes Created</h3>
-                    <p class="text-muted">Get started by creating your first theme</p>
-                    <a href="{% url 'resellers:theme_create' %}" class="btn btn-primary">Create First Theme</a>
+                {% else %}
+                <!-- Empty State -->
+                <div class="empty-state-wrapper">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-palette fa-4x opacity-75" style="color: #6366f1;"></i>
+                    </div>
+                    <h3 class="mt-4 fw-semibold text-gradient-primary">No themes created yet</h3>
+                    <p class="text-muted col-lg-6 mx-auto mt-2 mb-4">Bring your brand to life — design stunning
+                        storefronts with custom themes. Start with your first theme now.</p>
+                    <a href="{% url 'resellers:theme_create' %}" class="btn btn-primary-gradient px-5 py-2 rounded-pill">
+                        <i class="fas fa-plus-circle me-2"></i>Create First Theme
+                    </a>
                 </div>
+                {% endif %}
+            </div>
+
+            <!-- Footer -->
+            {% if themes %}
+            <div class="info-footer">
+                <div class="small text-muted">
+                    <i class="fas fa-paintbrush me-1" style="color: #6366f1;"></i> Themes influence store appearance & customer experience
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge bg-light text-dark rounded-pill px-3 py-2">
+                        <i class="far fa-images me-1"></i> {{ themes|length }} theme(s) available
+                    </span>
+                    <span class="badge bg-light text-dark rounded-pill px-3 py-2">
+                        <i class="fas fa-rocket me-1"></i> Ready to deploy
+                    </span>
+                </div>
+            </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}

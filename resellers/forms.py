@@ -53,8 +53,8 @@ class StoreCreationForm(forms.ModelForm):
             raise ValidationError('This store name is already taken.')
         
         import re
-        if not re.match(r'^[a-zA-Z0-9-]+$', store_name):
-            raise ValidationError('Store name can only contain letters, numbers, and hyphens.')
+        if not re.match(r'^[a-zA-Z]+$', store_name):
+            raise ValidationError('Store name can only contain letters.')
         
         if len(store_name) < 3:
             raise ValidationError('Store name must be at least 3 characters long.')

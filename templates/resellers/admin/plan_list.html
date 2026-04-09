@@ -156,7 +156,11 @@
 
     .btn-edit { background: #f8fafc; color: #334155; border: 1.5px solid #e2e8f0; }
     .btn-delete { background: #fff1f2; color: #ef4444; border: 1.5px solid #ffe4e6; }
-
+    @media (max-width: 900px) {
+        .content {
+         margin-top: 50px;
+        }
+    }
     /* --- Specific Mobile Media Query --- */
     @media (max-width: 576px) {
         .dr-page-header {
@@ -195,7 +199,7 @@
                 <div class="dr-plan-duration"><i class="far fa-clock"></i> {{ plan.get_duration_display }}</div>
 
                 <div class="dr-plan-price">
-                    ${{ plan.price }}<span>/ {{ plan.get_duration_display }}</span>
+                    {{ plan.price }} rs<span>/ {{ plan.get_duration_display }}</span>
                 </div>
 
                 <div class="dr-theme-limit">

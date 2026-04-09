@@ -1,277 +1,1029 @@
+{% extends "dashboard_base.html" %}
 
 {% load static %}
 
 {% block title %}Store Details - {{ store.store_name }}{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row">
-        <div class="col-md-8">
-            <!-- Store Information Card -->
-            <div class="card shadow">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-store"></i> {{ store.store_name }}</h4>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Store Name:</strong> {{ store.store_name }}</p>
-                            <p>
-                                <strong>Store URL:</strong><br>
-                                <a href="{{ store_url }}" target="_blank" class="text-primary">
-                                    <i class="fas fa-external-link-alt"></i> {{ store_url }}
-                                </a>
-                                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('{{ store_url }}')">
-                                    <i class="fas fa-copy"></i> Copy
-                                </button>
-                            </p>
-                            <p><strong>Subdomain:</strong> {{ store.subdomain }}</p>
-                            <p><strong>Reseller:</strong> {{ store.reseller.username }} ({{ store.reseller.email }})</p>
-                            <p><strong>Contact Email:</strong> {{ store.contact_email }}</p>
-                            <p><strong>Contact Phone:</strong> {{ store.contact_phone|default:"-" }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Plan:</strong> 
-                                {% if store.subscription_plan %}
-                                    {{ store.subscription_plan.get_name_display|title }} 
-                                    ({{ store.subscription_plan.get_duration_display }})
-                                {% else %}
-                                    <span class="text-muted">No plan selected</span>
-                                {% endif %}
-                            </p>
-                            <p><strong>Theme:</strong> {{ store.theme.name|default:"-" }}</p>
-                            <p><strong>Theme Type:</strong> 
-                                {% if store.theme.theme_type == 'single' %}
-                                    <span class="badge bg-info">Single Product</span>
-                                {% else %}
-                                    <span class="badge bg-success">Multiple Products</span>
-                                {% endif %}
-                            </p>
-                            <p><strong>Max Products:</strong> {{ store.get_max_products }}</p>
-                            <p><strong>Total Visitors:</strong> {{ store.total_visitors }}</p>
-                            <p><strong>Status:</strong> 
-                                {% if store.status == 'active' %}
-                                    <span class="badge bg-success">Active</span>
-                                {% elif store.status == 'pending_payment' %}
-                                    <span class="badge bg-warning">Pending Payment</span>
-                                {% elif store.status == 'expired' %}
-                                    <span class="badge bg-danger">Expired</span>
-                                {% elif store.status == 'suspended' %}
-                                    <span class="badge bg-secondary">Suspended</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">{{ store.status }}</span>
-                                {% endif %}
-                            </p>
-                        </div>
-                    </div>
-                    
-                    {% if store.store_description %}
-                        <hr>
-                        <p><strong>Description:</strong><br>{{ store.store_description }}</p>
-                    {% endif %}
-                    
-                    {% if store.store_address %}
-                        <hr>
-                        <p><strong>Address:</strong><br>{{ store.store_address }}</p>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <!-- Subscription Information Card -->
-            <div class="card shadow mt-4">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Subscription Information</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Subscription Start:</strong><br>
-                                {% if store.subscription_start %}
-                                    {{ store.subscription_start|date:"F j, Y H:i" }}
-                                {% else %}
-                                    <span class="text-muted">Not started</span>
-                                {% endif %}
-                            </p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Subscription End:</strong><br>
-                                {% if store.subscription_end %}
-                                    {{ store.subscription_end|date:"F j, Y H:i" }}
-                                    {% if days_until_expiry %}
-                                        {% if is_expiring_soon %}
-                                            <span class="badge bg-warning ms-2">Expires in {{ days_until_expiry }} days</span>
-                                        {% else %}
-                                            <span class="badge bg-info ms-2">{{ days_until_expiry }} days left</span>
-                                        {% endif %}
-                                    {% endif %}
-                                {% elif store.subscription_plan and store.subscription_plan.duration == 'lifetime' %}
-                                    <span class="badge bg-success">Lifetime Plan</span>
-                                {% else %}
-                                    <span class="text-muted">Not set</span>
-                                {% endif %}
-                            </p>
-                        </div>
-                    </div>
-                    
-                    {% if store.subscription_plan %}
-                        <hr>
-                        <h6>Plan Features:</h6>
-                        <ul>
-                            {% for feature in store.subscription_plan.get_features_list %}
-                                <li><i class="fas fa-check text-success"></i> {{ feature }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <!-- Store Images -->
-            {% if store.store_logo or store.store_banner %}
-                <div class="card shadow mt-4">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0"><i class="fas fa-image"></i> Store Images</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if store.store_logo %}
-                            <p><strong>Logo:</strong></p>
-                            <img src="{{ store.store_logo.url }}" class="img-fluid rounded mb-3" style="max-height: 100px;">
-                        {% endif %}
-                        {% if store.store_banner %}
-                            <p><strong>Banner:</strong></p>
-                            <img src="{{ store.store_banner.url }}" class="img-fluid rounded">
-                        {% endif %}
-                    </div>
-                </div>
-            {% endif %}
-        </div>
+  <style>
+    /* ========================================
+       STORE DETAILS PAGE - FULLY RESPONSIVE
+       Perfect on Mobile • Tablet • Desktop
+       Responsive breakpoints: 1200px, 992px, 768px, 576px
+    ======================================== */
+    
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #4338ca;
+      --primary-light: #818cf8;
+      --primary-soft: #eef2ff;
+      --success: #10b981;
+      --success-light: #d1fae5;
+      --warning: #f59e0b;
+      --warning-light: #fed7aa;
+      --danger: #ef4444;
+      --danger-light: #fee2e2;
+      --info: #06b6d4;
+      --info-light: #cffafe;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-500: #64748b;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1e293b;
+      --gray-900: #0f172a;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.03);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --radius-2xl: 24px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Main Layout */
+    .store-detail-wrapper {
+      background: linear-gradient(135deg, var(--gray-50) 0%, #f3f6fc 100%);
+      min-height: 100vh;
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Grid System - Responsive Flex */
+    .row-flex {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 0 -12px;
+    }
+
+    .col-8, .col-4 {
+      padding: 0 12px;
+    }
+
+    /* Desktop Default */
+    .col-8 {
+      flex: 0 0 66.666%;
+      max-width: 66.666%;
+    }
+
+    .col-4 {
+      flex: 0 0 33.333%;
+      max-width: 33.333%;
+    }
+
+    /* Left Column - Scrollable */
+    .left-scrollable {
+      overflow-y: auto;
+      padding-right: 6px;
+      scrollbar-width: thin;
+    }
+
+    .left-scrollable::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .left-scrollable::-webkit-scrollbar-track {
+      background: var(--gray-200);
+      border-radius: 10px;
+    }
+
+    .left-scrollable::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 10px;
+    }
+
+    /* Right Column */
+    .right-reference {
+      height: auto;
+      overflow-y: visible;
+    }
+
+    /* Modern Card */
+    .card-premium {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(2px);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid rgba(79, 70, 229, 0.08);
+      overflow: hidden;
+      transition: all 0.3s ease;
+      margin-bottom: 24px;
+    }
+
+    .card-premium:hover {
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: var(--shadow-xl);
+      border-color: rgba(79, 70, 229, 0.15);
+    }
+
+    /* Card Headers */
+    .card-header-gradient {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      padding: 18px 24px;
+    }
+
+    .card-header-gradient h4 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 1.35rem;
+      letter-spacing: -0.2px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-header-white {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 16px 24px;
+      border-bottom: 2px solid var(--gray-100);
+    }
+
+    .card-header-white h5 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--gray-800);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-header-white h5 i {
+      color: var(--primary);
+      font-size: 1.2rem;
+    }
+
+    .card-body {
+      padding: 24px;
+    }
+
+    /* Info Grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px 32px;
+    }
+
+    .info-item {
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--gray-200);
+    }
+
+    .info-item:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--gray-500);
+      margin-bottom: 6px;
+    }
+
+    .info-value {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--gray-800);
+      word-break: break-word;
+    }
+
+    .info-value code {
+      background: var(--gray-100);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
+    .full-width-item {
+      grid-column: span 2;
+      margin-top: 8px;
+      padding: 12px 0;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      border-radius: 40px;
+      white-space: nowrap;
+    }
+
+    .badge-success { background: var(--success-light); color: #065f46; }
+    .badge-warning { background: var(--warning-light); color: #92400e; }
+    .badge-danger { background: var(--danger-light); color: #991b1b; }
+    .badge-info { background: var(--info-light); color: #0e7490; }
+    .badge-primary { background: var(--primary-soft); color: var(--primary-dark); }
+    .badge-secondary { background: var(--gray-100); color: var(--gray-600); }
+
+    /* URL Wrapper */
+    .url-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .url-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      padding: 4px 12px;
+      font-size: 0.7rem;
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .copy-btn:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    /* Feature List */
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 12px 0 0 0;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: 0.85rem;
+    }
+
+    .feature-list li i {
+      color: var(--success);
+    }
+
+    /* Stat Box */
+    .stat-box {
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(135deg, var(--primary-soft) 0%, rgba(255, 255, 255, 0.8) 100%);
+      border-radius: var(--radius-lg);
+      margin-bottom: 20px;
+      border: 1px solid rgba(79, 70, 229, 0.1);
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray-500);
+      margin-top: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      width: 100%;
+    }
+
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover { background: #059669; transform: translateY(-2px); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #dc2626; transform: translateY(-2px); }
+    .btn-info { background: var(--info); color: white; }
+    .btn-info:hover { background: #0891b2; transform: translateY(-2px); }
+    .btn-secondary { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-200); }
+    .btn-secondary:hover { background: var(--gray-200); transform: translateY(-2px); }
+
+    /* Images Section */
+    .images-full-section {
+      margin-top: 24px;
+      width: 100%;
+    }
+
+    .images-side-by-side {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    .image-item {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .image-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--gray-500);
+      margin-bottom: 10px;
+    }
+
+    .image-wrapper {
+      background: rgba(249, 250, 251, 0.8);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      text-align: center;
+      border: 1px solid var(--gray-200);
+      min-height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .store-logo, .store-banner {
+      max-width: 100%;
+      max-height: 100px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .divider {
+      margin: 20px 0;
+      border: none;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .text-muted { color: var(--gray-500); }
+    .ms-2 { margin-left: 8px; }
+    .mb-2 { margin-bottom: 8px; }
+    .mb-3 { margin-bottom: 16px; }
+
+    /* ========================================
+       RESPONSIVE BREAKPOINTS
+    ======================================== */
+
+    /* Tablet & Small Desktop (1200px and below) */
+    @media (max-width: 1200px) {
+      .store-detail-wrapper {
+        padding: 28px 24px;
+      }
+      .info-grid {
+        gap: 16px 24px;
+      }
+      .stat-number {
+        font-size: 2.2rem;
+      }
+    }
+
+    /* Tablet (992px and below) - Stack layout */
+    @media (max-width: 992px) {
+      .store-detail-wrapper {
+        padding: 24px 20px;
+      }
+      
+      /* Stack columns vertically */
+      .col-8, .col-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+      }
+      
+      /* Remove height sync on tablet - natural flow */
+      .left-scrollable {
+        max-height: none !important;
+        overflow-y: visible;
+        padding-right: 0;
+      }
+      
+      .info-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      
+      .full-width-item {
+        grid-column: span 1;
+      }
+      
+      .card-header-gradient h4 {
+        font-size: 1.25rem;
+      }
+      
+      .content {
+        margin-top: 60px;
+      }
+    }
+
+    /* Mobile Landscape (768px and below) */
+    @media (max-width: 768px) {
+      .store-detail-wrapper {
+        padding: 20px 16px;
+      }
+      
+      .card-header-gradient {
+        padding: 14px 20px;
+      }
+      
+      .card-header-gradient h4 {
+        font-size: 1.1rem;
+      }
+      
+      .card-header-white {
+        padding: 12px 20px;
+      }
+      
+      .card-header-white h5 {
+        font-size: 1rem;
+      }
+      
+      .card-body {
+        padding: 18px;
+      }
+      
+      .info-item {
+        padding: 6px 0;
+      }
+      
+      .info-value {
+        font-size: 0.85rem;
+      }
+      
+      .btn {
+        padding: 8px 14px;
+        font-size: 0.8rem;
+      }
+      
+      .stat-number {
+        font-size: 1.8rem;
+      }
+      
+      .stat-box {
+        padding: 16px;
+      }
+      
+      .images-side-by-side {
+        flex-direction: column;
+        gap: 20px;
+      }
+      
+      .image-item {
+        width: 100%;
+        min-width: auto;
+      }
+      
+      .image-wrapper {
+        min-height: 120px;
+        padding: 16px;
+      }
+    }
+
+    /* Mobile Portrait (576px and below) */
+    @media (max-width: 576px) {
+      .store-detail-wrapper {
+        padding: 16px 12px;
+      }
+      
+      .card-header-gradient h4 {
+        font-size: 1rem;
+      }
+      
+      .card-header-gradient h4 i {
+        font-size: 1rem;
+      }
+      
+      .card-body {
+        padding: 14px;
+      }
+      
+      .info-label {
+        font-size: 0.65rem;
+      }
+      
+      .info-value {
+        font-size: 0.8rem;
+      }
+      
+      .url-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+      
+      .badge {
+        padding: 3px 8px;
+        font-size: 0.65rem;
+      }
+      
+      .stat-number {
+        font-size: 1.5rem;
+      }
+      
+      .stat-label {
+        font-size: 0.65rem;
+      }
+      
+      .btn {
+        padding: 7px 12px;
+        font-size: 0.75rem;
+      }
+      
+      .image-wrapper {
+        min-height: 100px;
+        padding: 12px;
+      }
+      
+      .store-logo, .store-banner {
+        max-height: 80px;
+      }
+    }
+
+    /* Extra Small (400px and below) */
+    @media (max-width: 400px) {
+      .store-detail-wrapper {
+        padding: 12px 10px;
+      }
+      
+      .card-header-gradient {
+        padding: 12px 16px;
+      }
+      
+      .card-header-gradient h4 {
+        font-size: 0.9rem;
+      }
+      
+      .card-body {
+        padding: 12px;
+      }
+      
+      .info-value code {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+      }
+      
+      .stat-number {
+        font-size: 1.3rem;
+      }
+    }
+
+    /* Animation */
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card-premium {
+      animation: fadeSlideUp 0.4s ease-out forwards;
+    }
+  </style>
+
+  <!-- JavaScript for height sync (only on desktop) -->
+  <script>
+    function syncScrollableHeight() {
+      // Only apply on desktop (screen width > 992px)
+      if (window.innerWidth > 992) {
+        const leftScrollable = document.querySelector('.left-scrollable');
+        const rightReference = document.querySelector('.right-reference');
         
-        <div class="col-md-4">
-            <!-- Actions Card -->
-            <div class="card shadow">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-cog"></i> Admin Actions</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST">
-                        {% csrf_token %}
-                        
-                        {% if store.status == 'pending_payment' or store.status == 'expired' %}
-                            <button type="submit" name="action" value="approve" class="btn btn-success w-100 mb-2">
-                                <i class="fas fa-check-circle"></i> Approve & Activate Store
-                            </button>
-                        {% endif %}
-                        
-                        {% if store.status == 'suspended' %}
-                            <button type="submit" name="action" value="activate" class="btn btn-success w-100 mb-2">
-                                <i class="fas fa-play-circle"></i> Activate Store
-                            </button>
-                        {% endif %}
-                        
-                        {% if store.status == 'active' %}
-                            <button type="submit" name="action" value="suspend" class="btn btn-danger w-100">
-                                <i class="fas fa-ban"></i> Suspend Store
-                            </button>
-                        {% endif %}
-                    </form>
-                    
-                    <hr>
-                    
-                    <a href="{{ store_url }}" target="_blank" class="btn btn-info w-100 mb-2">
-                        <i class="fas fa-external-link-alt"></i> View Live Store
-                    </a>
-                    
-                    {% if store.reseller %}
-                        <a href="mailto:{{ store.reseller.email }}" class="btn btn-secondary w-100">
-                            <i class="fas fa-envelope"></i> Contact Reseller
-                        </a>
-                    {% endif %}
-                </div>
+        if (leftScrollable && rightReference) {
+          const rightHeight = rightReference.offsetHeight;
+          leftScrollable.style.maxHeight = rightHeight + 'px';
+        }
+      } else {
+        // On mobile/tablet, remove max-height constraint
+        const leftScrollable = document.querySelector('.left-scrollable');
+        if (leftScrollable) {
+          leftScrollable.style.maxHeight = 'none';
+        }
+      }
+    }
+    
+    // Run on load, resize, and after images load
+    window.addEventListener('load', syncScrollableHeight);
+    window.addEventListener('resize', syncScrollableHeight);
+    
+    // Also run after any dynamic content changes
+    setTimeout(syncScrollableHeight, 100);
+    setTimeout(syncScrollableHeight, 500);
+  </script>
+
+<div class="content">
+  <div class="store-detail-wrapper">
+    
+    <!-- Two Column Layout -->
+    <div class="row-flex">
+      
+      <!-- LEFT COLUMN -->
+      <div class="col-8">
+        <div class="left-scrollable">
+          
+          <!-- Store Information Card -->
+          <div class="card-premium">
+            <div class="card-header-gradient">
+              <h4>
+                <i class="fas fa-store"></i>
+                {{ store.store_name }}
+              </h4>
             </div>
-            
-            <!-- Store Statistics Card -->
-            <div class="card shadow mt-4">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Store Statistics</h5>
+            <div class="card-body">
+              <div class="info-grid">
+                <div class="info-item">
+                  <div class="info-label">Store Name</div>
+                  <div class="info-value">{{ store.store_name }}</div>
                 </div>
-                <div class="card-body">
-                    <div class="text-center mb-3">
-                        <h2 class="text-primary">{{ store.total_visitors }}</h2>
-                        <p class="text-muted">Total Visitors</p>
+                <div class="info-item">
+                  <div class="info-label">Store URL</div>
+                  <div class="info-value">
+                    <div class="url-wrapper">
+                      <a href="{{ store_url }}" target="_blank" class="url-link">
+                        <i class="fas fa-external-link-alt"></i> {{ store_url }}
+                      </a>
+                      <button class="copy-btn" onclick="copyToClipboard('{{ store_url }}')">
+                        <i class="fas fa-copy"></i> Copy
+                      </button>
                     </div>
-                    <hr>
-                    <div class="row">
-                        <div class="col-6">
-                            <small class="text-muted">Created:</small>
-                            <p class="mb-0"><strong>{{ store.created_at|date:"Y-m-d" }}</strong></p>
-                        </div>
-                        <div class="col-6">
-                            <small class="text-muted">Last Updated:</small>
-                            <p class="mb-0"><strong>{{ store.updated_at|date:"Y-m-d" }}</strong></p>
-                        </div>
-                    </div>
-                    {% if store.published_at %}
-                        <hr>
-                        <div class="row">
-                            <div class="col-12">
-                                <small class="text-muted">Published:</small>
-                                <p class="mb-0"><strong>{{ store.published_at|date:"Y-m-d H:i" }}</strong></p>
-                            </div>
-                        </div>
+                  </div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Subdomain</div>
+                  <div class="info-value"><code>{{ store.subdomain }}</code></div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Reseller</div>
+                  <div class="info-value">{{ store.reseller.username }} <span class="text-muted">({{ store.reseller.email }})</span></div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Contact Email</div>
+                  <div class="info-value">{{ store.contact_email }}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Contact Phone</div>
+                  <div class="info-value">{{ store.contact_phone|default:"-" }}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Subscription Plan</div>
+                  <div class="info-value">
+                    {% if store.subscription_plan %}
+                      <span class="badge badge-primary">{{ store.subscription_plan.get_name_display|title }}</span>
+                      <span class="text-muted ms-2">({{ store.subscription_plan.get_duration_display }})</span>
+                    {% else %}
+                      <span class="text-muted">No plan selected</span>
                     {% endif %}
+                  </div>
                 </div>
+                <div class="info-item">
+                  <div class="info-label">Theme</div>
+                  <div class="info-value">{{ store.theme.name|default:"-" }}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Theme Type</div>
+                  <div class="info-value">
+                    {% if store.theme.theme_type == 'single' %}
+                      <span class="badge badge-info">Single Product</span>
+                    {% else %}
+                      <span class="badge badge-success">Multiple Products</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Max Products</div>
+                  <div class="info-value">{{ store.get_max_products }}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Total Visitors</div>
+                  <div class="info-value">{{ store.total_visitors }}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Status</div>
+                  <div class="info-value">
+                    {% if store.status == 'active' %}
+                      <span class="badge badge-success"><i class="fas fa-check-circle"></i> Active</span>
+                    {% elif store.status == 'pending_payment' %}
+                      <span class="badge badge-warning"><i class="fas fa-clock"></i> Pending Payment</span>
+                    {% elif store.status == 'expired' %}
+                      <span class="badge badge-danger"><i class="fas fa-calendar-times"></i> Expired</span>
+                    {% elif store.status == 'suspended' %}
+                      <span class="badge badge-secondary"><i class="fas fa-ban"></i> Suspended</span>
+                    {% else %}
+                      <span class="badge badge-secondary">{{ store.status }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                {% if store.store_description %}
+                  <div class="full-width-item">
+                    <div class="info-label">Description</div>
+                    <div class="info-value" style="margin-top: 8px;">{{ store.store_description|linebreaks }}</div>
+                  </div>
+                {% endif %}
+
+                {% if store.store_address %}
+                  <div class="full-width-item">
+                    <div class="info-label">Address</div>
+                    <div class="info-value" style="margin-top: 8px;">{{ store.store_address|linebreaks }}</div>
+                  </div>
+                {% endif %}
+              </div>
             </div>
-            
-            <!-- Quick Info Card -->
-            <div class="card shadow mt-4">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Quick Info</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Store ID:</strong> {{ store.id }}</p>
-                    <p><strong>Payment Status:</strong>
-                        {% if store.payment_status %}
-                            <span class="badge bg-success">Paid</span>
-                        {% else %}
-                            <span class="badge bg-warning">Pending</span>
-                        {% endif %}
-                    </p>
-                    <p><strong>Published:</strong>
-                        {% if store.is_published %}
-                            <span class="badge bg-success">Yes</span>
-                        {% else %}
-                            <span class="badge bg-danger">No</span>
-                        {% endif %}
-                    </p>
-                    <p><strong>Subscription Active:</strong>
-                        {% if store.is_subscription_active %}
-                            <span class="badge bg-success">Yes</span>
-                        {% else %}
-                            <span class="badge bg-danger">No</span>
-                        {% endif %}
-                    </p>
-                </div>
+          </div>
+
+          <!-- Subscription Information Card -->
+          <div class="card-premium">
+            <div class="card-header-white">
+              <h5>
+                <i class="fas fa-calendar-alt"></i>
+                Subscription Information
+              </h5>
             </div>
+            <div class="card-body">
+              <div class="info-grid">
+                <div class="info-item">
+                  <div class="info-label">Subscription Start</div>
+                  <div class="info-value">
+                    {% if store.subscription_start %}
+                      {{ store.subscription_start|date:"F j, Y H:i" }}
+                    {% else %}
+                      <span class="text-muted">Not started</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Subscription End</div>
+                  <div class="info-value">
+                    {% if store.subscription_end %}
+                      {{ store.subscription_end|date:"F j, Y H:i" }}
+                      {% if days_until_expiry %}
+                        {% if is_expiring_soon %}
+                          <span class="badge badge-warning ms-2">Expires in {{ days_until_expiry }} days</span>
+                        {% else %}
+                          <span class="badge badge-info ms-2">{{ days_until_expiry }} days left</span>
+                        {% endif %}
+                      {% endif %}
+                    {% elif store.subscription_plan and store.subscription_plan.duration == 'lifetime' %}
+                      <span class="badge badge-success"><i class="fas fa-infinity"></i> Lifetime Plan</span>
+                    {% else %}
+                      <span class="text-muted">Not set</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              {% if store.subscription_plan %}
+                <hr class="divider">
+                <div class="info-label mb-2">Plan Features</div>
+                <ul class="feature-list">
+                  {% for feature in store.subscription_plan.get_features_list %}
+                    <li><i class="fas fa-check-circle"></i> {{ feature }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </div>
+          </div>
+
         </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="col-4">
+        <div class="right-reference">
+          
+          <!-- Admin Actions Card -->
+          <div class="card-premium">
+            <div class="card-header-white">
+              <h5>
+                <i class="fas fa-cog"></i>
+                Admin Actions
+              </h5>
+            </div>
+            <div class="card-body">
+              <form method="POST">
+                {% csrf_token %}
+                
+                {% if store.status == 'pending_payment' or store.status == 'expired' %}
+                  <button type="submit" name="action" value="approve" class="btn btn-success mb-3">
+                    <i class="fas fa-check-circle"></i> Approve & Activate Store
+                  </button>
+                {% endif %}
+                
+                {% if store.status == 'suspended' %}
+                  <button type="submit" name="action" value="activate" class="btn btn-success mb-3">
+                    <i class="fas fa-play-circle"></i> Activate Store
+                  </button>
+                {% endif %}
+                
+                {% if store.status == 'active' %}
+                  <button type="submit" name="action" value="suspend" class="btn btn-danger">
+                    <i class="fas fa-ban"></i> Suspend Store
+                  </button>
+                {% endif %}
+              </form>
+              
+              <hr class="divider">
+              
+              <a href="{{ store_url }}" target="_blank" class="btn btn-info mb-3">
+                <i class="fas fa-external-link-alt"></i> View Live Store
+              </a>
+              
+              {% if store.reseller %}
+                <a href="mailto:{{ store.reseller.email }}" class="btn btn-secondary">
+                  <i class="fas fa-envelope"></i> Contact Reseller
+                </a>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Store Statistics Card -->
+          <div class="card-premium">
+            <div class="card-header-white">
+              <h5>
+                <i class="fas fa-chart-line"></i>
+                Store Statistics
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="stat-box">
+                <div class="stat-number">{{ store.total_visitors }}</div>
+                <div class="stat-label">Total Visitors</div>
+              </div>
+              
+              <hr class="divider">
+              
+              <div class="info-grid" style="gap: 16px;">
+                <div class="info-item">
+                  <div class="info-label">Created</div>
+                  <div class="info-value"><strong>{{ store.created_at|date:"Y-m-d" }}</strong></div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Last Updated</div>
+                  <div class="info-value"><strong>{{ store.updated_at|date:"Y-m-d" }}</strong></div>
+                </div>
+              </div>
+              
+              {% if store.published_at %}
+                <hr class="divider">
+                <div class="info-item">
+                  <div class="info-label">Published</div>
+                  <div class="info-value"><strong>{{ store.published_at|date:"Y-m-d H:i" }}</strong></div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Quick Info Card -->
+          <div class="card-premium">
+            <div class="card-header-white">
+              <h5>
+                <i class="fas fa-info-circle"></i>
+                Quick Info
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="info-grid" style="gap: 16px;">
+                <div class="info-item">
+                  <div class="info-label">Store ID</div>
+                  <div class="info-value"><code>#{{ store.id }}</code></div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Payment Status</div>
+                  <div class="info-value">
+                    {% if store.payment_status %}
+                      <span class="badge badge-success"><i class="fas fa-check"></i> Paid</span>
+                    {% else %}
+                      <span class="badge badge-warning"><i class="fas fa-hourglass"></i> Pending</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Published</div>
+                  <div class="info-value">
+                    {% if store.is_published %}
+                      <span class="badge badge-success"><i class="fas fa-globe"></i> Yes</span>
+                    {% else %}
+                      <span class="badge badge-danger"><i class="fas fa-eye-slash"></i> No</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Subscription Active</div>
+                  <div class="info-value">
+                    {% if store.is_subscription_active %}
+                      <span class="badge badge-success"><i class="fas fa-check-circle"></i> Yes</span>
+                    {% else %}
+                      <span class="badge badge-danger"><i class="fas fa-times-circle"></i> No</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
+
+    <!-- Images Section - Full Width Bottom -->
+    {% if store.store_logo or store.store_banner %}
+      <div class="images-full-section">
+        <div class="card-premium">
+          <div class="card-header-white">
+            <h5>
+              <i class="fas fa-image"></i>
+              Store Images
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="images-side-by-side">
+              {% if store.store_logo %}
+                <div class="image-item">
+                  <div class="image-label">Logo</div>
+                  <div class="image-wrapper">
+                    <img src="{{ store.store_logo.url }}" class="store-logo" alt="Store Logo">
+                  </div>
+                </div>
+              {% endif %}
+              {% if store.store_banner %}
+                <div class="image-item">
+                  <div class="image-label">Banner</div>
+                  <div class="image-wrapper">
+                    <img src="{{ store.store_banner.url }}" class="store-banner" alt="Store Banner">
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
 </div>
 
 <script>
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(function() {
-        // Show temporary success message
         var btn = event.target.closest('button');
         var originalHtml = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        btn.style.background = '#10b981';
+        btn.style.borderColor = '#10b981';
+        btn.style.color = 'white';
         setTimeout(function() {
             btn.innerHTML = originalHtml;
+            btn.style.background = '';
+            btn.style.borderColor = '';
+            btn.style.color = '';
         }, 2000);
+    }).catch(function() {
+        alert('Failed to copy URL');
     });
 }
 </script>
 
-<style>
-.bg-gradient-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-</style>
+<!-- Font Awesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
 {% endblock %}

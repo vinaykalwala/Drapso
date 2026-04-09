@@ -1,248 +1,893 @@
-
+{% extends 'dashboard_base.html' %}
 {% load static %}
 
 {% block title %}Manage Subscription - {{ store.store_name }}{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-credit-card"></i> Manage Subscription - {{ store.store_name }}</h4>
+<style>
+    /* ============================================
+       ✨ PREMIUM SUBSCRIPTION MANAGEMENT ✨
+       Split Layout Upgrade Section with Image
+       ============================================ */
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --primary-light: #818cf8;
+        --primary-glow: rgba(99, 102, 241, 0.3);
+        --secondary: #8b5cf6;
+        --success: #10b981;
+        --success-dark: #059669;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #3b82f6;
+        --dark-800: #1e293b;
+        --dark-700: #334155;
+        --gray-500: #64748b;
+        --gray-400: #94a3b8;
+        --gray-300: #cbd5e1;
+        --gray-200: #e2e8f0;
+        --gray-100: #f1f5f9;
+        --gray-50: #f8fafc;
+        --white: #ffffff;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        --radius-sm: 8px;
+        --radius: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 20px;
+        --radius-2xl: 24px;
+        --transition: all 0.3s ease;
+    }
+
+    body {
+        font-family: 'Inter', system-ui, sans-serif;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        color: var(--dark-800);
+    }
+
+    /* Main Container */
+    .subscription-wrapper {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 32px 28px;
+    }
+
+    /* Header */
+    .premium-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .header-left h1 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 24px;
+        background: var(--white);
+        border-radius: 40px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--dark-700);
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+        border: 1px solid var(--gray-200);
+    }
+
+    .btn-back:hover {
+        transform: translateX(-3px);
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    /* Hero Banner */
+    .hero-banner {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        border-radius: var(--radius-2xl);
+        padding: 28px 36px;
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-banner::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 60%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .hero-text h2 {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 6px;
+    }
+
+    .hero-text p {
+        color: rgba(255,255,255,0.85);
+        font-size: 0.85rem;
+    }
+
+    .hero-badge {
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+        padding: 8px 20px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Two Column Grid */
+    .two-col-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+        margin-bottom: 28px;
+    }
+
+    /* Cards */
+    .card {
+        background: var(--white);
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+        border: 1px solid var(--gray-100);
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .card-header {
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--gray-100);
+        background: var(--white);
+    }
+
+    .card-header h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--dark-800);
+    }
+
+    .card-header h3 i {
+        color: var(--primary);
+    }
+
+    .card-body {
+        padding: 22px;
+    }
+
+    /* Info Rows */
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: var(--gray-500);
+        font-size: 0.8rem;
+    }
+
+    .info-value {
+        font-weight: 700;
+        color: var(--dark-800);
+        font-size: 0.85rem;
+    }
+
+    /* Badges */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 14px;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+
+    .badge-active {
+        background: linear-gradient(135deg, var(--success), #059669);
+        color: white;
+    }
+
+    .badge-expired {
+        background: linear-gradient(135deg, var(--danger), #dc2626);
+        color: white;
+    }
+
+    .badge-plan {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+    }
+
+    /* Alerts */
+    .alert {
+        border-radius: var(--radius-lg);
+        padding: 14px 20px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .alert-danger {
+        background: #fef2f2;
+        border-left: 3px solid var(--danger);
+    }
+
+    .alert-warning {
+        background: #fffbeb;
+        border-left: 3px solid var(--warning);
+    }
+
+    .alert-info {
+        background: #eff6ff;
+        border-left: 3px solid var(--info);
+    }
+
+    /* Renew Card */
+    .renew-card {
+        background: linear-gradient(135deg, var(--success), var(--success-dark));
+        border-radius: var(--radius-xl);
+        margin-bottom: 28px;
+        overflow: hidden;
+    }
+
+    .renew-content {
+        padding: 28px 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .renew-text h3 {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 6px;
+    }
+
+    .renew-text p {
+        color: rgba(255,255,255,0.9);
+        margin: 3px 0;
+    }
+
+    .renew-price {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: white;
+    }
+
+    /* ============================================
+       SPLIT LAYOUT UPGRADE SECTION
+       Text on left, Image/Illustration on right
+    ============================================ */
+    .upgrade-split {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        border-radius: var(--radius-2xl);
+        margin-bottom: 28px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .upgrade-split-container {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .upgrade-split-left {
+        flex: 1.2;
+        padding: 40px 44px;
+        min-width: 280px;
+    }
+
+    .upgrade-split-left .badge-new {
+        display: inline-block;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+        padding: 6px 16px;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: white;
+        margin-bottom: 20px;
+    }
+
+    .upgrade-split-left h2 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 16px;
+        line-height: 1.2;
+    }
+
+    .upgrade-split-left p {
+        color: rgba(255,255,255,0.85);
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 28px;
+    }
+
+    .upgrade-features {
+        list-style: none;
+        margin-bottom: 32px;
+    }
+
+    .upgrade-features li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        color: rgba(255,255,255,0.9);
+        font-size: 0.85rem;
+    }
+
+    .upgrade-features li i {
+        color: #fbbf24;
+        font-size: 1rem;
+    }
+
+    .upgrade-split-right {
+        flex: 0.8;
+        background: rgba(255,255,255,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        min-width: 260px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .upgrade-illustration {
+        text-align: center;
+    }
+
+    .upgrade-illustration .rocket-icon {
+        font-size: 5rem;
+        color: white;
+        animation: floatRocket 3s ease-in-out infinite;
+    }
+
+    @keyframes floatRocket {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+    }
+
+    .upgrade-illustration h4 {
+        color: white;
+        margin-top: 20px;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .upgrade-illustration p {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.75rem;
+        margin-top: 5px;
+    }
+
+    /* Plan Cards Grid */
+    .plans-grid-simple {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        margin-top: 24px;
+    }
+
+    .plan-simple-card {
+        flex: 1;
+        min-width: 260px;
+        background: var(--white);
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        transition: var(--transition);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-200);
+    }
+
+    .plan-simple-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .plan-simple-card.popular {
+        border: 2px solid var(--primary);
+        position: relative;
+    }
+
+    .popular-tag {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+
+    .plan-simple-header {
+        padding: 24px;
+        text-align: center;
+        background: linear-gradient(135deg, var(--gray-50), var(--white));
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .plan-simple-name {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: var(--dark-800);
+        margin-bottom: 8px;
+    }
+
+    .plan-simple-price {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    .plan-simple-price small {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: var(--gray-500);
+    }
+
+    .plan-simple-old {
+        font-size: 0.75rem;
+        color: var(--gray-400);
+        margin-top: 5px;
+    }
+
+    .plan-simple-save {
+        background: #d1fae5;
+        color: #065f46;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        display: inline-block;
+        margin-top: 8px;
+    }
+
+    .plan-simple-features {
+        padding: 20px;
+        list-style: none;
+    }
+
+    .plan-simple-features li {
+        padding: 8px 0;
+        font-size: 0.8rem;
+        color: var(--dark-700);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .plan-simple-features li:last-child {
+        border-bottom: none;
+    }
+
+    .plan-simple-features li i {
+        color: var(--success);
+        width: 18px;
+    }
+
+    .plan-simple-footer {
+        padding: 16px 20px;
+        background: var(--gray-50);
+        text-align: center;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    /* Buttons */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 24px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        transition: var(--transition);
+        text-decoration: none;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, var(--success), var(--success-dark));
+        color: white;
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.05);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.05);
+    }
+
+    .btn-full {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .subscription-wrapper { padding: 24px 20px; }
+        .two-col-grid { gap: 20px; }
+        .upgrade-split-left { padding: 32px 28px; }
+        .upgrade-split-left h2 { font-size: 1.6rem; }
+    }
+    
+    @media (max-width:900px) {
+        .content {
+            margin-top: 60px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .subscription-wrapper { padding: 20px 16px; }
+        .premium-header { flex-direction: column; text-align: center; }
+        .hero-content { flex-direction: column; text-align: center; }
+        .renew-content { flex-direction: column; text-align: center; }
+        .two-col-grid { grid-template-columns: 1fr; }
+        .upgrade-split-container { flex-direction: column; }
+        .upgrade-split-right { padding: 30px; }
+        .plans-grid-simple { flex-direction: column; }
+    }
+
+    @media (max-width: 480px) {
+        .subscription-wrapper { padding: 16px 12px; }
+        .hero-banner { padding: 20px 24px; }
+        .hero-text h2 { font-size: 1.1rem; }
+        .btn { padding: 8px 18px; font-size: 0.75rem; }
+        .upgrade-split-left h2 { font-size: 1.3rem; }
+        .upgrade-split-left { padding: 24px 20px; }
+        .upgrade-split-right { padding: 20px; }
+        .rocket-icon { font-size: 3rem; }
+    }
+</style>
+
+<div class="content">
+    <div class="subscription-wrapper">
+        <!-- Header -->
+        <div class="premium-header">
+            <div class="header-left">
+                <h1><i class="fas fa-crown"></i> {{ store.store_name }}</h1>
+            </div>
+            <a href="{% url 'resellers:store_dashboard' store.id %}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Hero Banner -->
+        <div class="hero-banner">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h2>Manage Your Store Subscription</h2>
+                    <p>Control your plan, upgrade features, and keep your store running smoothly</p>
+                </div>
+                <div class="hero-badge">
+                    <i class="fas fa-shield-alt"></i> Secure Payments
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Subscription & Store Info -->
+        <div class="two-col-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-info-circle"></i> Current Subscription</h3>
                 </div>
                 <div class="card-body">
-                    <!-- Current Subscription Status -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <h5><i class="fas fa-info-circle"></i> Current Subscription</h5>
-                                    <hr>
-                                    <p><strong>Plan:</strong> 
-                                        {% if current_plan %}
-                                            <span class="badge bg-primary">{{ current_plan.get_name_display|title }}</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">No Plan</span>
-                                        {% endif %}
-                                    </p>
-                                    <p><strong>Duration:</strong> 
-                                        {% if current_plan %}
-                                            {{ current_plan.get_duration_display }}
-                                        {% else %}
-                                            N/A
-                                        {% endif %}
-                                    </p>
-                                    <p><strong>Status:</strong>
-                                        {% if is_expired %}
-                                            <span class="badge bg-danger">Expired</span>
-                                        {% elif store.status == 'active' %}
-                                            <span class="badge bg-success">Active</span>
-                                        {% else %}
-                                            <span class="badge bg-warning">{{ store.status }}</span>
-                                        {% endif %}
-                                    </p>
-                                    {% if not is_expired and remaining_days > 0 %}
-                                        <p><strong>Days Remaining:</strong> 
-                                            <span class="{% if remaining_days <= 7 %}text-danger{% else %}text-success{% endif %}">
-                                                {{ remaining_days }} days
-                                            </span>
-                                        </p>
-                                        <p><strong>Expires On:</strong> {{ store.subscription_end|date:"F d, Y" }}</p>
-                                    {% elif is_expired %}
-                                        <p><strong>Expired On:</strong> {{ store.subscription_end|date:"F d, Y" }}</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <h5><i class="fas fa-store"></i> Store Information</h5>
-                                    <hr>
-                                    <p><strong>Store Name:</strong> {{ store.store_name }}</p>
-                                    <p><strong>Store URL:</strong> 
-                                        <a href="{{ store.get_full_url }}" target="_blank">{{ store.get_full_url }}</a>
-                                    </p>
-                                    <p><strong>Theme:</strong> {{ store.theme.name|default:"Not selected" }}</p>
-                                    <p><strong>Max Products:</strong> {{ store.get_max_products }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Expired Subscription Message -->
-                    {% if is_expired %}
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <strong>Your subscription has expired!</strong> Your store is currently offline. 
-                            Renew your previous plan or subscribe to a new plan to reactivate your store. 
-                            All your products and settings are preserved and will be restored immediately upon reactivation.
-                        </div>
-                    {% endif %}
-
-                    <!-- Renewal Message for Active but expiring soon -->
-                    {% if not is_expired and renewal_message %}
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle"></i> {{ renewal_message }}
-                        </div>
-                    {% endif %}
-
-                    <!-- RENEW PREVIOUS PLAN SECTION (Shows when expired OR expiring soon) -->
-                    {% if can_renew and renewal_plan and renewal_plan.id %}
-                        <div class="card mb-4 border-success">
-                            <div class="card-header bg-success text-white">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-sync-alt"></i> 
-                                    {% if is_expired %}
-                                        Reactivate with Previous Plan
-                                    {% else %}
-                                        Renew Current Plan
-                                    {% endif %}
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col-md-8">
-                                        <h4>{{ renewal_plan.get_name_display|title }} Plan</h4>
-                                        <p>{{ renewal_plan.get_duration_display }} - ${{ renewal_plan.price }}</p>
-                                        {% if not is_expired and remaining_days > 0 and remaining_days <= 7 %}
-                                            <div class="alert alert-info">
-                                                <i class="fas fa-gift"></i> 
-                                                <strong>Bonus!</strong> Renew now and get <strong>{{ remaining_days }} extra days</strong> added to your new subscription period!
-                                            </div>
-                                        {% elif is_expired %}
-                                            <div class="alert alert-info">
-                                                <i class="fas fa-history"></i> 
-                                                <strong>Your data is preserved!</strong> Reactivating with your previous plan will restore all your products and settings immediately.
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-md-4 text-end">
-                                        <a href="{% url 'resellers:renew_subscription' store.id %}" class="btn btn-success btn-lg">
-                                            <i class="fas fa-sync-alt"></i> 
-                                            {% if is_expired %}
-                                                Reactivate - ${{ renewal_plan.price }}
-                                            {% else %}
-                                                Renew Now - ${{ renewal_plan.price }}
-                                            {% endif %}
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-
-                    <!-- SUBSCRIBE TO NEW PLAN SECTION (Shows for expired subscriptions) -->
-                    {% if is_expired and all_plans %}
-                        <div class="card mb-4 border-primary">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0"><i class="fas fa-store"></i> Subscribe to a New Plan</h5>
-                            </div>
-                            <div class="card-body">
-                                <p class="text-muted mb-3">Choose a different plan for your store. Your existing products and settings will be preserved.</p>
-                                <div class="row">
-                                    {% for plan_info in all_plans %}
-                                        {% if plan_info.plan and plan_info.plan.id %}
-                                        <div class="col-md-4 mb-3">
-                                            <div class="card h-100">
-                                                <div class="card-header text-center {% if plan_info.plan.name == 'gold' %}bg-primary text-white{% elif plan_info.plan.name == 'platinum' %}bg-dark text-white{% else %}bg-secondary text-white{% endif %}">
-                                                    <h4>{{ plan_info.plan.get_name_display|title }}</h4>
-                                                    <h3 class="mb-0">${{ plan_info.plan.price }}</h3>
-                                                    <small>/{{ plan_info.plan.get_duration_display }}</small>
-                                                </div>
-                                                <div class="card-body">
-                                                    <p><strong>Max Products:</strong> {{ plan_info.plan.multiple_theme_limit }} products</p>
-                                                    <p><strong>Features:</strong></p>
-                                                    <ul>
-                                                        {% for feature in plan_info.plan.get_features_list %}
-                                                            <li><i class="fas fa-check text-success"></i> {{ feature }}</li>
-                                                        {% endfor %}
-                                                    </ul>
-                                                </div>
-                                                <div class="card-footer bg-white text-center">
-                                                    <a href="{% url 'resellers:subscribe_new_plan' store.id plan_info.plan.id %}" class="btn btn-primary">
-                                                        Subscribe to {{ plan_info.plan.get_name_display|title }}
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-
-                    <!-- UPGRADE SECTION (Only for active subscriptions - higher plans only) -->
-                    {% if not is_expired and can_upgrade and upgrade_plans %}
-                        <div class="card mb-4 border-primary">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0"><i class="fas fa-arrow-up"></i> Upgrade Plan (Get More Features)</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    {% for plan_info in upgrade_plans %}
-                                        {% if plan_info.plan and plan_info.plan.id %}
-                                        <div class="col-md-6 mb-3">
-                                            <div class="card h-100">
-                                                <div class="card-header text-center {% if plan_info.plan.name == 'gold' %}bg-primary text-white{% elif plan_info.plan.name == 'platinum' %}bg-dark text-white{% else %}bg-secondary text-white{% endif %}">
-                                                    <h4>{{ plan_info.plan.get_name_display|title }}</h4>
-                                                    <h3 class="mb-0">${{ plan_info.upgrade_price }}</h3>
-                                                    <small>one-time upgrade</small>
-                                                </div>
-                                                <div class="card-body">
-                                                    <p><strong>Regular Price:</strong> ${{ plan_info.plan.price }}/{{ plan_info.plan.get_duration_display }}</p>
-                                                    <p><strong>Max Products:</strong> {{ plan_info.plan.multiple_theme_limit }} products</p>
-                                                    <p><strong>Features:</strong></p>
-                                                    <ul>
-                                                        {% for feature in plan_info.plan.get_features_list %}
-                                                            <li><i class="fas fa-check text-success"></i> {{ feature }}</li>
-                                                        {% endfor %}
-                                                    </ul>
-                                                    {% if plan_info.upgrade_price < plan_info.plan.price %}
-                                                        <div class="alert alert-success">
-                                                            <i class="fas fa-tag"></i> Save ${{ plan_info.plan.price|floatformat:2|add:plan_info.upgrade_price|floatformat:2 }} with prorated upgrade!
-                                                        </div>
-                                                    {% endif %}
-                                                </div>
-                                                <div class="card-footer bg-white text-center">
-                                                    <a href="{% url 'resellers:renew_subscription_with_plan' store.id plan_info.plan.id %}" class="btn btn-primary">
-                                                        Upgrade to {{ plan_info.plan.get_name_display|title }}
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-
-                    <!-- No Actions Available -->
-                    {% if not can_renew and not can_upgrade and not is_expired %}
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i>
-                            {% if not store.subscription_plan %}
-                                Please complete your store setup first.
-                            {% elif remaining_days > 7 %}
-                                Your subscription is active with {{ remaining_days }} days remaining. Renewal will be available when 7 days or less are left.
+                    <div class="info-row">
+                        <span class="info-label">Plan</span>
+                        <span class="info-value">
+                            {% if current_plan %}
+                                <span class="badge badge-plan">{{ current_plan.get_name_display|title }}</span>
                             {% else %}
-                                No actions available at this time.
+                                <span class="badge" style="background:var(--gray-200);">No Plan</span>
                             {% endif %}
-                        </div>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Duration</span>
+                        <span class="info-value">{{ current_plan.get_duration_display|default:"N/A" }}</span>
+                    </div>
+                   
+                    {% if not is_expired and remaining_days > 0 %}
+                    <div class="info-row">
+                        <span class="info-label">Days Remaining</span>
+                        <span class="info-value" style="color: {% if remaining_days <= 7 %}var(--warning){% else %}var(--success){% endif %}; font-weight:800;">
+                            {{ remaining_days }} days
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Expires On</span>
+                        <span class="info-value">{{ store.subscription_end|date:"F d, Y" }}</span>
+                    </div>
+                    {% elif is_expired %}
+                    <div class="info-row">
+                        <span class="info-label">Expired On</span>
+                        <span class="info-value">{{ store.subscription_end|date:"F d, Y" }}</span>
+                    </div>
                     {% endif %}
+                </div>
+            </div>
 
-                    <!-- Back to Dashboard -->
-                    <div class="mt-4">
-                        <a href="{% url 'resellers:store_dashboard' store.id %}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Back to Dashboard
-                        </a>
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-store"></i> Store Information</h3>
+                </div>
+                <div class="card-body">
+                    <div class="info-row">
+                        <span class="info-label">Store Name</span>
+                        <span class="info-value">{{ store.store_name }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Theme</span>
+                        <span class="info-value">{{ store.theme.name|default:"Not selected" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Max Products</span>
+                        <span class="info-value">{{ store.get_max_products }}</span>
+                    </div>
+                     <div class="info-row">
+                        <span class="info-label">Status</span>
+                        <span class="info-value">
+                            {% if is_expired %}
+                                <span class="badge badge-expired"><i class="fas fa-times-circle"></i> Expired</span>
+                            {% elif store.status == 'active' %}
+                                <span class="badge badge-active"><i class="fas fa-check-circle"></i> Active</span>
+                            {% else %}
+                                <span class="badge" style="background:var(--warning); color:white;">{{ store.status }}</span>
+                            {% endif %}
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Expired Subscription Message -->
+        {% if is_expired %}
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>Your subscription has expired!</strong>
+                <p style="margin-top: 4px; font-size: 0.8rem;">Your store is currently offline. Renew your previous plan or subscribe to a new plan to reactivate your store. All your products and settings are preserved and will be restored immediately upon reactivation.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Renewal Message for Active but expiring soon -->
+        {% if not is_expired and renewal_message %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>Subscription Expiring Soon!</strong>
+                <p style="margin-top: 4px; font-size: 0.8rem;">{{ renewal_message }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- RENEW PREVIOUS PLAN SECTION (Shows when expired OR expiring soon) -->
+        {% if can_renew and renewal_plan and renewal_plan.id %}
+        <div class="renew-card">
+            <div class="renew-content">
+                <div class="renew-text">
+                    <h3><i class="fas fa-sync-alt"></i> {% if is_expired %}Reactivate with Previous Plan{% else %}Renew Current Plan{% endif %}</h3>
+                    <p>{{ renewal_plan.get_name_display|title }} Plan • {{ renewal_plan.get_duration_display }}</p>
+                    <p class="renew-price">${{ renewal_plan.price }}</p>
+                    {% if not is_expired and remaining_days > 0 and remaining_days <= 7 %}
+                    <p><i class="fas fa-gift"></i> <strong>Bonus!</strong> Renew now and get <strong>{{ remaining_days }} extra days</strong> added to your new subscription period!</p>
+                    {% elif is_expired %}
+                    <p><i class="fas fa-history"></i> <strong>Your data is preserved!</strong> Reactivating with your previous plan will restore all your products and settings immediately.</p>
+                    {% endif %}
+                </div>
+                <a href="{% url 'resellers:renew_subscription' store.id %}" class="btn btn-success">
+                    <i class="fas fa-sync-alt"></i> {% if is_expired %}Reactivate - ${{ renewal_plan.price }}{% else %}Renew Now - ${{ renewal_plan.price }}{% endif %}
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- SPLIT LAYOUT UPGRADE SECTION - Text + Image (Only for active subscriptions) -->
+        {% if not is_expired and can_upgrade and upgrade_plans %}
+        <div class="upgrade-split">
+            <div class="upgrade-split-container">
+                <div class="upgrade-split-left">
+                    <h2>Upgrade Your Plan & Get More Features</h2>
+                 
+                    <div class="plans-grid-simple">
+                        {% for plan_info in upgrade_plans %}
+                            {% if plan_info.plan and plan_info.plan.id %}
+                            <div class="plan-simple-card {% if plan_info.plan.name == 'gold' %}popular{% endif %}">
+                                {% if plan_info.plan.name == 'gold' %}
+                                <div class="popular-tag"><i class="fas fa-star"></i> Popular</div>
+                                {% endif %}
+                                <div class="plan-simple-header">
+                                    <div class="plan-simple-name">{{ plan_info.plan.get_name_display|title }}</div>
+                                    <div class="plan-simple-price">${{ plan_info.upgrade_price }}<small> one-time</small></div>
+                                    <div class="plan-simple-old">Regular: ${{ plan_info.plan.price }}/{{ plan_info.plan.get_duration_display }}</div>
+                                    {% if plan_info.upgrade_price < plan_info.plan.price %}
+                                    <div class="plan-simple-save">Save ${{ plan_info.plan.price|floatformat:2|add:plan_info.upgrade_price|floatformat:2 }} with prorated upgrade!</div>
+                                    {% endif %}
+                                </div>
+                                <ul class="plan-simple-features">
+                                    <li><i class="fas fa-check-circle"></i> Max Products: {{ plan_info.plan.multiple_theme_limit }}</li>
+                                    {% for feature in plan_info.plan.get_features_list|slice:":3" %}
+                                        <li><i class="fas fa-check-circle"></i> {{ feature }}</li>
+                                    {% endfor %}
+                                </ul>
+                                <div class="plan-simple-footer">
+                                    <a href="{% url 'resellers:renew_subscription_with_plan' store.id plan_info.plan.id %}" class="btn btn-primary btn-full">
+                                        Upgrade to {{ plan_info.plan.get_name_display|title }}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="upgrade-split-right">
+                    <div class="upgrade-illustration">
+                        <div class="rocket-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <h4>🚀 Upgrade Today</h4>
+                        <p>Get exclusive benefits & grow faster</p>
+                       <div style="margin-top: 20px;">
+<svg width="200" height="160" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+
+<circle cx="50" cy="50" r="8" fill="rgba(255,255,255,0.3)"/>
+<circle cx="80" cy="30" r="5" fill="rgba(255,255,255,0.2)"/>
+<circle cx="120" cy="60" r="6" fill="rgba(255,255,255,0.25)"/>
+<circle cx="150" cy="40" r="4" fill="rgba(255,255,255,0.15)"/>
+<circle cx="170" cy="70" r="3" fill="rgba(255,255,255,0.2)"/>
+
+<path d="M20 80 L40 60 L60 70 L80 50 L100 65 L120 45 L140 55 L160 40 L180 50"
+stroke="rgba(255,255,255,0.3)"
+stroke-width="2"
+fill="none"
+stroke-dasharray="5,5"/>
+
+</svg>
+</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- SUBSCRIBE TO NEW PLAN SECTION (Shows for expired subscriptions) -->
+        {% if is_expired and all_plans %}
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-store"></i> Subscribe to a New Plan</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3" style="font-size:0.85rem;">Choose a different plan for your store. Your existing products and settings will be preserved.</p>
+                <div class="plans-grid-simple">
+                    {% for plan_info in all_plans %}
+                        {% if plan_info.plan and plan_info.plan.id %}
+                        <div class="plan-simple-card {% if plan_info.plan.name == 'gold' %}popular{% endif %}">
+                            {% if plan_info.plan.name == 'gold' %}
+                            <div class="popular-tag"><i class="fas fa-star"></i> Popular</div>
+                            {% endif %}
+                            <div class="plan-simple-header">
+                                <div class="plan-simple-name">{{ plan_info.plan.get_name_display|title }}</div>
+                                <div class="plan-simple-price">${{ plan_info.plan.price }}<small>/{{ plan_info.plan.get_duration_display }}</small></div>
+                            </div>
+                            <ul class="plan-simple-features">
+                                <li><i class="fas fa-check-circle"></i> Max Products: {{ plan_info.plan.multiple_theme_limit }}</li>
+                                {% for feature in plan_info.plan.get_features_list %}
+                                    <li><i class="fas fa-check-circle"></i> {{ feature }}</li>
+                                {% endfor %}
+                            </ul>
+                            <div class="plan-simple-footer">
+                                <a href="{% url 'resellers:subscribe_new_plan' store.id plan_info.plan.id %}" class="btn btn-primary btn-full">
+                                    Subscribe to {{ plan_info.plan.get_name_display|title }}
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- No Actions Available -->
+        {% if not can_renew and not can_upgrade and not is_expired %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                {% if not store.subscription_plan %}
+                    <strong>Please complete your store setup first.</strong>
+                {% elif remaining_days > 7 %}
+                    <strong>Your subscription is active with {{ remaining_days }} days remaining.</strong>
+                    <p style="margin-top: 4px; font-size: 0.8rem;">Renewal will be available when 7 days or less are left.</p>
+                {% else %}
+                    <strong>No actions available at this time.</strong>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

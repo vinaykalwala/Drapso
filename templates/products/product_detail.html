@@ -1,0 +1,126 @@
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+
+<div class="row">
+
+    <!-- LEFT: IMAGES -->
+    <div class="col-md-6">
+
+        <!-- MAIN IMAGE -->
+        <div class="mb-3 text-center">
+            {% if product.main_image %}
+                <img id="mainImage" src="{{ product.main_image.url }}" class="img-fluid rounded" style="max-height:400px;">
+            {% endif %}
+        </div>
+
+        <!-- THUMBNAILS -->
+        <div class="d-flex gap-2 overflow-auto">
+            {% if product.main_image %}
+                <img src="{{ product.main_image.url }}" class="thumb" onclick="changeImage(this)">
+            {% endif %}
+
+            {% for img in product.additional_images.all %}
+                <img src="{{ img.image.url }}" class="thumb" onclick="changeImage(this)">
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- RIGHT: DETAILS -->
+    <div class="col-md-6">
+
+        <h3>{{ product.name }}</h3>
+
+        <p class="text-muted">
+            {{ product.brand }} | {{ product.model_name }}
+        </p>
+
+        <!-- ✅ FIXED PRICE -->
+        <h4 class="text-primary">{% if product.price %}
+    ₹{{ product.price }}
+{% elif product.selling_price %}
+    ₹{{ product.selling_price }}
+{% endif %}</h4>
+
+        <p>{{ product.description }}</p>
+
+        <hr>
+
+        <h6>Specifications</h6>
+        <p>{{ product.specification }}</p>
+
+        <hr>
+
+        <h6>Details</h6>
+        <ul>
+            <li>Category: {{ product.category }}</li>
+            <li>Subcategory: {{ product.subcategory }}</li>
+            <li>Material: {{ product.material }}</li>
+            <li>Gender: {{ product.gender }}</li>
+        </ul>
+
+        <hr>
+
+        <h6>Stock</h6>
+        <p>
+            {{ product.stock }}
+            {% if product.is_low_stock %}
+                <span class="badge bg-danger">Low Stock</span>
+            {% endif %}
+        </p>
+
+    </div>
+
+</div>
+
+<!-- VARIANTS -->
+<div class="mt-5">
+    <h5>Variants</h5>
+
+    <div class="row">
+        {% for v in product.variants.all %}
+        <div class="col-md-3 mb-3">
+
+            <div class="card p-2">
+
+                {% if v.main_image %}
+                    <img src="{{ v.main_image.url }}" class="img-fluid mb-2">
+                {% endif %}
+
+                <strong>{{ v.variant_name }}</strong>
+
+                <!-- ✅ FIXED VARIANT PRICE -->
+                <small>₹{{ v.get_display_price }}</small>
+
+                <small>Stock: {{ v.stock }}</small>
+
+            </div>
+
+        </div>
+        {% empty %}
+            <p class="text-muted">No variants available</p>
+        {% endfor %}
+    </div>
+</div>
+
+</div>
+
+<script>
+function changeImage(el) {
+    document.getElementById("mainImage").src = el.src;
+}
+</script>
+
+<style>
+.thumb {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    cursor: pointer;
+    border-radius: 5px;
+}
+</style>
+
+{% endblock %}

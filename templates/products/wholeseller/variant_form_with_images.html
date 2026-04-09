@@ -1,0 +1,131 @@
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+
+<h4>{{ title }} - {{ product.name }}</h4>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="row">
+
+        <!-- LEFT: VARIANT FIELDS -->
+        <div class="col-md-7">
+
+            {% for field in form %}
+                {% if field.name != "main_image" %}
+                    <div class="mb-3">
+                        <label>{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+        </div>
+
+        <!-- RIGHT: IMAGES -->
+        <div class="col-md-5">
+
+            <!-- MAIN IMAGE -->
+            <div class="mb-4">
+                <label>Main Image</label>
+
+                <div id="mainImagePreview" class="mb-2 text-center">
+                    {% if form.instance.main_image %}
+                        <img src="{{ form.instance.main_image.url }}" style="max-height:150px;">
+                    {% else %}
+                        <div class="bg-light p-3">No Image</div>
+                    {% endif %}
+                </div>
+
+                {{ form.main_image }}
+            </div>
+
+            <!-- ADDITIONAL IMAGES -->
+            <div>
+                <label>Variant Gallery</label>
+
+                {{ image_formset.management_form }}
+
+                <div id="imageFormsList">
+
+                    {% for f in image_formset %}
+                    <div class="border p-2 mb-2 rounded">
+
+                        {% if f.instance.pk and f.instance.image %}
+                            <div class="text-center mb-2">
+                                <img src="{{ f.instance.image.url }}" style="max-height:80px;">
+                            </div>
+                        {% endif %}
+
+                        {{ f.image }}
+                        {{ f.alt_text }}
+                        {{ f.order }}
+
+                        {% if f.instance.pk %}
+                            Delete {{ f.DELETE }}
+                        {% endif %}
+
+                        {{ f.id }}
+
+                    </div>
+                    {% endfor %}
+
+                </div>
+
+                <button type="button" id="addImageBtn" class="btn btn-sm btn-secondary mt-2">
+                    + Add Image
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Save Variant</button>
+
+</form>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // MAIN IMAGE PREVIEW
+    document.querySelector("#id_main_image")?.addEventListener("change", function () {
+        const preview = document.getElementById("mainImagePreview");
+
+        if (this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => preview.innerHTML = `<img src="${e.target.result}" style="max-height:150px;">`;
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    // ADD IMAGE FORMSET
+    const addBtn = document.getElementById("addImageBtn");
+    const container = document.getElementById("imageFormsList");
+    const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+    const prefix = totalForms.name.replace('-TOTAL_FORMS', '');
+
+    addBtn.addEventListener("click", function () {
+
+        const count = parseInt(totalForms.value);
+
+        const html = `
+        <div class="border p-2 mb-2 rounded">
+            <input type="file" name="${prefix}-${count}-image" class="form-control mb-1">
+            <input type="text" name="${prefix}-${count}-alt_text" class="form-control mb-1">
+            <input type="number" name="${prefix}-${count}-order" class="form-control mb-1">
+        </div>
+        `;
+
+        container.insertAdjacentHTML("beforeend", html);
+        totalForms.value = count + 1;
+    });
+
+});
+</script>
+{% endblock %}

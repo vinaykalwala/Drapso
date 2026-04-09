@@ -1,190 +1,733 @@
-
+{% extends 'dashboard_base.html' %}
 {% load static %}
 
 {% block title %}Complete Payment - {{ store.store_name }}{% endblock %}
 
-{% block extra_css %}
+{% block content %}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <style>
-    .summary-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+    /* ============================================
+       COMPLETE PAYMENT PAGE - MODERN DASHBOARD STYLES
+       Currency: INR | Added visual image on right column
+       ============================================ */
+    
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
     }
-    .step-completed {
-        color: #28a745;
+
+    .payment-wrapper {
+        padding: 24px 28px;
+        background: #f8fafc;
+        min-height: 100vh;
     }
-    .step-pending {
-        color: #6c757d;
+
+    .payment-container {
+        max-width: 1400px;
+        margin: 0 auto;
     }
-    .order-summary {
-        border-left: 3px solid #28a745;
+
+    /* Modern Card Style */
+    .modern-card {
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+        overflow: hidden;
+        transition: all 0.2s ease;
     }
+
+    /* Step Indicator Card */
+    .step-card {
+        background: linear-gradient(105deg, #ffffff 0%, #fefce8 100%);
+        border: 1px solid #eaefff;
+        border-radius: 20px;
+        margin-bottom: 28px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    .step-inner {
+        padding: 18px 24px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .step-info h5 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 4px;
+    }
+
+    .step-info small {
+        font-size: 0.75rem;
+        color: #475569;
+    }
+
+    .progress-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+    }
+
+    .progress-bar-bg {
+        width: 260px;
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 40px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        background: #10b981;
+        height: 100%;
+        border-radius: 40px;
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+
+    .step-counter {
+        font-size: 0.7rem;
+        color: #475569;
+        font-weight: 500;
+    }
+
+    /* Two Column Layout */
+    .payment-grid {
+        display: flex;
+        gap: 28px;
+        flex-wrap: wrap;
+    }
+
+    .order-summary-col {
+        flex: 1.5;
+        min-width: 280px;
+    }
+
+    .payment-col {
+        flex: 1.8;
+        min-width: 320px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Sticky summary card */
+    .sticky-summary {
+        position: sticky;
+        top: 24px;
+    }
+
+    /* Card Headers */
+    .card-header-modern {
+        padding: 18px 24px;
+        border-bottom: 1px solid #f0f2f5;
+        background: #ffffff;
+    }
+
+    .card-header-modern h5 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .card-header-modern h5 i {
+        color: #4f46e5;
+        font-size: 1.1rem;
+    }
+
+    .card-body-modern {
+        padding: 20px 24px;
+    }
+
+    /* Detail rows */
     .detail-row {
-        padding: 10px 0;
-        border-bottom: 1px solid #e0e0e0;
+        padding: 14px 0;
+        border-bottom: 1px solid #f1f5f9;
     }
+
     .detail-row:last-child {
         border-bottom: none;
     }
-</style>
-{% endblock %}
 
-{% block content %}
-<div class="container py-5">
-    <!-- Step Indicator -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card bg-light border-0">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
-                        <div>
-                            <h5 class="mb-0">Step {{ step }} of {{ total_steps }}</h5>
-                            <small class="text-muted">{{ step_title }}</small>
-                        </div>
-                        <div class="mt-2 mt-sm-0">
-                            <div class="progress" style="width: 250px; height: 10px;">
-                                <div class="progress-bar bg-success" style="width: {% widthratio step total_steps 100 %}%"></div>
-                            </div>
-                            <small class="text-muted">{{ step }}/{{ total_steps }} completed</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    .row-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .step-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .step-completed {
+        color: #10b981;
+        font-size: 1rem;
+    }
+
+    .step-pending {
+        color: #94a3b8;
+    }
+
+    .edit-btn {
+        background: transparent;
+        border: 1px solid #e2e8f0;
+        padding: 6px 14px;
+        border-radius: 40px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: #4b5563;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .edit-btn:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+        color: #0f172a;
+    }
+
+    .info-text {
+        margin-top: 10px;
+        margin-left: 28px;
+    }
+
+    .info-text p {
+        margin-bottom: 6px;
+        font-size: 0.8rem;
+        color: #334155;
+    }
+
+    .info-text strong {
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .total-row {
+        background: #f8fafc;
+        margin-top: 12px;
+        padding: 16px 0;
+        border-radius: 16px;
+    }
+
+    .total-amount {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #4f46e5;
+        letter-spacing: -0.3px;
+    }
+
+    /* Payment Card */
+    .payment-card {
+        border: 1px solid #edf2f7;
+    }
+
+    .gradient-header {
+        background: linear-gradient(105deg, #4f46e5 0%, #7c3aed 100%);
+        padding: 20px 24px;
+        border-bottom: none;
+    }
+
+    .gradient-header h4 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Alert Box */
+    .alert-secure {
+        background: #fffbeb;
+        border-left: 4px solid #f59e0b;
+        padding: 14px 18px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .alert-secure i {
+        font-size: 1.2rem;
+        color: #f59e0b;
+    }
+
+    .alert-secure strong {
+        font-weight: 700;
+        color: #92400e;
+    }
+
+    .alert-secure span {
+        font-size: 0.85rem;
+        color: #b45309;
+    }
+
+    /* Buttons */
+    .btn-group-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-top: 8px;
+    }
+
+    .btn-secondary-modern {
+        background: white;
+        border: 1px solid #e2e8f0;
+        padding: 14px 20px;
+        border-radius: 60px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #334155;
+        text-decoration: none;
+        text-align: center;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-secondary-modern:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #0f172a;
+    }
+
+    .btn-pay {
+        background: linear-gradient(95deg, #10b981 0%, #059669 100%);
+        border: none;
+        padding: 16px 24px;
+        border-radius: 60px;
+        font-weight: 700;
+        font-size: 1rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        width: 100%;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-pay:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        background: linear-gradient(95deg, #059669 0%, #047857 100%);
+    }
+
+    .secure-footer {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 0.7rem;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .secure-footer i {
+        font-size: 0.75rem;
+    }
+
+    /* ========= NEW: Decorative Image Card ========= */
+    .image-card {
+        background: linear-gradient(135deg, #fef9f0 0%, #fff7e6 100%);
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid #ffe8c7;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
     
-    <div class="row">
-        <!-- Left Column - Previous Steps Summary -->
-        <div class="col-md-5 mb-4">
-            <div class="card shadow sticky-top" style="top: 20px;">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-list-check"></i> Order Summary</h5>
-                </div>
-                <div class="card-body">
-                    <!-- Store Details Step -->
-                    <div class="detail-row">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="step-completed"><i class="fas fa-check-circle"></i></span>
-                                <strong class="ms-2">Store Details</strong>
-                            </div>
-                            {% if can_go_back %}
-                                <a href="{% url 'resellers:create_store_step1' %}" class="btn btn-sm btn-outline-secondary">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
-                            {% endif %}
-                        </div>
-                        <div class="ms-4 mt-2">
-                            <p class="mb-1"><small><strong>Store Name:</strong> {{ store.store_name }}</small></p>
-                            <p class="mb-1"><small><strong>Contact Email:</strong> {{ store.contact_email }}</small></p>
-                            {% if store.contact_phone %}
-                                <p class="mb-0"><small><strong>Contact Phone:</strong> {{ store.contact_phone }}</small></p>
-                            {% endif %}
-                        </div>
+    .image-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    }
+    
+    .image-card-inner {
+        padding: 28px 20px 24px;
+        text-align: center;
+    }
+    
+    .payment-illustration {
+        max-width: 100%;
+        height: auto;
+        margin-bottom: 6px;
+    }
+    
+    .image-card h4 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 1px 0 6px;
+    }
+    
+    .image-card p {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-bottom: 0;
+    }
+    
+    .secure-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(79, 70, 229, 0.1);
+        padding: 6px 14px;
+        border-radius: 40px;
+        margin-top: 14px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #4f46e5;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+        .payment-wrapper {
+            padding: 16px;
+        }
+        .payment-grid {
+            flex-direction: column;
+        }
+        .sticky-summary {
+            position: relative;
+            top: 0;
+        }
+        .progress-bar-bg {
+            width: 100%;
+        }
+        .step-inner {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .progress-wrapper {
+            align-items: flex-start;
+            width: 100%;
+        }
+        .content{
+            margin-top: 70px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .card-body-modern {
+            padding: 16px;
+        }
+        .total-amount {
+            font-size: 1.3rem;
+        }
+        .info-text {
+            margin-left: 16px;
+        }
+        .image-card-inner {
+            padding: 20px 16px;
+        }
+    }
+    /* ===============================
+   EXTRA SMALL DEVICES ( < 360px )
+   =============================== */
+
+@media (max-width: 360px) {
+
+    .payment-wrapper{
+        padding:12px;
+    }
+
+    .step-inner{
+        gap:10px;
+    }
+
+    .step-info h5{
+        font-size:0.85rem;
+    }
+
+    .step-info small{
+        font-size:0.65rem;
+    }
+
+    .progress-bar-bg{
+        height:6px;
+    }
+
+    .step-counter{
+        font-size:0.6rem;
+    }
+
+    .card-header-modern h5{
+        font-size:0.9rem;
+    }
+
+    .card-body-modern{
+        padding:14px;
+    }
+
+    .detail-row{
+        padding:10px 0;
+    }
+
+    .info-text p{
+        font-size:0.7rem;
+        line-height:1.4;
+    }
+
+    .total-amount{
+        font-size:1.2rem;
+    }
+
+    .btn-secondary-modern{
+        padding:10px 14px;
+        font-size:0.75rem;
+    }
+
+    .btn-pay{
+        padding:12px;
+        font-size:0.85rem;
+        border-radius:40px;
+    }
+
+    .gradient-header h4{
+        font-size:1rem;
+    }
+
+    .alert-secure{
+        padding:10px 12px;
+        font-size:0.75rem;
+    }
+
+    .secure-footer{
+        font-size:0.6rem;
+    }
+
+    .image-card-inner{
+        padding:16px 12px;
+    }
+
+    .image-card h4{
+        font-size:0.9rem;
+    }
+
+    .image-card p{
+        font-size:0.7rem;
+    }
+
+    .payment-illustration{
+        width:100px;
+    }
+
+    .edit-btn{
+        font-size:0.65rem;
+        padding:5px 10px;
+    }
+
+}
+</style>
+
+<div class="content">
+    <div class="payment-wrapper">
+        <div class="payment-container">
+            
+            <!-- Step Indicator Card -->
+            <div class="step-card">
+                <div class="step-inner">
+                    <div class="step-info">
+                        <h5>Step {{ step }} of {{ total_steps }}</h5>
+                        <small>{{ step_title }}</small>
                     </div>
-                    
-                    <!-- Plan Selection Step -->
-                    <div class="detail-row">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="step-completed"><i class="fas fa-check-circle"></i></span>
-                                <strong class="ms-2">Subscription Plan</strong>
-                            </div>
-                            {% if can_go_back %}
-                                <a href="{% url 'resellers:select_plan' %}" class="btn btn-sm btn-outline-secondary">
-                                    <i class="fas fa-edit"></i> Change
-                                </a>
-                            {% endif %}
+                    <div class="progress-wrapper">
+                        <div class="progress-bar-bg">
+                            <div class="progress-fill" style="width: {% widthratio step total_steps 100 %}%;"></div>
                         </div>
-                        <div class="ms-4 mt-2">
-                            <p class="mb-1"><small><strong>Plan:</strong> {{ plan.get_name_display|title }} ({{ plan.get_duration_display }})</small></p>
-                            <p class="mb-1"><small><strong>Price:</strong> ${{ plan.price }}/{{ plan.get_duration_display }}</small></p>
-                            <p class="mb-0"><small><strong>Max Products:</strong> 
-                                {% if store.theme and store.theme.theme_type == 'single' %}
-                                    1 product
-                                {% else %}
-                                    {{ plan.multiple_theme_limit }} products
-                                {% endif %}
-                            </small></p>
-                        </div>
-                    </div>
-                    
-                    <!-- Theme Selection Step -->
-                    <div class="detail-row">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="step-completed"><i class="fas fa-check-circle"></i></span>
-                                <strong class="ms-2">Store Theme</strong>
-                            </div>
-                            {% if can_go_back %}
-                                <a href="{% url 'resellers:select_theme' %}" class="btn btn-sm btn-outline-secondary">
-                                    <i class="fas fa-edit"></i> Change
-                                </a>
-                            {% endif %}
-                        </div>
-                        <div class="ms-4 mt-2">
-                            <p class="mb-1"><small><strong>Theme:</strong> {{ store.theme.name }}</small></p>
-                            <p class="mb-0"><small><strong>Theme Type:</strong> {{ store.theme.get_theme_type_display }}</small></p>
-                        </div>
-                    </div>
-                    
-                    <!-- Total Amount -->
-                    <div class="detail-row bg-light mt-3 pt-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <strong>Total Amount</strong>
-                            <h4 class="text-primary mb-0">${{ amount }}</h4>
-                        </div>
+                        <div class="step-counter">{{ step }}/{{ total_steps }} completed</div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Right Column - Payment Form -->
-        <div class="col-md-7">
-            <div class="card shadow">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-credit-card"></i> Complete Payment</h4>
+            
+            <!-- Two Column Grid -->
+            <div class="payment-grid">
+                
+                <!-- LEFT COLUMN: Order Summary (Previous Steps) -->
+                <div class="order-summary-col">
+                    <div class="modern-card sticky-summary">
+                        <div class="card-header-modern">
+                            <h5><i class="fas fa-list-check"></i> Order Summary</h5>
+                        </div>
+                        <div class="card-body-modern">
+                            
+                            <!-- Store Details Step -->
+                            <div class="detail-row">
+                                <div class="row-flex">
+                                    <div class="step-badge">
+                                        <span class="step-completed"><i class="fas fa-check-circle"></i></span>
+                                        <strong>Store Details</strong>
+                                    </div>
+                                    {% if can_go_back %}
+                                        <a href="{% url 'resellers:create_store_step1' %}" class="edit-btn">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                    {% endif %}
+                                </div>
+                                <div class="info-text">
+                                    <p><strong>Store Name:</strong> {{ store.store_name }}</p>
+                                    <p><strong>Contact Email:</strong> {{ store.contact_email }}</p>
+                                    {% if store.contact_phone %}
+                                        <p><strong>Contact Phone:</strong> {{ store.contact_phone }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Plan Selection Step -->
+                            <div class="detail-row">
+                                <div class="row-flex">
+                                    <div class="step-badge">
+                                        <span class="step-completed"><i class="fas fa-check-circle"></i></span>
+                                        <strong>Subscription Plan</strong>
+                                    </div>
+                                    {% if can_go_back %}
+                                        <a href="{% url 'resellers:select_plan' %}" class="edit-btn">
+                                            <i class="fas fa-edit"></i> Change
+                                        </a>
+                                    {% endif %}
+                                </div>
+                                <div class="info-text">
+                                    <p><strong>Plan:</strong> {{ plan.get_name_display|title }} ({{ plan.get_duration_display }})</p>
+                                    <p><strong>Price:</strong> ₹{{ plan.price }}/{{ plan.get_duration_display }}</p>
+                                    <p><strong>Max Products:</strong> 
+                                        {% if store.theme and store.theme.theme_type == 'single' %}
+                                            1 product
+                                        {% else %}
+                                            {{ plan.multiple_theme_limit }} products
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Theme Selection Step -->
+                            <div class="detail-row">
+                                <div class="row-flex">
+                                    <div class="step-badge">
+                                        <span class="step-completed"><i class="fas fa-check-circle"></i></span>
+                                        <strong>Store Theme</strong>
+                                    </div>
+                                    {% if can_go_back %}
+                                        <a href="{% url 'resellers:select_theme' %}" class="edit-btn">
+                                            <i class="fas fa-edit"></i> Change
+                                        </a>
+                                    {% endif %}
+                                </div>
+                                <div class="info-text">
+                                    <p><strong>Theme:</strong> {{ store.theme.name }}</p>
+                                    <p><strong>Theme Type:</strong> {{ store.theme.get_theme_type_display }}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Total Amount Row (INR) -->
+                            <div class="detail-row total-row">
+                                <div class="row-flex">
+                                    <strong>Total Amount</strong>
+                                    <span class="total-amount">₹{{ amount }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
-                   
-                    
-                    <!-- Payment Warning -->
-                    <div class="alert alert-warning">
-                        <i class="fas fa-shield-alt"></i>
-                        <strong>Secure Payment</strong> - Your payment is processed securely via Razorpay.
+                <!-- RIGHT COLUMN: Payment Section + Decorative Image -->
+                <div class="payment-col">
+                    <!-- Payment Card -->
+                    <div class="modern-card payment-card">
+                        <div class="gradient-header">
+                            <h4><i class="fas fa-credit-card"></i> Complete Payment</h4>
+                        </div>
+                        <div class="card-body-modern">
+                            
+                            <!-- Secure Payment Notice -->
+                            <div class="alert-secure">
+                                <i class="fas fa-shield-alt"></i>
+                                <div>
+                                    <strong>Secure Payment</strong> <span>- Your payment is processed securely via Razorpay (INR).</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons Stack -->
+                            <div class="btn-group-stack">
+                                {% if can_go_back %}
+                                    <a href="{% url back_url %}" class="btn-secondary-modern">
+                                        <i class="fas fa-arrow-left"></i> Back to Theme Selection
+                                    </a>
+                                {% endif %}
+                                <button id="pay-button" class="btn-pay">
+                                    <i class="fas fa-rupee-sign"></i> Pay ₹{{ amount }} Now
+                                </button>
+                            </div>
+                            
+                            <!-- Footer security text -->
+                            <div class="secure-footer">
+                                <i class="fas fa-lock"></i> 100% Secure Payment | Razorpay
+                            </div>
+                        </div>
                     </div>
                     
-                    <!-- Payment Button -->
-                    <div class="d-grid gap-2">
-                        {% if can_go_back %}
-                            <a href="{% url back_url %}" class="btn btn-secondary btn-lg">
-                                <i class="fas fa-arrow-left"></i> Back to Theme Selection
-                            </a>
-                        {% endif %}
-                        <button id="pay-button" class="btn btn-success btn-lg">
-                            <i class="fas fa-rupee-sign"></i> Pay ${{ amount }} Now
-                        </button>
+                    <!-- NEW: Decorative Image Card (fills empty space elegantly) -->
+                    <div class="image-card">
+                        <div class="image-card-inner">
+                            <!-- Inline SVG illustration: secure payment / shopping cart theme (no external image dependency) -->
+                            <svg class="payment-illustration" width="140" height="100" viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="30" y="45" width="140" height="55" rx="8" fill="#E0E7FF" stroke="#818CF8" stroke-width="1.5"/>
+                                <path d="M52 70 L68 70 L72 85 L128 85 L132 70 L148 70" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                                <circle cx="78" cy="95" r="8" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5"/>
+                                <circle cx="122" cy="95" r="8" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5"/>
+                                <path d="M86 95 L114 95" stroke="#F59E0B" stroke-width="1.5"/>
+                                <text x="90" y="28" font-size="12" font-weight="bold" fill="#1F2937">🔒 Fast & Secure</text>
+                                <path d="M60 55 L68 45 L132 45 L140 55" stroke="#4F46E5" stroke-width="1.5" fill="#C7D2FE"/>
+                                <path d="M68 45 L70 32 L130 32 L132 45" stroke="#6366F1" stroke-width="1.2" fill="#E0E7FF"/>
+                                <circle cx="100" cy="38" r="3" fill="#10B981"/>
+                            </svg>
+                            <h4>Instant Store Activation</h4>
+                            <p>After successful payment, your online store will be ready within minutes. Get access to dashboard, themes, and products.</p>
+                          
+                        </div>
                     </div>
-                    
-                    <p class="text-center text-muted mt-3 small">
-                        <i class="fas fa-lock"></i> 100% Secure Payment
-                    </p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
+    // Razorpay integration – fully functional with INR currency
     var options = {
         "key": "{{ razorpay_key_id }}",
-        "amount": {{ amount }} * 100,
+        "amount": {{ amount }} * 100,   // amount in paise (INR)
         "currency": "INR",
         "name": "Drapso",
         "description": "Store Subscription - {{ store.store_name }}",
         "order_id": "{{ razorpay_order_id }}",
         "handler": function (response) {
-            // Create form and submit
+            // Create form and submit to success URL
             var form = document.createElement('form');
             form.method = 'POST';
             form.action = "{% url 'resellers:payment_success' %}";
@@ -217,7 +760,7 @@
             form.submit();
         },
         "theme": {
-            "color": "#28a745"
+            "color": "#10b981"
         },
         "modal": {
             "ondismiss": function() {

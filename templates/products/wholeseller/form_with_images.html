@@ -1,0 +1,201 @@
+{% load static %}
+
+<div class="container py-4">
+
+<h3>{{ title }}</h3>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="row">
+
+        <!-- LEFT SIDE -->
+        <div class="col-md-8">
+
+            <!-- CATEGORY -->
+            <div class="mb-3">
+                <label>Category</label>
+                {{ form.category }}
+            </div>
+
+            <!-- SUBCATEGORY -->
+            <div class="mb-3">
+                <label>Subcategory</label>
+                {{ form.subcategory }}
+            </div>
+
+            <!-- OTHER FIELDS -->
+            {% for field in form %}
+                {% if field.name != "category" and field.name != "subcategory" and field.name != "main_image" %}
+                    <div class="mb-3">
+                        <label>{{ field.label }}</label>
+                        {{ field }}
+                        {% for error in field.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="col-md-4">
+
+            <!-- MAIN IMAGE -->
+            <div class="mb-4">
+                <label>Main Image</label>
+
+                <div id="mainImagePreview" class="mb-2 text-center">
+                    {% if form.instance.main_image %}
+                        <img src="{{ form.instance.main_image.url }}" 
+                             class="img-fluid rounded" 
+                             style="max-height:200px;">
+                    {% else %}
+                        <div class="bg-light p-4 rounded">No Image</div>
+                    {% endif %}
+                </div>
+
+                {{ form.main_image }}
+            </div>
+
+            <!-- ADDITIONAL IMAGES -->
+            <div class="mb-3">
+                <label>Additional Images</label>
+
+                {{ image_formset.management_form }}
+
+                <div id="imageFormsList">
+
+                    {% for f in image_formset %}
+                    <div class="border p-3 mb-2 rounded">
+
+                        {% if f.instance.pk and f.instance.image %}
+                            <div class="mb-2 text-center">
+                                <img src="{{ f.instance.image.url }}" 
+                                     style="max-height:100px;">
+                            </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="col-md-4">{{ f.image }}</div>
+                            <div class="col-md-4">{{ f.alt_text }}</div>
+                            <div class="col-md-2">{{ f.order }}</div>
+
+                            <div class="col-md-2">
+                                {% if f.instance.pk %}
+                                    Delete {{ f.DELETE }}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {{ f.id }}
+
+                    </div>
+                    {% endfor %}
+
+                </div>
+
+                <button type="button" id="addImageBtn" class="btn btn-secondary mt-2">
+                    + Add Image
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Save</button>
+
+</form>
+
+</div>
+
+<!-- ================= JS ================= -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // CATEGORY → SUBCATEGORY
+    const category = document.getElementById("id_category");
+    const subcategory = document.getElementById("id_subcategory");
+
+    function loadSubcategories(selectedId = null) {
+        const categoryId = category.value;
+
+        subcategory.innerHTML = '<option value="">---------</option>';
+
+        if (!categoryId) return;
+
+        fetch(`/products/ajax/load-subcategories/?category_id=${categoryId}`)
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(item => {
+                    const opt = document.createElement("option");
+                    opt.value = item.id;
+                    opt.textContent = item.name;
+
+                    if (selectedId && item.id == selectedId) {
+                        opt.selected = true;
+                    }
+
+                    subcategory.appendChild(opt);
+                });
+            });
+    }
+
+    const currentSubcategory = subcategory.value;
+
+    category.addEventListener("change", function () {
+        loadSubcategories(null);
+    });
+
+    if (category.value) {
+        loadSubcategories(currentSubcategory);
+    }
+
+    // MAIN IMAGE PREVIEW
+    document.querySelector("#id_main_image")?.addEventListener("change", function () {
+        const preview = document.getElementById("mainImagePreview");
+
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.innerHTML = `<img src="${e.target.result}" class="img-fluid rounded" style="max-height:200px;">`;
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    // IMAGE FORMSET
+    const addBtn = document.getElementById("addImageBtn");
+    const container = document.getElementById("imageFormsList");
+
+    const totalFormsInput = document.querySelector('[name$="-TOTAL_FORMS"]');
+    const prefix = totalFormsInput.name.replace('-TOTAL_FORMS', '');
+
+    addBtn.addEventListener("click", function () {
+        const formCount = parseInt(totalFormsInput.value);
+
+        const html = `
+        <div class="border p-3 mb-2 rounded">
+            <div class="row">
+                <div class="col-md-4">
+                    <input type="file" name="${prefix}-${formCount}-image" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" name="${prefix}-${formCount}-alt_text" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="${prefix}-${formCount}-order" class="form-control">
+                </div>
+            </div>
+        </div>
+        `;
+
+        container.insertAdjacentHTML("beforeend", html);
+        totalFormsInput.value = formCount + 1;
+    });
+
+});
+</script>

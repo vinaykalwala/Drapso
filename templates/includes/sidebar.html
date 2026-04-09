@@ -531,11 +531,10 @@ text-align:center;
 
     <!-- COMMON FOR ALL USERS -->
 
-    <a href="{% url 'accounts:dashboard' %}" class="active">
-        <i class="fa-solid fa-chart-line"></i>
-        Home
-    </a>
-
+ <a href="{% url 'accounts:dashboard' %}" class="active">
+    <i class="fa-solid fa-house"></i>
+    Home
+</a>
    
 
     <!-- ADMIN / SUPERADMIN ONLY -->
@@ -543,13 +542,13 @@ text-align:center;
     {% if request.user.role == "admin" %}
   
 
-    <a href="{% url 'contact_list' %}">
-        <i class="fa-solid fa-envelope"></i>
-        Contact Messages
-    </a>
-    <a href="{% url 'wholesellers:admin_pending_kyc' %}">
-    <i class="fa-solid fa-id-card"></i>
+   <a href="{% url 'contact_list' %}">
+    <i class="fa-solid fa-envelope"></i>
+    Contact Messages
+</a>
 
+<a href="{% url 'wholesellers:admin_pending_kyc' %}">
+    <i class="fa-solid fa-id-card"></i>
     KYC Approvals
 
     {% if pending_kyc_count > 0 %}
@@ -558,22 +557,26 @@ text-align:center;
         </span>
     {% endif %}
 </a>
-     <a href="{% url 'wholesellers:admin_verified_wholesellers' %}">
-        <i class="fa-solid fa-envelope"></i>
-     Verified Wholesellers
-    </a>
-      <a href="{% url 'resellers:admin_stores' %}">
-        <i class="fa-solid fa-envelope"></i>
+
+<a href="{% url 'wholesellers:admin_verified_wholesellers' %}">
+    <i class="fa-solid fa-user-check"></i>
+    Verified Wholesellers
+</a>
+
+<a href="{% url 'resellers:admin_stores' %}">
+    <i class="fa-solid fa-store"></i>
     Reseller Stores
-    </a>
-     <a href="{% url 'resellers:plan_list' %}">
-        <i class="fa-solid fa-envelope"></i>
+</a>
+
+<a href="{% url 'resellers:plan_list' %}">
+    <i class="fa-solid fa-layer-group"></i>
     Plans
-    </a>
-     <a href="{% url 'resellers:theme_list' %}">
-        <i class="fa-solid fa-envelope"></i>
-     Themes
-    </a>
+</a>
+
+<a href="{% url 'resellers:theme_list' %}">
+    <i class="fa-solid fa-palette"></i>
+    Themes
+</a>
    
 
     
@@ -585,20 +588,20 @@ text-align:center;
 
     {% if request.user.role == "wholeseller" %}
 
-        </a>
-       <a href="{% url 'wholesellers:wholeseller_dashboard' %}">
-        <i class="fa-solid fa-building-columns"></i>
-       Add Inventory
-    </a>
+     <a href="{% url 'wholesellers:wholeseller_dashboard' %}">
+    <i class="fa-solid fa-boxes-stacked"></i>
+    Add Inventory
+</a>
 
-    <a href="{% url 'accounts:bank_accounts' %}">
-        <i class="fa-solid fa-building-columns"></i>
-        Bank Details
-    </a>
-     <a href="{% url 'accounts:wholeseller_addresses' %}">
-        <i class="fa-solid fa-building-columns"></i>
-        Shipping Adresses
-  
+<a href="{% url 'accounts:bank_accounts' %}">
+    <i class="fa-solid fa-building-columns"></i>
+    Bank Details
+</a>
+
+<a href="{% url 'accounts:wholeseller_addresses' %}">
+    <i class="fa-solid fa-truck"></i>
+    Shipping Addresses
+</a>
 
     {% endif %}
 
@@ -609,19 +612,20 @@ text-align:center;
     {% if request.user.role == "reseller" %}
 
    
-        <a href="{% url 'resellers:reseller_dashboard' %}">
-        <i class="fa-solid fa-chart-line"></i>
-        Dashboard
-    </a>
-    <a href="{% url 'accounts:bank_accounts' %}">
-        <i class="fa-solid fa-building-columns"></i>
-        Bank Details
-    </a>
-     <a href="{% url 'accounts:reseller_addresses' %}">
-        <i class="fa-solid fa-building-columns"></i>
-        Shipping Adresses
-    </a>
+       <a href="{% url 'resellers:reseller_dashboard' %}">
+    <i class="fa-solid fa-chart-line"></i>
+    Dashboard
+</a>
 
+<a href="{% url 'accounts:bank_accounts' %}">
+    <i class="fa-solid fa-building-columns"></i>
+    Bank Details
+</a>
+
+<a href="{% url 'accounts:reseller_addresses' %}">
+    <i class="fa-solid fa-location-dot"></i>
+    Shipping Addresses
+</a>
    
 
     {% endif %}

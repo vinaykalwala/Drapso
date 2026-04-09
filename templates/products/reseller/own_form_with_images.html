@@ -1,0 +1,218 @@
+{% load static %}
+
+{% block title %}Add Own Product{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="card shadow">
+        <div class="card-header">
+            <h4>Add Own Product</h4>
+            <small>Remaining slots: {{ remaining_slots }}</small>
+        </div>
+
+        <div class="card-body">
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="row">
+
+                    <!-- LEFT -->
+                    <div class="col-md-8">
+
+                        <div class="mb-3">
+                            <label>Category</label>
+                            {{ form.category }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Subcategory</label>
+                            {{ form.subcategory }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Name</label>
+                            {{ form.name }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Description</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Specification</label>
+                            {{ form.specification }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Brand</label>
+                            {{ form.brand }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Model Name</label>
+                            {{ form.model_name }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Size</label>
+                            {{ form.size }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Color</label>
+                            {{ form.color }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Material</label>
+                            {{ form.material }}
+                        </div>
+
+                        <!-- ✅ GENDER (NOW WORKS AUTOMATICALLY) -->
+                        <div class="mb-3">
+                            <label>Gender</label>
+                            {{ form.gender }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Selling Price</label>
+                            {{ form.selling_price }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Stock</label>
+                            {{ form.stock }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Threshold Limit</label>
+                            {{ form.threshold_limit }}
+                        </div>
+
+                        <div class="form-check mb-2">
+                            {{ form.is_active }} <label>Active</label>
+                        </div>
+
+                        <div class="form-check mb-2">
+                            {{ form.is_featured }} <label>Featured</label>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            {{ form.is_published }} <label>Published</label>
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT -->
+                    <div class="col-md-4">
+
+                        <!-- MAIN IMAGE -->
+                        <div class="mb-4">
+                            <label>Main Image</label>
+                            {{ form.main_image }}
+
+                            <div id="mainPreview" class="mt-2"></div>
+                        </div>
+
+                        <!-- ADDITIONAL IMAGES -->
+                        <div class="mb-3">
+
+                            <label>Additional Images</label>
+
+                            {{ image_formset.management_form }}
+
+                            <div id="imageContainer"></div>
+
+                            <button type="button" class="btn btn-sm btn-secondary mt-2" id="addImageBtn">
+                                + Add Image
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <button class="btn btn-success mt-3">Create Product</button>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- ================= JS ================= -->
+
+<script>
+
+// 🔥 IMAGE FORMSET
+let formIndex = 0;
+
+document.getElementById('addImageBtn').addEventListener('click', function () {
+
+    const container = document.getElementById('imageContainer');
+    const totalForms = document.getElementById('id_images-TOTAL_FORMS');
+
+    const newForm = `
+        <div class="border p-2 mb-2">
+            <input type="file" name="images-${formIndex}-image" class="form-control mb-1">
+            <input type="text" name="images-${formIndex}-alt_text" class="form-control mb-1" placeholder="Alt text">
+            <input type="number" name="images-${formIndex}-order" class="form-control mb-1" placeholder="Order">
+        </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', newForm);
+
+    formIndex++;
+    totalForms.value = formIndex;
+});
+
+
+// 🔥 MAIN IMAGE PREVIEW
+document.getElementById('id_main_image')?.addEventListener('change', function () {
+
+    const preview = document.getElementById('mainPreview');
+
+    if (this.files[0]) {
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            preview.innerHTML = `<img src="${e.target.result}" class="img-fluid rounded" style="max-height:150px;">`;
+        };
+
+        reader.readAsDataURL(this.files[0]);
+    }
+});
+
+
+// 🔥 CATEGORY → SUBCATEGORY
+document.getElementById('id_category')?.addEventListener('change', function () {
+
+    const categoryId = this.value;
+    const subcategoryDropdown = document.getElementById('id_subcategory');
+
+    subcategoryDropdown.innerHTML = '<option value="">---------</option>';
+
+    if (!categoryId) return;
+
+    fetch(`/products/ajax/load-subcategories/?category_id=${categoryId}`)
+        .then(res => res.json())
+        .then(data => {
+
+            data.forEach(item => {
+                let opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.name;
+                subcategoryDropdown.appendChild(opt);
+            });
+
+        });
+});
+
+</script>
+
+{% endblock %}

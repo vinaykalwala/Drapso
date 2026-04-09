@@ -1,93 +1,65 @@
-
-{% block title %}Preview - {{ store.store_name }}{% endblock %}
-
+{% load static %}
 {% block content %}
-<!-- Preview Mode Banner -->
-<div class="preview-banner">
-    <div class="alert alert-warning text-center mb-0" style="border-radius: 0;">
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <div>
-                <i class="fas fa-eye"></i>
-                <strong> PREVIEW MODE</strong> - This is how your store appears to customers
-            </div>
-            <div class="mt-2 mt-sm-0">
-                <button class="btn btn-sm btn-outline-primary me-2" onclick="copyStoreLink()">
-                    <i class="fas fa-copy"></i> Copy Store Link
-                </button>
-                <a href="{% url 'resellers:store_dashboard' store.id %}" class="btn btn-sm btn-primary">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
-                </a>
-            </div>
-        </div>
+
+<div class="container py-4">
+
+    <!-- PREVIEW ALERT -->
+    <div class="alert alert-info">
+        Preview Mode → Draft + Published visible
     </div>
-</div>
 
-<!-- Store Frontend Preview -->
-<div class="store-frontend">
-    <!-- Store Header -->
-    <header class="bg-white shadow-sm">
-        <div class="container py-4">
-            <div class="row align-items-center">
-                <div class="col-md-3 text-center text-md-start">
-                    {% if store.store_logo %}
-                        <img src="{{ store.store_logo.url }}" alt="{{ store.store_name }}" style="max-height: 80px;">
-                    {% else %}
-                        <div class="bg-gradient-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                            <h2 class="mb-0">{{ store.store_name|slice:":2"|upper }}</h2>
+    <h2 class="mb-4">{{ store.store_name }}</h2>
+
+    <div class="row">
+
+        {% for product in products %}
+        <div class="col-md-4 mb-4">
+
+            <div class="card h-100 shadow-sm {% if not product.is_published %}border-warning{% endif %}">
+
+                <!-- DRAFT BADGE -->
+                {% if not product.is_published %}
+                    <span class="badge bg-warning position-absolute m-2">Draft</span>
+                {% endif %}
+
+                <!-- MAIN IMAGE -->
+                {% if product.main_image %}
+                    <img src="{{ product.main_image.url }}" class="card-img-top"
+                         style="height:200px; object-fit:cover;">
+                {% endif %}
+
+                <div class="card-body">
+
+                    <h5>{{ product.name }}</h5>
+                    <h6 class="text-primary">₹{{ product.selling_price }}</h6>
+
+                    <!-- PRODUCT IMAGES -->
+                    {% for img in product.additional_images.all %}
+                        <img src="{{ img.image.url }}" style="height:50px;">
+                    {% endfor %}
+
+                    <!-- VARIANTS -->
+                    {% for variant in product.variants.all %}
+                        <div class="border mt-2 p-2">
+
+                            {{ variant.variant_name }} - ₹{{ variant.selling_price }}
+
+                            {% if variant.main_image %}
+                                <img src="{{ variant.main_image.url }}" style="height:40px;">
+                            {% endif %}
+
                         </div>
-                    {% endif %}
+                    {% endfor %}
+
                 </div>
-                <div class="col-md-6 text-center">
-                    <h1>{{ store.store_name }}</h1>
-                    <p class="text-muted">{{ store.store_description|default:"Welcome to our store!" }}</p>
-                </div>
-                <div class="col-md-3 text-center text-md-end">
-                    <p><i class="fas fa-envelope"></i> {{ store.contact_email }}</p>
-                    {% if store.contact_phone %}
-                        <p><i class="fas fa-phone"></i> {{ store.contact_phone }}</p>
-                    {% endif %}
-                </div>
+
             </div>
+
         </div>
-    </header>
-    
-    {% if store.store_banner %}
-        <div class="store-banner">
-            <img src="{{ store.store_banner.url }}" alt="Store Banner" class="img-fluid w-100" style="max-height: 300px; object-fit: cover;">
-        </div>
-    {% endif %}
-    
-    <!-- Store Content -->
-    <main class="container py-5">
-        <div class="text-center py-5">
-            <i class="fas fa-store display-1 text-muted"></i>
-            <h3>Welcome to {{ store.store_name }}</h3>
-            <p>Your store is ready! Start adding products to see them here.</p>
-            <div class="mt-4">
-                <a href="{% url 'resellers:store_dashboard' store.id %}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Add Products
-                </a>
-            </div>
-        </div>
-    </main>
-    
-    <!-- Store Footer -->
-    <footer class="bg-light py-4 mt-5">
-        <div class="container text-center">
-            <p>&copy; {% now "Y" %} {{ store.store_name }}. All rights reserved.</p>
-            <p class="small text-muted">Powered by Drapso</p>
-        </div>
-    </footer>
+        {% endfor %}
+
+    </div>
+
 </div>
 
-<script>
-function copyStoreLink() {
-    const url = "{{ store_url }}";
-    navigator.clipboard.writeText(url).then(function() {
-        alert('✅ Store link copied to clipboard!\n\n' + url);
-    }).catch(function() {
-        alert('❌ Failed to copy link. Please copy manually: ' + url);
-    });
-}
-</script>
 {% endblock %}

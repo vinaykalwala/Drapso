@@ -1,0 +1,38 @@
+
+{% load static %}
+
+{% block title %}Delete Subcategory - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title mb-0">Confirm Delete</h3>
+                </div>
+                <div class="card-body">
+                    <p>Are you sure you want to delete subcategory <strong>"{{ subcategory.name }}"</strong>?</p>
+                    <p class="text-muted">Parent Category: <strong>{{ subcategory.category.name }}</strong></p>
+                    
+                    {% if subcategory.image %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-image"></i> The subcategory image will also be deleted.
+                        </div>
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Yes, Delete
+                        </button>
+                        <a href="{% url 'products:subcategory_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
