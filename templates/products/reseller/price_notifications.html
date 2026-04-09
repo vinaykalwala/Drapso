@@ -1,113 +1,161 @@
-
 {% load static %}
 
 {% block title %}Price Change Notifications - {{ store.store_name }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
-    <div class="card shadow-sm">
-        <div class="card-header">
-            <h3 class="card-title mb-0">
-                <i class="fas fa-bell"></i> Price Change Notifications
-            </h3>
-        </div>
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3><i class="fas fa-bell"></i> Price Change Notifications</h3>
+        <a href="{% url 'products:reseller_product_list' store.id %}" class="btn btn-secondary">
+            Back
+        </a>
+    </div>
+
+    <!-- PRODUCTS NEEDING REVIEW -->
+    {% if products_with_changes %}
+    <div class="card mb-4">
+        <div class="card-header"><h5>Products Needing Review</h5></div>
+
         <div class="card-body">
-            <!-- Products Pending Review -->
-            {% if products_with_changes %}
-                <h5>Products Needing Review</h5>
-                <div class="table-responsive mb-4">
-                    <table class="table table-bordered">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Product</th>
-                                <th>Current Price</th>
-                                <th>New Price</th>
-                                <th>Difference</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for product in products_with_changes %}
-                            <tr class="{% if product.price_status == 'price_increased' %}table-warning{% else %}table-info{% endif %}">
-                                <td>
-                                    <strong>{{ product.name }}</strong><br>
-                                    <small class="text-muted">{{ product.brand|default:"No brand" }}</small>
-                                </div>
-                                <td>₹{{ product.get_old_selling_price }}</div>
-                                <td>₹{{ product.get_new_selling_price }}</div>
-                                <td>
-                                    {% if product.price_status == 'price_increased' %}
-                                        <span class="text-danger">+₹{{ product.get_price_difference }}</span>
-                                    {% else %}
-                                        <span class="text-success">-₹{{ product.get_price_difference|cut:"-" }}</span>
-                                    {% endif %}
-                                </div>
-                                <td>
-                                    <a href="{% url 'products:review_price_change' store.id product.id %}" class="btn btn-sm btn-primary">
-                                        Review
-                                    </a>
-                                </div>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% endif %}
-            
-            <!-- Notification History -->
-            <h5>Notification History</h5>
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Date</th>
-                            <th>Product</th>
-                            <th>Type</th>
-                            <th>Old Price</th>
-                            <th>New Price</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for notification in notifications %}
-                        <tr {% if not notification.is_read %}class="table-active"{% endif %}>
-                            <td>{{ notification.created_at|date:"Y-m-d H:i" }}</div>
-                            <td>{{ notification.reseller_product.name }}</div>
-                            <td>
-                                {% if 'increase' in notification.notification_type %}
-                                    <span class="badge bg-warning">Increased</span>
-                                {% else %}
-                                    <span class="badge bg-info">Decreased</span>
-                                {% endif %}
-                            </div>
-                            <td>₹{{ notification.old_price }}</div>
-                            <td>₹{{ notification.new_price }}</div>
-                            <td>
-                                {% if notification.is_actioned %}
-                                    <span class="badge bg-success">Reviewed</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">Pending</span>
-                                {% endif %}
-                            </div>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center py-4">
-                                <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
-                                <p>No notifications yet</p>
-                            </div>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="mt-3">
-                <a href="{% url 'products:reseller_product_list' store.id %}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Back to Products
-                </a>
-            </div>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Old</th>
+                        <th>New</th>
+                        <th>Diff</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for product in products_with_changes %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>₹{{ product.get_old_selling_price }}</td>
+                    <td>₹{{ product.get_new_selling_price }}</td>
+                    <td>
+                        {% if product.price_status == 'price_increased' %}
+                            <span class="text-danger">+₹{{ product.get_price_difference }}</span>
+                        {% else %}
+                            <span class="text-success">₹{{ product.get_price_difference }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'products:review_price_change' store.id product.id %}" 
+                           class="btn btn-primary btn-sm">
+                            Review
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+    {% endif %}
+
+    <!-- HISTORY -->
+    <div class="card">
+        <div class="card-header"><h5>History</h5></div>
+
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Product</th>
+                        <th>Type</th>
+                        <th>Old Base</th>
+                        <th>New Base</th>
+                        <th>Old Selling</th>
+                        <th>New Selling</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for n in notifications %}
+                <tr {% if not n.is_read %}class="table-active"{% endif %}>
+
+                    <td>{{ n.created_at|date:"Y-m-d H:i" }}</td>
+
+                    <td>
+                        {{ n.reseller_product.name }}
+                        {% if n.reseller_variant %}
+                        <br><small>{{ n.reseller_variant.variant_name }}</small>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if n.is_increase %}
+                        <span class="badge bg-warning">Increase</span>
+                        {% else %}
+                        <span class="badge bg-success">Decrease</span>
+                        {% endif %}
+                    </td>
+
+                    <td>₹{{ n.old_price }}</td>
+                    <td>₹{{ n.new_price }}</td>
+                    <td>₹{{ n.old_selling_price }}</td>
+                    <td>₹{{ n.new_selling_price }}</td>
+
+                    <td>
+                        {% if n.is_actioned %}
+                        <span class="badge bg-success">Done</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Pending</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <td>
+    {% if not n.is_actioned %}
+        <a href="{% url 'products:review_price_change' store.id n.reseller_product.id %}" 
+           class="btn btn-sm btn-primary">
+            Review
+        </a>
+    {% else %}
+        <span class="badge bg-success me-2">Completed</span>
+
+        
+    {% endif %}
+    {% if n.is_actioned %}
+    <a href="{% url 'products:dismiss_notification' n.id %}" class="btn btn-sm btn-outline-secondary">
+        Dismiss
+    </a>
+{% endif %}
+</td>
+                    </td>
+
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center">No notifications</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </div>
+
+<!-- AJAX DISMISS -->
+<script>
+document.querySelectorAll('.dismiss-btn').forEach(btn => {
+    btn.onclick = function () {
+        fetch(`/products/reseller/notification/${this.dataset.id}/dismiss/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        }).then(() => {
+            this.closest('tr').remove();
+        });
+    }
+});
+</script>
+
 {% endblock %}

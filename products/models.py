@@ -474,26 +474,42 @@ class PriceChangeNotification(models.Model):
         ('variant_price_increase', 'Variant Price Increased'),
         ('variant_price_decrease', 'Variant Price Decreased'),
     ]
-    
-    reseller = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='price_notifications')
-    store = models.ForeignKey('resellers.Store', on_delete=models.CASCADE, related_name='price_notifications')
-    reseller_product = models.ForeignKey(ResellerProduct, on_delete=models.CASCADE, related_name='price_notifications')
-    
-    notification_type = models.CharField(max_length=30, choices=NOTIFICATION_TYPES)
-    
+
+    reseller = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    store = models.ForeignKey('resellers.Store', on_delete=models.CASCADE)
+
+    reseller_product = models.ForeignKey(
+        ResellerProduct, on_delete=models.CASCADE, related_name='price_notifications'
+    )
+
+    reseller_variant = models.ForeignKey(
+        ResellerProductVariant,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='price_notifications'
+    )
+
+    notification_type = models.CharField(max_length=40, choices=NOTIFICATION_TYPES)
+
     old_price = models.DecimalField(max_digits=10, decimal_places=2)
     new_price = models.DecimalField(max_digits=10, decimal_places=2)
+
     old_selling_price = models.DecimalField(max_digits=10, decimal_places=2)
     new_selling_price = models.DecimalField(max_digits=10, decimal_places=2)
-    
+
     message = models.TextField()
+
     is_read = models.BooleanField(default=False)
     is_actioned = models.BooleanField(default=False)
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        ordering = ['-created_at']
+
+    def is_increase(self):
+        return self.new_price > self.old_price
+
+    def get_difference(self):
+        return self.new_selling_price - self.old_selling_price
     
     def __str__(self):
         return f"Price change for {self.reseller_product.name} - {self.created_at}"

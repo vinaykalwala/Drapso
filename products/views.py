@@ -889,103 +889,130 @@ def reseller_product_delete(request, store_id, product_id):
 @login_required
 @user_passes_test(is_reseller)
 def price_change_notifications(request, store_id):
+
     store = get_object_or_404(Store, id=store_id, reseller=request.user)
-    
+
     notifications = PriceChangeNotification.objects.filter(
         store=store,
         reseller=request.user
-    ).select_related('reseller_product')
-    
+    ).select_related('reseller_product', 'reseller_variant')
+
     notifications.filter(is_read=False).update(is_read=True)
-    
+
     products_with_changes = ResellerProduct.objects.filter(
         store=store,
         price_status__in=['price_increased', 'price_decreased']
     )
-    
+
     return render(request, 'products/reseller/price_notifications.html', {
         'store': store,
         'notifications': notifications,
         'products_with_changes': products_with_changes,
     })
 
-
 @login_required
 @user_passes_test(is_reseller)
 def review_price_change(request, store_id, product_id):
+
     store = get_object_or_404(Store, id=store_id, reseller=request.user)
     product = get_object_or_404(ResellerProduct, id=product_id, store=store)
-    
-    if not product.has_price_change_pending():
-        messages.info(request, 'No pending price changes for this product.')
+
+    notification = PriceChangeNotification.objects.filter(
+        reseller=request.user,
+        store=store,
+        reseller_product=product
+    ).order_by('-created_at').first()
+
+    if not notification:
+        messages.error(request, "No price change found")
         return redirect('products:reseller_product_list', store_id=store.id)
-    
+
+    variant = notification.reseller_variant
+
+    old_base = notification.old_price
+    new_base = notification.new_price
+
+    old_selling = notification.old_selling_price
+    new_selling = notification.new_selling_price
+
+    diff = notification.get_difference()
+
     if request.method == 'POST':
         action = request.POST.get('action')
-        
-        if action == 'update':
-            old_price = product.selling_price
-            product.apply_price_update()
-            
-            for variant in product.variants.all():
-                if variant.source_variant:
-                    variant.selling_price = variant.source_variant.price + variant.margin_rupees
-                    variant.save()
-            
-            messages.success(request, f'✅ Price updated for "{product.name}"! Old: ₹{old_price} → New: ₹{product.selling_price}')
-            
-        elif action == 'ignore':
-            product.ignore_price_update()
-            messages.info(request, f'Price change ignored for "{product.name}". Keeping current price ₹{product.selling_price}')
-        
-        elif action == 'custom_margin':
-            new_margin = request.POST.get('new_margin')
-            if new_margin:
-                new_margin = float(new_margin)
-                product.margin_rupees = new_margin
-                product.selling_price = product.source_price + new_margin
+
+        if variant:
+            if action == 'update':
+                variant.source_price = new_base
+                variant.selling_price = new_selling
+                variant.save()
+
+        else:
+            if action == 'update':
+                product.source_price = new_base
+                product.selling_price = new_selling
                 product.price_status = 'reviewed'
-                product.price_reviewed_at = timezone.now()
                 product.save()
-                messages.success(request, f'Custom margin applied! New selling price: ₹{product.selling_price}')
-        
-        return redirect('products:reseller_product_list', store_id=store.id)
-    
+
+            elif action == 'ignore':
+                product.price_status = 'reviewed'
+                product.save()
+
+            elif action == 'custom_margin':
+                margin = float(request.POST.get('new_margin'))
+                product.margin_rupees = margin
+                product.selling_price = new_base + margin
+                product.save()
+
+        notification.is_actioned = True
+        notification.save()
+
+        return redirect('products:price_notifications', store_id=store.id)
+
     return render(request, 'products/reseller/review_price_change.html', {
         'store': store,
         'product': product,
-        'old_selling_price': product.get_old_selling_price(),
-        'new_selling_price': product.get_new_selling_price(),
-        'price_difference': product.get_price_difference(),
-        'is_increase': product.price_status == 'price_increased',
+        'variant': variant,
+        'notification': notification,
+        'old_base_price': old_base,
+        'new_base_price': new_base,
+        'old_selling_price': old_selling,
+        'new_selling_price': new_selling,
+        'price_difference': diff,
+        'is_increase': diff > 0,
     })
-
 
 @login_required
 @user_passes_test(is_reseller)
 def dismiss_price_notification(request, notification_id):
-    notification = get_object_or_404(PriceChangeNotification, id=notification_id, reseller=request.user)
-    notification.is_read = True
-    notification.save()
-    return JsonResponse({'success': True})
+    notification = get_object_or_404(
+        PriceChangeNotification,
+        id=notification_id,
+        reseller=request.user
+    )
 
+    # ✅ enforce review first
+    if not notification.is_actioned:
+        messages.error(request, "You must review before dismissing.")
+        return redirect('products:price_notifications', store_id=notification.store.id)
+
+    store_id = notification.store.id
+
+    notification.delete()
+
+    messages.success(request, "Notification dismissed.")
+
+    # ✅ CORRECT REDIRECT
+    return redirect('products:price_notifications', store_id=store_id)
 
 @login_required
 @user_passes_test(is_reseller)
 def get_notification_count(request):
-    count = PriceChangeNotification.objects.filter(reseller=request.user, is_read=False).count()
-    pending_products = ResellerProduct.objects.filter(
+    count = PriceChangeNotification.objects.filter(
         reseller=request.user,
-        price_status__in=['price_increased', 'price_decreased']
+        is_read=False
     ).count()
-    
-    return JsonResponse({
-        'notification_count': count,
-        'pending_products': pending_products,
-        'total': count + pending_products
-    })
 
-
+    return JsonResponse({'count': count})
 # ============ AJAX ENDPOINTS ============
 
 
