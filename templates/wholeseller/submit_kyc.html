@@ -4,169 +4,283 @@
 {% block title %}Submit KYC Documents - Drapso{% endblock %}
 
 {% block content %}
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 <style>
     :root {
         --primary: #4f46e5;
         --primary-light: #eef2ff;
+        --primary-dark: #4338ca;
         --secondary: #7c3aed;
+        --secondary-light: #f5f3ff;
         --dark: #0f172a;
         --slate: #64748b;
+        --slate-light: #94a3b8;
         --glass-white: rgba(255, 255, 255, 0.98);
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --border-light: #e2e8f0;
+        --bg-soft: #f8fafc;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        --shadow-glow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+    }
+
+    body {
+        background: linear-gradient(145deg, #fafaff 0%, #f0f4ff 100%);
+        min-height: 100vh;
     }
 
     .kyc-main-container {
-        padding: 40px 20px;
-        max-width: 1100px; /* Widened slightly for 3-col balance */
-        margin: 0 auto 100px;
+        padding: 40px 24px;
+        max-width: 1200px;
+        margin: 0 auto 80px;
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
     /* --- Animated Header Section --- */
     .kyc-header-card {
         text-align: center;
-        margin-bottom: 50px;
-        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        margin-bottom: 48px;
+        animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .kyc-header-card h1 {
-        font-size: clamp(28px, 5vw, 42px);
+        font-size: clamp(32px, 6vw, 48px);
         font-weight: 800;
         color: var(--dark);
-        letter-spacing: -1.5px;
+        letter-spacing: -1.8px;
         margin-bottom: 12px;
+        background: linear-gradient(135deg, var(--dark) 0%, var(--primary) 80%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        display: inline-block;
     }
 
     .step-indicator {
         display: inline-flex;
         align-items: center;
         gap: 10px;
-        background: var(--primary-light);
+        background: linear-gradient(135deg, var(--primary-light), #ffffff);
         color: var(--primary);
-        padding: 8px 20px;
-        border-radius: 50px;
+        padding: 8px 24px;
+        border-radius: 60px;
         font-weight: 700;
         font-size: 13px;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 1.2px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(79, 70, 229, 0.15);
+        backdrop-filter: blur(4px);
+        margin-bottom: 16px;
     }
 
-    /* --- The Document Grid --- */
+    .step-indicator i {
+        font-size: 16px;
+        color: var(--primary);
+    }
+
+    /* --- Document Grid --- */
     .document-upload-grid {
         display: grid;
-        /* Responsive 3-column grid */
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 25px;
-        margin-bottom: 40px;
-        height: max-content;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 28px;
+        margin-bottom: 32px;
     }
 
     .upload-tile {
         background: var(--glass-white);
-        border: 1px solid #e2e8f0;
-        border-radius: 28px;
-        padding: 28px;
-        transition: all 0.4s ease;
+        border: 1.5px solid var(--border-light);
+        border-radius: 32px;
+        padding: 28px 24px;
+        transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1);
         position: relative;
         display: flex;
         flex-direction: column;
         animation: cardPop 0.5s ease-out backwards;
-        min-height: 320px; /* Keeps tiles consistent */
+        box-shadow: var(--shadow-sm);
+        backdrop-filter: blur(8px);
+        background: rgba(255, 255, 255, 0.95);
     }
 
     .upload-tile:hover {
-        transform: translateY(-10px);
+        transform: translateY(-8px);
         border-color: var(--primary);
-        box-shadow: 0 30px 60px -12px rgba(79, 70, 229, 0.12);
+        box-shadow: var(--shadow-xl), 0 0 0 1px rgba(79, 70, 229, 0.1);
     }
 
     .icon-badge {
-        width: 50px;
-        height: 50px;
-        border-radius: 16px;
+        width: 56px;
+        height: 56px;
+        border-radius: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
+        font-size: 24px;
         margin-bottom: 20px;
-        box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+        box-shadow: var(--shadow-md);
+        transition: transform 0.2s ease;
+    }
+
+    .upload-tile:hover .icon-badge {
+        transform: scale(1.02);
     }
 
     .tile-title {
-        font-size: 17px;
+        font-size: 18px;
         font-weight: 800;
         color: var(--dark);
-        margin-bottom: 6px;
+        margin-bottom: 8px;
+        letter-spacing: -0.3px;
     }
 
     .tile-desc {
-        font-size: 13px;
+        font-size: 13.5px;
         color: var(--slate);
-        margin-bottom: 20px;
+        margin-bottom: 24px;
         line-height: 1.5;
-        flex-grow: 1; /* Pushes input to bottom */
+        font-weight: 500;
+        flex-grow: 1;
     }
 
-    /* Custom Input Styling */
+    /* --- Enhanced File Input Styling --- */
     input[type="file"] {
-        font-size: 12px;
-        color: var(--slate);
-        background: #f8fafc;
-        padding: 10px;
-        border-radius: 12px;
-        border: 1px solid #e2e8f0;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--dark);
+        background: var(--bg-soft);
+        padding: 14px 16px;
+        border-radius: 18px;
+        border: 1.5px dashed var(--border-light);
         width: 100%;
         cursor: pointer;
+        transition: all 0.25s ease;
+        margin-top: auto;
     }
 
-    .text-field-group {
-        margin-top: 15px;
+    input[type="file"]:hover {
+        border-color: var(--primary);
+        background: var(--primary-light);
+        border-style: solid;
     }
 
-    .text-field-group label {
-        font-size: 11px;
-        font-weight: 800;
-        color: var(--slate);
-        text-transform: uppercase;
-        margin-bottom: 6px;
-        display: block;
-    }
-
-    .text-field-group input, 
-    .form-row-bottom input {
-        width: 100%;
-        padding: 12px 16px;
-        border-radius: 12px;
-        border: 1.5px solid #e2e8f0;
-        font-weight: 600;
-        transition: 0.3s;
+    input[type="file"]:focus {
         outline: none;
+        border-color: var(--primary);
+        box-shadow: var(--shadow-glow);
         background: white;
     }
 
-    .text-field-group input:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    input[type="file"]::file-selector-button {
+        background: white;
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        padding: 8px 16px;
+        margin-right: 16px;
+        font-weight: 600;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: var(--slate);
+        transition: all 0.2s;
+        cursor: pointer;
     }
 
-    /* --- Footer Actions --- */
+    input[type="file"]::file-selector-button:hover {
+        background: var(--primary-light);
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    /* Text fields inside tiles */
+    .text-field-group {
+        margin-top: 20px;
+    }
+
+    .text-field-group label {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--slate);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .text-field-group input,
+    .form-row-bottom input {
+        width: 100%;
+        padding: 14px 18px;
+        border-radius: 18px;
+        border: 1.5px solid var(--border-light);
+        font-weight: 600;
+        font-size: 15px;
+        transition: 0.25s;
+        outline: none;
+        background: white;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .text-field-group input:focus,
+    .form-row-bottom input:focus {
+        border-color: var(--primary);
+        box-shadow: var(--shadow-glow);
+        background: white;
+    }
+
+    .text-field-group input::placeholder,
+    .form-row-bottom input::placeholder {
+        color: var(--slate-light);
+        font-weight: 400;
+    }
+
+    /* GST/PAN specific grid */
+    .gst-pan-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 28px;
+        margin-bottom: 40px;
+    }
+
+    /* --- Footer Actions Row --- */
     .form-row-bottom {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        background: #f8fafc;
-        padding: 30px;
-        border-radius: 30px;
-        border: 1px solid #e2e8f0;
-        margin-bottom: 30px;
+        gap: 28px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(8px);
+        padding: 32px 30px;
+        border-radius: 32px;
+        border: 1px solid var(--border-light);
+        margin-bottom: 36px;
+        box-shadow: var(--shadow-sm);
     }
 
+    .form-row-bottom label {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--slate);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .form-row-bottom input {
+        background: white;
+        padding: 16px 20px;
+        border-radius: 20px;
+    }
+
+    /* --- Submit Button --- */
     .btn-submit-kyc {
         background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
         color: white !important;
-        padding: 20px;
-        border-radius: 22px;
+        padding: 20px 32px;
+        border-radius: 60px;
         border: none;
         font-weight: 800;
         font-size: 18px;
@@ -175,126 +289,311 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 12px;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        box-shadow: 0 15px 35px -10px rgba(79, 70, 229, 0.5);
+        gap: 14px;
+        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 20px 35px -8px rgba(79, 70, 229, 0.5);
+        letter-spacing: 0.3px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-submit-kyc::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.6s;
+    }
+
+    .btn-submit-kyc:hover::before {
+        left: 100%;
     }
 
     .btn-submit-kyc:hover {
         transform: translateY(-5px);
-        box-shadow: 0 25px 50px -12px rgba(79, 70, 229, 0.6);
+        box-shadow: 0 28px 45px -12px rgba(79, 70, 229, 0.6);
+        background: linear-gradient(135deg, #5a52f0 0%, #8b4df0 100%);
     }
 
-    /* --- Responsive Fixes --- */
+    .btn-submit-kyc i {
+        font-size: 20px;
+        transition: transform 0.2s;
+    }
+
+    .btn-submit-kyc:hover i {
+        transform: translateX(5px);
+    }
+
+    /* --- Alert / Info Box --- */
+    .info-message {
+        background: linear-gradient(145deg, #fffbeb, #fff7e0);
+        border-left: 6px solid var(--warning);
+        padding: 22px 28px;
+        border-radius: 24px;
+        font-size: 14.5px;
+        color: #92400e;
+        margin-bottom: 36px;
+        line-height: 1.7;
+        box-shadow: var(--shadow-sm);
+        font-weight: 500;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .info-message strong {
+        color: #b45309;
+        font-weight: 800;
+    }
+
+    .return-link {
+        display: block;
+        text-align: center;
+        margin-top: 30px;
+        color: var(--slate);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 15px;
+        transition: color 0.2s;
+    }
+
+    .return-link i {
+        margin-right: 8px;
+        transition: transform 0.2s;
+    }
+
+    .return-link:hover {
+        color: var(--primary);
+    }
+
+    .return-link:hover i {
+        transform: translateX(-4px);
+    }
+
+    /* Error styling */
+    .errorlist {
+        list-style: none;
+        padding: 8px 0 0 0;
+        margin: 0;
+        color: var(--danger);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    /* Responsive refinements */
+    @media (max-width: 900px) {
+        .document-upload-grid {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+    }
+
     @media (max-width: 768px) {
-        .form-row-bottom { grid-template-columns: 1fr; }
-        .kyc-main-container { padding: 20px 15px; }
-        .upload-tile { padding: 20px; min-height: auto; }
+        .kyc-main-container {
+            padding: 24px 16px;
+            padding-top: 50px;
+        }
+
+        .document-upload-grid,
+        .gst-pan-grid {
+            grid-template-columns: 1fr !important;
+            gap: 22px;
+        }
+
+        .upload-tile {
+            padding: 24px 20px;
+        }
+
+        .form-row-bottom {
+            grid-template-columns: 1fr;
+            padding: 24px 20px;
+            gap: 20px;
+        }
+
+        .btn-submit-kyc {
+            padding: 18px 24px;
+            font-size: 17px;
+        }
+
+        .kyc-header-card h1 {
+            font-size: 34px;
+        }
     }
 
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes cardPop { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    @media (max-width: 480px) {
+        .icon-badge {
+            width: 48px;
+            height: 48px;
+            font-size: 20px;
+            border-radius: 16px;
+        }
 
+        .tile-title {
+            font-size: 16px;
+        }
+
+        .step-indicator {
+            padding: 6px 18px;
+            font-size: 11px;
+        }
+
+        .info-message {
+            padding: 18px 20px;
+        }
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes cardPop {
+        from { opacity: 0; transform: scale(0.92); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Staggered animation delays */
+    .upload-tile:nth-child(1) { animation-delay: 0.1s; }
+    .upload-tile:nth-child(2) { animation-delay: 0.2s; }
+    .upload-tile:nth-child(3) { animation-delay: 0.3s; }
+    .gst-pan-grid .upload-tile:nth-child(1) { animation-delay: 0.15s; }
+    .gst-pan-grid .upload-tile:nth-child(2) { animation-delay: 0.25s; }
 </style>
+
 <div class="content">
 <div class="kyc-main-container">
     <div class="kyc-header-card">
         <div class="step-indicator">
-            <i class="fa-solid fa-shield-check"></i> Step 2: Verification
+            <i class="fas fa-shield-alt"></i> Step 2: Verification
         </div>
         <h1>Finalize Your Profile</h1>
-        <p style="color: var(--slate); font-weight: 500;">Securely upload your business documentation for review.</p>
+        <p style="color: var(--slate); font-weight: 500; font-size: 1.1rem;">Securely upload your business documentation for review.</p>
     </div>
 
     <form method="POST" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
 
         {% if form.non_field_errors %}
-            <div style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 15px; border-radius: 15px; margin-bottom: 30px; font-weight: 600;">
+            <div style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 18px 24px; border-radius: 24px; margin-bottom: 32px; font-weight: 600; box-shadow: var(--shadow-sm);">
+                <i class="fas fa-exclamation-circle" style="margin-right: 10px;"></i>
                 {% for error in form.non_field_errors %}{{ error }}{% endfor %}
             </div>
         {% endif %}
 
+        <!-- Row 1: Three main documents -->
         <div class="document-upload-grid">
-
-            <div class="upload-tile" style="animation-delay: 0.3s;">
+            <div class="upload-tile">
                 <div class="icon-badge" style="background: #eef2ff; color: #4f46e5;">
-                    <i class="fa-solid fa-house-chimney"></i>
+                    <i class="fas fa-home"></i>
                 </div>
                 <div class="tile-title">Address Proof</div>
                 <div class="tile-desc">Utility bills, rent agreement, or bank statements.</div>
                 {{ form.address_proof }}
+                {% if form.address_proof.errors %}
+                    <ul class="errorlist">{% for error in form.address_proof.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
             </div>
 
-            <div class="upload-tile" style="animation-delay: 0.4s;">
-                <div class="icon-badge" style="background: #f0fdf4; color: #10b981;">
-                    <i class="fa-solid fa-building-circle-check"></i>
+            <div class="upload-tile">
+                <div class="icon-badge" style="background: #ecfdf5; color: #10b981;">
+                    <i class="fas fa-building"></i>
                 </div>
                 <div class="tile-title">Registration Proof</div>
                 <div class="tile-desc">COI or Trade License documentation.</div>
                 {{ form.business_registration }}
+                {% if form.business_registration.errors %}
+                    <ul class="errorlist">{% for error in form.business_registration.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
             </div>
 
-            <div class="upload-tile" style="animation-delay: 0.5s;">
+            <div class="upload-tile">
                 <div class="icon-badge" style="background: #f1f5f9; color: #64748b;">
-                    <i class="fa-solid fa-warehouse"></i>
+                    <i class="fas fa-warehouse"></i>
                 </div>
                 <div class="tile-title">Warehouse Photo</div>
                 <div class="tile-desc">Clear photograph of your inventory facility.</div>
                 {{ form.warehouse_photo }}
+                {% if form.warehouse_photo.errors %}
+                    <ul class="errorlist">{% for error in form.warehouse_photo.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
             </div>
         </div>
 
-        <div class="upload-tile" style="animation-delay: 0.1s;" >
+        <!-- Row 2: GST and PAN with number fields -->
+        <div class="gst-pan-grid">
+            <div class="upload-tile">
                 <div class="icon-badge" style="background: #fef2f2; color: #ef4444;">
-                    <i class="fa-solid fa-file-invoice"></i>
+                    <i class="fas fa-file-invoice"></i>
                 </div>
                 <div class="tile-title">GST Certificate</div>
                 <div class="tile-desc">Official GST registration certificate of your business.</div>
                 {{ form.gst_certificate }}
+                {% if form.gst_certificate.errors %}
+                    <ul class="errorlist">{% for error in form.gst_certificate.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
+
                 <div class="text-field-group">
-                    <label>GST Number</label>
+                    <label><i class="far fa-hashtag" style="margin-right: 4px;"></i> GST Number</label>
                     {{ form.gst_number }}
+                    {% if form.gst_number.errors %}
+                        <ul class="errorlist">{% for error in form.gst_number.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                    {% endif %}
                 </div>
             </div>
-            <br>
 
-            <div class="upload-tile" style="animation-delay: 0.2s;">
+            <div class="upload-tile">
                 <div class="icon-badge" style="background: #fffbeb; color: #f59e0b;">
-                    <i class="fa-solid fa-address-card"></i>
+                    <i class="fas fa-id-card"></i>
                 </div>
                 <div class="tile-title">PAN Card</div>
                 <div class="tile-desc">Business or individual PAN card copy.</div>
                 {{ form.pan_card }}
-                <div class="text-field-group">
-                    <label>PAN Number</label>
-                    {{ form.pan_number }}
-                </div>
-            </div>
+                {% if form.pan_card.errors %}
+                    <ul class="errorlist">{% for error in form.pan_card.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
 
-            <br>
-            
-        <div class="form-row-bottom">
-            <div>
-                <label style="font-size: 12px; font-weight: 800; color: var(--slate); text-transform: uppercase; margin-bottom: 8px; display: block;">Years in Operation</label>
-                {{ form.years_in_business }}
-            </div>
-            <div>
-                <label style="font-size: 12px; font-weight: 800; color: var(--slate); text-transform: uppercase; margin-bottom: 8px; display: block;">Annual Turnover (₹)</label>
-                {{ form.annual_turnover }}
+                <div class="text-field-group">
+                    <label><i class="far fa-credit-card" style="margin-right: 4px;"></i> PAN Number</label>
+                    {{ form.pan_number }}
+                    {% if form.pan_number.errors %}
+                        <ul class="errorlist">{% for error in form.pan_number.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
-        <div style="background: #fffbeb; border-left: 5px solid #f59e0b; padding: 20px; border-radius: 15px; font-size: 14px; color: #92400e; margin-bottom: 40px; line-height: 1.6;">
+        <!-- Business details row -->
+        <div class="form-row-bottom">
+            <div>
+                <label><i class="far fa-calendar-alt" style="margin-right: 6px;"></i> Years in Operation</label>
+                {{ form.years_in_business }}
+                {% if form.years_in_business.errors %}
+                    <ul class="errorlist">{% for error in form.years_in_business.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+            <div>
+                <label><i class="fas fa-rupee-sign" style="margin-right: 6px;"></i> Annual Turnover (₹)</label>
+                {{ form.annual_turnover }}
+                {% if form.annual_turnover.errors %}
+                    <ul class="errorlist">{% for error in form.annual_turnover.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Important notice -->
+        <div class="info-message">
+            <i class="fas fa-info-circle" style="margin-right: 12px; font-size: 1.2rem; color: #d97706;"></i>
             <strong>Important:</strong> Ensure all numbers entered match your uploaded documents. Verification usually takes 24-48 hours.
         </div>
 
         <button type="submit" class="btn-submit-kyc">
-            Submit KYC for Review <i class="fa-solid fa-paper-plane"></i>
+            Submit KYC for Review <i class="fas fa-paper-plane"></i>
         </button>
 
-        <a href="{% url 'wholesellers:wholeseller_dashboard' %}" style="display: block; text-align: center; margin-top: 25px; color: var(--slate); text-decoration: none; font-weight: 700; font-size: 14px;">
-            <i class="fa-solid fa-arrow-left me-2"></i> Return to Dashboard
+        <a href="{% url 'wholesellers:wholeseller_dashboard' %}" class="return-link">
+            <i class="fas fa-arrow-left"></i> Return to Dashboard
         </a>
     </form>
 </div>

@@ -63,8 +63,10 @@ def reseller_dashboard(request):
             store.next_step = 'View Store'
             store.next_step_url = reverse('resellers:store_dashboard', args=[store.id])
             store.next_step_icon = 'fas fa-eye'
-    
-    return render(request, 'resellers/resellerdashboard.html', {'stores': stores})
+        store = stores.first()
+
+    return render(request, 'resellers/resellerdashboard.html', {'stores': stores,'store': store})
+
 
 
 # resellers/views.py - Update create_store_step1

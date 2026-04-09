@@ -1,7 +1,10 @@
+{% extends "dashboard_base.html" %}
+
 {% block title %}{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<div class="content">
 <div class="delete-wrapper">
     <div class="delete-card">
 
@@ -44,7 +47,7 @@
 
     </div>
 </div>
-
+</div>
 <style>
 :root {
     --primary: #4f46e5;
@@ -159,7 +162,84 @@
 .delete-btn:hover {
     background: linear-gradient(135deg, #4338ca, #4f46e5);
 }
+/* tablet */
+@media (max-width:768px){
 
+.delete-card{
+padding:30px 25px;
+max-width:90%;
+}
+
+.delete-title{
+font-size:20px;
+}
+
+.delete-text{
+font-size:15px;
+}
+
+.warning-text{
+font-size:13px;
+}
+
+.icon-box{
+width:60px;
+height:60px;
+font-size:24px;
+}
+
+}
+
+
+/* mobile */
+@media (max-width:480px){
+
+.delete-wrapper{
+padding:15px;
+}
+
+.delete-card{
+padding:25px 18px;
+border-radius:12px;
+}
+
+.delete-title{
+font-size:18px;
+}
+
+.delete-text{
+font-size:14px;
+}
+
+.warning-text{
+font-size:12px;
+}
+
+.warning-box{
+font-size:13px;
+padding:8px;
+}
+
+.icon-box{
+width:55px;
+height:55px;
+font-size:22px;
+margin-bottom:10px;
+}
+
+
+/* buttons full width */
+.btn-group{
+flex-direction:column;
+}
+
+.btn{
+width:100%;
+padding:11px;
+font-size:14px;
+}
+
+}
 /* Animation */
 @keyframes fadeIn {
     from {

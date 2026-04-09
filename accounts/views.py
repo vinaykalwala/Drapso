@@ -641,9 +641,12 @@ def verify_change_password_otp(request):
 
     return render(request, 'accounts/verify_change_password_otp.html')
 
+from resellers.models import Store
+
 @login_required
 def dashboard(request):
     user = request.user
+    store = Store.objects.filter(reseller=request.user).first()
 
     profile_data = None
     clear_messages(request)
@@ -661,7 +664,8 @@ def dashboard(request):
         'user': user,
         'profile': profile_data,
         'role': user.get_role_display(),
-        'is_superuser': user.is_superuser
+        'is_superuser': user.is_superuser,
+        "store": store
     }
 
     return render(request, 'accounts/dashboard.html', context)
