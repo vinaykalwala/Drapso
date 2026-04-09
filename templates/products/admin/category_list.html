@@ -1,141 +1,927 @@
-
+{% extends "dashboard_base.html" %}
 {% load static %}
 
-{% block title %}Categories - Admin{% endblock %}
+{% block title %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold mb-0">Categories</h2>
-            <small class="text-muted">Manage product categories</small>
-        </div>
-        <a href="{% url 'products:category_create' %}" class="btn btn-primary shadow-sm">
-            <i class="fas fa-plus me-1"></i> Add Category
-        </a>
-    </div>
+<style>
+    /* ----- ROOT VARIABLES (from first design) ----- */
+    :root {
+        --primary: #4f46e5;
+        --primary-light: #6366f1;
+        --primary-dark: #4338ca;
+        --gradient-start: #4f46e5;
+        --gradient-end: #6366f1;
 
-    <!-- Card -->
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
+        --text-dark: #1e1b4b;
+        --text-light: #64748b;
 
-            {% if categories %}
-            <div class="table-responsive">
-                <table class="table align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Image</th>
-                            <th>Category</th>
-                            <th>Slug</th>
-                            <th>Subcategories</th>
-                            <th>Order</th>
-                            <th>Status</th>
-                            <th class="text-end pe-4">Actions</th>
-                        </tr>
-                    </thead>
+        --bg-light: #f8fafc;
+        --bg-card: #ffffff;
 
-                    <tbody>
-                        {% for category in categories %}
-                        <tr class="border-bottom">
-                            <!-- Image -->
-                            <td>
-                                {% if category.image %}
-                                    <img src="{{ category.image.url }}" 
-                                         class="rounded me-3"
-                                         width="50" height="50"
-                                         style="object-fit: cover;">
-                                {% else %}
-                                    <div class="bg-light rounded d-flex align-items-center justify-content-center me-3"
-                                         style="width:50px;height:50px;">
-                                        <i class="fas fa-folder text-muted"></i>
-                                    </div>
-                                {% endif %}
-                            </div>
-                            </td>
+        --shadow-soft: 0 4px 20px rgba(99, 102, 241, 0.08);
+        --shadow-hover: 0 12px 40px rgba(99, 102, 241, 0.15);
 
-                            <!-- Category Info -->
-                            <td>
-                                <div>
-                                    <div class="fw-semibold">{{ category.name }}</div>
-                                    {% if category.description %}
-                                        <small class="text-muted">
-                                            {{ category.description|truncatechars:60 }}
-                                        </small>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            </td>
+        --border-light: #e2e8f0;
 
-                            <!-- Slug -->
-                            <td>
-                                <code class="bg-light px-2 py-1 rounded">
-                                    {{ category.slug }}
-                                </code>
-                            </div>
-                            </td>
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --error: #ef4444;
 
-                            <!-- Subcategories -->
-                            <td>
-                                <span class="badge bg-info text-dark">
-                                    {{ category.subcategories.count }}
-                                </span>
-                            </div>
-                            </td>
+        --border-radius: 12px;
+        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-                            <!-- Order -->
-                            <td>
-                                <span class="fw-medium">{{ category.order }}</span>
-                            </div>
-                            </td>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+.main-content {
+    margin-left: 260px;   /* sidebar width */
+}
+    /* Background with store.jpeg and gradients (first design style) */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+        background:
+            linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(99, 102, 241, 0.6) 100%),
+            url('https://images.openai.com/static-rsc-4/Kat2Q70xA1GtGfWF3tLGYhgAad-ngGJFNpjWDa0IaW0OMA-v8ZhSvJLDHVLShq5QcsjaQd-Y22tTB68fX9TRhwmjeTpcoosQbZgrk8EnNt9__LtwZhYrbD7Y1WT4cwUXz2RVPRpLxgABrOiqVLJcyMCdTSYQF8TXoH4xUgYmg7Q8HYlrBx7QLNYDJeMdegH1?purpose=fullsize');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        min-height: 100vh;
+        position: relative;
+        margin: 0;
+        padding: 0;
+    }
 
-                            <!-- Status -->
-                            <td>
-                                {% if category.is_active %}
-                                    <span class="badge bg-success">Active</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">Inactive</span>
-                                {% endif %}
-                            </div>
-                            </td>
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background:
+            radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(8, 145, 178, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+    }
 
-                            <!-- Actions -->
-                            <td class="text-end pe-4">
-                                <div class="btn-group">
-                                    <a href="{% url 'products:category_edit' category.id %}"
-                                       
-                                        <i class="fas fa-edit">Edit</i>
-                                    </a>
+    /* Main content wrapper */
+    .main-content {
+        position: relative;
+        z-index: 1;
+        padding-top: 30px;
+        padding-bottom: 50px;
+    }
 
-                                    <a href="{% url 'products:category_delete' category.id %}"
-                                       <i class="fas fa-trash">Delete</i>
-                                    </a>
-                                </div>
-                            </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    .container-custom {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 32px 24px;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ----- PAGE HEADER (glassmorphic) ----- */
+    .page-header {
+        margin-bottom: 32px;
+        padding: 28px 32px;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 20px;
+        box-shadow: 0 8px 40px rgba(99, 102, 241, 0.15);
+
+        backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        animation: slideDown 0.6s ease-out;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    h1 {
+        margin: 0;
+        color: var(--text-dark);
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        white-space: nowrap;
+    }
+
+    .add-btn {
+        background: linear-gradient(135deg, #4f46e5, #a855f7);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    }
+
+    .add-btn:hover {
+        transform: scale(1.05);
+    }
+
+    .add-btn {
+        color: white;
+        padding: 12px 28px;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .add-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .add-btn:hover::before {
+        left: 100%;
+    }
+
+    .add-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(14, 116, 144, 0.35);
+    }
+
+    /* Search bar */
+    .search-bar {
+        position: relative;
+        width: 100%;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 14px 48px 14px 20px;
+        border: 2px solid var(--border-light);
+        border-radius: 10px;
+        font-size: 15px;
+        font-family: inherit;
+        transition: var(--transition);
+        background: white;
+        color: var(--text-dark);
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-light);
+        pointer-events: none;
+    }
+
+    /* ----- CATEGORIES GRID (card style from first file) ----- */
+    .categories-grid {
+        display: grid;
+        gap: 20px;
+        justify-content: center;
+    }
+
+    /* 1 card */
+    .categories-grid:has(.category-card:only-child) {
+        grid-template-columns: 1fr;
+    }
+
+    .category-card:only-child {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    /* 2 cards */
+    .categories-grid:has(.category-card:nth-child(2):last-child) {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .category-card {
+        width: 100%;
+    }
+
+    /* 3 cards */
+    .categories-grid:has(.category-card:nth-child(3):last-child) {
+        grid-template-columns: repeat(3, 1fr);
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    /* 4 or more */
+    .categories-grid:has(.category-card:nth-child(n+4)) {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .category-card {
+        background: rgba(255, 255, 255, 0.75);
+        border-radius: 16px;
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+
+        box-shadow:
+            0 10px 30px rgba(99, 102, 241, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4);
+
+        transition: all 0.3s ease;
+    }
+
+    .category-card {
+        overflow: hidden;
+        transition: var(--transition);
+        position: relative;
+
+        display: flex;
+        flex-direction: column;
+    }
+
+    .category-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+        transform: scaleX(0);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .category-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .category-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow:
+            0 20px 60px rgba(99, 102, 241, 0.25),
+            0 0 20px rgba(99, 102, 241, 0.3);
+    }
+
+    .card-image {
+        height: 160px;
+        overflow: hidden;
+        background: linear-gradient(135deg, var(--bg-light) 0%, #e2e8f0 100%);
+        position: relative;
+    }
+
+    .card-image::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.05) 100%);
+        pointer-events: none;
+    }
+
+    .card-image::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.3));
+        opacity: 0;
+        transition: 0.4s;
+    }
+
+    .category-card:hover .card-image::before {
+        opacity: 1;
+    }
+
+    .card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .category-card:hover .card-image img {
+        transform: scale(1.08);
+    }
+
+    .no-image {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-light);
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .card-content {
+        padding: 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .card-title {
+        font-size: 20px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #4f46e5, #a855f7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .card-title {
+        margin: 0 0 8px 0;
+
+        color: var(--text-dark);
+
+        letter-spacing: -0.2px;
+        line-height: 1.3;
+    }
+
+    .card-slug {
+        color: var(--text-light);
+        font-size: 11px;
+        margin-bottom: 14px;
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Courier New', monospace;
+        padding: 3px 8px;
+        background: rgba(99, 102, 241, 0.08);
+        border-radius: 4px;
+        display: inline-block;
+        width: fit-content;
+    }
+
+    .card-meta {
+        color: var(--text-light);
+        font-size: 13px;
+        margin-bottom: 10px;
+        line-height: 1.4;
+        font-weight: 400;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+    }
+
+    .status-badges {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+
+    .badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        backdrop-filter: blur(10px);
+        letter-spacing: 0.2px;
+        transition: var(--transition);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .badge:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    .badge-global {
+        background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+        color: white;
+    }
+
+    .badge-store {
+        background: linear-gradient(135deg, var(--success) 0%, #10b981 100%);
+        color: white;
+    }
+
+    .badge-pending {
+        background: linear-gradient(135deg, var(--warning) 0%, #f59e0b 100%);
+        color: white;
+    }
+
+    .badge-inactive {
+        background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+        color: white;
+    }
+
+    .badge-subcount {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+    }
+
+    .badge[style*="success"] {
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: auto;
+    }
+
+    .btn {
+        border-radius: 10px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-delete {
+        background: linear-gradient(135deg, #ef4444, #f87171);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn {
+        flex: 1;
+        text-align: center;
+        padding: 10px 16px;
+
+        text-decoration: none;
+        font-size: 13px;
+
+        cursor: pointer;
+        border: none;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.5s, height 0.5s;
+    }
+
+    .btn:hover::before {
+        width: 250px;
+        height: 250px;
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+        color: white;
+        box-shadow: 0 3px 12px rgba(99, 102, 241, 0.25);
+    }
+
+    .btn-edit:hover {
+        box-shadow: 0 5px 18px rgba(99, 102, 241, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .btn-delete {
+        background: linear-gradient(135deg, var(--error) 0%, #ef4444 100%);
+        color: white;
+        box-shadow: 0 3px 12px rgba(220, 38, 38, 0.2);
+    }
+
+    .btn-delete:hover {
+        box-shadow: 0 5px 18px rgba(220, 38, 38, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+    }
+
+    /* Empty state */
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 60px 40px;
+        background: rgba(255, 255, 255, 0.97);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-soft);
+        border: 2px dashed var(--border-light);
+        backdrop-filter: blur(20px);
+    }
+
+    .empty-state h2 {
+        color: var(--text-dark);
+        margin-bottom: 12px;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .empty-state p {
+        color: var(--text-light);
+        margin-bottom: 24px;
+        font-size: 15px;
+    }
+
+    .empty-state a {
+        color: white;
+        text-decoration: none;
+        font-weight: 600;
+        background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+        padding: 12px 28px;
+        border-radius: 10px;
+        display: inline-block;
+        transition: var(--transition);
+        box-shadow: 0 4px 15px rgba(14, 116, 144, 0.25);
+    }
+
+    .empty-state a:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(14, 116, 144, 0.35);
+    }
+
+    /* No results message */
+    .no-results {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 40px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: var(--border-radius);
+        color: var(--text-light);
+        font-weight: 500;
+    }
+    /* additional utility */
+    .text-muted-small {
+        font-size: 12px;
+        color: var(--text-light);
+    }
+
+    .subcategory-badge {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .meta-item i {
+        font-size: 13px;
+        color: var(--primary);
+        opacity: 0.8;
+    }
+
+    .btn i {
+        font-size: 13px;
+    }
+    /* ================= RESPONSIVE DESIGN ================= */
+
+/* 🔹 Large Screens (1200px+) */
+@media (min-width: 1200px) {
+    .container-custom {
+        max-width: 1300px;
+    }
+}
+
+/* 🔹 Laptop (992px - 1199px) */
+@media (max-width: 1199px) {
+    .container-custom {
+        padding: 24px 16px;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+
+    .categories-grid:has(.category-card:nth-child(3):last-child) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* 🔹 Tablet (768px - 991px) */
+@media (max-width: 991px) {
+
+    .header-top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    h1 {
+        font-size: 24px;
+        white-space: normal;
+    }
+
+    .add-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .search-input {
+        font-size: 14px;
+        padding: 12px 45px 12px 16px;
+    }
+
+    /* Cards: always 2 per row */
+    .categories-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        max-width: 100%;
+    }
+}
+
+/* 🔹 Mobile (576px - 767px) */
+@media (max-width: 767px) {
+
+    body {
+        background-attachment: scroll; /* fix mobile lag */
+    }
+
+    .container-custom {
+        padding: 20px 12px;
+    }
+
+    .page-header {
+        padding: 20px;
+        border-radius: 16px;
+    }
+
+    h1 {
+        font-size: 22px;
+    }
+
+    .add-btn {
+        font-size: 13px;
+        padding: 10px 16px;
+    }
+
+    .search-input {
+        font-size: 13px;
+    }
+
+    /* Cards → single column */
+    .categories-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .category-card {
+        border-radius: 14px;
+    }
+
+    .card-image {
+        height: 140px;
+    }
+
+    .card-content {
+        padding: 16px;
+    }
+
+    .card-title {
+        font-size: 18px;
+    }
+
+    .card-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;   /* sidebar hide / overlay */
+    }
+}
+/* 🔹 Small Mobile (below 480px) */
+@media (max-width: 480px) {
+
+    .container-custom {
+        padding: 16px 10px;
+    }
+
+    .page-header {
+        padding: 16px;
+    }
+
+    h1 {
+        font-size: 20px;
+    }
+
+    .card-image {
+        height: 120px;
+    }
+
+    .card-title {
+        font-size: 16px;
+    }
+
+    .meta-item {
+        font-size: 12px;
+    }
+
+    .badge {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+}
+</style>
+</head>
+
+<body>
+    <div class="main-content">
+        <div class="container-custom">
+            <!-- Page Header with gradient style -->
+            <div class="page-header">
+                <div class="header-top">
+                    <h1>Categories</h1>
+                    <a href="{% url 'products:category_create' %}" class="add-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Add Category
+                    </a>
+                </div>
+                <div class="search-bar">
+                    <input type="text" class="search-input" id="searchInput"
+                        placeholder="Search categories by name, slug, or store..." onkeyup="filterCategories()">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </div>
             </div>
 
-            {% else %}
-            <!-- Empty State -->
-            <div class="text-center py-5">
-                <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
-                <h5>No categories yet</h5>
-                <p class="text-muted mb-3">
-                    Start by creating your first category
-                </p>
-                <a href="{% url 'products:category_create' %}" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i> Add Category
-                </a>
-            </div>
-            {% endif %}
+            <!-- Categories Grid (Card Design) -->
+            <div class="categories-grid" id="categoriesGrid">
+                {% for category in categories %}
+                <div class="category-card" data-name="{{ category.name|lower }}" data-slug="{{ category.slug|lower }}"
+                    data-store="{% if category.store %}{{ category.store.name|lower }}{% else %}global{% endif %}">
+                    <div class="card-image">
+                        {% if category.image %}
+                        <img src="{{ category.image.url }}" alt="{{ category.name }}">
+                        {% else %}
+                        <img src="{% static 'images/noimagecat.png' %}" alt="Default image"
+                            onerror="this.onerror=null; this.src='https://placehold.co/400x200?text=No+Image';">
+                        {% endif %}
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">{{ category.name }}</h3>
+                        <div class="card-slug">Slug: {{ category.slug }}</div>
 
+                        <div class="card-meta">
+
+                            <div class="meta-item">
+                                <i class="fas fa-layer-group"></i>
+                                <span>Order: {{ category.order }}</span>
+                            </div>
+
+                            {% if category.description %}
+                            <div class="meta-item text-muted-small">
+                                <i class="fas fa-align-left"></i>
+                                <span>{{ category.description|truncatechars:40 }}</span>
+                            </div>
+                            {% endif %}
+
+                        </div>
+                        <div class="status-badges">
+                            {% if category.is_global %}
+                            <span class="badge badge-global">Global</span>
+                            {% endif %}
+                            {% if category.is_active %}
+                            <span class="badge"
+                                style="background: linear-gradient(135deg, var(--success) 0%, #10b981 100%);"><i
+                                    class="fas fa-check-circle"></i> Active
+                            </span>
+                            {% else %}
+                            <span class="badge badge-inactive">
+                                <i class="fas fa-times-circle"></i> Inactive
+                            </span>
+                            {% endif %}
+
+                            <!-- Subcategories count badge (like the second design's info) -->
+                            <span class="badge subcategory-badge"
+                                style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+                                <i class="fas fa-folder"></i> {{ category.subcategories.count }}
+                            </span>
+                        </div>
+
+                        <div class="card-actions">
+                            <a href="{% url 'products:category_edit' category.id %}" class="btn btn-edit">
+                                <i class="fas fa-pen"></i>
+                                Edit
+                            </a>
+                            <a href="{% url 'products:category_delete' category.id %}" class="btn btn-delete">
+                                <i class="fas fa-trash"></i>
+                                Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <h2>No Categories Found</h2>
+                    <p>Get started by creating your first category.</p>
+                    <a href="{% url 'products:category_create' %}">Create Category</a>
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 
-</div>
+    <script>
+        function filterCategories() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const grid = document.getElementById('categoriesGrid');
+            const cards = grid.getElementsByClassName('category-card');
+            let visibleCount = 0;
+
+            for (let i = 0; i < cards.length; i++) {
+                const card = cards[i];
+                const name = card.getAttribute('data-name') || '';
+                const slug = card.getAttribute('data-slug') || '';
+                const store = card.getAttribute('data-store') || '';
+
+                if (name.includes(filter) || slug.includes(filter) || store.includes(filter)) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            }
+
+            // Remove existing "no-results" message if any
+            const existingNoResults = grid.querySelector('.no-results');
+            if (existingNoResults) existingNoResults.remove();
+
+            // If no visible cards and there was at least one card originally (or not empty state)
+            const originalCardsCount = document.querySelectorAll('.category-card:not(.empty-state)').length;
+            if (visibleCount === 0 && originalCardsCount > 0 && filter !== '') {
+                const noResultsDiv = document.createElement('div');
+                noResultsDiv.className = 'no-results';
+                noResultsDiv.innerHTML = '<i class="fas fa-search" style="font-size: 2rem; opacity: 0.5; display: block; margin-bottom: 12px;"></i><h4 style="color: var(--text-dark);">No matching categories</h4><p class="text-muted">Try a different keyword or clear search.</p>';
+                grid.appendChild(noResultsDiv);
+            }
+        }
+    </script>
+</body>
+
+</html>
 {% endblock %}

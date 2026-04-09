@@ -1,64 +1,671 @@
-
+{% extends "dashboard_base.html" %}
 {% load static %}
 
-{% block title %}{{ title }} - Admin{% endblock %}
+{% block title %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">{{ title }}</h3>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --primary: #4f46e5;
+        --primary-light: #6366f1;
+        --primary-dark: #4338ca;
+        --gradient-start: #4f46e5;
+        --gradient-end: #6366f1;
+
+        --text-dark: #1e1b4b;
+        --text-light: #64748b;
+
+        --bg-light: #f8fafc;
+        --bg-card: #ffffff;
+
+        --shadow-soft: 0 4px 20px rgba(99, 102, 241, 0.08);
+        --shadow-hover: 0 12px 40px rgba(99, 102, 241, 0.15);
+
+        --border-light: #e2e8f0;
+
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --error: #ef4444;
+
+        --border-radius: 12px;
+        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .main-content {
+        margin-left: 260px;
+        display: flex;
+        justify-content: center;
+        /* center horizontally */
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(145deg, var(--bg-light), #eef2ff);
+        min-height: 100vh;
+        padding: 30px 20px;
+        position: relative;
+    }
+
+    @media (max-width: 768px) {
+        .main-content {
+            margin-left: 0;
+            justify-content: center;
+        }
+    }
+
+    /* Decorative Elements */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.03) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .container {
+        max-width: 1000px;
+        width: 100%;
+    }
+
+    .container {
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Card */
+    .category-card {
+        background: var(--bg-card);
+        border-radius: 28px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+    /* Header with Gradient */
+    .card-header {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        padding: 32px 36px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .card-header h3 {
+        font-size: 28px;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+        letter-spacing: -0.5px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .header-icon {
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        backdrop-filter: blur(4px);
+    }
+
+    .card-header p {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 14px;
+        margin-top: 10px;
+        margin-left: 56px;
+    }
+
+    /* Form Body */
+    .card-body {
+        padding: 36px;
+    }
+
+    /* Form Groups */
+    .field-group {
+        margin-bottom: 28px;
+    }
+
+    .field-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .field-label label {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-dark);
+        letter-spacing: -0.2px;
+    }
+
+    .required-badge {
+        background: #fee2e2;
+        color: #dc2626;
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+
+    .optional-badge {
+        background: var(--bg-light);
+        color: var(--text-light);
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+
+    /* Input Styles */
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 18px;
+    }
+
+    input,
+    textarea,
+    select {
+        width: 100%;
+        padding: 14px 18px;
+        font-size: 15px;
+        font-family: 'Inter', sans-serif;
+        border: 2px solid var(--border-light);
+        color: var(--text-dark);
+        border-radius: 16px;
+        background: var(--bg-card);
+        transition: all 0.2s ease;
+
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    /* File Upload Area */
+    .upload-area {
+        border: 2px dashed var(--border-light);
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        background: #fafbff;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .upload-area:hover {
+        border-color: var(--primary-light);
+        background: #f8fafc;
+    }
+
+    .upload-icon {
+        font-size: 40px;
+        margin-bottom: 12px;
+    }
+
+    .upload-text {
+        font-size: 14px;
+        color: var(--text-light);
+    }
+
+    .upload-text strong {
+        color: var(--primary);
+    }
+
+    input[type="file"] {
+        display: none;
+    }
+
+    /* Image Preview */
+    .image-preview-container {
+        margin-top: 16px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .preview-card {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .preview-img {
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+
+    .preview-info {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    /* Two Column Grid */
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    /* Checkbox Toggle */
+    .toggle-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        background: #f8fafc;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .toggle-info h4 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 4px;
+    }
+
+    .toggle-info p {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    /* Toggle Switch */
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 52px;
+        height: 28px;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #cbd5e1;
+        transition: 0.3s;
+        border-radius: 34px;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+    }
+
+    input:checked+.toggle-slider {
+        background-color: var(--primary-light);
+    }
+
+    input:checked+.toggle-slider:before {
+        transform: translateX(24px);
+    }
+
+    /* Help Text */
+    .help-text {
+        display: block;
+        font-size: 12px;
+        color: #94a3b8;
+        margin-top: 8px;
+    }
+
+    /* Divider */
+    .divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+        margin: 28px 0;
+    }
+
+    /* Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 16px;
+        margin-top: 8px;
+    }
+
+    .btn {
+        flex: 1;
+        padding: 14px 24px;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 16px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: 'Inter', sans-serif;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-light), var(--primary));
+        color: white;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+    }
+
+    .btn-secondary {
+        background: var(--bg-light);
+        color: var(--text-light);
+        border: 1px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+        background: #e2e8f0;
+        transform: translateY(-2px);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+    }
+
+    /* Error Styles */
+    .error-message {
+        background: #fef2f2;
+        color: #dc2626;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 13px;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+        body {
+            padding: 24px 16px;
+        }
+
+        .card-header {
+            padding: 24px;
+        }
+
+        .card-header h3 {
+            font-size: 22px;
+        }
+
+        .header-icon {
+            width: 38px;
+            height: 38px;
+            font-size: 18px;
+        }
+
+        .card-header p {
+            margin-left: 50px;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        .grid-2 {
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+
+    .header-icon i {
+        font-size: 18px;
+    }
+
+    .upload-icon i {
+        font-size: 32px;
+        color: var(--primary);
+    }
+
+    .btn i {
+        font-size: 14px;
+    }
+
+    .error-message i {
+        color: var(--error);
+    }
+</style>
+</head>
+<body>
+    <div class="main-content">
+        <div class="container">
+        <div class="category-card">
+            <div class="card-header">
+                <div class="header-content">
+                    <h3>
+                        <span class="header-icon">
+                            {% if title == 'Edit Category' %}
+                            <i class="fas fa-pen"></i>
+                            {% else %}
+                            <i class="fas fa-folder"></i>
+                            {% endif %}
+                        </span>
+                        {{ title }}
+                    </h3>
+                    <p>{% if title == 'Edit Category' %}Update category details{% else %}Add a new product
+                        category{%endif %}</p>
                 </div>
-                <div class="card-body">
-                    <form method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        
-                        <div class="form-group">
-                            <label>Category Name *</label>
+            </div>
+
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" id="categoryForm">
+                    {% csrf_token %}
+
+                    <!-- Category Name -->
+                    <div class="field-group">
+                        <div class="field-label">
+                            <label>Category Name</label>
+                            <span class="required-badge">Required</span>
+                        </div>
+                        <div class="input-wrapper">
                             {{ form.name }}
                         </div>
-                        
-                        <div class="form-group">
-                            <label>Description</label>
-                            {{ form.description }}
+                        {% if form.name.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i> {{ form.name.errors|join:", " }}
                         </div>
-                        
-                        <div class="form-group">
+                        {% endif %}
+                        <span class="help-text">Example: Electronics, Fashion, Home & Living</span>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="field-group">
+                        <div class="field-label">
+                            <label>Description</label>
+                            <span class="optional-badge">Optional</span>
+                        </div>
+                        {{ form.description }}
+                        <span class="help-text">Brief description to help customers understand this category</span>
+                    </div>
+
+                    <!-- Image Upload -->
+                    <div class="field-group">
+                        <div class="field-label">
                             <label>Category Image</label>
-                            {{ form.image }}
+                            <span class="optional-badge">Optional</span>
+                        </div>
+                        <div class="upload-area" onclick="document.getElementById('imageInput').click()">
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <div class="upload-text">
+                                <strong>Click to upload</strong> or drag and drop<br>
+                                <span style="font-size: 12px;">PNG, JPG up to 5MB</span>
+                            </div>
+                        </div>
+                        <input type="file" name="image" id="imageInput" accept="image/*">
+
+                        <!-- Image Preview -->
+                        <div class="image-preview-container" id="imagePreviewContainer">
                             {% if category and category.image %}
-                                <div class="mt-2">
-                                    <img src="{{ category.image.url }}" width="100" class="img-thumbnail">
+                            <div class="preview-card" id="currentImage">
+                                <img src="{{ category.image.url }}" class="preview-img" alt="{{ category.name }}">
+                                <div class="preview-info">
+                                    <div>Current Image</div>
+                                    <small>{{ category.image.size|filesizeformat }}</small>
                                 </div>
+                            </div>
                             {% endif %}
                         </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Display Order</label>
-                                    {{ form.order }}
-                                    <small class="form-text text-muted">Lower numbers appear first</small>
-                                </div>
+                    </div>
+
+                    <!-- Two Column Grid -->
+                    <div class="grid-2">
+                        <!-- Display Order -->
+                        <div class="field-group">
+                            <div class="field-label">
+                                <label>Display Order</label>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group form-check mt-4">
+                            {{ form.order }}
+                            <span class="help-text">Lower numbers appear first</span>
+                        </div>
+
+                        <!-- Status Toggle -->
+                        <div class="field-group">
+                            <div class="toggle-wrapper">
+                                <div class="toggle-info">
+                                    <h4>Active Status</h4>
+                                    <p>Show in storefront</p>
+                                </div>
+                                <label class="toggle-switch">
                                     {{ form.is_active }}
-                                    <label class="form-check-label">Active</label>
-                                </div>
+                                    <span class="toggle-slider"></span>
+                                </label>
                             </div>
                         </div>
-                        
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary">Save Category</button>
-                            <a href="{% url 'products:category_list' %}" class="btn btn-secondary">Cancel</a>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            {% if title == 'Edit Category' %}Update Category{% else %}Create Category{% endif %}
+                        </button>
+                        <a href="{% url 'products:category_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+
+    <script>
+        // Image Preview on Upload
+        const imageInput = document.getElementById('imageInput');
+        const previewContainer = document.getElementById('imagePreviewContainer');
+
+        if (imageInput) {
+            imageInput.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        // Remove existing current image preview if any
+                        const existingCurrent = document.getElementById('currentImage');
+                        if (existingCurrent) {
+                            existingCurrent.remove();
+                        }
+
+                        // Add new preview
+                        const previewDiv = document.createElement('div');
+                        previewDiv.className = 'preview-card';
+                        previewDiv.innerHTML = `
+                        <img src="${event.target.result}" class="preview-img">
+                        <div class="preview-info">
+                            <div>New Image</div>
+                            <small>${(file.size / 1024).toFixed(1)} KB</small>
+                        </div>
+                    `;
+                        previewContainer.appendChild(previewDiv);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    </script>
+
+    {% endblock %}
