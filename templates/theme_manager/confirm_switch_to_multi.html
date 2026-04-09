@@ -1,0 +1,92 @@
+
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h2 class="mb-0">🔄 Switch to Multiple Products Theme</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="alert alert-info">
+                        <strong>Current Status:</strong><br>
+                        Active Products: {{ current_active }}<br>
+                        Plan Limit: {{ plan_limit }}<br>
+                        Available Slots: {{ available_slots }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert {% if archived_count > 0 %}alert-warning{% else %}alert-secondary{% endif %}">
+                        <strong>Archived Products:</strong><br>
+                        You have {{ archived_count }} archived product(s)
+                        {% if archived_count > 0 %}
+                            <br>They can be restored when switching
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            {% if archived_count > 0 %}
+            <div class="alert alert-success">
+                <h5>✨ What will happen?</h5>
+                <ul>
+                    <li>📦 Archived products will be restored (up to {{ available_slots }} slots)</li>
+                    <li>✅ Products keep their original published/draft status</li>
+                    <li>📝 All product data (price, stock, images) is preserved</li>
+                    <li>🆕 You can add more products up to your plan limit</li>
+                </ul>
+            </div>
+            
+            {% if archived_products %}
+            <h4>Recently Archived Products:</h4>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Archived Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in archived_products %}
+                        <tr>
+                            <td>{{ record.product.name }}</td>
+                            <td>₹{{ record.product.selling_price }}</td>
+                            <td>
+                                {% if record.product.is_published %}
+                                    <span class="badge bg-success">Published</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Draft</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ record.archived_at|date:"M d, Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if archived_count > 10 %}
+                <p class="text-muted">And {{ archived_count|add:"-10" }} more...</p>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% endif %}
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mt-4 d-flex justify-content-between">
+                    <a href="{% url 'resellers:store_dashboard' store.id %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-success btn-lg">
+                        {% if archived_count > 0 %}
+                            Confirm Switch & Restore Products
+                        {% else %}
+                            Confirm Switch to Multiple Theme
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

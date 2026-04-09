@@ -1,0 +1,191 @@
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Archived Products - {{ store.store_name }}</h1>
+        <a href="{% url 'resellers:store_dashboard' store.id %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+    
+    <!-- Capacity Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="mb-0">{{ total_archived }}</h3>
+                    <p class="text-muted">Total Archived</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h3 class="mb-0">{{ published_archived }}</h3>
+                    <p class="mb-0">Published</p>
+                    <small>Will restore as Published</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-secondary text-white">
+                <div class="card-body">
+                    <h3 class="mb-0">{{ draft_archived }}</h3>
+                    <p class="mb-0">Draft</p>
+                    <small>Will restore as Draft</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center {% if capacity.available_slots > 0 %}bg-info{% else %}bg-warning{% endif %}">
+                <div class="card-body">
+                    <h3 class="mb-0">{{ capacity.available_slots }}</h3>
+                    <p class="mb-0">Available Slots</p>
+                    <small>{{ capacity.current_active }}/{{ capacity.plan_limit }} used</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if total_archived == 0 %}
+    <div class="alert alert-info text-center">
+        <h4>No archived products</h4>
+        <p>Products are archived when you switch from Multiple to Single theme.</p>
+        <a href="{% url 'theme_manager:switch_to_single' store.id %}" class="btn btn-warning">Switch to Single Theme</a>
+    </div>
+    {% else %}
+    
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="search" class="form-control" placeholder="Search products..." value="{{ filters.search }}">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="min_price" class="form-control" placeholder="Min Price" value="{{ filters.min_price }}">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="max_price" class="form-control" placeholder="Max Price" value="{{ filters.max_price }}">
+                </div>
+                <div class="col-md-2">
+                    <select name="published_status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="published" {% if filters.published_status == 'published' %}selected{% endif %}>Published Only</option>
+                        <option value="draft" {% if filters.published_status == 'draft' %}selected{% endif %}>Draft Only</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="sort" class="form-select">
+                        {% for option in sort_options %}
+                        <option value="{{ option.value }}" {% if filters.sort == option.value %}selected{% endif %}>{{ option.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Bulk Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <input type="checkbox" id="select-all"> Select All
+        </div>
+        {% if can_restore_all %}
+        <form method="POST" action="{% url 'theme_manager:restore_archived_products' store.id %}" 
+              onsubmit="return confirm('Restore ALL archived products?');">
+            {% csrf_token %}
+            <input type="hidden" name="restore_all" value="true">
+            <button type="submit" class="btn btn-success">Restore All Possible ({{ capacity.available_slots }})</button>
+        </form>
+        {% endif %}
+    </div>
+    
+    <!-- Products Grid -->
+    <form method="POST" action="{% url 'theme_manager:restore_archived_products' store.id %}" id="restore-form">
+        {% csrf_token %}
+        
+        <div class="row">
+            {% for record in page_obj %}
+            <div class="col-md-3 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="form-check mb-2">
+                            <input type="checkbox" name="restore_ids" value="{{ record.product.id }}" 
+                                   class="form-check-input product-checkbox"
+                                   {% if capacity.available_slots == 0 %}disabled{% endif %}>
+                        </div>
+                        
+                        {% if record.product.main_image %}
+                        <img src="{{ record.product.main_image.url }}" class="card-img-top" alt="{{ record.product.name }}" style="height: 150px; object-fit: cover;">
+                        {% endif %}
+                        
+                        <h5 class="card-title mt-2">{{ record.product.name }}</h5>
+                        <p class="card-text">
+                            <strong>Price:</strong> ₹{{ record.product.selling_price }}<br>
+                            <strong>Stock:</strong> {{ record.product.stock }}<br>
+                            <strong>Status:</strong>
+                            <span class="badge {% if record.product.is_published %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ record.published_badge }}
+                            </span>
+                        </p>
+                        <small class="text-muted">Archived: {{ record.archived_at|date:"M d, Y" }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1&{{ request.GET.urlencode }}">First</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">Previous</a></li>
+                {% endif %}
+                
+                <li class="page-item active"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Next</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}">Last</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        <!-- Restore Button -->
+        <div class="fixed-bottom bg-white p-3 shadow" style="z-index: 1000;">
+            <div class="container text-center">
+                <button type="submit" class="btn btn-primary btn-lg" id="restore-btn" disabled>
+                    Restore Selected (<span id="selected-count">0</span>)
+                </button>
+                <p class="text-muted mt-2 mb-0">Products will be restored with their original published/draft status</p>
+            </div>
+        </div>
+    </form>
+    {% endif %}
+</div>
+
+<script>
+document.getElementById('select-all')?.addEventListener('change', function(e) {
+    document.querySelectorAll('.product-checkbox').forEach(checkbox => {
+        if (!checkbox.disabled) checkbox.checked = e.target.checked;
+    });
+    updateSelectedCount();
+});
+
+function updateSelectedCount() {
+    const count = document.querySelectorAll('.product-checkbox:checked').length;
+    document.getElementById('selected-count').textContent = count;
+    document.getElementById('restore-btn').disabled = count === 0;
+}
+
+document.querySelectorAll('.product-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', updateSelectedCount);
+});
+updateSelectedCount();
+</script>
+{% endblock %}

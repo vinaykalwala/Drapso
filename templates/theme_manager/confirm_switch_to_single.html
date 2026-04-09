@@ -1,0 +1,80 @@
+
+
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow">
+        <div class="card-header bg-warning">
+            <h2 class="mb-0">⚠️ Switch to Single Product Theme</h2>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <strong>Current Status:</strong> You have {{ product_count }} active product(s).
+            </div>
+            
+            <div class="alert alert-warning">
+                <h5>What will happen?</h5>
+                <ul>
+                    <li>✅ <strong>1 product</strong> will remain active</li>
+                    <li>📦 <strong>{{ will_archive }} products</strong> will be archived</li>
+                    <li>🔄 Archived products can be restored when switching back to Multiple Theme</li>
+                    <li>📝 All product data (including published/draft status) is preserved</li>
+                </ul>
+            </div>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <h4>Select which product to keep:</h4>
+                <div class="row mt-3">
+                    {% for product in products %}
+                    <div class="col-md-6 mb-3">
+                        <label class="product-card">
+                            <input type="radio" name="keep_product_id" value="{{ product.id }}" 
+                                   {% if forloop.first %}checked{% endif %} class="d-none">
+                            <div class="card h-100 {% if forloop.first %}border-primary{% endif %}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ product.name }}</h5>
+                                    <p class="card-text">
+                                        <strong>Price:</strong> ₹{{ product.selling_price }}<br>
+                                        <strong>Stock:</strong> {{ product.stock }} units<br>
+                                        <strong>Status:</strong> 
+                                        {% if product.is_published %}
+                                            <span class="badge bg-success">Published</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Draft</span>
+                                        {% endif %}
+                                        {% if product.is_featured %}
+                                            <span class="badge bg-warning">Featured</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-4 d-flex justify-content-between">
+                    <a href="{% url 'resellers:store_dashboard' store.id %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-warning btn-lg">Confirm Switch to Single Theme</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.product-card {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+input[type="radio"]:checked + .product-card .card {
+    border: 2px solid #ffc107;
+    background-color: #fffbf0;
+}
+</style>
+{% endblock %}

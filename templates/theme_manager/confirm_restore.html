@@ -1,0 +1,64 @@
+
+
+{% block content %}
+<div class="container py-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Confirm Restoration</h3>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <strong>⚠️ You are about to restore {{ products_to_restore|length }} product(s)</strong>
+                <br>Available slots: {{ capacity.available_slots }}
+            </div>
+            
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Current Status</th>
+                        <th>Will Restore As</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products_to_restore %}
+                    <tr>
+                        <td>{{ product.name }}</td>
+                        <td>₹{{ product.price }}</td>
+                        <td>
+                            <span class="badge {% if product.is_published %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ product.published_text }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {% if product.is_published %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ product.published_text }}
+                            </span>
+                            <small class="text-muted">(unchanged)</small>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="alert alert-info">
+                <strong>📌 Note:</strong> Products will be restored with their original published/draft status preserved.
+            </div>
+            
+            <form method="POST">
+                {% csrf_token %}
+                {% for product_id in product_ids %}
+                <input type="hidden" name="restore_ids" value="{{ product_id }}">
+                {% endfor %}
+                <input type="hidden" name="confirm" value="yes">
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'theme_manager:archived_products_list' store.id %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Confirm Restoration</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
