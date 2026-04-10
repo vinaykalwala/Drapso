@@ -1,92 +1,896 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Switch to Multiple Products Theme - {{ store.store_name }}{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="card shadow">
-        <div class="card-header bg-success text-white">
-            <h2 class="mb-0">🔄 Switch to Multiple Products Theme</h2>
+<style>
+/* ============================================
+   ✨ SWITCH TO MULTIPLE PRODUCTS THEME ✨
+   Orange Theme | Professional E-commerce
+   ============================================ */
+
+:root {
+    --orange: #f97316;
+    --orange-dark: #ea580c;
+    --orange-light: #fed7aa;
+    --orange-soft: #fff7ed;
+    --blue: #3b82f6;
+    --blue-light: #dbeafe;
+    --success: #10b981;
+    --success-dark: #059669;
+    --warning: #f59e0b;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-2xl: 24px;
+}
+
+/* Main Container */
+.switch-multiple {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+/* Header Card - Orange Theme */
+.switch-multiple__header {
+    background: linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fb923c 100%);
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    padding: 1.8rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+    border-bottom: 3px solid #fed7aa;
+}
+
+.switch-multiple__header::before {
+    content: '🔄';
+    position: absolute;
+    right: -20px;
+    bottom: -20px;
+    font-size: 120px;
+    opacity: 0.1;
+    color: white;
+    font-weight: 800;
+}
+
+.switch-multiple__header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.switch-multiple__title-section {
+    position: relative;
+    z-index: 1;
+}
+
+.switch-multiple__title {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.switch-multiple__subtitle {
+    color: rgba(255,255,255,0.95);
+    font-size: 0.9rem;
+}
+
+.switch-multiple__back-btn {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    color: white;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--radius-lg);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.3);
+    position: relative;
+    z-index: 1;
+}
+
+.switch-multiple__back-btn:hover {
+    background: rgba(255,255,255,0.3);
+    gap: 0.75rem;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* White Content Card */
+.switch-multiple__content {
+    background: white;
+    border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+    padding: 2rem;
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--gray-200);
+    border-top: none;
+}
+
+/* Search Bar */
+.switch-multiple__search {
+    margin-bottom: 1.5rem;
+}
+
+.search-container {
+    position: relative;
+    max-width: 400px;
+}
+
+.search-container i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-400);
+    font-size: 1rem;
+    pointer-events: none;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.8rem 1rem 0.8rem 2.5rem;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.search-input:focus {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(249,115,22,0.1);
+}
+
+.search-results-count {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    margin-top: 0.5rem;
+}
+
+/* Stats Grid */
+.switch-multiple__stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: 1.25rem;
+    border: 1px solid var(--gray-200);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-card--info {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-left: 4px solid var(--blue);
+}
+
+.stat-card--orange {
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    border-left: 4px solid var(--orange);
+}
+
+.stat-card__label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card__value {
+    font-size: 2rem;
+    font-weight: 800;
+}
+
+.stat-card--info .stat-card__value {
+    color: var(--blue);
+}
+
+.stat-card--orange .stat-card__value {
+    color: var(--orange);
+}
+
+.stat-card__unit {
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--gray-500);
+}
+
+.switch-multiple__success {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+.switch-multiple__success::before {
+    content: '✨';
+    position: absolute;
+    right: -20px;
+    bottom: -20px;
+    font-size: 80px;
+    opacity: 0.1;
+}
+
+.success-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.success-title i {
+    font-size: 1.3rem;
+    color: #4568d8;
+}
+
+.success-title h5 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #4568d8;
+    margin: 0;
+}
+
+.success-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 items per row */
+    gap: 0.75rem;
+}
+@media (max-width: 768px) {
+    .success-list {
+        grid-template-columns: 1fr;
+    }
+}
+.success-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    background: rgba(255,255,255,0.6);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    color:#4568d8;
+}
+
+.success-list li i {
+    font-size: 1rem;
+}
+
+.success-list li i.fa-box {
+    color: var(--orange);
+}
+
+/* Section Title */
+.section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin: 1.5rem 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--gray-200);
+}
+
+.section-title i {
+    color: var(--orange);
+}
+
+.section-title span {
+    font-size: 0.7rem;
+    font-weight: normal;
+    margin-left: auto;
+    background: var(--gray-100);
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+}
+
+/* Table Styles */
+.archived-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.archived-table thead {
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+}
+
+.archived-table th {
+    padding: 0.9rem 1rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--orange-dark);
+    text-align: left;
+    border-bottom: 2px solid var(--orange-light);
+}
+
+.archived-table td {
+    padding: 0.9rem 1rem;
+    font-size: 0.85rem;
+    color: var(--gray-700);
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: middle;
+}
+
+.archived-table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.archived-table tbody tr:hover {
+    background: var(--gray-50);
+}
+
+/* Product Image in Table */
+.product-image-cell {
+    width: 60px;
+}
+
+.product-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+}
+
+.product-thumb-placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--orange);
+    font-size: 1.2rem;
+    border: 1px solid var(--orange-light);
+}
+
+.product-name-cell {
+    font-weight: 600;
+    color: var(--gray-800);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.product-name-cell i {
+    color: var(--orange);
+    font-size: 0.8rem;
+}
+
+.price-cell {
+    font-weight: 700;
+    color: var(--gray-800);
+}
+
+/* Badges */
+.badge-custom {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.badge-published {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+}
+
+.badge-draft {
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    color: #4b5563;
+}
+
+/* More products text */
+.more-products {
+    margin-top: 0.75rem;
+    padding: 0.5rem;
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--gray-500);
+}
+
+.more-products i {
+    margin-right: 0.25rem;
+    color: var(--orange);
+}
+
+/* Hidden class for search */
+.archived-row.hidden {
+    display: none;
+}
+
+/* No results */
+.no-results {
+    text-align: center;
+    padding: 3rem;
+    background: var(--gray-50);
+    border-radius: var(--radius-xl);
+}
+
+.no-results i {
+    font-size: 3rem;
+    color: var(--gray-400);
+    margin-bottom: 1rem;
+}
+
+.no-results p {
+    color: var(--gray-500);
+    font-size: 0.9rem;
+}
+
+/* Action Buttons */
+.switch-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--gray-200);
+}
+
+.btn-cancel {
+    background: white;
+    color: var(--gray-700);
+    border: 1px solid var(--gray-300);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
+    transform: translateY(-1px);
+}
+
+.btn-confirm {
+    background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dark) 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-lg);
+    font-weight: 700;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(249,115,22,0.3);
+}
+
+.btn-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(249,115,22,0.4);
+}
+
+.btn-confirm:active {
+    transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+    .content {
+        margin-top: 70px;
+    }
+    
+    .switch-multiple {
+        margin: 1rem auto;
+        padding: 0 1rem;
+    }
+    
+    .switch-multiple__header {
+        padding: 1.5rem;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .switch-multiple__title {
+        font-size: 1.5rem;
+    }
+    
+    .switch-multiple__content {
+        padding: 1.5rem;
+    }
+    
+    .switch-multiple__stats {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .success-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .switch-actions {
+        flex-direction: column;
+    }
+    
+    .btn-cancel, .btn-confirm {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .archived-table thead {
+        display: none;
+    }
+    
+    .archived-table tr {
+        display: block;
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+    }
+    
+    .archived-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: none;
+        padding: 0.5rem 0;
+    }
+    
+    .archived-table td:before {
+        content: attr(data-label);
+        font-weight: 700;
+        font-size: 0.7rem;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .product-image-cell {
+        width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .switch-multiple {
+        margin: 0.5rem auto;
+        padding: 0 0.75rem;
+    }
+    
+    .switch-multiple__header {
+        padding: 1.25rem;
+    }
+    
+    .switch-multiple__title {
+        font-size: 1.2rem;
+    }
+    
+    .switch-multiple__content {
+        padding: 1rem;
+    }
+    
+    .stat-card__value {
+        font-size: 1.5rem;
+    }
+    
+    .product-thumb, .product-thumb-placeholder {
+        width: 40px;
+        height: 40px;
+    }
+}
+</style>
+
+<div class="content">
+<div class="switch-multiple">
+
+    <!-- Header - Orange Theme -->
+    <div class="switch-multiple__header">
+        <div class="switch-multiple__title-section">
+            <h1 class="switch-multiple__title">
+                <i class="fas fa-layer-group"></i> Switch to Multiple Products Theme
+            </h1>
+            <p class="switch-multiple__subtitle">Enable multi-product layout for your store</p>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="alert alert-info">
-                        <strong>Current Status:</strong><br>
-                        Active Products: {{ current_active }}<br>
-                        Plan Limit: {{ plan_limit }}<br>
-                        Available Slots: {{ available_slots }}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="alert {% if archived_count > 0 %}alert-warning{% else %}alert-secondary{% endif %}">
-                        <strong>Archived Products:</strong><br>
-                        You have {{ archived_count }} archived product(s)
-                        {% if archived_count > 0 %}
-                            <br>They can be restored when switching
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            
-            {% if archived_count > 0 %}
-            <div class="alert alert-success">
-                <h5>✨ What will happen?</h5>
-                <ul>
-                    <li>📦 Archived products will be restored (up to {{ available_slots }} slots)</li>
-                    <li>✅ Products keep their original published/draft status</li>
-                    <li>📝 All product data (price, stock, images) is preserved</li>
-                    <li>🆕 You can add more products up to your plan limit</li>
-                </ul>
-            </div>
-            
-            {% if archived_products %}
-            <h4>Recently Archived Products:</h4>
-            <div class="table-responsive">
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Product Name</th>
-                            <th>Price</th>
-                            <th>Status</th>
-                            <th>Archived Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for record in archived_products %}
-                        <tr>
-                            <td>{{ record.product.name }}</td>
-                            <td>₹{{ record.product.selling_price }}</td>
-                            <td>
-                                {% if record.product.is_published %}
-                                    <span class="badge bg-success">Published</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">Draft</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ record.archived_at|date:"M d, Y" }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% if archived_count > 10 %}
-                <p class="text-muted">And {{ archived_count|add:"-10" }} more...</p>
-                {% endif %}
-            </div>
-            {% endif %}
-            {% endif %}
-            
-            <form method="POST">
-                {% csrf_token %}
-                <div class="mt-4 d-flex justify-content-between">
-                    <a href="{% url 'resellers:store_dashboard' store.id %}" class="btn btn-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-success btn-lg">
-                        {% if archived_count > 0 %}
-                            Confirm Switch & Restore Products
-                        {% else %}
-                            Confirm Switch to Multiple Theme
-                        {% endif %}
-                    </button>
-                </div>
-            </form>
-        </div>
+        <a href="{% url 'resellers:store_dashboard' store.id %}" class="switch-multiple__back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
     </div>
+
+    <!-- White Content Card -->
+    <div class="switch-multiple__content">
+
+        <!-- Stats Grid -->
+        <div class="switch-multiple__stats">
+            <div class="stat-card stat-card--info">
+                <div class="stat-card__label">
+                    <i class="fas fa-chart-line"></i> Current Status
+                </div>
+                <div class="stat-card__value">
+                    {{ current_active }} <span class="stat-card__unit">/ {{ plan_limit }} active</span>
+                </div>
+                <div class="stat-card__label" style="margin-top: 0.5rem;">
+                    Available Slots: <strong>{{ available_slots }}</strong>
+                </div>
+            </div>
+            <div class="stat-card stat-card--orange">
+                <div class="stat-card__label">
+                    <i class="fas fa-archive"></i> Archived Products
+                </div>
+                <div class="stat-card__value">
+                    {{ archived_count }}
+                </div>
+                <div class="stat-card__label" style="margin-top: 0.5rem;">
+                    {% if archived_count > 0 %}
+                        Ready to restore
+                    {% else %}
+                        No archived products
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- What Will Happen Section -->
+        {% if archived_count > 0 %}
+        <div class="switch-multiple__success">
+            <div class="success-title">
+                <i class="fas fa-sparkles"></i>
+                <h5>✨ What will happen when you switch?</h5>
+            </div>
+            <ul class="success-list">
+                <li><i class="fas fa-box-open"></i> Archived products will be restored (up to {{ available_slots }} slots)</li>
+                <li><i class="fas fa-check-circle"></i> Products keep their original published/draft status</li>
+                <li><i class="fas fa-database"></i> All product data (price, stock, images) is preserved</li>
+                <li><i class="fas fa-plus-circle"></i> You can add more products up to your plan limit</li>
+            </ul>
+        </div>
+
+        <!-- Archived Products Section with Search -->
+        <div class="section-title">
+            <i class="fas fa-history"></i>
+            Archived Products
+            <span><i class="fas fa-box"></i> Total: {{ archived_count }}</span>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="switch-multiple__search">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="archiveSearch" class="search-input" placeholder="Search archived products...">
+            </div>
+            <div class="search-results-count" id="searchResultsCount">
+                Showing all {{ archived_products|length }} archived products
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="archived-table" id="archivedTable">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Product Name</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Archived Date</th>
+                    </tr>
+                </thead>
+                <tbody id="archivedTableBody">
+                    {% for record in archived_products %}
+                    <tr class="archived-row" data-product-name="{{ record.product.name|lower }}">
+                        <td data-label="Image" class="product-image-cell">
+                            {% if record.product.main_image %}
+                                <img src="{{ record.product.main_image.url }}" alt="{{ record.product.name }}" class="product-thumb">
+                            {% elif record.product.source_product and record.product.source_product.main_image %}
+                                <img src="{{ record.product.source_product.main_image.url }}" alt="{{ record.product.name }}" class="product-thumb">
+                            {% else %}
+                                <div class="product-thumb-placeholder">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td data-label="Product Name">
+                            <div class="product-name-cell">
+                                <i class="fas fa-tag"></i>
+                                {{ record.product.name }}
+                            </div>
+                        </td>
+                        <td data-label="Price" class="price-cell">
+                            ₹{{ record.product.selling_price }}
+                        </td>
+                        <td data-label="Status">
+                            {% if record.product.is_published %}
+                                <span class="badge-custom badge-published">
+                                    <i class="fas fa-check-circle"></i> Published
+                                </span>
+                            {% else %}
+                                <span class="badge-custom badge-draft">
+                                    <i class="fas fa-clock"></i> Draft
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td data-label="Archived Date">
+                            <i class="far fa-calendar-alt" style="color: var(--gray-400); margin-right: 0.25rem;"></i>
+                            {{ record.archived_at|date:"M d, Y" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div id="noResultsMessage" class="no-results" style="display: none;">
+                <i class="fas fa-box-open"></i>
+                <p>No archived products found matching your search.</p>
+            </div>
+            {% if archived_count > 10 %}
+            <div class="more-products">
+                <i class="fas fa-ellipsis-h"></i> And {{ archived_count|add:"-10" }} more products...
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <!-- No Archived Products Message -->
+        <div class="switch-multiple__success" style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border-color: var(--orange-light);">
+            <div class="success-title">
+                <i class="fas fa-info-circle" style="color: var(--orange);"></i>
+                <h5 style="color: var(--orange-dark);">No Archived Products</h5>
+            </div>
+            <ul class="success-list">
+                <li><i class="fas fa-plus-circle"></i> You can add new products directly</li>
+                <li><i class="fas fa-box"></i> Products will appear in multi-product layout</li>
+                <li><i class="fas fa-chart-line"></i> Up to {{ plan_limit }} products allowed</li>
+                <li><i class="fas fa-palette"></i> Full grid/listing display for products</li>
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <form method="POST">
+            {% csrf_token %}
+            <div class="switch-actions">
+                <a href="{% url 'resellers:store_dashboard' store.id %}" class="btn-cancel">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn-confirm" onclick="return confirmSwitch()">
+                    <i class="fas fa-check-circle"></i>
+                    {% if archived_count > 0 %}
+                        Confirm Switch & Restore Products
+                    {% else %}
+                        Confirm Switch to Multiple Theme
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+
+    </div>
+
 </div>
+</div>
+
+<script>
+// Search functionality for archived products
+const searchInput = document.getElementById('archiveSearch');
+const archivedRows = document.querySelectorAll('.archived-row');
+const noResultsMessage = document.getElementById('noResultsMessage');
+const archivedTable = document.getElementById('archivedTable');
+const searchResultsCount = document.getElementById('searchResultsCount');
+
+function filterArchivedProducts() {
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    let visibleCount = 0;
+    
+    archivedRows.forEach(row => {
+        const productName = row.getAttribute('data-product-name');
+        if (productName.includes(searchTerm) || searchTerm === '') {
+            row.classList.remove('hidden');
+            visibleCount++;
+        } else {
+            row.classList.add('hidden');
+        }
+    });
+    
+    // Update results count
+    const totalProducts = archivedRows.length;
+    searchResultsCount.textContent = `Showing ${visibleCount} of ${totalProducts} archived products`;
+    
+    // Show/hide no results message
+    if (visibleCount === 0 && searchTerm !== '') {
+        noResultsMessage.style.display = 'block';
+        if (archivedTable) archivedTable.style.display = 'none';
+    } else {
+        noResultsMessage.style.display = 'none';
+        if (archivedTable) archivedTable.style.display = 'table';
+    }
+}
+
+// Event listener for search input
+if (searchInput) {
+    searchInput.addEventListener('input', filterArchivedProducts);
+}
+
+function confirmSwitch() {
+    let archivedCount = {{ archived_count }};
+    let availableSlots = {{ available_slots }};
+    
+    if (archivedCount > 0) {
+        return confirm(`✨ Switch to Multiple Products Theme?\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📦 Archived Products: ${archivedCount}\n📁 Available Slots: ${availableSlots}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n✅ Products will be restored (up to available slots)\n📝 All product data preserved\n🎨 Store will display in multi-product grid\n\nClick OK to confirm or Cancel to go back.`);
+    } else {
+        return confirm(`✨ Switch to Multiple Products Theme?\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n✅ Store will display products in grid layout\n📁 Up to {{ plan_limit }} products allowed\n🎨 Professional multi-product view\n\nClick OK to confirm or Cancel to go back.`);
+    }
+}
+</script>
+
 {% endblock %}
