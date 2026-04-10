@@ -22,6 +22,9 @@ urlpatterns = [
     path('store/<int:store_id>/', views.store_dashboard, name='store_dashboard'),
     path('store/<int:store_id>/preview/', views.preview_store, name='preview_store'),
     path('store/<int:store_id>/copy-link/', views.copy_store_link, name='copy_store_link'),
+   
+
+    path('store/<int:store_id>/edit/', views.edit_store, name='edit_store'),    
     
     # Admin Plan CRUD
     path('admin/plans/', views.plan_list, name='plan_list'),

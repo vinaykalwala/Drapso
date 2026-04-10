@@ -124,6 +124,44 @@ def create_store_step1(request):
     }
     return render(request, 'resellers/create_store.html', context)
 
+# views.py
+
+from django.shortcuts import get_object_or_404, render, redirect
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+
+from .models import Store
+from .forms import StoreEditForm
+
+
+@login_required
+@user_passes_test(is_reseller)
+def edit_store(request, store_id):
+    store = get_object_or_404(Store, id=store_id, reseller=request.user)
+
+    if request.method == 'POST':
+        form = StoreEditForm(request.POST, request.FILES, instance=store)
+
+        if form.is_valid():
+            form.save()
+
+            messages.success(request, "✅ Store updated successfully!")
+            return redirect('resellers:store_dashboard', store_id=store.id)
+
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+
+    else:
+        # 🔥 THIS loads previous data automatically
+        form = StoreEditForm(instance=store)
+
+    return render(request, 'resellers/edit_store.html', {
+        'form': form,
+        'store': store
+    })
+    
 @login_required
 @user_passes_test(is_reseller)
 def select_plan(request):

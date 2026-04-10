@@ -1,0 +1,65 @@
+
+{% block content %}
+
+<div class="container py-4">
+    <h3>✏️ Edit Store</h3>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label>Store Name</label>
+            {{ form.store_name }}
+        </div>
+
+        <div class="mb-3">
+            <label>Description</label>
+            {{ form.store_description }}
+        </div>
+
+        <div class="mb-3">
+            <label>Email</label>
+            {{ form.contact_email }}
+        </div>
+
+        <div class="mb-3">
+            <label>Phone</label>
+            {{ form.contact_phone }}
+        </div>
+
+        <div class="mb-3">
+            <label>Address</label>
+            {{ form.store_address }}
+        </div>
+
+        <div class="mb-3">
+            <label>Logo</label>
+            {{ form.store_logo }}
+
+            {% if store.store_logo %}
+                <div class="mt-2">
+                    <img src="{{ store.store_logo.url }}" height="60">
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label>Banner</label>
+            {{ form.store_banner }}
+
+            {% if store.store_banner %}
+                <div class="mt-2">
+                    <img src="{{ store.store_banner.url }}" height="100">
+                </div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update Store</button>
+
+        <a href="{% url 'resellers:store_dashboard' store.id %}" class="btn btn-secondary">
+            Cancel
+        </a>
+    </form>
+</div>
+
+{% endblock %}
