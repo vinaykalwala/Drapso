@@ -1,128 +1,907 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Create Product</title>
+{% extends "dashboard_base.html" %}
+{% load static %}
 
-    <style>
-        body { font-family: Arial; padding: 20px; }
-        .box { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 6px; }
-        .variant-box { border: 1px dashed #aaa; padding: 10px; margin-top: 10px; }
-        button { margin-top: 10px; }
-    </style>
+{% block content %}
+<div class="content">
+<style>
+    /* ============================================
+       PREMIUM PRODUCT FORM DESIGN
+       With Searchable Dropdowns
+       ============================================ */
 
-</head>
-<body>
+    /* CSS Variables */
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --primary-light: #eef2ff;
+        --success: #10b981;
+        --success-light: #d1fae5;
+        --danger: #ef4444;
+        --danger-light: #fee2e2;
+        --warning: #f59e0b;
+        --warning-light: #fef3c7;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        --radius: 12px;
+        --radius-lg: 16px;
+    }
 
-<h2>Create Product</h2>
+    /* Main Container */
+    .product-create-wrapper {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
 
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
+    /* Page Header */
+    .product-create-header {
+        margin-bottom: 28px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid var(--gray-200);
+    }
 
-    <!-- ================= PRODUCT ================= -->
-    <div class="box">
-        <h3>Product Info</h3>
+    .product-create-header h2 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
 
+    .product-create-header h2 i {
+        color: var(--primary);
+    }
+
+    /* Modern Box Cards */
+    .product-box-modern {
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        margin-bottom: 28px;
+        overflow: hidden;
+        border: 1px solid var(--gray-200);
+        transition: box-shadow 0.3s ease;
+    }
+
+    .product-box-modern:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Colored Card Header */
+    .product-box-header {
+        padding: 18px 24px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        border-bottom: none;
+    }
+
+    .product-box-header h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: white;
+    }
+
+    .product-box-header h3 i {
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    .product-box-body {
+        padding: 24px;
+    }
+
+    /* Django Form Styling - Equal Height Fields */
+    .product-box-body p {
+        margin-bottom: 20px;
+    }
+
+    .product-box-body label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 8px;
+    }
+
+    .product-box-body label i {
+        margin-right: 6px;
+        color: var(--primary);
+    }
+
+    .product-box-body input,
+    .product-box-body select,
+    .product-box-body textarea {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--gray-300);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        background: #f8fafc;
+        font-family: inherit;
+        height: 44px;
+        box-sizing: border-box;
+    }
+
+    /* Searchable Select Styles */
+    .searchable-select {
+        position: relative;
+        width: 100%;
+    }
+
+    .searchable-select-input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--gray-300);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        background: #f8fafc;
+        cursor: pointer;
+        height: 44px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .searchable-select-input:hover {
+        border-color: var(--primary);
+    }
+
+    .searchable-select-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid var(--gray-300);
+        border-radius: 10px;
+        margin-top: 4px;
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        display: none;
+        max-height: 250px;
+        overflow: hidden;
+    }
+
+    .searchable-select-dropdown.show {
+        display: block;
+    }
+
+    .searchable-select-search {
+        padding: 10px;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .searchable-select-search input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+        font-size: 0.85rem;
+    }
+
+    .searchable-select-options {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .searchable-select-option {
+        padding: 10px 14px;
+        cursor: pointer;
+        transition: background 0.2s;
+        font-size: 0.85rem;
+    }
+
+    .searchable-select-option:hover {
+        background: var(--primary-light);
+    }
+
+    .searchable-select-option.selected {
+        background: var(--primary);
+        color: white;
+    }
+
+    .product-box-body textarea {
+        height: auto;
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .product-box-body input:focus,
+    .product-box-body select:focus,
+    .product-box-body textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-light);
+        background: white;
+    }
+
+    .product-box-body input[type="checkbox"],
+    .product-box-body input[type="radio"] {
+        width: auto;
+        height: auto;
+        margin-right: 8px;
+    }
+
+    .product-box-body .helptext {
+        font-size: 0.7rem;
+        color: var(--gray-500);
+        margin-top: 5px;
+        display: block;
+    }
+
+    .product-box-body .errorlist {
+        color: var(--danger);
+        font-size: 0.75rem;
+        list-style: none;
+        padding: 0;
+        margin: 5px 0 0 0;
+    }
+
+    /* Grid Layout for Form Fields */
+    .form-fields-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .form-fields-grid p {
+        margin: 0;
+    }
+
+    .form-fields-grid .full-width-field {
+        grid-column: span 2;
+    }
+
+    /* Image Formset Items */
+    .image-items-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .image-item-modern {
+        background: var(--gray-50);
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        padding: 16px;
+        position: relative;
+        transition: all 0.2s;
+    }
+
+    .image-item-modern:hover {
+        border-color: var(--primary);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .image-item-modern p {
+        margin: 0;
+    }
+
+    .image-item-modern label {
+        font-size: 0.75rem;
+        margin-bottom: 6px;
+    }
+
+    .image-preview-modern {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border: 1px solid var(--gray-200);
+    }
+
+    .btn-remove-image {
+        background: var(--danger-light);
+        color: var(--danger);
+        border: none;
+        border-radius: 8px;
+        padding: 5px 12px;
+        cursor: pointer;
+        font-size: 0.7rem;
+        margin-top: 10px;
+        width: 100%;
+        transition: all 0.2s;
+    }
+
+    .btn-remove-image:hover {
+        background: var(--danger);
+        color: white;
+    }
+
+    /* Variant Box Styling */
+    .variant-box-modern {
+        background: var(--gray-50);
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.2s;
+    }
+
+    .variant-box-modern:hover {
+        border-color: var(--primary);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .variant-header-modern {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .variant-title-modern {
+        font-weight: 600;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-remove-variant {
+        background: var(--danger-light);
+        color: var(--danger);
+        border: none;
+        border-radius: 8px;
+        padding: 4px 12px;
+        cursor: pointer;
+        font-size: 0.7rem;
+        transition: all 0.2s;
+    }
+
+    .btn-remove-variant:hover {
+        background: var(--danger);
+        color: white;
+    }
+
+    .variant-box-modern p {
+        margin-bottom: 14px;
+    }
+
+    .variant-box-modern label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .variant-box-modern input,
+    .variant-box-modern select {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+        font-size: 0.85rem;
+        height: 40px;
+        box-sizing: border-box;
+    }
+
+    .variant-images-modern {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px dashed var(--gray-300);
+    }
+
+    .variant-images-grid-modern {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .variant-image-item-modern {
+        position: relative;
+        display: inline-block;
+    }
+
+    .variant-image-item-modern img {
+        width: 70px;
+        height: 70px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid var(--gray-200);
+    }
+
+    .btn-remove-variant-image {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: var(--danger);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        font-size: 0.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Buttons */
+    .btn-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 20px;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+    .btn-primary-modern {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary-modern:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-outline-modern {
+        background: transparent;
+        border: 1px solid var(--gray-300);
+        color: var(--gray-700);
+    }
+
+    .btn-outline-modern:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: var(--primary-light);
+    }
+
+    .btn-success-modern {
+        background: var(--success);
+        color: white;
+    }
+
+    .btn-success-modern:hover {
+        background: #059669;
+        transform: translateY(-1px);
+    }
+
+    .add-btn-modern {
+        margin-top: 10px;
+    }
+
+    /* Submit Section */
+    .submit-section-modern {
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-200);
+        padding: 20px 24px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 16px;
+        margin-top: 28px;
+    }
+
+    .btn-submit-modern {
+        padding: 12px 32px;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+       /* Responsive */
+    @media (max-width: 900px) {
+        .content {
+            padding-top: 20px;
+        }
+    }
+    /* Responsive */
+    @media (max-width: 768px) {
+        .product-create-wrapper {
+            padding: 16px;
+        }
         
+        .product-create-header h2 {
+            font-size: 1.4rem;
+        }
+        
+        .product-box-header {
+            padding: 14px 20px;
+        }
+        
+        .product-box-body {
+            padding: 20px;
+        }
+        
+        .form-fields-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        
+        .form-fields-grid .full-width-field {
+            grid-column: span 1;
+        }
+        
+        .submit-section-modern {
+            flex-direction: column;
+        }
+        
+        .submit-section-modern .btn-modern {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .image-items-container {
+            grid-template-columns: 1fr;
+        }
+    }
 
-       {{ product_form.as_p }}
+    @media (max-width: 480px) {
+        .product-create-header h2 {
+            font-size: 1.2rem;
+        }
+        
+        .product-box-header h3 {
+            font-size: 0.95rem;
+        }
+    }
+</style>
+
+<div class="product-create-wrapper">
+    <!-- Header -->
+    <div class="product-create-header">
+        <h2>
+            <i class="fas fa-plus-circle"></i>
+            Create Product
+        </h2>
     </div>
 
-    <!-- ================= PRODUCT IMAGES ================= -->
-    <div class="box">
-        <h3>Product Images</h3>
+    <form method="POST" enctype="multipart/form-data" id="productCreateForm">
+        {% csrf_token %}
 
-        {{ image_formset.management_form }}
-
-        <div id="image-formset"></div>
-
-        <div id="empty-image-form" style="display:none;">
-            {{ image_formset.empty_form.as_p }}
-        </div>
-
-        <button type="button" onclick="addImage()">+ Add Image</button>
-    </div>
-
-    <!-- ================= VARIANTS ================= -->
-    <div class="box">
-        <h3>Variants</h3>
-
-        {{ variant_formset.management_form }}
-
-        <div id="variant-formset"></div>
-
-        <div id="empty-variant-form" style="display:none;">
-            <div class="variant-box" data-index="__prefix__">
-
-                {{ variant_formset.empty_form.as_p }}
-
-                <div class="variant-images"></div>
-
-                <button type="button" onclick="addVariantImage(this)">
-                    + Add Variant Image
-                </button>
-
-                <hr>
+        <!-- ================= PRODUCT INFO ================= -->
+        <div class="product-box-modern">
+            <div class="product-box-header">
+                <h3>
+                    <i class="fas fa-info-circle"></i>
+                    Product Information
+                </h3>
+            </div>
+            <div class="product-box-body">
+                <div class="form-fields-grid">
+                    {{ product_form.as_p }}
+                </div>
             </div>
         </div>
 
-        <button type="button" onclick="addVariant()">+ Add Variant</button>
-    </div>
+        <!-- ================= PRODUCT IMAGES ================= -->
+        <div class="product-box-modern">
+            <div class="product-box-header">
+                <h3>
+                    <i class="fas fa-images"></i>
+                    Product Images
+                </h3>
+            </div>
+            <div class="product-box-body">
+                {{ image_formset.management_form }}
+                <div id="image-formset" class="image-items-container"></div>
+                <div id="empty-image-form" style="display:none;">
+                    <div class="image-item-modern" data-index="__prefix__">
+                        {{ image_formset.empty_form.as_p }}
+                        <button type="button" class="btn-remove-image" onclick="removeImageItem(this)">
+                            <i class="fas fa-trash"></i> Remove Image
+                        </button>
+                    </div>
+                </div>
+                <button type="button" class="btn-modern btn-outline-modern add-btn-modern" onclick="addImage()">
+                    <i class="fas fa-plus"></i> Add Image
+                </button>
+            </div>
+        </div>
 
-    <button type="submit">Save Product</button>
+        <!-- ================= VARIANTS ================= -->
+        <div class="product-box-modern">
+            <div class="product-box-header">
+                <h3>
+                    <i class="fas fa-layer-group"></i>
+                    Variants
+                </h3>
+            </div>
+            <div class="product-box-body">
+                {{ variant_formset.management_form }}
+                <div id="variant-formset"></div>
+                <div id="empty-variant-form" style="display:none;">
+                    <div class="variant-box-modern" data-index="__prefix__">
+                        <div class="variant-header-modern">
+                            <span class="variant-title-modern">
+                                <i class="fas fa-cube"></i>
+                                Variant <span class="variant-number">__prefix__</span>
+                            </span>
+                            <button type="button" class="btn-remove-variant" onclick="removeVariantItem(this)">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                        </div>
+                        {{ variant_formset.empty_form.as_p }}
+                        <div class="variant-images-modern">
+                            <div class="variant-images-grid-modern" id="variant-images-__prefix__"></div>
+                            <button type="button" class="btn-modern btn-outline-modern" style="font-size:0.75rem; padding:5px 12px;" onclick="addVariantImage(this)">
+                                <i class="fas fa-plus"></i> Add Variant Image
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-modern btn-outline-modern add-btn-modern" onclick="addVariant()">
+                    <i class="fas fa-plus"></i> Add Variant
+                </button>
+            </div>
+        </div>
 
-</form>
+        <!-- Submit Button -->
+        <div class="submit-section-modern">
+            <button type="button" class="btn-modern btn-outline-modern" onclick="window.history.back()">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="submit" class="btn-modern btn-success-modern btn-submit-modern">
+                <i class="fas fa-save"></i> Save Product
+            </button>
+        </div>
+    </form>
+</div>
 
 <!-- ================= JAVASCRIPT ================= -->
-
 <script>
-
 const subcategoryUrl = "{% url 'products:load_subcategories' %}";
 
-/* ================= SUBCATEGORY AJAX ================= */
+/* ================= SEARCHABLE DROPDOWN ================= */
+class SearchableSelect {
+    constructor(selectElement) {
+        this.select = selectElement;
+        this.wrapper = null;
+        this.input = null;
+        this.dropdown = null;
+        this.options = [];
+        this.init();
+    }
 
-document.addEventListener("DOMContentLoaded", function () {
+    init() {
+        // Hide original select
+        this.select.style.display = 'none';
+        
+        // Create wrapper
+        this.wrapper = document.createElement('div');
+        this.wrapper.className = 'searchable-select';
+        this.select.parentNode.insertBefore(this.wrapper, this.select);
+        this.wrapper.appendChild(this.select);
+        
+        // Create input
+        this.input = document.createElement('div');
+        this.input.className = 'searchable-select-input';
+        this.input.innerHTML = `<span>${this.getSelectedText()}</span> <i class="fas fa-chevron-down"></i>`;
+        this.wrapper.appendChild(this.input);
+        
+        // Create dropdown
+        this.dropdown = document.createElement('div');
+        this.dropdown.className = 'searchable-select-dropdown';
+        this.wrapper.appendChild(this.dropdown);
+        
+        // Add search input
+        const searchDiv = document.createElement('div');
+        searchDiv.className = 'searchable-select-search';
+        searchDiv.innerHTML = '<input type="text" placeholder="Search...">';
+        this.dropdown.appendChild(searchDiv);
+        
+        // Add options container
+        this.optionsContainer = document.createElement('div');
+        this.optionsContainer.className = 'searchable-select-options';
+        this.dropdown.appendChild(this.optionsContainer);
+        
+        // Populate options
+        this.populateOptions();
+        
+        // Bind events
+        this.bindEvents();
+    }
 
-    const categoryField = document.getElementById("id_category");
-    const subcategoryField = document.getElementById("id_subcategory");
+    getSelectedText() {
+        const selectedOption = this.select.options[this.select.selectedIndex];
+        return selectedOption ? selectedOption.text : 'Select option';
+    }
 
-    subcategoryField.innerHTML = '<option value="">Select Category First</option>';
-    subcategoryField.disabled = true;
+    populateOptions(filter = '') {
+        this.optionsContainer.innerHTML = '';
+        const options = Array.from(this.select.options);
+        
+        options.forEach(option => {
+            if (option.value && option.text.toLowerCase().includes(filter.toLowerCase())) {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'searchable-select-option';
+                if (option.selected) {
+                    optionDiv.classList.add('selected');
+                }
+                optionDiv.textContent = option.text;
+                optionDiv.dataset.value = option.value;
+                optionDiv.onclick = () => this.selectOption(option.value, option.text);
+                this.optionsContainer.appendChild(optionDiv);
+            }
+        });
+    }
 
-    categoryField.addEventListener("change", function () {
-
-        let categoryId = this.value;
-
-        if (!categoryId) {
-            subcategoryField.innerHTML = '<option value="">Select Category First</option>';
-            subcategoryField.disabled = true;
-            return;
+    selectOption(value, text) {
+        this.select.value = value;
+        this.input.innerHTML = `<span>${text}</span> <i class="fas fa-chevron-down"></i>`;
+        this.dropdown.classList.remove('show');
+        
+        // Trigger change event
+        const event = new Event('change', { bubbles: true });
+        this.select.dispatchEvent(event);
+        
+        // If this is category select, trigger subcategory loading
+        if (this.select.id === 'id_category') {
+            const categoryChangeEvent = new Event('change');
+            this.select.dispatchEvent(categoryChangeEvent);
         }
+    }
 
-        fetch(`${subcategoryUrl}?category_id=${categoryId}`)
-            .then(response => response.json())
-            .then(data => {
-
-                subcategoryField.innerHTML = '<option value="">Select Subcategory</option>';
-
-                data.forEach(item => {
-                    let option = document.createElement("option");
-                    option.value = item.id;
-                    option.textContent = item.name;
-                    subcategoryField.appendChild(option);
-                });
-
-                subcategoryField.disabled = false;
+    bindEvents() {
+        this.input.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.dropdown.classList.toggle('show');
+            this.populateOptions();
+            const searchInput = this.dropdown.querySelector('input');
+            if (searchInput) {
+                setTimeout(() => searchInput.focus(), 100);
+            }
+        });
+        
+        const searchInput = this.dropdown.querySelector('input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.populateOptions(e.target.value);
             });
+        }
+        
+        document.addEventListener('click', () => {
+            this.dropdown.classList.remove('show');
+        });
+    }
+}
 
-    });
-
+/* ================= INITIALIZE SEARCHABLE SELECTS ================= */
+document.addEventListener("DOMContentLoaded", function () {
+    // Initialize searchable selects
+    const categorySelect = document.getElementById('id_category');
+    const subcategorySelect = document.getElementById('id_subcategory');
+    
+    if (categorySelect) {
+        new SearchableSelect(categorySelect);
+    }
+    if (subcategorySelect) {
+        new SearchableSelect(subcategorySelect);
+    }
+    
+    // Setup subcategory AJAX
+    setupSubcategoryAjax();
+    
+    // Add image preview to existing forms
+    addImagePreviewToAll();
 });
 
+function setupSubcategoryAjax() {
+    const categoryField = document.getElementById('id_category');
+    const subcategoryField = document.getElementById('id_subcategory');
+
+    if (categoryField && subcategoryField) {
+        // Store original options
+        const originalOptions = Array.from(subcategoryField.options);
+        
+        categoryField.addEventListener('change', function () {
+            let categoryId = this.value;
+
+            if (!categoryId) {
+                // Reset subcategory
+                subcategoryField.innerHTML = '<option value="">Select Category First</option>';
+                subcategoryField.disabled = true;
+                
+                // Update searchable select
+                const wrapper = subcategoryField.closest('.searchable-select');
+                if (wrapper) {
+                    const input = wrapper.querySelector('.searchable-select-input span');
+                    if (input) input.textContent = 'Select Category First';
+                }
+                return;
+            }
+
+            subcategoryField.innerHTML = '<option value="">Loading...</option>';
+            subcategoryField.disabled = true;
+            
+            // Update searchable select display
+            const wrapper = subcategoryField.closest('.searchable-select');
+            if (wrapper) {
+                const input = wrapper.querySelector('.searchable-select-input span');
+                if (input) input.textContent = 'Loading...';
+            }
+
+            fetch(`${subcategoryUrl}?category_id=${categoryId}`)
+                .then(response => response.json())
+                .then(data => {
+                    subcategoryField.innerHTML = '<option value="">Select Subcategory</option>';
+                    data.forEach(item => {
+                        let option = document.createElement("option");
+                        option.value = item.id;
+                        option.textContent = item.name;
+                        subcategoryField.appendChild(option);
+                    });
+                    subcategoryField.disabled = false;
+                    
+                    // Reinitialize searchable select for subcategory
+                    const oldWrapper = subcategoryField.closest('.searchable-select');
+                    if (oldWrapper) {
+                        const newWrapper = document.createElement('div');
+                        newWrapper.className = 'searchable-select';
+                        oldWrapper.parentNode.insertBefore(newWrapper, oldWrapper);
+                        newWrapper.appendChild(subcategoryField);
+                        oldWrapper.remove();
+                        new SearchableSelect(subcategoryField);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    subcategoryField.innerHTML = '<option value="">Error loading</option>';
+                    subcategoryField.disabled = false;
+                });
+        });
+    }
+}
+
+function addImagePreviewToAll() {
+    document.querySelectorAll('.image-item-modern input[type="file"]').forEach(input => {
+        if (!input.hasAttribute('data-preview-added')) {
+            input.setAttribute('data-preview-added', 'true');
+            input.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    const parent = this.closest('.image-item-modern');
+                    let preview = parent.querySelector('.image-preview-modern');
+                    if (!preview) {
+                        preview = document.createElement('img');
+                        preview.className = 'image-preview-modern';
+                        parent.insertBefore(preview, parent.firstChild);
+                    }
+                    reader.onload = function(evt) {
+                        preview.src = evt.target.result;
+                    };
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+        }
+    });
+}
 
 /* ================= PRODUCT IMAGE ================= */
-
 function addImage() {
-
     let total = document.getElementById('id_images-TOTAL_FORMS');
     let index = parseInt(total.value);
 
@@ -133,13 +912,21 @@ function addImage() {
         .insertAdjacentHTML('beforeend', template);
 
     total.value = index + 1;
+    addImagePreviewToAll();
 }
 
+function removeImageItem(button) {
+    const imageItem = button.closest('.image-item-modern');
+    if (imageItem) {
+        imageItem.remove();
+        let total = document.getElementById('id_images-TOTAL_FORMS');
+        let remaining = document.querySelectorAll('#image-formset .image-item-modern').length;
+        total.value = remaining;
+    }
+}
 
 /* ================= VARIANT ================= */
-
 function addVariant() {
-
     let total = document.getElementById('id_variants-TOTAL_FORMS');
     let index = parseInt(total.value);
 
@@ -149,28 +936,112 @@ function addVariant() {
     document.getElementById('variant-formset')
         .insertAdjacentHTML('beforeend', template);
 
+    const newVariant = document.querySelector(`.variant-box-modern[data-index="${index}"]`);
+    if (newVariant) {
+        const numberSpan = newVariant.querySelector('.variant-number');
+        if (numberSpan) numberSpan.textContent = parseInt(index) + 1;
+    }
+
     total.value = index + 1;
 }
 
+function removeVariantItem(button) {
+    const variantBox = button.closest('.variant-box-modern');
+    if (variantBox) {
+        variantBox.remove();
+        let total = document.getElementById('id_variants-TOTAL_FORMS');
+        let remaining = document.querySelectorAll('.variant-box-modern').length;
+        total.value = remaining;
+        
+        document.querySelectorAll('.variant-box-modern').forEach((box, idx) => {
+            box.setAttribute('data-index', idx);
+            const numberSpan = box.querySelector('.variant-number');
+            if (numberSpan) numberSpan.textContent = idx + 1;
+        });
+    }
+}
 
 /* ================= VARIANT IMAGE ================= */
-
 function addVariantImage(button) {
-
-    let variantBox = button.closest('.variant-box');
+    let variantBox = button.closest('.variant-box-modern');
     let index = variantBox.getAttribute('data-index');
-
-    let container = variantBox.querySelector('.variant-images');
+    let container = variantBox.querySelector('.variant-images-grid-modern');
 
     let input = document.createElement('input');
     input.type = 'file';
     input.name = `variant_images_${index}`;
     input.multiple = true;
-
-    container.appendChild(input);
+    input.style.display = 'none';
+    
+    input.addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            const imageWrapper = document.createElement('div');
+            imageWrapper.className = 'variant-image-item-modern';
+            
+            const img = document.createElement('img');
+            const removeBtn = document.createElement('button');
+            removeBtn.innerHTML = '✕';
+            removeBtn.className = 'btn-remove-variant-image';
+            removeBtn.onclick = function() { imageWrapper.remove(); };
+            
+            reader.onload = function(evt) {
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+            
+            imageWrapper.appendChild(img);
+            imageWrapper.appendChild(removeBtn);
+            container.appendChild(imageWrapper);
+        }
+    });
+    
+    input.click();
 }
 
-</script>
+// Form submission loading state
+document.getElementById('productCreateForm')?.addEventListener('submit', function() {
+    const submitBtn = this.querySelector('.btn-submit-modern');
+    if (submitBtn) {
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        submitBtn.disabled = true;
+    }
+});
 
-</body>
-</html>
+// Style form fields on load
+document.addEventListener('DOMContentLoaded', function() {
+    const formFields = document.querySelectorAll('.form-fields-grid > p');
+    formFields.forEach((field) => {
+        if (field.querySelector('textarea')) {
+            field.classList.add('full-width-field');
+        }
+    });
+    
+    const labels = document.querySelectorAll('.product-box-body label');
+    const iconMap = {
+        'name': 'tag',
+        'category': 'folder-open',
+        'subcategory': 'sitemap',
+        'price': 'rupee-sign',
+        'compare': 'chart-line',
+        'sku': 'barcode',
+        'stock': 'boxes',
+        'description': 'align-left'
+    };
+    
+    labels.forEach(label => {
+        const text = label.textContent.toLowerCase();
+        for (let [key, icon] of Object.entries(iconMap)) {
+            if (text.includes(key)) {
+                if (!label.querySelector('i')) {
+                    label.innerHTML = `<i class="fas fa-${icon}"></i> ${label.innerHTML}`;
+                }
+                break;
+            }
+        }
+    });
+});
+</script>
+</div>
+{% endblock %}
