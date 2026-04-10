@@ -9,12 +9,17 @@ class SubdomainMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         host = request.get_host().split(':')[0]
+        path = request.path_info  # Get the request path
 
         request.subdomain = None
         request.current_store = None
         request.is_store_request = False
 
-        # Skip main domain
+        # 🔥 CRITICAL: Skip middleware for static and media files FIRST
+        if path.startswith('/media/') or path.startswith('/static/'):
+            return None
+
+        # Skip main domain (preserved from your original code)
         if host in ['localhost', '127.0.0.1']:
             return None
 
