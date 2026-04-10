@@ -1,34 +1,740 @@
-{% block title %}Store Not Available{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Store Not Available | Coming Soon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ============================================
+           PREMIUM SPLIT LAYOUT - STORE NOT AVAILABLE
+           WORLD-CLASS DESIGN
+           ============================================ */
 
-{% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 text-center">
-            <div class="card shadow">
-                <div class="card-body">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-                    <i class="fas fa-store-slash display-1 text-muted mb-4"></i>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-light: #eef2ff;
+            --secondary: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            --radius: 16px;
+            --radius-lg: 24px;
+        }
 
-                    <h2>Store Not Available</h2>
+        body {
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            overflow-x: hidden;
+        }
 
-                    <p>
-                        The store "<strong>{{ subdomain }}</strong>" is currently not accessible.
-                    </p>
+        /* Main Wrapper */
+        .store-unavailable-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #eef2ff 100%);
+            padding: 40px 24px;
+        }
 
-                    <p class="text-muted">
-                        This may be because:
-                    </p>
+        /* Split Container */
+        .split-container {
+            max-width: 1280px;
+            width: 100%;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-                    <ul class="list-unstyled text-muted mb-4">
-                        <li>• The store does not exist</li>
-                        <li>• The store is not published yet</li>
-                        <li>• The subscription may have expired</li>
-                    </ul>
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-                
+        /* LEFT SIDE - IMAGE SECTION */
+        .image-side {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 40px;
+            min-height: 550px;
+        }
+
+        /* Animated Background for Image Side */
+        .image-bg-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .image-bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 15s infinite ease-in-out;
+        }
+
+        .image-bg-circle-1 {
+            width: 250px;
+            height: 250px;
+            top: -125px;
+            left: -125px;
+        }
+
+        .image-bg-circle-2 {
+            width: 350px;
+            height: 350px;
+            bottom: -175px;
+            right: -175px;
+            animation-delay: 5s;
+        }
+
+        .image-bg-circle-3 {
+            width: 150px;
+            height: 150px;
+            top: 50%;
+            left: 20%;
+            animation-delay: 10s;
+        }
+
+        .image-bg-circle-4 {
+            width: 200px;
+            height: 200px;
+            bottom: 20%;
+            right: 10%;
+            animation-delay: 7s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+            }
+            25% {
+                transform: translateY(-20px) translateX(15px) rotate(5deg);
+            }
+            50% {
+                transform: translateY(15px) translateX(-15px) rotate(-5deg);
+            }
+            75% {
+                transform: translateY(-15px) translateX(-10px) rotate(3deg);
+            }
+        }
+
+        /* Image Content */
+        .image-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: white;
+        }
+
+        .image-illustration {
+            margin-bottom: 30px;
+            animation: bounce 3s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+
+        .image-illustration i {
+            font-size: 200px;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
+        }
+
+        .image-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .image-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        /* Floating Elements */
+        .floating-element {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            animation: floatElement 8s infinite;
+        }
+
+        .floating-1 {
+            top: 10%;
+            left: 5%;
+            animation-delay: 0s;
+        }
+
+        .floating-2 {
+            bottom: 15%;
+            right: 8%;
+            animation-delay: 2s;
+            width: 45px;
+            height: 45px;
+            border-radius: 15px;
+        }
+
+        .floating-3 {
+            top: 20%;
+            right: 15%;
+            animation-delay: 4s;
+            width: 35px;
+            height: 35px;
+            border-radius: 12px;
+        }
+
+        @keyframes floatElement {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(10deg);
+            }
+        }
+
+        /* RIGHT SIDE - CONTENT SECTION */
+        .content-side {
+            padding: 20px 48px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-top: 30px;
+        }
+
+        /* Store Icon */
+        .store-icon-wrapper {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .store-slash-icon {
+            display: inline-flex;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+        }
+
+        .store-slash-icon i {
+            font-size: 40px;
+            color: #dc2626;
+        }
+
+        /* Headings */
+        .content-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 12px;
+            text-align: center;
+            letter-spacing: -0.02em;
+        }
+
+        .subdomain-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 8px 24px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+            text-align: center;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: var(--shadow-md);
+        }
+
+        .message-text {
+            color: var(--gray-600);
+            line-height: 1.6;
+            margin-bottom: 28px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        /* Reasons Grid */
+        .reasons-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .reason-card {
+            background: var(--gray-50);
+            padding: 16px;
+            border-radius: var(--radius);
+            transition: all 0.3s ease;
+            border: 1px solid var(--gray-200);
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .reason-card:hover {
+            transform: translateY(-3px);
+            border-color: #667eea;
+            box-shadow: var(--shadow-md);
+        }
+
+        .reason-icon {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            color: #667eea;
+            font-size: 1.2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .reason-title {
+            font-weight: 700;
+            color: var(--gray-800);
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+
+        .reason-desc {
+            font-size: 0.7rem;
+            color: var(--gray-500);
+            line-height: 1.4;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .btn-store {
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+        }
+
+        .btn-primary-store {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary-store:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary-store {
+            background: white;
+            color: #667eea;
+            border: 2px solid var(--gray-200);
+        }
+
+        .btn-secondary-store:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            background: var(--gray-50);
+        }
+
+        /* Help Section */
+        .help-section {
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            margin-bottom: 12px;
+        }
+
+        .support-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .support-link:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        /* Status Indicators */
+        .status-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .status-dot {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: var(--gray-600);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: blink 1.5s infinite;
+        }
+
+        .dot.green {
+            background: #10b981;
+            animation: none;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 968px) {
+            .split-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .image-side {
+                min-height: 350px;
+                padding: 40px 20px;
+            }
+            
+            .content-side {
+                padding: 40px 32px;
+            }
+            
+            .image-illustration i {
+                font-size: 80px;
+            }
+            
+            .image-title {
+                font-size: 1.4rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .store-unavailable-wrapper {
+                padding: 20px 16px;
+            }
+            
+            .content-side {
+                padding: 32px 24px;
+            }
+            
+            .content-title {
+                font-size: 1.5rem;
+            }
+            
+            .reasons-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn-store {
+                justify-content: center;
+            }
+            
+            .status-indicator {
+                gap: 16px;
+            }
+            
+            .subdomain-badge {
+                font-size: 0.8rem;
+                padding: 6px 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .content-title {
+                font-size: 1.3rem;
+            }
+            
+            .message-text {
+                font-size: 0.9rem;
+            }
+            
+            .image-illustration i {
+                font-size: 60px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--gray-100);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a67d8, #6b46c0);
+        }
+    </style>
+</head>
+<body>
+
+<div class="store-unavailable-wrapper">
+    <div class="split-container">
+        
+        <!-- LEFT SIDE - IMAGE SECTION -->
+        <div class="image-side">
+            <div class="image-bg-animation">
+                <div class="image-bg-circle image-bg-circle-1"></div>
+                <div class="image-bg-circle image-bg-circle-2"></div>
+                <div class="image-bg-circle image-bg-circle-3"></div>
+                <div class="image-bg-circle image-bg-circle-4"></div>
+            </div>
+            
+            <!-- Floating Elements -->
+            <div class="floating-element floating-1"></div>
+            <div class="floating-element floating-2"></div>
+            <div class="floating-element floating-3"></div>
+            
+            <div class="image-content">
+                <div class="image-illustration">
+                    <i class="fas fa-store-slash"></i>
                 </div>
+                <h2 class="image-title">Store Offline</h2>
+                <p class="image-subtitle">
+                    This store is temporarily<br>
+                    unavailable or under maintenance
+                </p>
             </div>
         </div>
+
+        <!-- RIGHT SIDE - CONTENT SECTION -->
+        <div class="content-side">
+            
+            <!-- Icon -->
+            <div class="store-icon-wrapper">
+                <div class="store-slash-icon">
+                    <i class="fas fa-store-slash"></i>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <h1 class="content-title">Store Not Available</h1>
+            
+            <!-- Subdomain Badge - Dynamic -->
+            <!-- <div class="subdomain-badge" id="subdomainDisplay">
+                <i class="fas fa-link"></i> {{ subdomain }}
+            </div> -->
+
+
+            <!-- Message -->
+            <p class="message-text">
+                Oops! The store you're looking for is currently not accessible. 
+                This could be due to several reasons.
+            </p>
+
+            <!-- Reasons Grid -->
+            <div class="reasons-grid">
+                <div class="reason-card">
+                    <div class="reason-icon">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div class="reason-title">Store Doesn't Exist</div>
+                    <div class="reason-desc">The store may have been removed or never created</div>
+                </div>
+                
+                <div class="reason-card">
+                    <div class="reason-icon">
+                        <i class="fas fa-eye-slash"></i>
+                    </div>
+                    <div class="reason-title">Not Published Yet</div>
+                    <div class="reason-desc">The store owner hasn't made it publicly available</div>
+                </div>
+                
+                <div class="reason-card">
+                    <div class="reason-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div class="reason-title">Subscription Expired</div>
+                    <div class="reason-desc">The subscription plan may have ended</div>
+                </div>
+                
+                <div class="reason-card">
+                    <div class="reason-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <div class="reason-title">Under Maintenance</div>
+                    <div class="reason-desc">The store is currently being updated</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+          
+
+            <!-- Help Section -->
+          
+        </div>
+        
     </div>
 </div>
-{% endblock %}
+
+<!-- Script to get subdomain from URL -->
+<script>
+    (function() {
+        // Get subdomain from current URL
+        function getSubdomain() {
+            const hostname = window.location.hostname;
+            const parts = hostname.split('.');
+            
+            // If it's localhost or IP address
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'store';
+            }
+            
+            // Get subdomain (first part)
+            if (parts.length > 2) {
+                return parts[0];
+            }
+            
+            // For demo purposes, show a demo store name
+            return 'mystore';
+        }
+        
+        // Update subdomain display
+        const subdomainElement = document.getElementById('subdomainDisplay');
+        if (subdomainElement) {
+            const subdomain = getSubdomain();
+            subdomainElement.innerHTML = `<i class="fas fa-link"></i> ${subdomain}.example.com`;
+        }
+        
+        // Add floating particles to background
+        const bgAnimation = document.querySelector('.image-bg-animation');
+        if (bgAnimation) {
+            for(let i = 0; i < 40; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.width = (2 + Math.random() * 4) + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.background = 'rgba(255, 255, 255, 0.3)';
+                particle.style.borderRadius = '50%';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animation = `floatElement ${5 + Math.random() * 8}s infinite`;
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                bgAnimation.appendChild(particle);
+            }
+        }
+        
+        // Add click handlers for reason cards
+        const reasonCards = document.querySelectorAll('.reason-card');
+        reasonCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const title = this.querySelector('.reason-title').innerText;
+                console.log('Clicked on:', title);
+                // You can add custom behavior here
+            });
+        });
+    })();
+</script>
+
+</body>
+</html>

@@ -1,121 +1,1025 @@
-<!-- Alternative template with AJAX (if you prefer) -->
+{% extends 'dashboard_base.html' %}
 {% load static %}
 
 {% block title %}Import Product - {{ source_product.name }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-md-8 mx-auto">
+<style>
+    /* ============================================
+       PREMIUM IMPORT PAGE DESIGN
+       MATCHING PRODUCTS PAGE THEME WITH BLUE HEADER
+       ============================================ */
 
-            <div class="card shadow-sm">
+    :root {
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --primary-light: #dbeafe;
+        --primary-bg: #eff6ff;
+        --secondary: #3b82f6;
+        --success: #10b981;
+        --success-light: #d1fae5;
+        --warning: #f59e0b;
+        --warning-light: #fef3c7;
+        --danger: #ef4444;
+        --danger-light: #fee2e2;
+        --info: #06b6d4;
+        --info-light: #cffafe;
+        --gray-50: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-300: #cbd5e1;
+        --gray-400: #94a3b8;
+        --gray-500: #64748b;
+        --gray-600: #475569;
+        --gray-700: #334155;
+        --gray-800: #1e293b;
+        --gray-900: #0f172a;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        --radius: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 20px;
+    }
 
-                <div class="card-header bg-white">
-                    <h4>Import: {{ source_product.name }}</h4>
+    .import-container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px 28px;
+        background: linear-gradient(135deg, var(--gray-50) 0%, #ffffff 100%);
+        min-height: calc(100vh - 60px);
+    }
+
+    /* ========== HEADER WITH BLUE GRADIENT ========== */
+    .import-header {
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+        border-radius: var(--radius-xl);
+        padding: 32px 36px;
+        margin-bottom: 32px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-xl);
+    }
+
+    .import-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 60%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .import-header::after {
+        content: '';
+        position: absolute;
+        bottom: -30px;
+        left: -30px;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .import-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .import-header h1 i {
+        font-size: 2rem;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+
+    .import-subtitle {
+        color: rgba(255,255,255,0.9);
+        font-size: 0.95rem;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .import-subtitle i {
+        font-size: 0.85rem;
+    }
+
+    /* Breadcrumb */
+    .import-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .import-breadcrumb a {
+        color: rgba(255,255,255,0.8);
+        text-decoration: none;
+        font-size: 0.8rem;
+        transition: color 0.2s;
+    }
+
+    .import-breadcrumb a:hover {
+        color: white;
+    }
+
+    .import-breadcrumb span {
+        color: rgba(255,255,255,0.6);
+        font-size: 0.8rem;
+    }
+
+    .import-breadcrumb i {
+        font-size: 0.7rem;
+        color: rgba(255,255,255,0.6);
+    }
+
+    /* Main Card */
+    .import-card {
+        background: white;
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        border: 1px solid var(--gray-200);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .import-card:hover {
+        box-shadow: var(--shadow-xl);
+    }
+
+    /* Card Header - BLUE BACKGROUND */
+    .import-card-header {
+        padding: 24px 32px;
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        border-bottom: none;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .import-card-header-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(255,255,255,0.2);
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+    }
+
+    .import-card-header-icon i {
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .import-card-header h4 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+    }
+
+    .import-card-header p {
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.85);
+        margin: 4px 0 0 0;
+    }
+
+    /* Card Body */
+    .import-card-body {
+        padding: 32px;
+    }
+
+    /* Product Preview Section - Enhanced */
+    .import-preview-section {
+        background: linear-gradient(135deg, var(--gray-50), white);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        margin-bottom: 32px;
+        border: 1px solid var(--gray-200);
+    }
+
+    .import-preview-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: 2px solid var(--primary-light);
+        padding-bottom: 12px;
+    }
+
+    .import-preview-grid {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 28px;
+    }
+
+    @media (max-width: 768px) {
+        .import-preview-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .import-preview-image {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 16px;
+        text-align: center;
+        border: 1px solid var(--gray-200);
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.2s;
+    }
+
+    .import-preview-image:hover {
+        transform: scale(1.02);
+    }
+
+    .import-preview-image img {
+        max-width: 100%;
+        max-height: 160px;
+        object-fit: contain;
+        border-radius: var(--radius);
+    }
+
+    .import-preview-details h5 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin-bottom: 12px;
+    }
+
+    .import-preview-details p {
+        color: var(--gray-600);
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin-bottom: 16px;
+    }
+
+    .import-preview-meta {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+    }
+
+    .import-preview-meta-item {
+        background: white;
+        padding: 8px 16px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        color: var(--gray-700);
+        border: 1px solid var(--gray-200);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .import-preview-meta-item i {
+        color: var(--primary);
+    }
+
+    .import-preview-meta-item strong {
+        color: var(--primary);
+    }
+
+    /* Gallery Section */
+    .import-gallery-section {
+        margin-bottom: 32px;
+    }
+
+    .import-gallery-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        letter-spacing: 0.5px;
+    }
+
+    .import-gallery-grid {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+
+    .import-gallery-thumb {
+        width: 90px;
+        height: 90px;
+        border-radius: var(--radius);
+        object-fit: cover;
+        border: 2px solid var(--gray-200);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        background: white;
+    }
+
+    .import-gallery-thumb:hover {
+        border-color: var(--primary);
+        transform: translateY(-4px) scale(1.05);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Margin Calculator - Enhanced */
+    .import-margin-section {
+        background: linear-gradient(135deg, var(--primary-bg), white);
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        margin-bottom: 32px;
+        border: 1px solid var(--primary-light);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .import-margin-section::before {
+        content: '💰';
+        position: absolute;
+        bottom: 10px;
+        right: 20px;
+        font-size: 80px;
+        opacity: 0.05;
+        pointer-events: none;
+    }
+
+    .import-margin-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--gray-700);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .import-margin-label i {
+        color: var(--primary);
+        font-size: 1rem;
+    }
+
+    .import-margin-label .required {
+        color: var(--danger);
+        font-size: 1rem;
+        margin-left: 4px;
+    }
+
+    .import-margin-input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .import-margin-input {
+        flex: 1;
+        max-width: 300px;
+        padding: 14px 18px;
+        border: 2px solid var(--gray-200);
+        border-radius: var(--radius);
+        font-size: 1rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        background: white;
+    }
+
+    .import-margin-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .import-margin-input.error {
+        border-color: var(--danger);
+        background: var(--danger-light);
+    }
+
+    .import-margin-hint {
+        display: block;
+        margin-top: 8px;
+        color: var(--gray-500);
+        font-size: 0.75rem;
+    }
+
+    .error-message {
+        color: var(--danger);
+        font-size: 0.75rem;
+        margin-top: 6px;
+        display: none;
+    }
+
+    .error-message.show {
+        display: block;
+    }
+
+    /* Price Alert - Enhanced */
+    .import-price-alert {
+        background: white;
+        border-radius: var(--radius);
+        padding: 20px 24px;
+        margin-top: 20px;
+        border-left: 4px solid var(--success);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .import-price-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .import-price-row:last-child {
+        border-bottom: none;
+    }
+
+    .import-price-label {
+        color: var(--gray-600);
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .import-price-value {
+        font-weight: 700;
+        color: var(--gray-800);
+        font-size: 1rem;
+    }
+
+    .import-price-total {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 2px solid var(--gray-200);
+    }
+
+    .import-price-total .import-price-label {
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    .import-price-total .import-price-value {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    /* Variants Section - WITH BLUE CORNERS/BORDERS */
+    .import-variants-section {
+        margin-bottom: 32px;
+    }
+
+    .import-variants-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .import-variants-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        letter-spacing: 0.5px;
+    }
+
+    .import-variants-count {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        padding: 6px 14px;
+        border-radius: 40px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: white;
+    }
+.import-variants-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 variants per row */
+    gap: 16px;
+
+    max-height: 450px;
+    overflow-y: auto;
+    border: 2px solid var(--primary-light);
+    border-radius: var(--radius-lg);
+    background: white;
+    padding: 16px;
+}
+    /* Blue corner accents on variants list */
+    .import-variants-list::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+
+  .import-variant-item {
+    background: white;
+    border-radius: 16px;
+    padding: 18px;
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.08);
+
+    transition: all 0.25s ease;
+    position: relative;
+}
+
+.import-variant-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.18);
+    border-color: var(--primary-light);
+}
+
+    .import-variant-item:first-child {
+        border-top-left-radius: var(--radius-lg);
+        border-top-right-radius: var(--radius-lg);
+    }
+
+    .import-variant-item:last-child {
+        border-bottom: none;
+        border-bottom-left-radius: var(--radius-lg);
+        border-bottom-right-radius: var(--radius-lg);
+    }
+
+    .import-variant-item:hover {
+        background: var(--gray-50);
+    }
+
+    /* Blue accent on left side of each variant */
+    .import-variant-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 10%;
+        width: 3px;
+        height: 80%;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        border-radius: 0 4px 4px 0;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .import-variant-item:hover::before {
+        opacity: 1;
+    }
+
+    .import-variant-grid {
+        display: grid;
+        grid-template-columns: 90px 1fr;
+        gap: 20px;
+    }
+
+    @media (max-width: 640px) {
+        .import-variant-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .import-variant-image {
+        width: 90px;
+        height: 90px;
+        border-radius: var(--radius);
+        object-fit: cover;
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+    }
+
+    .import-variant-image-placeholder {
+        width: 90px;
+        height: 90px;
+        border-radius: var(--radius);
+        background: linear-gradient(135deg, var(--gray-100), var(--gray-200));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--gray-400);
+        font-size: 2rem;
+    }
+    /* BEAUTIFUL VARIANT CARD */
+.import-variant-item {
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    border-radius: 18px;
+    padding: 18px;
+
+    border: 1px solid #e6efff;
+    box-shadow:
+        0 4px 10px rgba(0,0,0,0.04),
+        0 10px 25px rgba(37,99,235,0.08);
+
+    transition: all .25s ease;
+    position: relative;
+}
+
+/* hover animation */
+.import-variant-item:hover {
+    transform: translateY(-6px);
+    box-shadow:
+        0 10px 25px rgba(0,0,0,0.06),
+        0 18px 40px rgba(37,99,235,0.18);
+
+    border: 1px solid #cfe0ff;
+}
+
+/* top accent line */
+.import-variant-item::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+
+    background: linear-gradient(90deg,#2563eb,#60a5fa);
+    border-radius: 18px 18px 0 0;
+}
+    .import-variant-info {
+        flex: 1;
+    }
+    
+ @media (max-width: 768px) {
+    .import-variants-list {
+        grid-template-columns: 1fr;
+    }
+}
+@media (max-width: 900px) {
+   .content{
+        margin-top: 60px;
+    }
+}
+    .import-variant-name {
+        font-weight: 700;
+        color: var(--gray-800);
+        margin-bottom: 10px;
+        font-size: 1rem;
+    }
+
+    .import-variant-prices {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+    }
+
+    .import-variant-original {
+        font-size: 0.85rem;
+        color: var(--gray-500);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .import-variant-your-price {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .import-variant-stock {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Form Actions */
+    .import-form-actions {
+        display: flex;
+        gap: 16px;
+        padding-top: 24px;
+        border-top: 2px solid var(--gray-100);
+        margin-top: 8px;
+    }
+
+    .import-btn {
+        padding: 14px 32px;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border: none;
+        cursor: pointer;
+        letter-spacing: 0.3px;
+    }
+
+    .import-btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        box-shadow: var(--shadow-md);
+    }
+
+    .import-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        filter: brightness(1.05);
+    }
+
+    .import-btn-primary:active {
+        transform: translateY(0);
+    }
+
+    .import-btn-secondary {
+        background: white;
+        color: var(--gray-700);
+        border: 2px solid var(--gray-200);
+    }
+
+    .import-btn-secondary:hover {
+        background: var(--gray-50);
+        border-color: var(--gray-300);
+        transform: translateY(-2px);
+    }
+
+    /* Scrollbar */
+    .import-variants-list::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .import-variants-list::-webkit-scrollbar-track {
+        background: var(--gray-100);
+        border-radius: 10px;
+    }
+
+    .import-variants-list::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 10px;
+    }
+
+    .import-variants-list::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-dark);
+    }
+
+    /* Loading State */
+    .import-btn.loading {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .import-btn.loading i {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .import-container {
+            padding: 16px;
+        }
+        .import-header {
+            padding: 24px 20px;
+        }
+        .import-header h1 {
+            font-size: 1.5rem;
+        }
+        .import-card-body {
+            padding: 20px;
+        }
+        .import-form-actions {
+            flex-direction: column;
+        }
+        .import-btn {
+            justify-content: center;
+        }
+        .import-preview-meta-item {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="content">
+<div class="import-container">
+    
+    <!-- Main Card -->
+    <div class="import-card">
+        <!-- Card Header - NOW WITH BLUE BACKGROUND -->
+        <div class="import-card-header">
+            <div class="import-card-header-icon">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <div>
+                <h4>Product Import Details</h4>
+                <p>Review product information and set your selling price</p>
+            </div>
+        </div>
+
+        <div class="import-card-body">
+            
+            <!-- Product Preview -->
+            <div class="import-preview-section">
+                <div class="import-preview-title">
+                    <i class="fas fa-eye"></i> Product Preview
+                </div>
+                <div class="import-preview-grid">
+                    <div class="import-preview-image">
+                        {% if source_product.main_image %}
+                            <img src="{{ source_product.main_image.url }}" alt="{{ source_product.name }}">
+                        {% else %}
+                            <i class="fas fa-image" style="font-size: 4rem; color: var(--gray-400);"></i>
+                        {% endif %}
+                    </div>
+                    <div class="import-preview-details">
+                        <h5>{{ source_product.name }}</h5>
+                        <p>{{ source_product.description|truncatewords:25|default:"No description available for this product." }}</p>
+                        <div class="import-preview-meta">
+                            <span class="import-preview-meta-item">
+                                <i class="fas fa-tag"></i> <strong>Base Price:</strong> ₹{{ source_product.price }}
+                            </span>
+                            <span class="import-preview-meta-item">
+                                <i class="fas fa-boxes"></i> <strong>Stock:</strong> {{ source_product.stock|default:"Unlimited" }}
+                            </span>
+                            {% if source_product.sku %}
+                            <span class="import-preview-meta-item">
+                                <i class="fas fa-barcode"></i> <strong>SKU:</strong> {{ source_product.sku }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Gallery -->
+            {% if source_product.main_image or source_product.additional_images.exists %}
+            <div class="import-gallery-section">
+                <div class="import-gallery-title">
+                    <i class="fas fa-images"></i> Product Gallery
+                    <span style="font-size: 0.7rem; font-weight: normal;">(Click to enlarge)</span>
+                </div>
+                <div class="import-gallery-grid">
+                    {% if source_product.main_image %}
+                        <img src="{{ source_product.main_image.url }}" class="import-gallery-thumb" alt="Main Image">
+                    {% endif %}
+                    {% for img in source_product.additional_images.all %}
+                        <img src="{{ img.image.url }}" class="import-gallery-thumb" alt="Product Image {{ forloop.counter }}">
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Import Form -->
+            <form method="post" id="importForm" novalidate>
+                {% csrf_token %}
+
+                <!-- Margin Calculator - REQUIRED FIELD -->
+                <div class="import-margin-section">
+                    <label class="import-margin-label">
+                        <i class="fas fa-chart-line"></i> Your Profit Margin 
+                        <span class="required">*</span>
+                    </label>
+                    <div class="import-margin-input-wrapper">
+                        <div style="position: relative; flex: 1; max-width: 300px;">
+                            <input type="number" 
+                                   name="margin_rupees" 
+                                   id="margin_rupees" 
+                                   class="import-margin-input" 
+                                   step="1" 
+                                   value="0"
+                                   required
+                                   placeholder="Enter margin in ₹">
+                        </div>
+                        <span style="color: var(--gray-500); font-weight: 600;">INR</span>
+                    </div>
+                    <small class="import-margin-hint">
+                        <i class="fas fa-info-circle"></i> This is the amount you'll earn per product sold
+                    </small>
+                    <div id="marginError" class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>Margin must be greater than 0
+                    </div>
+
+                    <!-- Price Summary -->
+                    <div class="import-price-alert">
+                        <div class="import-price-row">
+                            <span class="import-price-label">
+                                <i class="fas fa-tag"></i> Source Price:
+                            </span>
+                            <span class="import-price-value">₹{{ source_product.price }}</span>
+                        </div>
+                        <div class="import-price-row">
+                            <span class="import-price-label">
+                                <i class="fas fa-chart-line"></i> Your Margin:
+                            </span>
+                            <span class="import-price-value" id="marginPreview">₹0</span>
+                        </div>
+                        <div class="import-price-row import-price-total">
+                            <span class="import-price-label">
+                                <i class="fas fa-shopping-cart"></i> Your Selling Price:
+                            </span>
+                            <span class="import-price-value" id="sellingPricePreview">₹{{ source_product.price }}</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="card-body">
-
-                    <!-- PRODUCT PREVIEW -->
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            {% if source_product.main_image %}
-                                <img src="{{ source_product.main_image.url }}" class="img-fluid rounded">
-                            {% endif %}
+                <!-- Variants Section - WITH BLUE CORNERS -->
+                {% if source_product.variants.exists %}
+                <div class="import-variants-section">
+                    <div class="import-variants-header">
+                        <div class="import-variants-title">
+                            <i class="fas fa-layer-group"></i> Product Variants
                         </div>
-                        <div class="col-md-8">
-                            <h5>{{ source_product.name }}</h5>
-                            <p>{{ source_product.description|truncatewords:15 }}</p>
-                            <p><strong>Base Price:</strong> ₹{{ source_product.price }}</p>
-                            <p><strong>Stock:</strong> {{ source_product.stock }}</p>
-                        </div>
+                        <span class="import-variants-count">
+                            <i class="fas fa-cubes"></i> {{ source_product.variants.count }} Variants
+                        </span>
                     </div>
-
-                    <!-- PRODUCT GALLERY -->
-                    <div class="mb-4">
-                        <h6>Product Images</h6>
-                        <div class="d-flex flex-wrap gap-2">
-                            {% if source_product.main_image %}
-                                <img src="{{ source_product.main_image.url }}" class="thumb">
-                            {% endif %}
-                            {% for img in source_product.additional_images.all %}
-                                <img src="{{ img.image.url }}" class="thumb">
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    <!-- FORM -->
-                    <form method="post" id="importForm">
-                        {% csrf_token %}
-
-                        <div class="mb-3">
-                            <label>Margin (₹)</label>
-                            <input type="number" name="margin_rupees" id="margin_rupees" class="form-control" step="0.01" value="0">
-                            <small class="text-muted">Enter your profit margin in rupees</small>
-                        </div>
-
-                        <div class="alert alert-success">
-                            <strong>Source Price:</strong> ₹{{ source_product.price }}<br>
-                            <strong>Margin:</strong> ₹<span id="marginPreview">0.00</span>
-                            <hr>
-                            <h5><strong>Your Selling Price:</strong> ₹<span id="sellingPricePreview">{{ source_product.price }}</span></h5>
-                        </div>
-
-                        <!-- VARIANTS -->
-                        <div class="mb-4">
-                            <h5>Variants</h5>
-                            <div style="max-height:400px; overflow-y:auto;">
-                                {% for variant in source_product.variants.all %}
-                                <div class="border rounded p-3 mb-2">
-                                    <div class="row">
-                                        <div class="col-md-3">
-                                            {% if variant.main_image %}
-                                                <img src="{{ variant.main_image.url }}" class="img-fluid rounded" style="max-height: 80px;">
-                                            {% endif %}
+                    <div class="import-variants-list">
+                        {% for variant in source_product.variants.all %}
+                        <div class="import-variant-item">
+                            <div class="import-variant-grid">
+                                <div>
+                                    {% if variant.main_image %}
+                                        <img src="{{ variant.main_image.url }}" class="import-variant-image" alt="{{ variant.variant_name }}">
+                                    {% else %}
+                                        <div class="import-variant-image-placeholder">
+                                            <i class="fas fa-box"></i>
                                         </div>
-                                        <div class="col-md-9">
-                                            <strong>{{ variant.variant_name }}</strong><br>
-                                            <div class="row mt-2">
-                                                <div class="col-md-6">
-                                                    <small>Original Price: ₹<span class="variant-price" data-price="{{ variant.price }}">{{ variant.price }}</span></small>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <strong>Your Price: ₹<span class="variant-selling-price">{{ variant.price }}</span></strong>
-                                                </div>
-                                            </div>
-                                            <small>Stock: {{ variant.stock }}</small>
-                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="import-variant-info">
+                                    <div class="import-variant-name">{{ variant.variant_name }}</div>
+                                    <div class="import-variant-prices">
+                                        <span class="import-variant-original">
+                                            <i class="fas fa-tag"></i> Original: ₹<span class="variant-price" data-price="{{ variant.price }}">{{ variant.price }}</span>
+                                        </span>
+                                        <span class="import-variant-your-price">
+                                            <i class="fas fa-arrow-right"></i> Your Price: ₹<span class="variant-selling-price">{{ variant.price }}</span>
+                                        </span>
+                                    </div>
+                                    <div class="import-variant-stock">
+                                        <i class="fas fa-boxes"></i> Available Stock: {{ variant.stock|default:"Unlimited" }}
                                     </div>
                                 </div>
-                                {% endfor %}
                             </div>
                         </div>
-
-                        <button type="submit" class="btn btn-primary">Import Product</button>
-                        <a href="{% url 'products:reseller_import_products' store.id %}" class="btn btn-secondary">Cancel</a>
-                    </form>
-
+                        {% endfor %}
+                    </div>
                 </div>
+                {% endif %}
 
-            </div>
+                <!-- Form Actions -->
+                <div class="import-form-actions">
+                    <button type="submit" class="import-btn import-btn-primary" id="submitBtn">
+                        <i class="fas fa-check-circle"></i> Confirm Import
+                    </button>
+                    <a href="{% url 'products:reseller_import_products' store.id %}" class="import-btn import-btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
 
         </div>
     </div>
-</div>
 
-<style>
-.thumb {
-    width: 70px;
-    height: 70px;
-    object-fit: cover;
-    border-radius: 6px;
-}
-</style>
+</div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     
+    // Get DOM elements
     const marginInput = document.getElementById('margin_rupees');
+    const submitBtn = document.getElementById('submitBtn');
+    const importForm = document.getElementById('importForm');
+    const marginError = document.getElementById('marginError');
     const sourcePrice = parseFloat("{{ source_product.price }}");
     const marginPreview = document.getElementById('marginPreview');
     const sellingPricePreview = document.getElementById('sellingPricePreview');
@@ -125,38 +1029,183 @@ document.addEventListener('DOMContentLoaded', function() {
     const variantSellingSpans = document.querySelectorAll('.variant-selling-price');
     
     // Store original variant prices
-    const variantOriginalPrices = Array.from(variantPriceSpans).map(span => parseFloat(span.getAttribute('data-price')));
+    const variantOriginalPrices = Array.from(variantPriceSpans).map(span => {
+        return parseFloat(span.getAttribute('data-price') || span.textContent);
+    });
     
-    function updatePrices() {
+    // Validate margin function
+    function validateMargin(margin) {
+        return !isNaN(margin) && margin > 0;
+    }
+    
+    // Show error function
+    function showError(show) {
+        if (show) {
+            marginError.classList.add('show');
+            marginInput.classList.add('error');
+        } else {
+            marginError.classList.remove('show');
+            marginInput.classList.remove('error');
+        }
+    }
+    
+    // Update all prices function
+    function updateAllPrices() {
         let margin = parseFloat(marginInput.value);
-        if (isNaN(margin)) margin = 0;
+        
+        // Validate margin
+        const isValid = validateMargin(margin);
+        
+        if (!isValid) {
+            margin = 0;
+            showError(true);
+        } else {
+            showError(false);
+        }
         
         // Update product price
         const productPrice = sourcePrice + margin;
-        marginPreview.textContent = margin.toFixed(2);
-        sellingPricePreview.textContent = productPrice.toFixed(2);
+        marginPreview.textContent = '₹' + margin.toFixed(2);
+        sellingPricePreview.textContent = '₹' + productPrice.toFixed(2);
         
         // Update variant prices
         variantOriginalPrices.forEach((originalPrice, index) => {
-            const variantPrice = originalPrice + margin;
-            if (variantSellingSpans[index]) {
-                variantSellingSpans[index].textContent = variantPrice.toFixed(2);
+            if (!isNaN(originalPrice)) {
+                const variantPrice = originalPrice + margin;
+                if (variantSellingSpans[index]) {
+                    variantSellingSpans[index].textContent = '₹' + variantPrice.toFixed(2);
+                }
             }
+        });
+        
+        return isValid;
+    }
+    
+    // Handle margin input with real-time validation
+    if (marginInput) {
+        marginInput.addEventListener('input', function() {
+            let value = this.value.trim();
+            let margin = parseFloat(value);
+            
+            if (value === '' || value === '-') {
+                showError(true);
+                marginPreview.textContent = '₹0';
+                sellingPricePreview.textContent = '₹' + sourcePrice.toFixed(2);
+                return;
+            }
+            
+            if (isNaN(margin) || margin < 0) {
+                showError(true);
+            } else {
+                showError(false);
+                updateAllPrices();
+            }
+        });
+        
+        marginInput.addEventListener('blur', function() {
+            let value = this.value.trim();
+            if (value === '' || value === '-') {
+                this.value = '0';
+                updateAllPrices();
+            }
+        });
+        
+        marginInput.addEventListener('change', updateAllPrices);
+    }
+    
+    // Initial update
+    updateAllPrices();
+    
+    // Form validation and submission
+    if (importForm) {
+        importForm.addEventListener('submit', function(e) {
+            let margin = parseFloat(marginInput.value);
+            
+            // Validate margin is required
+            if (marginInput.value === '' || marginInput.value === null) {
+                e.preventDefault();
+                showError(true);
+                marginInput.focus();
+                alert('Please enter your profit margin. This field is required.');
+                return false;
+            }
+            
+            // Validate margin is a number and >= 0
+            if (isNaN(margin) || margin < 0) {
+                e.preventDefault();
+                showError(true);
+                marginInput.focus();
+                alert('Please enter a valid margin amount (0 or greater).');
+                return false;
+            }
+            
+            // Add loading state to button
+            submitBtn.classList.add('loading');
+            submitBtn.innerHTML = '<i class="fas fa-spinner"></i> Importing...';
+            submitBtn.disabled = true;
+            
+            // Show confirmation
+            const productPrice = sourcePrice + margin;
+            if (!confirm(`Confirm Import\n\nProduct: {{ source_product.name }}\nYour Margin: ₹${margin.toFixed(2)}\nYour Selling Price: ₹${productPrice.toFixed(2)}\n\nClick OK to import this product to your store.`)) {
+                e.preventDefault();
+                submitBtn.classList.remove('loading');
+                submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Import';
+                submitBtn.disabled = false;
+                return false;
+            }
+            
+            return true;
         });
     }
     
-    marginInput.addEventListener('input', updatePrices);
-    marginInput.addEventListener('change', updatePrices);
-    updatePrices(); // Initial update
-    
-    // Form validation
-    document.getElementById('importForm').addEventListener('submit', function(e) {
-        const margin = parseFloat(marginInput.value);
-        if (isNaN(margin) || margin < 0) {
-            e.preventDefault();
-            alert('Please enter a valid margin amount (0 or greater)');
-            return false;
-        }
+    // Gallery thumbnail click to enlarge
+    const galleryThumbs = document.querySelectorAll('.import-gallery-thumb');
+    galleryThumbs.forEach(thumb => {
+        thumb.addEventListener('click', function() {
+            const lightbox = document.createElement('div');
+            lightbox.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.95);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                cursor: pointer;
+                backdrop-filter: blur(5px);
+            `;
+            const img = document.createElement('img');
+            img.src = this.src;
+            img.style.cssText = `
+                max-width: 90%;
+                max-height: 90%;
+                object-fit: contain;
+                border-radius: 12px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            `;
+            const closeBtn = document.createElement('div');
+            closeBtn.style.cssText = `
+                position: absolute;
+                top: 20px;
+                right: 30px;
+                color: white;
+                font-size: 40px;
+                cursor: pointer;
+                font-family: Arial, sans-serif;
+                z-index: 10001;
+            `;
+            closeBtn.innerHTML = '&times;';
+            closeBtn.onclick = () => lightbox.remove();
+            lightbox.appendChild(img);
+            lightbox.appendChild(closeBtn);
+            lightbox.onclick = (e) => {
+                if (e.target === lightbox) lightbox.remove();
+            };
+            document.body.appendChild(lightbox);
+        });
     });
 });
 </script>

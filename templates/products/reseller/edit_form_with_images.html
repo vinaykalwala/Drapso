@@ -1,137 +1,598 @@
+{% extends "dashboard_base.html" %}
 {% load static %}
 
-{% block title %}Edit Product{% endblock %}
+{% block title %}Edit Product - {{ product.name }}{% endblock %}
 
 {% block content %}
-<div class="container py-4">
 
-    <div class="row">
-        <div class="col-md-10 mx-auto">
+<style>
 
-            <div class="card shadow">
+/* container */
 
-                <div class="card-header">
-                    <h4>Edit Product - {{ product.name }}</h4>
-                </div>
+.ep-container{
+max-width:1000px;
+margin:auto;
+padding:28px;
+}
 
-                <div class="card-body">
+/* card */
 
-                    <form method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
+.ep-card{
+background:white;
+border-radius:16px;
+box-shadow:0 6px 25px rgba(0,0,0,.05);
+border:1px solid #eef2f7;
+overflow:hidden;
+}
 
-                        {% if is_imported %}
+/* header */
 
-                        <!-- 🔒 LOCKED INFO -->
-                        <div class="mb-3">
-                            <label>Name</label>
-                            <input type="text" class="form-control" value="{{ product.name }}" readonly>
-                        </div>
+.ep-header{
+padding:24px 28px;
+background:linear-gradient(135deg,#4f46e5,#7c3aed);
+color:white;
+font-size:18px;
+font-weight:600;
+}
 
-                        <div class="mb-3">
-                            <label>Brand</label>
-                            <input type="text" class="form-control" value="{{ product.brand }}" readonly>
-                        </div>
+/* body */
 
-                        <div class="mb-3">
-                            <label>Source Price</label>
-                            <input type="text" class="form-control" value="₹{{ product.source_price }}" readonly>
-                        </div>
+.ep-body{
+padding:28px;
+}
 
-                        <!-- ✅ ONLY EDITABLE -->
-                        <div class="mb-3">
-                            <label>Margin (₹)</label>
-                            {{ form.margin_rupees }}
-                        </div>
+/* rows */
 
-                        <!-- 🔥 LIVE PRICE -->
-                        <div class="alert alert-success">
-                            Selling Price: ₹
-                            <span id="previewPrice">{{ product.selling_price }}</span>
-                        </div>
+.ep-row{
+display:flex;
+gap:18px;
+flex-wrap:wrap;
+margin-bottom:18px;
+}
 
-                        {% else %}
+/* fields */
 
-                        <!-- OWN PRODUCT -->
-                        {% for field in form %}
-                            <div class="mb-3">
-                                <label>{{ field.label }}</label>
-                                {{ field }}
-                            </div>
-                        {% endfor %}
+.ep-field{
+flex:1;
+min-width:240px;
+}
 
-                        {% endif %}
+.ep-label{
+font-size:12px;
+font-weight:700;
+color:#64748b;
+margin-bottom:5px;
+display:block;
+}
 
-                        <!-- 🔥 IMAGES -->
-                        <div class="mt-4">
-                            <label>Main Image</label><br>
-                            {% if product.main_image %}
-                                <img src="{{ product.main_image.url }}" width="120">
-                            {% endif %}
-                        </div>
+.ep-field input,
+.ep-field select,
+.ep-field textarea{
 
-                        <div class="mt-3">
-                            <label>Gallery</label>
-                            <div class="d-flex gap-2 flex-wrap">
-                                {% for img in product.additional_images.all %}
-                                    <img src="{{ img.image.url }}" width="60">
-                                {% endfor %}
-                            </div>
-                        </div>
+width:100%;
+padding:11px;
+border-radius:10px;
+border:1px solid #e2e8f0;
+background:#fcfcfd;
+font-size:14px;
 
-                        <!-- 🔥 VARIANTS -->
-                        <div class="mt-4">
-                            <h5>Variants</h5>
+}
 
-                            {% for v in product.variants.all %}
-                            <div class="border p-2 mb-2">
+.ep-field input:focus{
+outline:none;
+border-color:#4f46e5;
+box-shadow:0 0 0 3px #eef2ff;
+}
 
-                                <div class="d-flex gap-1 mb-1">
+/* price box */
 
-                                    {% if v.main_image %}
-                                        <img src="{{ v.main_image.url }}" width="30">
-                                    {% endif %}
+.ep-price{
 
-                                    {% for img in v.additional_images.all %}
-                                        <img src="{{ img.image.url }}" width="30">
-                                    {% endfor %}
+background:#ecfdf5;
+padding:14px;
+border-radius:12px;
+font-weight:600;
+color:#065f46;
+margin-bottom:20px;
 
-                                </div>
+}
 
-                                <strong>{{ v.variant_name }}</strong><br>
+/* section */
 
-                                Cost: ₹{{ v.source_price }}<br>
+.ep-section-title{
 
-                                Selling: ₹
-                                <span class="variant-price"
-                                      data-price="{{ v.source_price }}">
-                                      {{ v.selling_price }}
-                                </span>
+font-weight:700;
+font-size:14px;
+margin-bottom:10px;
+color:#334155;
 
-                            </div>
-                            {% endfor %}
-                        </div>
+}
 
-                        <!-- SAVE -->
-                        <div class="mt-4">
-                            <button class="btn btn-primary">Save</button>
-                            <a href="{% url 'products:reseller_product_list' store.id %}" class="btn btn-secondary">
-                                Cancel
-                            </a>
-                        </div>
+/* image section background */
 
-                    </form>
+.ep-image-box{
 
-                </div>
+background:#f8fafc;
+border:1px solid #e2e8f0;
+border-radius:14px;
+padding:18px;
+margin-bottom:20px;
 
-            </div>
+}
 
-        </div>
-    </div>
+/* main image */
+
+.ep-main-image{
+
+width:200px;
+border-radius:14px;
+overflow:hidden;
+border:1px solid #e5e7eb;
+background:white;
+padding:10px;
+box-shadow:0 4px 14px rgba(0,0,0,.04);
+
+}
+
+.ep-main-image img{
+
+width:100%;
+border-radius:10px;
+
+}
+
+/* gallery */
+
+.ep-gallery{
+display:flex;
+gap:12px;
+flex-wrap:wrap;
+}
+
+/* thumb */
+
+.ep-thumb{
+
+width:95px;
+height:95px;
+border-radius:12px;
+overflow:hidden;
+border:1px solid #e5e7eb;
+background:white;
+padding:6px;
+transition:.2s;
+box-shadow:0 3px 10px rgba(0,0,0,.03);
+
+}
+
+.ep-thumb img{
+
+width:100%;
+height:100%;
+object-fit:cover;
+border-radius:8px;
+
+}
+
+.ep-thumb:hover{
+
+transform:translateY(-3px);
+box-shadow:0 8px 22px rgba(0,0,0,.08);
+
+}
+
+/* variants */
+
+.ep-variant{
+
+border:1px solid #eef2f7;
+border-radius:14px;
+padding:14px;
+margin-bottom:14px;
+background:#fafafa;
+
+}
+
+.ep-variant-top{
+
+display:flex;
+justify-content:space-between;
+margin-bottom:6px;
+
+}
+
+.ep-variant-name{
+
+font-weight:600;
+
+}
+
+.ep-variant-price{
+
+color:#4f46e5;
+font-weight:600;
+
+}
+
+/* buttons */
+
+.ep-actions{
+
+margin-top:24px;
+display:flex;
+gap:12px;
+
+}
+
+.ep-btn{
+
+padding:10px 18px;
+border-radius:10px;
+border:none;
+font-size:14px;
+cursor:pointer;
+
+}
+
+.ep-save{
+
+background:#4f46e5;
+color:white;
+
+}
+
+.ep-save:hover{
+
+background:#4338ca;
+
+}
+
+.ep-cancel{
+
+background:#f1f5f9;
+
+}
+
+/* responsive */
+
+@media(max-width:600px){
+
+.ep-row{
+flex-direction:column;
+}
+
+}
+@media(max-width:900px){
+
+.content{
+    margin-top: 40px;
+}
+
+}
+.ep-info-row{
+display:grid;
+grid-template-columns: repeat(3, 1fr);
+gap:16px;
+margin-bottom:20px;
+}
+
+.ep-info-box{
+background:#f8fafc;
+border:1px solid #e2e8f0;
+border-radius:14px;
+padding:14px 16px;
+}
+
+.ep-info-title{
+font-size:11px;
+font-weight:700;
+color:#64748b;
+text-transform:uppercase;
+margin-bottom:4px;
+letter-spacing:.5px;
+}
+
+.ep-info-value{
+font-size:15px;
+font-weight:600;
+color:#0f172a;
+}
+
+/* mobile */
+@media(max-width:700px){
+.ep-info-row{
+grid-template-columns:1fr;
+}
+}
+</style>
+
+
+
+<div class="content">
+
+<div class="ep-container">
+
+<div class="ep-card">
+
+<div class="ep-header">
+
+Edit Product — {{ product.name }}
 
 </div>
 
-<!-- 🔥 LIVE SCRIPT -->
+
+
+<div class="ep-body">
+
+<form method="POST" enctype="multipart/form-data">
+
+{% csrf_token %}
+
+
+
+{% if is_imported %}
+
+<div class="ep-info-row">
+
+<div class="ep-info-box">
+<div class="ep-info-title">Product</div>
+<div class="ep-info-value">
+{{ product.name }}
+</div>
+</div>
+
+
+<div class="ep-info-box">
+<div class="ep-info-title">Brand</div>
+<div class="ep-info-value">
+{{ product.brand }}
+</div>
+</div>
+
+
+<div class="ep-info-box">
+<div class="ep-info-title">Cost Price</div>
+<div class="ep-info-value">
+₹ {{ product.source_price }}
+</div>
+</div>
+
+</div>
+
+
+<div class="ep-row">
+
+<div class="ep-field">
+<label class="ep-label">Margin</label>
+
+{{ form.margin_rupees }}
+
+</div>
+
+</div>
+
+<div class="ep-price">
+
+Selling Price :
+
+₹
+
+<span id="previewPrice">
+
+{{ product.selling_price }}
+
+</span>
+
+</div>
+
+{% else %}
+
+
+
+<div class="ep-row">
+
+{% for field in form %}
+
+<div class="ep-field">
+
+<label class="ep-label">
+
+{{ field.label }}
+
+</label>
+
+{{ field }}
+
+</div>
+
+{% endfor %}
+
+</div>
+
+
+
+{% endif %}
+
+
+
+<!-- MAIN IMAGE -->
+
+<div class="ep-image-box">
+
+<div class="ep-section-title">
+
+Main Image
+
+</div>
+
+
+
+{% if product.main_image %}
+
+<div class="ep-main-image">
+
+<img src="{{ product.main_image.url }}">
+
+</div>
+
+{% endif %}
+
+</div>
+
+
+
+<!-- GALLERY -->
+
+<div class="ep-image-box">
+
+<div class="ep-section-title">
+
+Gallery Images
+
+</div>
+
+
+
+<div class="ep-gallery">
+
+{% for img in product.additional_images.all %}
+
+<div class="ep-thumb">
+
+<img src="{{ img.image.url }}">
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+
+
+<!-- VARIANTS -->
+
+<div class="ep-section-title">
+
+Variants
+
+</div>
+
+
+
+{% for v in product.variants.all %}
+
+<div class="ep-variant">
+
+<div class="ep-variant-top">
+
+<div class="ep-variant-name">
+
+{{ v.variant_name }}
+
+</div>
+
+
+
+<div class="ep-variant-price">
+
+₹
+
+<span
+class="variant-price"
+data-price="{{ v.source_price }}">
+
+{{ v.selling_price }}
+
+</span>
+
+</div>
+
+</div>
+
+
+
+<div style="font-size:13px;color:#64748b;margin-bottom:8px">
+
+Cost Price :
+
+₹ {{ v.source_price }}
+
+</div>
+
+
+
+<div class="ep-gallery">
+
+{% if v.main_image %}
+
+<div class="ep-thumb">
+
+<img src="{{ v.main_image.url }}">
+
+</div>
+
+{% endif %}
+
+
+
+{% for img in v.additional_images.all %}
+
+<div class="ep-thumb">
+
+<img src="{{ img.image.url }}">
+
+</div>
+
+{% endfor %}
+
+</div>
+
+
+
+</div>
+
+{% endfor %}
+
+
+
+<div class="ep-actions">
+
+<button class="ep-btn ep-save">
+
+Save Changes
+
+</button>
+
+
+
+<a
+href="{% url 'products:reseller_product_list' store.id %}"
+class="ep-btn ep-cancel">
+
+Cancel
+
+</a>
+
+</div>
+
+
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
 <script>
+
 const marginInput = document.getElementById('id_margin_rupees');
 const sourcePrice = {{ product.source_price|default:0 }};
 
@@ -153,6 +614,7 @@ if (marginInput) {
     marginInput.addEventListener('input', updatePrice);
     updatePrice();
 }
+
 </script>
 
 {% endblock %}

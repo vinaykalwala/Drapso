@@ -1046,6 +1046,7 @@ def calculate_price(request):
 @login_required
 @user_passes_test(is_wholeseller)
 def wholeseller_product_detail(request, product_id):
+
     product = get_object_or_404(
         WholesellerProduct.objects.prefetch_related('variants', 'additional_images'),
         id=product_id,
@@ -1053,21 +1054,27 @@ def wholeseller_product_detail(request, product_id):
     )
 
     return render(request, 'products/product_detail.html', {
-        'product': product
+        'product': product,
+        'store': None  # optional (prevents sidebar crash if expecting store)
     })
 
+
 @login_required
+@user_passes_test(is_reseller)
 def reseller_product_detail(request, store_id, product_id):
+
+    store = get_object_or_404(Store, id=store_id, reseller=request.user)
+
     product = get_object_or_404(
         ResellerProduct.objects.prefetch_related('variants', 'additional_images'),
         id=product_id,
-        store_id=store_id
+        store=store
     )
 
     return render(request, 'products/product_detail.html', {
-        'product': product
+        'product': product,
+        'store': store   # ✅ required for sidebar url
     })
-
 
 
 from django.db import transaction
