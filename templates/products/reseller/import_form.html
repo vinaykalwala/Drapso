@@ -914,7 +914,7 @@
                                    id="margin_rupees" 
                                    class="import-margin-input" 
                                    step="1" 
-                                   value="0"
+                                   min="1"
                                    required
                                    placeholder="Enter margin in ₹">
                         </div>
@@ -1094,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            if (isNaN(margin) || margin < 0) {
+            if (isNaN(margin) || margin <= 0) {
                 showError(true);
             } else {
                 showError(false);
@@ -1122,11 +1122,11 @@ document.addEventListener('DOMContentLoaded', function() {
             let margin = parseFloat(marginInput.value);
             
             // Validate margin is required
-            if (marginInput.value === '' || marginInput.value === null) {
+            if (!marginInput.value || parseFloat(marginInput.value) <= 0) {
                 e.preventDefault();
                 showError(true);
                 marginInput.focus();
-                alert('Please enter your profit margin. This field is required.');
+                alert('Margin must be greater than 0');
                 return false;
             }
             
