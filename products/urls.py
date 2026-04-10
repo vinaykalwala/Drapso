@@ -69,6 +69,7 @@ path(
     # wholeseller
     path('wholeseller/product/<int:product_id>/', views.wholeseller_product_detail, name='wholeseller_product_detail'),
 
+    path('low-stock/', views.low_stock_alerts, name='low_stock_alerts'),
     # reseller
     path('reseller/store/<int:store_id>/product/<int:product_id>/', views.reseller_product_detail, name='reseller_product_detail'),
         # ============ AJAX ENDPOINTS ============

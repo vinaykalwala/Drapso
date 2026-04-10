@@ -83,7 +83,7 @@ class WholesellerProduct(models.Model):
     previous_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     price_updated_at = models.DateTimeField(null=True, blank=True)
     
-    stock = models.IntegerField(default=0, validators=[MinValueValidator(0)], help_text="Total stock ")
+    stock = models.IntegerField(default=0, validators=[MinValueValidator(0)], help_text="Independent stock for product")
     threshold_limit = models.IntegerField(default=5, validators=[MinValueValidator(0)], help_text="Alert when stock below this")
     
     main_image = models.ImageField(upload_to='wholeseller/products/main/')
@@ -112,16 +112,8 @@ class WholesellerProduct(models.Model):
                 self.slug = f"{base_slug}-{counter}"
                 counter += 1
         
-        if self.pk:
-            total_stock = sum(variant.stock for variant in self.variants.all())
-            self.stock = total_stock
-        
+        # Stock is independent - no auto-sync from variants
         super().save(*args, **kwargs)
-    
-    def update_stock(self):
-        total = sum(variant.stock for variant in self.variants.all())
-        self.stock = total
-        self.save(update_fields=['stock'])
     
     def has_price_changed(self):
         return self.previous_price is not None and self.previous_price != self.price
@@ -167,7 +159,7 @@ class WholesellerProductVariant(models.Model):
     previous_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     price_updated_at = models.DateTimeField(null=True, blank=True)
     
-    stock = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    stock = models.IntegerField(default=0, validators=[MinValueValidator(0)], help_text="Independent stock for variant")
     threshold_limit = models.IntegerField(default=5, validators=[MinValueValidator(0)])
     
     sku = models.CharField(max_length=100, blank=True, unique=True)
@@ -201,7 +193,7 @@ class WholesellerProductVariant(models.Model):
             self.variant_name = " - ".join(parts) if parts else "Default"
         
         super().save(*args, **kwargs)
-        self.product.update_stock()
+        # Stock is independent - no parent update
     
     def is_low_stock(self):
         return self.stock <= self.threshold_limit
@@ -222,6 +214,9 @@ class WholesellerVariantImage(models.Model):
     
     class Meta:
         ordering = ['order']
+
+
+# ============ RESELLER PRODUCTS ============
 
 class ResellerProduct(models.Model):
     SOURCE_CHOICES = [
@@ -268,14 +263,14 @@ class ResellerProduct(models.Model):
     color = models.CharField(max_length=50, blank=True)
     material = models.CharField(max_length=100, blank=True)
     gender = models.CharField(
-    max_length=20,
-    blank=True,
-    choices=[
-        ('male', 'Male'),
-        ('female', 'Female'),
-        ('unisex', 'Unisex'),
-        ('kids', 'Kids'),
-    ]
+        max_length=20,
+        blank=True,
+        choices=[
+            ('male', 'Male'),
+            ('female', 'Female'),
+            ('unisex', 'Unisex'),
+            ('kids', 'Kids'),
+        ]
     )
     attributes = models.JSONField(default=dict, blank=True)
     
@@ -288,7 +283,7 @@ class ResellerProduct(models.Model):
     price_change_notified_at = models.DateTimeField(null=True, blank=True)
     price_reviewed_at = models.DateTimeField(null=True, blank=True)
     
-    stock = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    stock = models.IntegerField(default=0, validators=[MinValueValidator(0)], help_text="Independent stock for product")
     threshold_limit = models.IntegerField(default=5, validators=[MinValueValidator(0)])
     
     source_type = models.CharField(max_length=20, choices=SOURCE_CHOICES, default='own')
@@ -330,7 +325,7 @@ class ResellerProduct(models.Model):
             self.source_price = self.source_product.price
             self.selling_price = self.source_price + self.margin_rupees
             
-            # Copy product attributes
+            # Copy product attributes (but NOT stock - stock is independent)
             self.brand = self.source_product.brand
             self.model_name = self.source_product.model_name
             self.size = self.source_product.size
@@ -346,12 +341,8 @@ class ResellerProduct(models.Model):
                 self.price_status = 'up_to_date'
                 self.last_known_source_price = self.source_price
         
+        # Stock is independent - no auto-sync from variants
         super().save(*args, **kwargs)
-    
-    def update_stock(self):
-        total = sum(variant.stock for variant in self.variants.all())
-        self.stock = total
-        self.save(update_fields=['stock'])
     
     def has_price_change_pending(self):
         return self.price_status in ['price_increased', 'price_decreased']
@@ -398,6 +389,7 @@ class ResellerProduct(models.Model):
         stock_status = " [Low Stock]" if self.is_low_stock() else ""
         return f"{status_mark}{brand_str}{self.name} - ₹{self.selling_price}{stock_status}"
 
+
 class ResellerProductImage(models.Model):
     product = models.ForeignKey(ResellerProduct, on_delete=models.CASCADE, related_name='additional_images')
     image = models.ImageField(upload_to='reseller/products/gallery/')
@@ -420,7 +412,7 @@ class ResellerProductVariant(models.Model):
     margin_rupees = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     
-    stock = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    stock = models.IntegerField(default=0, validators=[MinValueValidator(0)], help_text="Independent stock for variant")
     threshold_limit = models.IntegerField(default=5, validators=[MinValueValidator(0)])
     
     sku = models.CharField(max_length=100, blank=True)
@@ -447,7 +439,7 @@ class ResellerProductVariant(models.Model):
             self.sku = f"RV{self.product.id}{self.order}"
         
         super().save(*args, **kwargs)
-        self.product.update_stock()
+        # Stock is independent - no parent update
     
     def is_low_stock(self):
         return self.stock <= self.threshold_limit

@@ -628,7 +628,7 @@ def reseller_import_product(request, store_id, product_id):
                         order=simg.order
                     )
 
-            product.update_stock()
+            # product.update_stock()
 
             messages.success(request, f'✅ Imported "{product.name}" with margin ₹{margin}')
             return redirect('products:reseller_product_list', store_id=store.id)
@@ -1244,3 +1244,88 @@ def reseller_product_full_edit(request, store_id, product_id):
         'product': product,
         'store': store,
     })
+
+from django.db.models import F, Q, Prefetch
+
+from products.models import (
+    WholesellerProduct, WholesellerProductVariant,
+    ResellerProduct, ResellerProductVariant
+)
+
+
+@login_required
+def low_stock_alerts(request):
+    user = request.user
+    context = {}
+
+    # =========================
+    # WHOLESELLER
+    # =========================
+    if user.role == 'wholeseller':
+
+        low_products = WholesellerProduct.objects.filter(
+            wholeseller=user,
+            stock__lte=F('threshold_limit'),
+            is_active=True
+        )
+
+        low_variants = WholesellerProductVariant.objects.filter(
+            product__wholeseller=user,
+            stock__lte=F('threshold_limit'),
+            is_active=True
+        ).select_related('product')
+
+        context.update({
+            'low_products': low_products,
+            'low_variants': low_variants,
+            'role': 'wholeseller'
+        })
+
+    # =========================
+    # RESELLER
+    # =========================
+    elif user.role == 'reseller':
+
+        # OWN PRODUCTS
+        own_products = ResellerProduct.objects.filter(
+            reseller=user,
+            source_type='own',
+            stock__lte=F('threshold_limit'),
+            is_active=True
+        )
+
+        own_variants = ResellerProductVariant.objects.filter(
+            product__reseller=user,
+            product__source_type='own',
+            stock__lte=F('threshold_limit'),
+            is_active=True
+        ).select_related('product')
+
+        # IMPORTED PRODUCTS → USE SOURCE PRODUCT STOCK
+        imported_products = ResellerProduct.objects.filter(
+            reseller=user,
+            source_type='imported',
+            source_product__stock__lte=F('source_product__threshold_limit'),
+            is_active=True
+        ).select_related('source_product')
+
+        # IMPORTED VARIANTS → USE SOURCE VARIANT STOCK
+        imported_variants = ResellerProductVariant.objects.filter(
+            product__reseller=user,
+            product__source_type='imported',
+            source_variant__stock__lte=F('source_variant__threshold_limit'),
+            is_active=True
+        ).select_related('product', 'source_variant')
+
+        context.update({
+            'own_products': own_products,
+            'own_variants': own_variants,
+            'imported_products': imported_products,
+            'imported_variants': imported_variants,
+            'role': 'reseller'
+        })
+
+    else:
+        context = {}
+
+    return render(request, 'resellers/low_stock_alerts.html', context)

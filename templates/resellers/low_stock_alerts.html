@@ -1,0 +1,173 @@
+{% block content %}
+
+<div class="container py-4">
+    <h3 class="mb-4">⚠️ Low Stock Alerts</h3>
+
+    {% if role == 'wholeseller' %}
+
+        <h5>Products</h5>
+        <ul class="list-group mb-4">
+            {% for p in low_products %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <a href="{% url 'products:wholeseller_product_detail' p.id %}">
+                            <strong>{{ p.name }}</strong>
+                        </a>
+                        <br>
+                        <small class="text-muted">Threshold: {{ p.threshold_limit }}</small>
+                    </div>
+
+                    <div>
+                        <span class="badge bg-danger">Stock: {{ p.stock }}</span>
+                        <a href="{% url 'products:wholeseller_product_edit' p.id %}" class="btn btn-sm btn-outline-primary ms-2">
+                            Edit
+                        </a>
+                    </div>
+
+                </li>
+            {% empty %}
+                <li class="list-group-item">No low stock products</li>
+            {% endfor %}
+        </ul>
+
+        <h5>Variants</h5>
+        <ul class="list-group">
+            {% for v in low_variants %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <a href="{% url 'products:wholeseller_product_detail' v.product.id %}">
+                            <strong>{{ v.product.name }}</strong>
+                        </a>
+                        <br>
+                        <small>{{ v.variant_name }}</small>
+                    </div>
+
+                    <div>
+                        <span class="badge bg-danger">Stock: {{ v.stock }}</span>
+                        <a href="{% url 'products:wholeseller_variant_edit' v.id %}" class="btn btn-sm btn-outline-primary ms-2">
+                            Edit
+                        </a>
+                    </div>
+
+                </li>
+            {% empty %}
+                <li class="list-group-item">No low stock variants</li>
+            {% endfor %}
+        </ul>
+
+    {% elif role == 'reseller' %}
+
+        <!-- OWN PRODUCTS -->
+        <h5>Own Products</h5>
+        <ul class="list-group mb-3">
+            {% for p in own_products %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <a href="{% url 'products:reseller_product_detail' p.store.id p.id %}">
+                            <strong>{{ p.name }}</strong>
+                        </a>
+                        <br>
+                        <small class="text-muted">Store: {{ p.store.name }}</small>
+                    </div>
+
+                    <div>
+                        <span class="badge bg-warning">Stock: {{ p.stock }}</span>
+                        <a href="{% url 'products:reseller_product_full_edit' p.store.id p.id %}" class="btn btn-sm btn-outline-primary ms-2">
+                            Edit
+                        </a>
+                    </div>
+
+                </li>
+            {% empty %}
+                <li class="list-group-item">No low stock</li>
+            {% endfor %}
+        </ul>
+
+        <h5>Own Variants</h5>
+        <ul class="list-group mb-4">
+            {% for v in own_variants %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <a href="{% url 'products:reseller_product_detail' v.product.store.id v.product.id %}">
+                            <strong>{{ v.product.name }}</strong>
+                        </a>
+                        <br>
+                        <small>{{ v.variant_name }}</small>
+                    </div>
+
+                    <div>
+                        <span class="badge bg-warning">Stock: {{ v.stock }}</span>
+                        <a href="{% url 'products:reseller_product_full_edit' v.product.store.id v.product.id %}" class="btn btn-sm btn-outline-primary ms-2">
+                            Manage
+                        </a>
+                    </div>
+
+                </li>
+            {% empty %}
+                <li class="list-group-item">No low stock</li>
+            {% endfor %}
+        </ul>
+
+        <!-- IMPORTED PRODUCTS -->
+        <h5>Imported Products</h5>
+        <ul class="list-group mb-3">
+            {% for p in imported_products %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <a href="{% url 'products:reseller_product_detail' p.store.id p.id %}">
+                            <strong>{{ p.name }}</strong>
+                        </a>
+                        <br>
+                        <small class="text-muted">Source: {{ p.source_product.wholeseller }}</small>
+                    </div>
+
+                    <div>
+                        <span class="badge bg-danger">
+                            Source Stock: {{ p.source_product.stock }}
+                        </span>
+                    </div>
+
+                </li>
+            {% empty %}
+                <li class="list-group-item">No low stock</li>
+            {% endfor %}
+        </ul>
+
+        <h5>Imported Variants</h5>
+        <ul class="list-group">
+            {% for v in imported_variants %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <a href="{% url 'products:reseller_product_detail' v.product.store.id v.product.id %}">
+                            <strong>{{ v.product.name }}</strong>
+                        </a>
+                        <br>
+                        <small>{{ v.variant_name }}</small>
+                    </div>
+
+                    <div>
+                        <span class="badge bg-danger">
+                            Source Stock: {{ v.source_variant.stock }}
+                        </span>
+                        <a href="{% url 'products:reseller_product_full_edit' v.product.store.id v.product.id %}" class="btn btn-sm btn-outline-primary ms-2">
+                            Manage
+                        </a>
+                    </div>
+
+                </li>
+            {% empty %}
+                <li class="list-group-item">No low stock</li>
+            {% endfor %}
+        </ul>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
