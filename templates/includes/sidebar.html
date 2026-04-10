@@ -605,6 +605,11 @@ text-align:center;
     <i class="fa-solid fa-boxes-stacked"></i>
   Wholeseller products
 </a>
+</a>
+    <a href="{% url 'products:low_stock_alerts' %}">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+  Low stock Alert
+</a>
 
 <a href="{% url 'accounts:bank_accounts' %}">
     <i class="fa-solid fa-building-columns"></i>
@@ -633,15 +638,29 @@ text-align:center;
     <i class="fa-solid fa-cubes"></i>
     Reseller Products
 </a>
-<a href="{% url 'products:price_notifications' store.id %}">
-    <i class="fa-solid fa-tag"></i>
-   Price  Notifications
+<a href="{% url 'products:price_notifications' store.id %}" class="menu-link">
+
+    <span>
+        <i class="fa-solid fa-tag"></i>
+        Price Notifications
+    </span>
+
+    {% if pending_price_notifications > 0 %}
+        <span class="menu-badge danger">
+            {{ pending_price_notifications }}
+        </span>
+    {% endif %}
+
 </a>
 <a href="{% url 'theme_manager:archived_products_list' store.id %}">
     <i class="fa-solid fa-box-archive"></i>
     Archived Products
 </a>
-
+</a>
+    <a href="{% url 'products:low_stock_alerts' %}">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+  Low stock Alert
+</a>
 <a href="{% url 'accounts:bank_accounts' %}">
     <i class="fa-solid fa-building-columns"></i>
     Bank Details

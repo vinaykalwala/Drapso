@@ -1,64 +1,622 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
 
+{% block title %}Confirm Restoration - {{ store.store_name }}{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h3 class="mb-0">Confirm Restoration</h3>
+<style>
+/* ============================================
+   ✨ CONFIRM RESTORATION - MODERN CLEAN DESIGN ✨
+   ============================================ */
+
+:root {
+    --primary: #3b82f6;
+    --primary-dark: #2563eb;
+    --success: #10b981;
+    --success-dark: #059669;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-2xl: 24px;
+}
+
+/* Main Container */
+.restore-confirm {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+/* Header Card */
+.restore-confirm__header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+}
+
+.restore-confirm__header::before {
+    content: '↺';
+    position: absolute;
+    right: -20px;
+    bottom: -20px;
+    font-size: 120px;
+    opacity: 0.1;
+    color: white;
+    font-weight: 800;
+}
+
+.restore-confirm__title-section {
+    position: relative;
+    z-index: 1;
+}
+
+.restore-confirm__title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0.25rem;
+    letter-spacing: -0.02em;
+}
+
+.restore-confirm__subtitle {
+    color: rgba(255,255,255,0.9);
+    font-size: 0.85rem;
+}
+
+.restore-confirm__back-btn {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    color: white;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.3rem;
+    border-radius: var(--radius-lg);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.3);
+    position: relative;
+    z-index: 1;
+}
+
+.restore-confirm__back-btn:hover {
+    background: rgba(255,255,255,0.3);
+    gap: 0.75rem;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* White Content Card */
+.restore-confirm__content {
+    background: white;
+    border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+    padding: 2rem;
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--gray-200);
+    border-top: none;
+}
+
+/* Warning Alert */
+.restore-confirm__warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+    border: 1px solid #fde68a;
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.restore-confirm__warning::before {
+    content: '⚠️';
+    position: absolute;
+    right: -20px;
+    bottom: -20px;
+    font-size: 80px;
+    opacity: 0.1;
+}
+
+.warning-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--warning), #d97706);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+}
+
+.warning-text {
+    flex: 1;
+}
+
+.warning-text strong {
+    color: #92400e;
+    font-size: 1rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.warning-text p {
+    color: #78350f;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.warning-badge {
+    background: #92400e;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+/* Table Styles */
+.restore-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.restore-table thead {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.restore-table th {
+    padding: 1rem 1.25rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray-600);
+    text-align: left;
+    border-bottom: 2px solid var(--gray-200);
+}
+
+.restore-table td {
+    padding: 1rem 1.25rem;
+    font-size: 0.85rem;
+    color: var(--gray-700);
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: middle;
+}
+
+.restore-table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.restore-table tbody tr:hover {
+    background: var(--gray-50);
+}
+
+/* Product Name */
+.product-name {
+    font-weight: 700;
+    color: var(--gray-800);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.product-name i {
+    color: var(--primary);
+    font-size: 0.9rem;
+}
+
+/* Price */
+.product-price {
+    font-weight: 700;
+    color: var(--gray-800);
+}
+
+.product-price small {
+    font-weight: 400;
+    color: var(--gray-500);
+    font-size: 0.7rem;
+}
+
+/* Badges */
+.badge-custom {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+}
+
+.badge-secondary {
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    color: #4b5563;
+}
+
+.badge-info {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+}
+
+/* Note Alert */
+.restore-confirm__note {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.note-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.875rem;
+}
+
+.note-text {
+    flex: 1;
+    color: #1e40af;
+    font-size: 0.85rem;
+}
+
+.note-text strong {
+    color: #1e3a8a;
+}
+
+/* Action Buttons */
+.restore-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-cancel {
+    background: white;
+    color: var(--gray-700);
+    border: 1px solid var(--gray-300);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
+    transform: translateY(-1px);
+}
+
+.btn-confirm {
+    background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-lg);
+    font-weight: 700;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+}
+
+.btn-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59,130,246,0.4);
+}
+
+.btn-confirm:active {
+    transform: translateY(0);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--gray-300);
+    margin-bottom: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .restore-confirm {
+        margin: 1rem auto;
+        padding: 0 1rem;
+    }
+    
+    .restore-confirm__header {
+        padding: 1.25rem 1.5rem;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .restore-confirm__title {
+        font-size: 1.4rem;
+    }
+    
+    .restore-confirm__content {
+        padding: 1.5rem;
+    }
+    
+    .restore-table thead {
+        display: none;
+    }
+    
+    .restore-table tr {
+        display: block;
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+    }
+    
+    .restore-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: none;
+        padding: 0.5rem 0;
+    }
+    
+    .restore-table td:before {
+        content: attr(data-label);
+        font-weight: 700;
+        font-size: 0.7rem;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .restore-confirm__warning {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .restore-actions {
+        flex-direction: column;
+    }
+    
+    .btn-cancel, .btn-confirm {
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .restore-confirm {
+        margin: 0.5rem auto;
+        padding: 0 0.75rem;
+    }
+    
+    .restore-confirm__header {
+        padding: 1rem;
+    }
+    
+    .restore-confirm__title {
+        font-size: 1.2rem;
+    }
+    
+    .restore-confirm__content {
+        padding: 1rem;
+    }
+    
+    .warning-text strong {
+        font-size: 0.85rem;
+    }
+    
+    .warning-text p {
+        font-size: 0.75rem;
+    }
+}
+@media (max-width: 900px) {
+        .content{
+            margin-top: 70px;
+        }
+    }
+    /* ONLY for very small devices */
+@media (max-width:380px){
+
+.restore-table{
+display:block;
+overflow-x:auto;
+white-space:nowrap;
+}
+
+/* cancel card conversion */
+.restore-table thead{
+display:table-header-group !important;
+}
+
+.restore-table tbody{
+display:table-row-group !important;
+}
+
+.restore-table tr{
+display:table-row !important;
+border:none !important;
+box-shadow:none !important;
+}
+
+.restore-table td{
+display:table-cell !important;
+padding:12px 10px;
+white-space:nowrap;
+}
+
+}
+</style>
+
+<div class="content">
+<div class="restore-confirm">
+
+    <!-- Header -->
+    <div class="restore-confirm__header">
+        <div class="restore-confirm__title-section">
+            <h1 class="restore-confirm__title">
+                <i class="fas fa-archive"></i> Confirm Restoration
+            </h1>
+            <p class="restore-confirm__subtitle">Review and confirm product restoration</p>
         </div>
-        <div class="card-body">
-            <div class="alert alert-warning">
-                <strong>⚠️ You are about to restore {{ products_to_restore|length }} product(s)</strong>
-                <br>Available slots: {{ capacity.available_slots }}
+        <a href="{% url 'theme_manager:archived_products_list' store.id %}" class="restore-confirm__back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Archive
+        </a>
+    </div>
+
+    <!-- White Content Card -->
+    <div class="restore-confirm__content">
+
+        <!-- Warning Alert -->
+        <div class="restore-confirm__warning">
+            <div class="warning-icon">
+                <i class="fas fa-exclamation-triangle"></i>
             </div>
-            
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Price</th>
-                        <th>Current Status</th>
-                        <th>Will Restore As</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for product in products_to_restore %}
-                    <tr>
-                        <td>{{ product.name }}</td>
-                        <td>₹{{ product.price }}</td>
-                        <td>
-                            <span class="badge {% if product.is_published %}bg-success{% else %}bg-secondary{% endif %}">
-                                {{ product.published_text }}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge {% if product.is_published %}bg-success{% else %}bg-secondary{% endif %}">
-                                {{ product.published_text }}
-                            </span>
-                            <small class="text-muted">(unchanged)</small>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            
-            <div class="alert alert-info">
+            <div class="warning-text">
+                <strong>⚠️ You are about to restore {{ products_to_restore|length }} product(s)</strong>
+                <p>Available slots: {{ capacity.available_slots }}</p>
+            </div>
+            <div class="warning-badge">
+                <i class="fas fa-box"></i> {{ products_to_restore|length }} Products
+            </div>
+        </div>
+
+        <!-- Products Table -->
+        <table class="restore-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Current Status</th>
+                    <th>Will Restore As</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products_to_restore %}
+                <tr>
+                    <td data-label="Product">
+                        <div class="product-name">
+                            <i class="fas fa-box"></i>
+                            {{ product.name }}
+                        </div>
+                    </td>
+                    <td data-label="Price">
+                        <div class="product-price">
+                            ₹{{ product.price }}
+                            <small>INR</small>
+                        </div>
+                    </td>
+                    <td data-label="Current Status">
+                        <span class="badge-custom {% if product.is_published %}badge-success{% else %}badge-secondary{% endif %}">
+                            <i class="fas {% if product.is_published %}fa-check-circle{% else %}fa-clock{% endif %}"></i>
+                            {{ product.published_text }}
+                        </span>
+                    </td>
+                    <td data-label="Will Restore As">
+                        <span class="badge-custom {% if product.is_published %}badge-success{% else %}badge-secondary{% endif %}">
+                            <i class="fas {% if product.is_published %}fa-check-circle{% else %}fa-clock{% endif %}"></i>
+                            {{ product.published_text }}
+                        </span>
+                        <small class="text-muted" style="display: block; font-size: 0.65rem;">(unchanged)</small>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Note Alert -->
+        <div class="restore-confirm__note">
+            <div class="note-icon">
+                <i class="fas fa-sticky-note"></i>
+            </div>
+            <div class="note-text">
                 <strong>📌 Note:</strong> Products will be restored with their original published/draft status preserved.
             </div>
-            
-            <form method="POST">
-                {% csrf_token %}
-                {% for product_id in product_ids %}
-                <input type="hidden" name="restore_ids" value="{{ product_id }}">
-                {% endfor %}
-                <input type="hidden" name="confirm" value="yes">
-                
-                <div class="d-flex justify-content-between">
-                    <a href="{% url 'theme_manager:archived_products_list' store.id %}" class="btn btn-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-primary">Confirm Restoration</button>
-                </div>
-            </form>
         </div>
+
+        <!-- Action Buttons -->
+        <form method="POST">
+            {% csrf_token %}
+            {% for product_id in product_ids %}
+                <input type="hidden" name="restore_ids" value="{{ product_id }}">
+            {% endfor %}
+            <input type="hidden" name="confirm" value="yes">
+            
+            <div class="restore-actions">
+                <a href="{% url 'theme_manager:archived_products_list' store.id %}" class="btn-cancel">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn-confirm">
+                    <i class="fas fa-check-circle"></i> Confirm Restoration
+                </button>
+            </div>
+        </form>
+
     </div>
+
 </div>
+</div>
+
+
 {% endblock %}

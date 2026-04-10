@@ -40,7 +40,6 @@
 
     body {
         background: var(--gray-50);
-        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
         color: var(--gray-800);
     }
 
@@ -683,10 +682,7 @@
         font-weight: 600;
     }
 
-    .menu-link i {
-        width: 24px;
-        margin-right: 8px;
-    }
+    
 
     .menu-badge {
         background: var(--primary);
@@ -1097,12 +1093,21 @@
                     <p>See how your store looks to customers</p>
                     <span class="btn btn-success btn-sm"><i class="fas fa-external-link-alt"></i> Preview Now</span>
                 </a>
-                <button class="action-card" onclick="copyStoreLink()" style="cursor:pointer;">
-                    <div class="action-icon" style="color: var(--info);"><i class="fas fa-share-alt"></i></div>
-                    <h5>Share Store</h5>
-                    <p>Share your store link with customers</p>
-                    <span class="btn btn-info btn-sm"><i class="fas fa-copy"></i> Copy Link</span>
-                </button>
+              <button class="action-card" onclick="window.location.href='{% url 'resellers:edit_store' store.id %}'" style="cursor:pointer;">
+    
+    <div class="action-icon" style="color: var(--info);">
+        <i class="fas fa-edit"></i>
+    </div>
+
+    <h5>Edit Store</h5>
+
+    <p>Update store details</p>
+
+    <span class="btn btn-info btn-sm">
+        <i class="fas fa-pen"></i> Edit
+    </span>
+
+</button>
             </div>
 
             <!-- Store Information -->

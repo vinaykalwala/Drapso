@@ -1,160 +1,730 @@
+{% extends 'dashboard_base.html' %}
 {% load static %}
 
-{% block title %}Price Change Notifications - {{ store.store_name }}{% endblock %}
+{% block title %}Price Change Notifications{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
 
-    <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3><i class="fas fa-bell"></i> Price Change Notifications</h3>
-        <a href="{% url 'products:reseller_product_list' store.id %}" class="btn btn-secondary">
-            Back
-        </a>
+<style>
+/* ============================================
+   PRICE CHANGE NOTIFICATIONS - PREMIUM DESIGN
+   ============================================ */
+
+:root {
+    --primary: #4f46e5;
+    --primary-dark: #4338ca;
+    --primary-light: #eef2ff;
+    --success: #10b981;
+    --success-light: #d1fae5;
+    --warning: #f59e0b;
+    --warning-light: #fef3c7;
+    --danger: #ef4444;
+    --danger-light: #fee2e2;
+    --info: #06b6d4;
+    --info-light: #cffafe;
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-300: #cbd5e1;
+    --gray-400: #94a3b8;
+    --gray-500: #64748b;
+    --gray-600: #475569;
+    --gray-700: #334155;
+    --gray-800: #1e293b;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    --radius: 12px;
+    --radius-lg: 16px;
+    --transition: all 0.3s ease;
+}
+
+/* Wrapper */
+.pc-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 20px;
+}
+
+/* Header */
+.pc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.pc-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary), #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Filter Bar */
+.pc-filter-bar {
+    background: white;
+    border-radius: var(--radius);
+    padding: 16px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+}
+
+.filter-group {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 6px 18px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--gray-200);
+    background: white;
+    color: var(--gray-600);
+    transition: var(--transition);
+}
+
+.filter-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, var(--primary), #7c3aed);
+    color: white;
+    border-color: transparent;
+}
+
+.filter-stats {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    background: var(--gray-100);
+    padding: 6px 14px;
+    border-radius: 30px;
+}
+
+/* Card */
+.pc-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.pc-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.pc-card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--gray-200);
+    background: white;
+    font-weight: 700;
+    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.pc-card-header i {
+    color: var(--primary);
+}
+
+.header-badge {
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 4px 12px;
+    border-radius: 30px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.pc-card-body {
+    padding: 0;
+}
+
+/* Table */
+.pc-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.pc-table th {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--gray-200);
+    text-align: left;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    background: var(--gray-50);
+}
+
+.pc-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 0.85rem;
+    vertical-align: middle;
+}
+
+.pc-table tr:hover {
+    background: var(--gray-50);
+}
+
+/* Badges */
+.pc-badge {
+    padding: 5px 12px;
+    border-radius: 30px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.pc-up {
+    background: linear-gradient(135deg, var(--danger-light), #fee2e2);
+    color: #991b1b;
+}
+
+.pc-down {
+    background: linear-gradient(135deg, var(--success-light), #d1fae5);
+    color: #065f46;
+}
+
+.pc-pending {
+    background: var(--gray-200);
+    color: var(--gray-600);
+}
+
+.pc-done {
+    background: linear-gradient(135deg, var(--success-light), #d1fae5);
+    color: #065f46;
+}
+
+/* Product Info */
+.pc-product {
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: 4px;
+}
+
+.pc-variant {
+    font-size: 0.7rem;
+    color: var(--gray-500);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.pc-variant i {
+    font-size: 0.6rem;
+}
+
+/* Price Display */
+.price-old {
+    color: var(--gray-500);
+    text-decoration: line-through;
+    font-size: 0.75rem;
+}
+
+.price-new {
+    color: var(--gray-800);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+/* Difference Colors */
+.pc-diff-up {
+    color: var(--danger);
+    font-weight: 700;
+    background: var(--danger-light);
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    display: inline-block;
+}
+
+.pc-diff-down {
+    color: var(--success);
+    font-weight: 700;
+    background: var(--success-light);
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    display: inline-block;
+}
+
+/* Buttons */
+.pc-btn {
+    padding: 8px 18px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.pc-btn-primary {
+    background: linear-gradient(135deg, var(--primary), #7c3aed);
+    color: white;
+    border: none;
+}
+
+.pc-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.pc-btn-outline {
+    border: 1px solid var(--gray-300);
+    background: white;
+    color: var(--gray-600);
+}
+
+.pc-btn-outline:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-light);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--gray-300);
+    margin-bottom: 16px;
+}
+
+.empty-state h4 {
+    color: var(--gray-600);
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    color: var(--gray-500);
+    font-size: 0.85rem;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .pc-wrapper {
+        padding: 20px 16px;
+    }
+    
+    .pc-table th,
+    .pc-table td {
+        padding: 12px 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .pc-table thead {
+        display: none;
+    }
+    
+    .pc-table tr {
+        display: block;
+        background: white;
+        border-radius: var(--radius);
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+    }
+    
+    .pc-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: none;
+        padding: 8px 0;
+    }
+    
+    .pc-table td:before {
+        content: attr(data-label);
+        font-weight: 700;
+        font-size: 0.7rem;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .pc-card-header {
+        padding: 16px 20px;
+    }
+    
+    .filter-group {
+        width: 100%;
+    }
+    
+    .filter-buttons {
+        flex: 1;
+    }
+    
+    .filter-stats {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .pc-wrapper {
+        padding: 16px 12px;
+    }
+    
+    .pc-title {
+        font-size: 1.2rem;
+    }
+    
+    .pc-card-header {
+        padding: 14px 16px;
+    }
+    
+    .filter-btn {
+        padding: 4px 12px;
+        font-size: 0.7rem;
+    }
+    
+    .pc-btn {
+        padding: 6px 12px;
+        font-size: 0.7rem;
+    }
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pc-card {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--gray-100);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gray-400);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-500);
+}
+  @media (max-width: 900px) {
+        .content{
+            margin-top: 60px;
+        }
+    }
+    /* table scroll only */
+.pc-card-body{
+    overflow-x:auto;
+}
+
+/* keep table width larger so scroll appears */
+.pc-table{
+    min-width:1050px;
+}
+</style>
+
+<div class="content">
+<div class="pc-wrapper">
+
+<!-- Header -->
+<div class="pc-header">
+    <div class="pc-title">
+        <i class="fas fa-bell" style="background: linear-gradient(135deg, var(--primary), #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+        Price Change Notifications
     </div>
+    <a href="{% url 'products:reseller_product_list' store.id %}" class="pc-btn pc-btn-outline">
+        <i class="fas fa-arrow-left"></i> Back to Products
+    </a>
+</div>
 
-    <!-- PRODUCTS NEEDING REVIEW -->
-    {% if products_with_changes %}
-    <div class="card mb-4">
-        <div class="card-header"><h5>Products Needing Review</h5></div>
+<!-- Filter Bar -->
+<div class="pc-filter-bar">
+    <div class="filter-group">
+        <span class="filter-label"><i class="fas fa-filter"></i> Filter by:</span>
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="pending">Pending</button>
+            <button class="filter-btn" data-filter="done">Done</button>
+        </div>
+    </div>
+    <div class="filter-stats">
+        <i class="fas fa-chart-line"></i>
+        <span id="pendingCount">0</span> Pending · <span id="doneCount">0</span> Done
+    </div>
+</div>
 
-        <div class="card-body">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Old</th>
-                        <th>New</th>
-                        <th>Diff</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                {% for product in products_with_changes %}
+<!-- Products Needing Review Section -->
+{% if products_with_changes %}
+<div class="pc-card" id="reviewCard">
+    <div class="pc-card-header">
+        <div>
+            <i class="fas fa-exclamation-triangle"></i> Products Needing Review
+            <span class="header-badge ms-2">{{ products_with_changes|length }} items</span>
+        </div>
+        <i class="fas fa-clock" style="color: var(--warning);"></i>
+    </div>
+    <div class="pc-card-body">
+        <table class="pc-table">
+            <thead>
                 <tr>
-                    <td>{{ product.name }}</td>
-                    <td>₹{{ product.get_old_selling_price }}</td>
-                    <td>₹{{ product.get_new_selling_price }}</td>
-                    <td>
+                    <th>Product</th>
+                    <th>Old Price</th>
+                    <th>New Price</th>
+                    <th>Difference</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products_with_changes %}
+                <tr data-status="pending">
+                    <td data-label="Product">
+                        <div class="pc-product">
+                            <i class="fas fa-box" style="color: var(--primary);"></i> {{ product.name }}
+                        </div>
+                    </td>
+                    <td data-label="Old Price">
+                        <span class="price-old">₹{{ product.get_old_selling_price }}</span>
+                    </td>
+                    <td data-label="New Price">
+                        <span class="price-new">₹{{ product.get_new_selling_price }}</span>
+                    </td>
+                    <td data-label="Difference">
                         {% if product.price_status == 'price_increased' %}
-                            <span class="text-danger">+₹{{ product.get_price_difference }}</span>
+                            <span class="pc-diff-up"><i class="fas fa-arrow-up"></i> +₹{{ product.get_price_difference }}</span>
                         {% else %}
-                            <span class="text-success">₹{{ product.get_price_difference }}</span>
+                            <span class="pc-diff-down"><i class="fas fa-arrow-down"></i> -₹{{ product.get_price_difference }}</span>
                         {% endif %}
                     </td>
-                    <td>
-                        <a href="{% url 'products:review_price_change' store.id product.id %}" 
-                           class="btn btn-primary btn-sm">
-                            Review
+                    <td data-label="">
+                        <a href="{% url 'products:review_price_change' store.id product.id %}" class="pc-btn pc-btn-primary">
+                            <i class="fas fa-eye"></i> Review
                         </a>
                     </td>
                 </tr>
                 {% endfor %}
-                </tbody>
-            </table>
-        </div>
+            </tbody>
+        </table>
     </div>
-    {% endif %}
-
-    <!-- HISTORY -->
-    <div class="card">
-        <div class="card-header"><h5>History</h5></div>
-
-        <div class="card-body">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Product</th>
-                        <th>Type</th>
-                        <th>Old Base</th>
-                        <th>New Base</th>
-                        <th>Old Selling</th>
-                        <th>New Selling</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                {% for n in notifications %}
-                <tr {% if not n.is_read %}class="table-active"{% endif %}>
-
-                    <td>{{ n.created_at|date:"Y-m-d H:i" }}</td>
-
-                    <td>
-                        {{ n.reseller_product.name }}
-                        {% if n.reseller_variant %}
-                        <br><small>{{ n.reseller_variant.variant_name }}</small>
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        {% if n.is_increase %}
-                        <span class="badge bg-warning">Increase</span>
-                        {% else %}
-                        <span class="badge bg-success">Decrease</span>
-                        {% endif %}
-                    </td>
-
-                    <td>₹{{ n.old_price }}</td>
-                    <td>₹{{ n.new_price }}</td>
-                    <td>₹{{ n.old_selling_price }}</td>
-                    <td>₹{{ n.new_selling_price }}</td>
-
-                    <td>
-                        {% if n.is_actioned %}
-                        <span class="badge bg-success">Done</span>
-                        {% else %}
-                        <span class="badge bg-secondary">Pending</span>
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        <td>
-    {% if not n.is_actioned %}
-        <a href="{% url 'products:review_price_change' store.id n.reseller_product.id %}" 
-           class="btn btn-sm btn-primary">
-            Review
-        </a>
-    {% else %}
-        <span class="badge bg-success me-2">Completed</span>
-
-        
-    {% endif %}
-    {% if n.is_actioned %}
-    <a href="{% url 'products:dismiss_notification' n.id %}" class="btn btn-sm btn-outline-secondary">
-        Dismiss
-    </a>
+</div>
 {% endif %}
-</td>
-                    </td>
 
+<!-- History Section -->
+<div class="pc-card" id="historyCard">
+    <div class="pc-card-header">
+        <div>
+            <i class="fas fa-history"></i> Notification History
+            <span class="header-badge ms-2" id="historyCount">{{ notifications|length }} records</span>
+        </div>
+        <i class="fas fa-calendar-alt" style="color: var(--info);"></i>
+    </div>
+    <div class="pc-card-body">
+        <table class="pc-table" id="historyTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Product</th>
+                    <th>Change</th>
+                    <th>Old Price</th>
+                    <th>New Price</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="historyTableBody">
+                {% for n in notifications %}
+                <tr data-status="{% if n.is_actioned %}done{% else %}pending{% endif %}" data-id="{{ n.id }}">
+                    <td data-label="Date">
+                        <i class="far fa-calendar-alt" style="color: var(--gray-400);"></i>
+                        {{ n.created_at|date:"M d, Y H:i" }}
+                    </td>
+                    <td data-label="Product">
+                        <div class="pc-product">
+                            {{ n.reseller_product.name }}
+                        </div>
+                        {% if n.reseller_variant %}
+                        <div class="pc-variant">
+                            <i class="fas fa-tag"></i> {{ n.reseller_variant.variant_name }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td data-label="Change">
+                        {% if n.is_increase %}
+                            <span class="pc-badge pc-up"><i class="fas fa-arrow-up"></i> Increased</span>
+                        {% else %}
+                            <span class="pc-badge pc-down"><i class="fas fa-arrow-down"></i> Decreased</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Old Price">
+                        <span class="price-old">₹{{ n.old_price }}</span>
+                    </td>
+                    <td data-label="New Price">
+                        <span class="price-new">₹{{ n.new_price }}</span>
+                    </td>
+                    <td data-label="Status">
+                        {% if n.is_actioned %}
+                            <span class="pc-badge pc-done"><i class="fas fa-check-circle"></i> Done</span>
+                        {% else %}
+                            <span class="pc-badge pc-pending"><i class="fas fa-clock"></i> Pending</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Action">
+                        {% if not n.is_actioned %}
+                            <a href="{% url 'products:review_price_change' store.id n.reseller_product.id %}" class="pc-btn pc-btn-primary">
+                                <i class="fas fa-edit"></i> Review
+                            </a>
+                        {% else %}
+                            <a href="{% url 'products:dismiss_notification' n.id %}" class="pc-btn pc-btn-outline"
+                                onclick="return confirm('Are you sure you want to dismiss this notification?');">
+                            
+                                <i class="fas fa-check"></i>
+                                Dismiss
+                            
+                            </a>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="9" class="text-center">No notifications</td>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <i class="fas fa-bell-slash"></i>
+                            <h4>No Notifications</h4>
+                            <p>When product prices change, you'll see notifications here.</p>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
-                </tbody>
-            </table>
-        </div>
+            </tbody>
+        </table>
     </div>
-
 </div>
 
-<!-- AJAX DISMISS -->
+</div>
+</div>
+
 <script>
-document.querySelectorAll('.dismiss-btn').forEach(btn => {
-    btn.onclick = function () {
-        fetch(`/products/reseller/notification/${this.dataset.id}/dismiss/`, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-        }).then(() => {
-            this.closest('tr').remove();
+// Filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const historyRows = document.querySelectorAll('#historyTableBody tr');
+    
+    // Update stats
+    function updateStats() {
+        let pendingCount = 0;
+        let doneCount = 0;
+        
+        historyRows.forEach(row => {
+            if (row.getAttribute('data-status') === 'pending') {
+                pendingCount++;
+            } else if (row.getAttribute('data-status') === 'done') {
+                doneCount++;
+            }
+        });
+        
+        document.getElementById('pendingCount').textContent = pendingCount;
+        document.getElementById('doneCount').textContent = doneCount;
+    }
+    
+    // Filter function
+    function filterTable(filter) {
+        historyRows.forEach(row => {
+            const status = row.getAttribute('data-status');
+            if (filter === 'all') {
+                row.style.display = '';
+            } else if (filter === 'pending' && status === 'pending') {
+                row.style.display = '';
+            } else if (filter === 'done' && status === 'done') {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
         });
     }
+    
+    // Add click handlers
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Update active state
+            filterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Filter
+            const filter = this.getAttribute('data-filter');
+            filterTable(filter);
+        });
+    });
+    
+    // Initial stats
+    updateStats();
+    
+    // Log for debugging
+    console.log('Price Change Notifications Loaded');
+    console.log('Total notifications: {{ notifications|length }}');
 });
 </script>
 
