@@ -1,229 +1,1620 @@
+{% extends 'dashboard_base.html' %}
 {% load static %}
 
 {% block title %}Variants - {{ product.name }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<style>
+    /* ============================================
+       FULLY RESPONSIVE PRODUCT VARIANTS PAGE
+       ============================================ */
 
-    <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold mb-0">Product Variants</h2>
-            <p class="text-muted mb-0">Manage variants for: {{ product.name }}</p>
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --primary-light: #eef2ff;
+        --success: #10b981;
+        --success-light: #d1fae5;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --warning-light: #fef3c7;
+        --gray-50: #fafafa;
+        --gray-100: #f4f4f5;
+        --gray-200: #e4e4e7;
+        --gray-300: #d4d4d8;
+        --gray-400: #a1a1aa;
+        --gray-500: #71717a;
+        --gray-600: #52525b;
+        --gray-700: #3f3f46;
+        --gray-800: #27272a;
+        --gray-900: #18181b;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        --radius: 12px;
+        --radius-lg: 20px;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .product-detail-container {
+        max-width: 1400px !important;
+        margin: 0 auto;
+        padding: 20px;
+        background: linear-gradient(135deg, var(--gray-50) 0%, #ffffff 100%);
+    }
+
+    /* ============================================
+       HEADER SECTION - BLUE BACKGROUND
+       ============================================ */
+    .page-header {
+        background: linear-gradient(135deg, #2563eb, #1e40af);
+        border-radius: var(--radius-lg);
+        padding: 24px 32px;
+        margin-bottom: 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .header-title h1 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .header-title h1 i {
+        font-size: 1.8rem;
+        color: #fbbf24;
+    }
+
+    .header-title p {
+        color: rgba(255,255,255,0.9);
+        font-size: 0.9rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-header {
+        padding: 10px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-back {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .btn-back:hover {
+        background: rgba(255,255,255,0.3);
+        transform: translateX(-4px);
+    }
+
+    .btn-add {
+        background: white;
+        color: #2563eb;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+    }
+
+    /* ============================================
+       MAIN LAYOUT - FULLY RESPONSIVE
+       ============================================ */
+    .product-main-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+        background: white;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-xl);
+        margin-bottom: 32px;
+    }
+
+    /* ============================================
+       LEFT SIDE - IMAGE GALLERY
+       ============================================ */
+    .product-gallery {
+        background: linear-gradient(135deg, var(--gray-50) 0%, white 100%);
+        padding: 24px;
+        border-right: 1px solid var(--gray-200);
+    }
+
+    .gallery-main {
+        position: relative;
+        background: white;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        margin-bottom: 20px;
+        cursor: pointer;
+        aspect-ratio: 1 / 1;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--gray-200);
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-md);
+    }
+
+    .gallery-main:hover {
+        border-color: var(--primary);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .gallery-main-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .gallery-main:hover .gallery-main-image {
+        transform: scale(1.05);
+    }
+
+    .gallery-zoom-icon {
+        position: absolute;
+        bottom: 16px;
+        right: 16px;
+        background: rgba(0,0,0,0.7);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        cursor: pointer;
+        opacity: 0;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
+    }
+
+    .gallery-main:hover .gallery-zoom-icon {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    /* Thumbnails - Horizontal Scroll */
+    .gallery-thumbnails-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .thumb-scroll-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: white;
+        border: 1px solid var(--gray-300);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        flex-shrink: 0;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .thumb-scroll-btn:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .gallery-thumbnails {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        padding: 8px 0;
+        scrollbar-width: thin;
+        scroll-behavior: smooth;
+        flex: 1;
+    }
+
+    .gallery-thumbnails::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .gallery-thumbnails::-webkit-scrollbar-track {
+        background: var(--gray-200);
+        border-radius: 10px;
+    }
+
+    .gallery-thumbnails::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 10px;
+    }
+
+    .thumbnail-item {
+        flex-shrink: 0;
+        width: 75px;
+        height: 75px;
+        border-radius: 10px;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: white;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .thumbnail-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .thumbnail-item:hover {
+        transform: translateY(-3px);
+        border-color: var(--primary);
+        box-shadow: var(--shadow-md);
+    }
+
+    .thumbnail-item.active {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    /* ============================================
+       RIGHT SIDE - PRODUCT INFO
+       ============================================ */
+    .product-info {
+        padding: 28px 28px 28px 0;
+        max-height: calc(100vh - 70px);
+        overflow-y: auto;
+    }
+
+    .product-info::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .product-info::-webkit-scrollbar-track {
+        background: var(--gray-200);
+        border-radius: 10px;
+    }
+
+    .product-info::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 10px;
+    }
+
+    /* Compact Variants Section - FIRST */
+    .variants-section-modern {
+        margin-bottom: 24px;
+    }
+
+    .variants-title-modern {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: var(--gray-700);
+        margin-bottom: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .variant-selector-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .variant-scroll-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: white;
+        border: 1px solid var(--gray-300);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        flex-shrink: 0;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .variant-scroll-btn:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .variant-selector {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding: 6px 2px 10px 2px;
+        scrollbar-width: thin;
+        scroll-behavior: smooth;
+        flex: 1;
+    }
+
+    .variant-selector::-webkit-scrollbar {
+        height: 5px;
+    }
+
+    .variant-selector::-webkit-scrollbar-track {
+        background: var(--gray-200);
+        border-radius: 10px;
+    }
+
+    .variant-selector::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 10px;
+    }
+
+    /* COMPACT Variant Card */
+    .variant-option {
+        flex-shrink: 0;
+        width: 180px;
+        background: white;
+        border: 2px solid var(--gray-200);
+        border-radius: 12px;
+        padding: 8px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    .variant-option:hover {
+        transform: translateY(-3px);
+        border-color: var(--primary);
+        box-shadow: var(--shadow-md);
+    }
+
+    .variant-option.selected {
+        border-color: var(--primary);
+        background: linear-gradient(135deg, var(--primary-light), white);
+    }
+
+    .variant-option.selected::before {
+        content: '✓';
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        background: var(--primary);
+        color: white;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: bold;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .variant-option-content {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .variant-image-small {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid var(--gray-200);
+    }
+
+    .variant-image-placeholder {
+        width: 100%;
+        height: 100px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--gray-200), var(--gray-300));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .variant-image-placeholder i {
+        font-size: 1.8rem;
+        color: var(--gray-400);
+    }
+
+    .variant-details {
+        flex: 1;
+    }
+
+    .variant-title-detail {
+        font-weight: 800;
+        color: var(--gray-800);
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .variant-attributes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-bottom: 6px;
+    }
+
+    .attr-badge {
+        font-size: 0.6rem;
+        padding: 2px 6px;
+        background: var(--gray-100);
+        border-radius: 10px;
+        color: var(--gray-600);
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .variant-price-stock {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .price-small {
+        font-weight: 800;
+        color: var(--primary);
+        font-size: 0.85rem;
+    }
+
+    .stock-badge {
+        font-size: 0.6rem;
+        padding: 2px 6px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .stock-badge.in-stock {
+        background: var(--success-light);
+        color: #065f46;
+    }
+
+    .stock-badge.low-stock {
+        background: var(--warning-light);
+        color: #92400e;
+    }
+
+    .stock-badge.out-of-stock {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* Reset Button */
+    .reset-btn-modern {
+        margin-top: 10px;
+        padding: 6px 12px;
+        background: var(--gray-200);
+        border: none;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--gray-700);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .reset-btn-modern:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    /* Product Details Card */
+    .product-details-card {
+        background: var(--gray-50);
+        border-radius: var(--radius);
+        padding: 16px;
+        margin-bottom: 16px;
+        border: 1px solid var(--gray-200);
+    }
+
+    .product-brand-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        background: linear-gradient(135deg, var(--primary-light), var(--primary));
+        color: var(--primary-dark);
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .product-title-main {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--gray-800);
+        margin-bottom: 10px;
+        line-height: 1.3;
+        word-break: break-word;
+    }
+
+    .product-description-text {
+        color: var(--gray-600);
+        line-height: 1.5;
+        font-size: 0.85rem;
+        margin-bottom: 12px;
+    }
+
+    .price-container {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+    }
+
+    .current-price {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    .old-price {
+        font-size: 0.9rem;
+        color: var(--gray-400);
+        text-decoration: line-through;
+    }
+
+    .saved-badge {
+        background: linear-gradient(135deg, var(--success), #059669);
+        color: white;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 700;
+    }
+
+    .stock-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .stock-status.in-stock {
+        background: var(--success-light);
+        color: #065f46;
+    }
+
+    .stock-status.low-stock {
+        background: var(--warning-light);
+        color: #92400e;
+    }
+
+    .stock-status.out-of-stock {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* ============================================
+       SHIPPING INFO SECTION - NEW
+       ============================================ */
+    .shipping-info-card {
+        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+        border-radius: var(--radius);
+        padding: 16px;
+        margin-bottom: 16px;
+        border: 1px solid #bae6fd;
+    }
+
+    .shipping-title {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #0369a1;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .shipping-title i {
+        font-size: 0.9rem;
+    }
+
+   .shipping-details-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 10px;
+
+    margin-bottom: 12px;
+
+}
+
+
+/* below 1000px screen */
+@media (max-width:1000px){
+
+.shipping-details-grid{
+
+    grid-template-columns: 1fr;
+
+}
+
+}
+    .shipping-detail-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        background: white;
+        padding: 6px 10px;
+        border-radius: 20px;
+        border: 1px solid #bae6fd;
+    }
+
+    .shipping-detail-item i {
+        width: 20px;
+        color: #0284c7;
+        font-size: 0.7rem;
+    }
+
+    .shipping-detail-item strong {
+        font-weight: 700;
+        color: #0c4a6e;
+        margin-right: 4px;
+    }
+
+    .shipping-detail-item span {
+        color: #475569;
+    }
+
+    .shippable-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        margin-top: 8px;
+    }
+
+    .shippable-badge.shippable {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .shippable-badge.not-shippable {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .btn-modern {
+        flex: 1;
+        padding: 10px 16px;
+        border-radius: 40px;
+        font-weight: 800;
+        font-size: 0.8rem;
+        text-decoration: none;
+        text-align: center;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary-modern {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-primary-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+    }
+
+    .btn-secondary-modern {
+        background: var(--gray-200);
+        color: var(--gray-700);
+    }
+
+    .btn-secondary-modern:hover {
+        background: var(--gray-300);
+        transform: translateY(-2px);
+    }
+
+    /* All Variants Table */
+    .all-variants-section-modern {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .section-header-modern {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--gray-200);
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .section-header-modern h3 {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--gray-800);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-add-modern {
+        padding: 8px 16px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        border-radius: 40px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .variants-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .variants-table-modern {
+        min-width: 700px;
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .variants-table-modern th {
+        text-align: left;
+        padding: 12px 10px;
+        background: var(--gray-50);
+        font-weight: 800;
+        color: var(--gray-700);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+    }
+
+    .variants-table-modern td {
+        padding: 12px 10px;
+        border-bottom: 1px solid var(--gray-200);
+        vertical-align: middle;
+        font-size: 0.85rem;
+    }
+
+    .variant-thumb-modern {
+        width: 45px;
+        height: 45px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .variant-actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .variant-btn {
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .variant-btn-edit {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    .variant-btn-delete {
+        background: #fee2e2;
+        color: var(--danger);
+    }
+
+    .variant-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    /* Lightbox */
+    .lightbox-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.95);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .lightbox-modal.active {
+        display: flex;
+    }
+
+    .lightbox-modal img {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: 20px;
+        right: 40px;
+        color: white;
+        font-size: 40px;
+        cursor: pointer;
+    }
+
+   /* =============================
+MOBILE CUT FIX – FINAL
+============================= */
+
+html,body{
+overflow-x:hidden;
+}
+
+/* force full width */
+.product-detail-container{
+width:100%;
+max-width:100%;
+padding:12px !important;
+}
+
+/* stack layout */
+@media(max-width:900px){
+
+.product-main-layout{
+display:block !important;
+}
+.content{
+    margin-top: 70px;
+}
+/* remove right side cut */
+.product-gallery,
+.product-info{
+width:100% !important;
+max-width:100% !important;
+padding:15px !important;
+}
+
+/* remove height restriction */
+.product-info{
+max-height:none !important;
+overflow:visible !important;
+}
+
+/* image fix */
+.gallery-main{
+width:100%;
+height:auto !important;
+min-height:250px;
+aspect-ratio:auto !important;
+}
+
+.gallery-main img{
+width:100%;
+height:auto;
+object-fit:contain;
+}
+
+/* thumbnails scroll */
+.gallery-thumbnails-wrapper{
+width:100%;
+overflow:hidden;
+}
+
+.gallery-thumbnails{
+overflow-x:auto;
+width:100%;
+}
+
+/* variant scroll fix */
+.variant-selector-wrapper{
+width:100%;
+overflow:hidden;
+}
+
+.variant-selector{
+overflow-x:auto;
+padding-bottom:6px;
+}
+
+/* smaller variant cards */
+.variant-option{
+min-width:130px !important;
+width:130px !important;
+}
+
+/* buttons full width */
+.action-buttons{
+flex-direction:column;
+}
+
+.btn-modern{
+width:100%;
+}
+
+/* table scroll */
+.variants-table-wrapper{
+overflow-x:auto;
+}
+
+/* header wrap */
+.page-header{
+flex-direction:column;
+text-align:center;
+}
+
+.header-actions{
+width:100%;
+justify-content:center;
+}
+
+}
+
+
+/* very small phones */
+@media(max-width:480px){
+
+.product-title-main{
+font-size:16px;
+}
+
+.current-price{
+font-size:20px;
+}
+
+.variant-option{
+min-width:120px !important;
+width:120px !important;
+}
+
+.thumbnail-item{
+width:50px;
+height:50px;
+}
+
+
+
+}
+</style>
+
+<div class="content">
+<div class="product-detail-container">
+    
+    <!-- HEADER SECTION - BLUE BACKGROUND -->
+    <div class="page-header">
+        <div class="header-title">
+            <h1>
+                <i class="fas fa-boxes"></i> 
+                Product Variants
+            </h1>
+            <p>Manage variants for: <strong>{{ product.name }}</strong></p>
         </div>
-
-        <a href="{% url 'products:wholeseller_variant_create' product.id %}" class="btn btn-primary">
-            + Add Variant
-        </a>
+        <div class="header-actions">
+            <a href="{% url 'products:wholeseller_product_list' %}" class="btn-header btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Products
+            </a>
+            <a href="{% url 'products:wholeseller_variant_create' product.id %}" class="btn-header btn-add">
+                <i class="fas fa-plus"></i> Add Variant
+            </a>
+        </div>
     </div>
 
-    <!-- PRODUCT DETAILS SECTION -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-white">
-            <h5 class="mb-0 fw-bold">Product Information</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-2 text-center">
-                    {% if product.main_image %}
-                        <img src="{{ product.main_image.url }}" 
-                             width="120" height="120"
-                             class="rounded"
-                             style="object-fit: cover;">
-                    {% else %}
-                        <div class="bg-light d-flex align-items-center justify-content-center rounded"
-                             style="width:120px; height:120px; margin: 0 auto;">
-                            No Image
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="col-md-5">
-                    <h4 class="fw-bold mb-2">{{ product.name }}</h4>
-                    <p class="text-muted mb-1">{{ product.description|truncatewords:30 }}</p>
-                    <div class="mt-2">
-                        <span class="badge bg-primary">Base Price: ₹{{ product.price }}</span>
-                        <span class="badge bg-secondary">Category: {{ product.category.name|default:"Uncategorized" }}</span>
-                        <span class="badge bg-info">Total Variants: {{ variants.count }}</span>
-                    </div>
+    <!-- MAIN PRODUCT LAYOUT -->
+    <div class="product-main-layout">
+        
+        <!-- LEFT: Image Gallery -->
+        <div class="product-gallery">
+            <div class="gallery-main" onclick="openLightbox(getCurrentMainImage())">
+                <img id="mainGalleryImage" 
+                     src="{% if product.main_image %}{{ product.main_image.url }}{% else %}https://via.placeholder.com/600x600?text=No+Image{% endif %}" 
+                     class="gallery-main-image" 
+                     alt="{{ product.name }}">
+                <div class="gallery-zoom-icon">
+                    <i class="fas fa-search-plus"></i>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- VARIANTS GRID -->
-    <div class="row">
-        {% for variant in variants %}
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-            <div class="card h-100 shadow-sm">
-                <!-- IMAGES SIDE-BY-SIDE -->
-                <div class="variant-images-inline">
-                    {% if variant.main_image %}
-                        <img src="{{ variant.main_image.url }}" class="variant-img" alt="Main image">
+            
+            <!-- Thumbnails with Horizontal Scroll -->
+            <div class="gallery-thumbnails-wrapper">
+                <button class="thumb-scroll-btn" onclick="scrollThumbnails(-1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="gallery-thumbnails" id="galleryThumbnails">
+                    {% if product.main_image %}
+                    <div class="thumbnail-item active" data-original="true" onclick="changeMainImage('{{ product.main_image.url }}', this)">
+                        <img src="{{ product.main_image.url }}" alt="Main image">
+                    </div>
                     {% endif %}
-                    
-                    {% for img in variant.additional_images.all %}
-                        <img src="{{ img.image.url }}" class="variant-img" alt="{{ img.alt_text|default:'Variant image' }}">
+                    {% for img in product.additional_images.all %}
+                    <div class="thumbnail-item" data-original="true" onclick="changeMainImage('{{ img.image.url }}', this)">
+                        <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:'Product image' }}">
+                    </div>
                     {% endfor %}
-                    
-                    {% if not variant.main_image and not variant.additional_images.all %}
-                        <div class="text-muted small p-2">No images</div>
-                    {% endif %}
                 </div>
-
-                <!-- VARIANT BODY -->
-                <div class="card-body">
-                    <h6 class="fw-bold mb-2">{{ variant.variant_name }}</h6>
-                    
-                    <div class="mb-2">
-                        <small class="text-muted">
-                            Size: {{ variant.size|default:"-" }} | Color: {{ variant.color|default:"-" }}
-                        </small>
-                    </div>
-                    
-                    <div class="mb-2">
-                        <span class="fw-bold text-primary fs-5">₹{{ variant.price }}</span>
-                        {% if variant.previous_price %}
-                            <small class="text-muted text-decoration-line-through ms-2">
-                                ₹{{ variant.previous_price }}
-                            </small>
-                            <small class="text-success ms-1">
-                                (₹{{ variant.previous_price|floatformat:2 }} off)
-                            </small>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-2">
-                        <span class="badge {% if variant.stock > 10 %}bg-success{% elif variant.stock > 0 %}bg-warning{% else %}bg-danger{% endif %}">
-                            Stock: {{ variant.stock }}
-                        </span>
-                        {% if variant.is_low_stock and variant.stock > 0 %}
-                            <span class="badge bg-warning text-dark">Low Stock (≤{{ variant.threshold_limit }})</span>
-                        {% endif %}
-                    </div>
-                    
-                    {% if variant.sku %}
-                        <div class="small text-muted">
-                            <i class="bi bi-upc-scan"></i> SKU: {{ variant.sku }}
-                        </div>
-                    {% endif %}
-                    
-                    {% if variant.price_updated_at %}
-                        <div class="small text-muted mt-1">
-                            Price updated: {{ variant.price_updated_at|date:"d M Y" }}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- VARIANT FOOTER - SIMPLE DELETE LINK -->
-                <div class="card-footer bg-white d-flex justify-content-between">
-                    <a href="{% url 'products:wholeseller_variant_edit' variant.id %}" 
-                       class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-pencil"></i> Edit
-                    </a>
-                    
-                    <a href="{% url 'products:wholeseller_variant_delete' variant.id %}" 
-                       class="btn btn-sm btn-outline-danger"
-                       onclick="return confirm('Are you sure you want to delete variant \"{{ variant.variant_name }}\"? This will also delete all associated images for this variant.');">
-                        <i class="bi bi-trash"></i> Delete
-                    </a>
-                </div>
+                <button class="thumb-scroll-btn" onclick="scrollThumbnails(1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
             </div>
         </div>
         
-        {% empty %}
-        <div class="col-12">
-            <div class="text-center py-5">
-                <div class="mb-3">
-                    <i class="bi bi-box" style="font-size: 64px; color: #ccc;"></i>
+        <!-- RIGHT: Product Information -->
+        <div class="product-info">
+            
+            <!-- COMPACT VARIANTS SECTION - FIRST -->
+            <div class="variants-section-modern">
+                <div class="variants-title-modern">
+                    <i class="fas fa-layer-group"></i> SELECT VARIANT
+                    <span style="font-size: 0.6rem; font-weight: normal; color: var(--gray-500);">
+                        ({{ variants.count }} options)
+                    </span>
                 </div>
-                <h4>No Variants Yet</h4>
-                <p class="text-muted">This product doesn't have any variants. Add variants to offer different options like sizes, colors, etc.</p>
-                <a href="{% url 'products:wholeseller_variant_create' product.id %}" class="btn btn-primary mt-2">
-                    + Add First Variant
+                
+                <div class="variant-selector-wrapper">
+                    <button class="variant-scroll-btn" onclick="scrollVariants(-1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="variant-selector" id="variantSelector">
+                        {% for variant in variants %}
+                        <div class="variant-option" 
+                             data-variant-id="{{ variant.id }}"
+                             data-variant-name="{{ variant.variant_name }}"
+                             data-variant-price="{{ variant.price }}"
+                             data-variant-stock="{{ variant.stock }}"
+                             data-variant-description="{{ variant.description|default:product.description }}"
+                             data-variant-previous-price="{{ variant.previous_price|default:'' }}"
+                             data-variant-main-image="{% if variant.main_image %}{{ variant.main_image.url }}{% endif %}"
+                             data-variant-weight="{{ variant.weight|default:0 }}"
+                             data-variant-length="{{ variant.length|default:0 }}"
+                             data-variant-breadth="{{ variant.breadth|default:0 }}"
+                             data-variant-height="{{ variant.height|default:0 }}"
+                             data-variant-shippable="{{ variant.is_shippable|default:'true' }}"
+                             data-variant-gallery='[
+                                {% if variant.main_image %}"{{ variant.main_image.url }}"{% endif %}
+                                {% for img in variant.additional_images.all %}
+                                {% if forloop.first and variant.main_image %},{% endif %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}
+                                {% endfor %}
+                             ]'
+                             onclick="selectVariant(this)">
+                            
+                            <div class="variant-option-content">
+                                {% if variant.main_image %}
+                                <img src="{{ variant.main_image.url }}" class="variant-image-small" alt="{{ variant.variant_name }}">
+                                {% else %}
+                                <div class="variant-image-placeholder">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="variant-details">
+                                    <div class="variant-title-detail">{{ variant.variant_name|truncatechars:20 }}</div>
+                                    <div class="variant-attributes">
+                                        {% if variant.size %}
+                                        <span class="attr-badge"><i class="fas fa-arrows-alt"></i> {{ variant.size }}</span>
+                                        {% endif %}
+                                        {% if variant.color %}
+                                        <span class="attr-badge"><i class="fas fa-palette"></i> {{ variant.color }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="variant-price-stock">
+                                        <span class="price-small">₹{{ variant.price }}</span>
+                                        <span class="stock-badge {% if variant.stock > 10 %}in-stock{% elif variant.stock > 0 %}low-stock{% else %}out-of-stock{% endif %}">
+                                            {% if variant.stock > 10 %}In Stock
+                                            {% elif variant.stock > 0 %}{{ variant.stock }} left
+                                            {% else %}Out{% endif %}
+                                        </span>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center" style="padding: 30px; text-align: center; min-width: 250px;">
+                            <i class="fas fa-box-open" style="font-size: 2rem; color: var(--gray-400);"></i>
+                            <p style="margin-top: 8px; font-size: 0.8rem;">No variants available</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button class="variant-scroll-btn" onclick="scrollVariants(1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <button class="reset-btn-modern" onclick="resetToMainProduct()" style="display: none;" id="resetBtn">
+                    <i class="fas fa-undo-alt"></i> Back to Main Product
+                </button>
+            </div>
+            
+            <!-- PRODUCT DETAILS CARD -->
+            <div class="product-details-card">
+                <div class="product-brand-badge">
+                    <i class="fas fa-store"></i> {{ product.brand|default:"Premium Product" }}
+                </div>
+                <h1 class="product-title-main" id="productTitle">{{ product.name }}</h1>
+                <div class="product-description-text" id="productDescription">
+                    {{ product.description|default:"No description available." }}
+                </div>
+                
+                <div class="price-container">
+                    <span class="current-price" id="currentPrice">₹{{ product.price }}</span>
+                    {% if product.previous_price %}
+                    <span class="old-price" id="oldPrice">₹{{ product.previous_price }}</span>
+                    <span class="saved-badge" id="priceSaved">Save ₹{{ product.previous_price|add:product.price|floatformat:0 }}</span>
+                    {% endif %}
+                </div>
+                  
+                <div class="stock-status in-stock" id="stockStatus">
+                    <i class="fas fa-check-circle"></i> In Stock
+                </div>
+            </div>
+            
+            <!-- SHIPPING INFO CARD - NEW -->
+            <div class="shipping-info-card">
+                <div class="shipping-title">
+                    <i class="fas fa-truck"></i> Shipping Information
+                </div>
+                <div class="shipping-details-grid" id="shippingDetails">
+                    <div class="shipping-detail-item">
+                        <i class="fas fa-weight-hanging"></i>
+                        <strong>Weight:</strong> <span id="shippingWeight">{{ product.weight|default:"0" }} kg</span>
+                    </div>
+                    <div class="shipping-detail-item">
+                        <i class="fas fa-arrows-alt"></i>
+                        <strong>Length:</strong> <span id="shippingLength">{{ product.length|default:"0" }} cm</span>
+                    </div>
+                    <div class="shipping-detail-item">
+                        <i class="fas fa-arrows-alt-h"></i>
+                        <strong>Width:</strong> <span id="shippingBreadth">{{ product.breadth|default:"0" }} cm</span>
+                    </div>
+                    <div class="shipping-detail-item">
+                        <i class="fas fa-arrows-alt-v"></i>
+                        <strong>Height:</strong> <span id="shippingHeight">{{ product.height|default:"0" }} cm</span>
+                    </div>
+                </div>
+                <div id="shippableStatus">
+                    {% if product.is_shippable %}
+                    <div class="shippable-badge shippable">
+                        <i class="fas fa-check-circle"></i> Shippable Product
+                    </div>
+                    {% else %}
+                    <div class="shippable-badge not-shippable">
+                        <i class="fas fa-ban"></i> Non-Shippable (Local Pickup Only)
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+             
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="{% url 'products:wholeseller_variant_create' product.id %}" class="btn-modern btn-primary-modern">
+                    <i class="fas fa-plus"></i> Add New Variant
+                </a>
+                <a href="{% url 'products:wholeseller_product_edit' product.id %}" class="btn-modern btn-secondary-modern">
+                    <i class="fas fa-edit"></i> Edit Product
                 </a>
             </div>
         </div>
-        {% endfor %}
     </div>
-
-    <!-- PRODUCT ACTIONS SECTION -->
-    <div class="card shadow-sm mt-4">
-        <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h6 class="mb-1">Need to add more variants?</h6>
-                    <small class="text-muted">You can add multiple variants with different prices, stock, and images.</small>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <a href="{% url 'products:wholeseller_variant_create' product.id %}" class="btn btn-primary me-2">
-                        <i class="bi bi-plus-circle"></i> Add Another Variant
-                    </a>
-                    <a href="{% url 'products:wholeseller_product_edit' product.id %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-pencil-square"></i> Edit Product
-                    </a>
-                </div>
-            </div>
+    
+    <!-- All Variants List Section -->
+    <div class="all-variants-section-modern">
+        <div class="section-header-modern">
+            <h3><i class="fas fa-list"></i> All Variants ({{ variants.count }})</h3>
+            <a href="{% url 'products:wholeseller_variant_create' product.id %}" class="btn-add-modern">
+                <i class="fas fa-plus"></i> Add Variant
+            </a>
+        </div>
+        
+        <div class="variants-table-wrapper">
+            <table class="variants-table-modern">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Variant Name</th>
+                        <th>Size / Color</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>SKU</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for variant in variants %}
+                    <tr data-variant-row-id="{{ variant.id }}">
+                        <tr>
+                            {% if variant.main_image %}
+                            <img src="{{ variant.main_image.url }}" class="variant-thumb-modern" alt="{{ variant.variant_name }}">
+                            {% else %}
+                            <div class="variant-thumb-modern" style="background: var(--gray-200); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-image" style="color: var(--gray-400);"></i>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ variant.variant_name }}</strong></strong></td>
+                        <td>
+                            {% if variant.size %}<i class="fas fa-arrows-alt"></i> {{ variant.size }}{% endif %}
+                            {% if variant.color %}{% if variant.size %} | {% endif %}<i class="fas fa-palette"></i> {{ variant.color }}{% endif %}
+                            {% if not variant.size and not variant.color %}-{% endif %}
+                        </td>
+                        <td style="font-weight: 800; color: var(--primary);">₹{{ variant.price }}</td>
+                        <td>
+                            <span class="stock-badge {% if variant.stock > 10 %}in-stock{% elif variant.stock > 0 %}low-stock{% else %}out-of-stock{% endif %}">
+                                {{ variant.stock }} units
+                            </span>
+                        </td>
+                        <td><small class="text-muted">{{ variant.sku|default:"-" }}</small></td>
+                        <td>
+                            <div class="variant-actions">
+                                <a href="{% url 'products:wholeseller_variant_edit' variant.id %}" class="variant-btn variant-btn-edit">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <a href="{% url 'products:wholeseller_variant_delete' variant.id %}" 
+                                   class="variant-btn variant-btn-delete"
+                                   onclick="return confirm('Are you sure you want to delete variant \"{{ variant.variant_name }}\"? This action cannot be undone!');">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
+                            </div>
+                          </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">
+                            <i class="fas fa-box-open" style="font-size: 3rem; color: var(--gray-400);"></i>
+                            <p style="margin-top: 12px;">No variants found. Click "Add Variant" to create one.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
-
-    <!-- BACK BUTTON -->
-    <div class="mt-3">
-        <a href="{% url 'products:wholeseller_product_list' %}" class="btn btn-secondary">
-            ← Back to Products List
-        </a>
-    </div>
-
 </div>
 
-<style>
-.variant-images-inline {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 12px;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
-    min-height: 94px;
-    align-items: center;
-}
+<!-- Lightbox Modal -->
+<div id="lightboxModal" class="lightbox-modal" onclick="closeLightbox()">
+    <span class="lightbox-close">&times;</span>
+    <img id="lightboxImage" src="" alt="">
+</div>
+</div>
 
-.variant-img {
-    width: 70px;
-    height: 70px;
-    object-fit: cover;
-    border-radius: 6px;
-    border: 1px solid #dee2e6;
-    transition: transform 0.2s ease;
-}
-
-.variant-img:hover {
-    transform: scale(1.05);
-    cursor: pointer;
-}
-
-.card {
-    transition: box-shadow 0.3s ease;
-}
-
-.card:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-}
-
-.card-footer {
-    background-color: #f8f9fa;
-}
-
-@media (max-width: 768px) {
-    .variant-img {
-        width: 50px;
-        height: 50px;
+<script>
+    // Store original product data with shipping info
+    const originalProductData = {
+        description: '{{ product.description|default:""|escapejs }}',
+        price: '{{ product.price }}',
+        oldPrice: '{{ product.previous_price|default:"" }}',
+        priceSaved: '{% if product.previous_price %}Save ₹{{ product.previous_price|add:product.price|floatformat:0 }}{% endif %}',
+        mainImage: '{% if product.main_image %}{{ product.main_image.url }}{% endif %}',
+        stock: {{ product.stock|default:0 }},
+        weight: '{{ product.weight|default:"0" }}',
+        length: '{{ product.length|default:"0" }}',
+        breadth: '{{ product.breadth|default:"0" }}',
+        height: '{{ product.height|default:"0" }}',
+        isShippable: {{ product.is_shippable|default:"true"|lower }}
+    };
+    
+    let originalThumbnailsHTML = '';
+    
+    // Scroll Functions
+    function scrollThumbnails(direction) {
+        const container = document.getElementById('galleryThumbnails');
+        if (container) {
+            const scrollAmount = 150;
+            container.scrollLeft += direction * scrollAmount;
+        }
     }
     
-    .variant-images-inline {
-        padding: 8px;
-        gap: 6px;
+    function scrollVariants(direction) {
+        const container = document.getElementById('variantSelector');
+        if (container) {
+            const scrollAmount = 280;
+            container.scrollLeft += direction * scrollAmount;
+        }
     }
-}
-</style>
+    
+    // Update shipping info display
+    function updateShippingInfo(weight, length, breadth, height, isShippable) {
+        document.getElementById('shippingWeight').textContent = parseFloat(weight).toFixed(2) + ' kg';
+        document.getElementById('shippingLength').textContent = parseFloat(length).toFixed(2) + ' cm';
+        document.getElementById('shippingBreadth').textContent = parseFloat(breadth).toFixed(2) + ' cm';
+        document.getElementById('shippingHeight').textContent = parseFloat(height).toFixed(2) + ' cm';
+        
+        const shippableDiv = document.getElementById('shippableStatus');
+        if (isShippable === true || isShippable === 'true') {
+            shippableDiv.innerHTML = '<div class="shippable-badge shippable"><i class="fas fa-check-circle"></i> Shippable Product</div>';
+        } else {
+            shippableDiv.innerHTML = '<div class="shippable-badge not-shippable"><i class="fas fa-ban"></i> Non-Shippable (Local Pickup Only)</div>';
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const thumbnailsContainer = document.getElementById('galleryThumbnails');
+        if (thumbnailsContainer) {
+            originalThumbnailsHTML = thumbnailsContainer.innerHTML;
+        }
+        updateStockStatus(originalProductData.stock);
+        
+        // Remove any default selection from variants
+        const allVariants = document.querySelectorAll('.variant-option');
+        allVariants.forEach(variant => {
+            variant.classList.remove('selected');
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeLightbox();
+        });
+        
+        // Initialize shipping info with product data
+        updateShippingInfo(
+            originalProductData.weight,
+            originalProductData.length,
+            originalProductData.breadth,
+            originalProductData.height,
+            originalProductData.isShippable
+        );
+    });
+    
+    function updateStockStatus(stock) {
+        const stockElement = document.getElementById('stockStatus');
+        if (!stockElement) return;
+        
+        if (stock > 10) {
+            stockElement.className = 'stock-status in-stock';
+            stockElement.innerHTML = '<i class="fas fa-check-circle"></i> In Stock';
+        } else if (stock > 0) {
+            stockElement.className = 'stock-status low-stock';
+            stockElement.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Low Stock (${stock} units left)`;
+        } else {
+            stockElement.className = 'stock-status out-of-stock';
+            stockElement.innerHTML = '<i class="fas fa-times-circle"></i> Out of Stock';
+        }
+    }
+    
+    function changeMainImage(imageUrl, element) {
+        const mainImage = document.getElementById('mainGalleryImage');
+        if (mainImage) mainImage.src = imageUrl;
+        
+        const thumbnails = document.querySelectorAll('#galleryThumbnails .thumbnail-item');
+        thumbnails.forEach(thumb => thumb.classList.remove('active'));
+        element.classList.add('active');
+    }
+    
+    function selectVariant(variantElement) {
+        if (variantElement.classList.contains('selected')) {
+            variantElement.classList.remove('selected');
+            resetToMainProduct();
+            return;
+        }
+        
+        const allVariants = document.querySelectorAll('.variant-option');
+        allVariants.forEach(variant => variant.classList.remove('selected'));
+        variantElement.classList.add('selected');
+        
+        const variantPrice = variantElement.dataset.variantPrice;
+        const variantStock = parseInt(variantElement.dataset.variantStock);
+        const variantDescription = variantElement.dataset.variantDescription;
+        const variantPreviousPrice = variantElement.dataset.variantPreviousPrice;
+        const variantMainImage = variantElement.dataset.variantMainImage;
+        
+        // Get shipping info from variant data
+        const variantWeight = variantElement.dataset.variantWeight || '0';
+        const variantLength = variantElement.dataset.variantLength || '0';
+        const variantBreadth = variantElement.dataset.variantBreadth || '0';
+        const variantHeight = variantElement.dataset.variantHeight || '0';
+        const variantShippable = variantElement.dataset.variantShippable === 'true' || variantElement.dataset.variantShippable === 'True';
+        
+        let variantGallery = [];
+        
+        try {
+            const galleryStr = variantElement.dataset.variantGallery;
+            if (galleryStr && galleryStr !== '[]') {
+                variantGallery = JSON.parse(galleryStr.replace(/&quot;/g, '"'));
+            }
+        } catch(e) {
+            variantGallery = variantMainImage ? [variantMainImage] : [];
+        }
+        
+        // Update product details
+        const descElement = document.getElementById('productDescription');
+        if (descElement && variantDescription) descElement.textContent = variantDescription;
+        
+        const priceElement = document.getElementById('currentPrice');
+        if (priceElement) priceElement.textContent = `₹${variantPrice}`;
+        
+        const oldPriceElement = document.getElementById('oldPrice');
+        const priceSavedElement = document.getElementById('priceSaved');
+        if (variantPreviousPrice && oldPriceElement && priceSavedElement) {
+            oldPriceElement.textContent = `₹${variantPreviousPrice}`;
+            const savings = parseFloat(variantPreviousPrice) - parseFloat(variantPrice);
+            priceSavedElement.textContent = `Save ₹${savings.toFixed(0)}`;
+            oldPriceElement.style.display = 'inline-block';
+            priceSavedElement.style.display = 'inline-block';
+        } else if (oldPriceElement && priceSavedElement) {
+            oldPriceElement.style.display = 'none';
+            priceSavedElement.style.display = 'none';
+        }
+        
+        updateStockStatus(variantStock);
+        
+        // Update shipping info
+        updateShippingInfo(variantWeight, variantLength, variantBreadth, variantHeight, variantShippable);
+        
+        const mainImage = document.getElementById('mainGalleryImage');
+        const thumbnailsContainer = document.getElementById('galleryThumbnails');
+        const resetBtn = document.getElementById('resetBtn');
+        
+        if (variantGallery.length > 0) {
+            if (mainImage && variantGallery[0]) mainImage.src = variantGallery[0];
+            if (thumbnailsContainer) {
+                thumbnailsContainer.innerHTML = '';
+                variantGallery.forEach((imgUrl, index) => {
+                    const thumbDiv = document.createElement('div');
+                    thumbDiv.className = 'thumbnail-item' + (index === 0 ? ' active' : '');
+                    thumbDiv.innerHTML = `<img src="${imgUrl}" alt="Variant image">`;
+                    thumbDiv.onclick = function() { changeMainImage(imgUrl, this); };
+                    thumbnailsContainer.appendChild(thumbDiv);
+                });
+            }
+        } else if (variantMainImage) {
+            if (mainImage) mainImage.src = variantMainImage;
+            if (thumbnailsContainer) {
+                thumbnailsContainer.innerHTML = `<div class="thumbnail-item active" onclick="changeMainImage('${variantMainImage}', this)"><img src="${variantMainImage}" alt="Variant main image"></div>`;
+            }
+        }
+        
+        if (resetBtn) resetBtn.style.display = 'inline-flex';
+    }
+    
+    function resetToMainProduct() {
+        const descElement = document.getElementById('productDescription');
+        if (descElement) descElement.textContent = originalProductData.description || 'No description available.';
+        
+        const priceElement = document.getElementById('currentPrice');
+        if (priceElement) priceElement.textContent = `₹${originalProductData.price}`;
+        
+        const oldPriceElement = document.getElementById('oldPrice');
+        const priceSavedElement = document.getElementById('priceSaved');
+        if (originalProductData.oldPrice && oldPriceElement && priceSavedElement) {
+            oldPriceElement.textContent = `₹${originalProductData.oldPrice}`;
+            oldPriceElement.style.display = 'inline-block';
+            priceSavedElement.textContent = originalProductData.priceSaved;
+            priceSavedElement.style.display = 'inline-block';
+        } else if (oldPriceElement && priceSavedElement) {
+            oldPriceElement.style.display = 'none';
+            priceSavedElement.style.display = 'none';
+        }
+        
+        updateStockStatus(originalProductData.stock);
+        
+        // Reset shipping info to original product values
+        updateShippingInfo(
+            originalProductData.weight,
+            originalProductData.length,
+            originalProductData.breadth,
+            originalProductData.height,
+            originalProductData.isShippable
+        );
+        
+        const mainImage = document.getElementById('mainGalleryImage');
+        const thumbnailsContainer = document.getElementById('galleryThumbnails');
+        const resetBtn = document.getElementById('resetBtn');
+        
+        if (mainImage && originalProductData.mainImage) mainImage.src = originalProductData.mainImage;
+        if (thumbnailsContainer && originalThumbnailsHTML) {
+            thumbnailsContainer.innerHTML = originalThumbnailsHTML;
+            const restoredThumbs = thumbnailsContainer.querySelectorAll('.thumbnail-item');
+            restoredThumbs.forEach(thumb => {
+                const imgElement = thumb.querySelector('img');
+                if (imgElement) {
+                    const imgUrl = imgElement.src;
+                    thumb.onclick = function() { changeMainImage(imgUrl, this); };
+                }
+            });
+            if (restoredThumbs.length > 0) {
+                restoredThumbs.forEach(thumb => thumb.classList.remove('active'));
+                restoredThumbs[0].classList.add('active');
+            }
+        }
+        
+        const allVariants = document.querySelectorAll('.variant-option');
+        allVariants.forEach(variant => variant.classList.remove('selected'));
+        if (resetBtn) resetBtn.style.display = 'none';
+    }
+    
+    function getCurrentMainImage() {
+        const mainImage = document.getElementById('mainGalleryImage');
+        return mainImage ? mainImage.src : '';
+    }
+    
+    function openLightbox(imageUrl) {
+        if (!imageUrl || imageUrl.includes('placeholder') || imageUrl.includes('No+Image')) return;
+        const lightbox = document.getElementById('lightboxModal');
+        const lightboxImg = document.getElementById('lightboxImage');
+        lightboxImg.src = imageUrl;
+        lightbox.classList.add('active');
+    }
+    
+    function closeLightbox() {
+        const lightbox = document.getElementById('lightboxModal');
+        lightbox.classList.remove('active');
+    }
+</script>
 
 {% endblock %}

@@ -936,17 +936,43 @@
         
         <!-- Price Card -->
         <div class="pd-price-card">
+            {% if product.source_type == "imported" %}
             <div class="pd-price-label">Selling Price</div>
             <div class="pd-price-amount">₹{{ product.selling_price }}</div>
+            {% endif %}
+
             <div class="pd-price-breakdown">
-                <div class="pd-price-item">
-                    <span class="pd-price-item-label">Source Price</span>
-                    <span class="pd-price-item-value">₹{{ product.source_price }}</span>
-                </div>
+              <div class="pd-price-item">
+
+    <span class="pd-price-item-label">
+
+        {% if product.source_type == "imported" %}
+            Source Price
+        {% else %}
+            Price
+        {% endif %}
+
+    </span>
+
+
+    <span class="pd-price-item-value">
+
+        {% if product.source_type == "imported" %}
+            ₹{{ product.source_price }}
+        {% else %}
+            ₹{{ product.price }}
+        {% endif %}
+
+    </span>
+
+</div>
+                {% if product.source_type == "imported" %}
                 <div class="pd-price-item">
                     <span class="pd-price-item-label">Margin</span>
                     <span class="pd-price-item-value" style="color: var(--success);">+₹{{ product.margin_rupees }}</span>
                 </div>
+                {% endif %}
+
                 <div class="pd-price-item">
                     <span class="pd-price-item-label">Stock</span>
                     <span class="pd-price-item-value">{{ product.stock }} units</span>
@@ -1003,7 +1029,73 @@
                 </div>
             </div>
         </div>
-        
+        <!-- Shipping Details -->
+<div class="pd-detail-section">
+
+    <div class="pd-section-title">
+        <i class="fas fa-shipping-fast"></i>
+        Shipping Details
+    </div>
+
+    <div class="pd-info-grid">
+
+        <div class="pd-info-item">
+            <span class="pd-info-label">
+                <i class="fas fa-weight"></i> Weight
+            </span>
+
+            <span class="pd-info-value">
+                {{ product.weight }} kg
+            </span>
+        </div>
+
+        <div class="pd-info-item">
+            <span class="pd-info-label">
+                <i class="fas fa-ruler-combined"></i> Length
+            </span>
+
+            <span class="pd-info-value">
+                {{ product.length }} cm
+            </span>
+        </div>
+
+        <div class="pd-info-item">
+            <span class="pd-info-label">
+                <i class="fas fa-ruler"></i> Breadth
+            </span>
+
+            <span class="pd-info-value">
+                {{ product.breadth }} cm
+            </span>
+        </div>
+
+        <div class="pd-info-item">
+            <span class="pd-info-label">
+                <i class="fas fa-arrows-alt-v"></i> Height
+            </span>
+
+            <span class="pd-info-value">
+                {{ product.height }} cm
+            </span>
+        </div>
+
+        <div class="pd-info-item">
+            <span class="pd-info-label">
+                <i class="fas fa-truck"></i> Shippable
+            </span>
+
+            <span class="pd-info-value">
+                {% if product.is_shippable %}
+                    Yes
+                {% else %}
+                    No
+                {% endif %}
+            </span>
+        </div>
+
+    </div>
+
+</div>
         <!-- Description Section with Box Styling -->
         {% if product.description %}
         <div class="pd-detail-section">
@@ -1130,67 +1222,132 @@
 
                 <div class="pd-variant-details">
 
-                    <div class="pd-variant-detail-row">
-                        <span class="pd-variant-detail-label">
-                            <i class="fas fa-barcode"></i> SKU
-                        </span>
+<div class="pd-variant-details">
 
-                        <span class="pd-variant-detail-value">
-                            {{ variant.sku|default:"—" }}
-                        </span>
-                    </div>
+    <div class="pd-variant-detail-row">
+        <span class="pd-variant-detail-label">
+            <i class="fas fa-barcode"></i> SKU
+        </span>
 
-
-                    <div class="pd-variant-detail-row">
-                        <span class="pd-variant-detail-label">
-                            <i class="fas fa-ruler-combined"></i> Size
-                        </span>
-
-                        <span class="pd-variant-detail-value">
-                            {{ variant.size|default:"—" }}
-                        </span>
-                    </div>
+        <span class="pd-variant-detail-value">
+            {{ variant.sku|default:"—" }}
+        </span>
+    </div>
 
 
-                    <div class="pd-variant-detail-row">
-                        <span class="pd-variant-detail-label">
-                            <i class="fas fa-palette"></i> Color
-                        </span>
+    <div class="pd-variant-detail-row">
+        <span class="pd-variant-detail-label">
+            <i class="fas fa-ruler-combined"></i> Size
+        </span>
 
-                        <span class="pd-variant-detail-value">
-                            {{ variant.color|default:"—" }}
-                        </span>
-                    </div>
-
-
-                    <div class="pd-variant-detail-row">
-                        <span class="pd-variant-detail-label">
-                            <i class="fas fa-boxes"></i> Stock
-                        </span>
-
-                        <span class="pd-variant-detail-value">
-                            {{ variant.stock }} units
-                        </span>
-                    </div>
+        <span class="pd-variant-detail-value">
+            {{ variant.size|default:"—" }}
+        </span>
+    </div>
 
 
-                    <div class="pd-variant-detail-row">
-                        <span class="pd-variant-detail-label">
-                            <i class="fas fa-tag"></i> Source Price
-                        </span>
+    <div class="pd-variant-detail-row">
+        <span class="pd-variant-detail-label">
+            <i class="fas fa-palette"></i> Color
+        </span>
 
-                        <span class="pd-variant-detail-value">
-                            ₹{{ variant.source_price }}
-                        </span>
-                    </div>
+        <span class="pd-variant-detail-value">
+            {{ variant.color|default:"—" }}
+        </span>
+    </div>
 
+
+    <div class="pd-variant-detail-row">
+        <span class="pd-variant-detail-label">
+            <i class="fas fa-boxes"></i> Stock
+        </span>
+
+        <span class="pd-variant-detail-value">
+            {{ variant.stock }} units
+        </span>
+    </div>
+
+
+   <div class="pd-variant-detail-row">
+
+    <span class="pd-variant-detail-label">
+
+        <i class="fas fa-tag"></i>
+
+        {% if product.source_type == "imported" %}
+            Source Price
+        {% else %}
+            Price
+        {% endif %}
+
+    </span>
+
+
+    <span class="pd-variant-detail-value">
+
+        {% if product.source_type == "imported" %}
+            ₹{{ variant.source_price }}
+        {% else %}
+            ₹{{ variant.price }}
+        {% endif %}
+
+    </span>
+
+</div>
+
+    <!-- NEW DIMENSIONS -->
+
+    <div class="pd-variant-detail-row">
+        <span class="pd-variant-detail-label">
+            <i class="fas fa-weight"></i> Weight
+        </span>
+
+        <span class="pd-variant-detail-value">
+            {{ variant.weight }} kg
+        </span>
+    </div>
+
+
+    <div class="pd-variant-detail-row">
+        <span class="pd-variant-detail-label">
+            <i class="fas fa-arrows-alt-h"></i> Length
+        </span>
+
+        <span class="pd-variant-detail-value">
+            {{ variant.length }} cm
+        </span>
+    </div>
+
+
+    <div class="pd-variant-detail-row">
+        <span class="pd-variant-detail-label">
+            <i class="fas fa-arrows-alt-h"></i> Breadth
+        </span>
+
+        <span class="pd-variant-detail-value">
+            {{ variant.breadth }} cm
+        </span>
+    </div>
+
+
+    <div class="pd-variant-detail-row">
+        <span class="pd-variant-detail-label">
+            <i class="fas fa-arrows-alt-v"></i> Height
+        </span>
+
+        <span class="pd-variant-detail-value">
+            {{ variant.height }} cm
+        </span>
+    </div>
+
+</div>
                 </div>
 
 
 
                 <!-- Variant Price -->
                 <div class="pd-variant-price-section">
-
+                    {% if product.source_type == "imported" %}
                     <div class="pd-variant-price-row">
 
                         <span class="pd-variant-price-label">
@@ -1202,16 +1359,17 @@
                         </span>
 
                     </div>
+                      {% endif %}
 
 
-                    <div class="pd-variant-margin">
+                  {% if product.source_type == "imported" %}
 
-                        <i class="fas fa-chart-line"></i>
+<div class="pd-variant-margin">
+    <i class="fas fa-chart-line"></i>
+    Margin: +₹{{ variant.margin_rupees }}
+</div>
 
-                        Margin: +₹{{ variant.margin_rupees }}
-
-                    </div>
-
+{% endif %}
                 </div>
 
 

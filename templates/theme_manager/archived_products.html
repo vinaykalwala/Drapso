@@ -1,191 +1,959 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Archived Products - {{ store.store_name }}{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Archived Products - {{ store.store_name }}</h1>
-        <a href="{% url 'resellers:store_dashboard' store.id %}" class="btn btn-secondary">Back to Dashboard</a>
-    </div>
+<style>
+/* ============================================
+   ✨ ARCHIVED PRODUCTS - BLUE THEME ✨
+   Professional | Modern | Fully Responsive
+   ============================================ */
+
+:root {
+    --blue: #3b82f6;
+    --blue-dark: #2563eb;
+    --blue-light: #dbeafe;
+    --blue-soft: #eff6ff;
+    --success: #10b981;
+    --success-light: #d1fae5;
+    --warning: #f59e0b;
+    --warning-light: #fef3c7;
+    --danger: #ef4444;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-2xl: 24px;
+}
+
+/* Main Container */
+.archived-container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+/* Header Card */
+.archived-header {
+    background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    padding: 1.8rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.archived-header::before {
+    content: '📦';
+    position: absolute;
+    right: -20px;
+    bottom: -20px;
+    font-size: 120px;
+    opacity: 0.1;
+    color: white;
+    font-weight: 800;
+}
+
+.archived-header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.archived-title-section {
+    position: relative;
+    z-index: 1;
+}
+
+.archived-title {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.archived-subtitle {
+    color: rgba(255,255,255,0.95);
+    font-size: 0.9rem;
+}
+
+.archived-back-btn {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    color: white;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--radius-lg);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.3);
+    position: relative;
+    z-index: 1;
+}
+
+.archived-back-btn:hover {
+    background: rgba(255,255,255,0.3);
+    gap: 0.75rem;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* White Content Card */
+.archived-content {
+    background: white;
+    border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+    padding: 2rem;
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--gray-200);
+    border-top: none;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: 1.25rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid var(--gray-200);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-card--total {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-left: 4px solid var(--gray-500);
+}
+
+.stat-card--published {
+    background: linear-gradient(135deg, var(--success-light) 0%, #d1fae5 100%);
+    border-left: 4px solid var(--success);
+}
+
+.stat-card--draft {
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    border-left: 4px solid var(--gray-500);
+}
+
+.stat-card--slots {
+    background: linear-gradient(135deg, var(--blue-light) 0%, #dbeafe 100%);
+    border-left: 4px solid var(--blue);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+}
+
+.stat-card--total .stat-number { color: var(--gray-700); }
+.stat-card--published .stat-number { color: var(--success); }
+.stat-card--draft .stat-number { color: var(--gray-600); }
+.stat-card--slots .stat-number { color: var(--blue); }
+
+.stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.stat-sub {
+    font-size: 0.7rem;
+    color: var(--gray-400);
+}
+
+/* Filter Card */
+.filter-card {
+    background: var(--gray-50);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--gray-200);
+}
+
+.filter-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-input {
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.filter-input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+
+.filter-select {
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    background: white;
+    cursor: pointer;
+    outline: none;
+}
+
+.filter-select:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+
+.filter-btn {
+    background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+    color: white;
+    border: none;
+    padding: 0.7rem 1rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Bulk Actions Bar */
+.bulk-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--gray-50);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+}
+
+.select-all-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.select-all-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--blue);
+}
+
+.select-all-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    cursor: pointer;
+}
+
+.restore-all-btn {
+    background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+    color: white;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.restore-all-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Products Grid */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Product Card */
+.product-card {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+}
+
+.product-card__checkbox {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 10;
+}
+
+.product-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--blue);
+}
+
+.product-card__image {
+    width: 100%;
+    height: 180px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.product-card__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-card__image img {
+    transform: scale(1.05);
+}
+
+.product-card__image .no-image {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: var(--gray-400);
+}
+
+.product-card__image .no-image i {
+    font-size: 2.5rem;
+}
+
+.product-card__image .no-image span {
+    font-size: 0.7rem;
+}
+
+.product-card__body {
+    padding: 1rem;
+}
+
+.product-card__title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.product-card__price {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--blue);
+    margin-bottom: 0.25rem;
+}
+
+.product-card__stock {
+    font-size: 0.7rem;
+    color: var(--gray-500);
+    margin-bottom: 0.5rem;
+}
+
+.product-card__status {
+    margin-bottom: 0.5rem;
+}
+
+.product-card__date {
+    font-size: 0.65rem;
+    color: var(--gray-400);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Badges */
+.badge-custom {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 50px;
+    font-size: 0.65rem;
+    font-weight: 600;
+}
+
+.badge-published {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+}
+
+.badge-draft {
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    color: #4b5563;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem;
+    background: var(--gray-50);
+    border-radius: var(--radius-xl);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--gray-300);
+    margin-bottom: 1rem;
+}
+
+.empty-state h4 {
+    color: var(--gray-600);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--gray-500);
+    margin-bottom: 1.5rem;
+}
+
+.empty-state .btn-warning {
+    background: linear-gradient(135deg, #059669 0%, #065f46 100%);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+.pagination-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 0.75rem;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--gray-600);
+    transition: all 0.2s ease;
+}
+
+.pagination-item:hover {
+    background: var(--gray-50);
+    border-color: var(--blue);
+    color: var(--blue);
+}
+
+.pagination-item.active {
+    background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+    color: white;
+    border-color: transparent;
+}
+
+/* Fixed Bottom Bar */
+.restore-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+    padding: 1rem;
+    z-index: 1000;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+}
+
+.restore-bar.visible {
+    transform: translateY(0);
+}
+
+.restore-bar-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.restore-btn {
+    background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: var(--radius-lg);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.restore-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.restore-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.restore-info {
+    font-size: 0.7rem;
+    color: var(--gray-500);
+    margin-top: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .products-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .archived-container {
+        margin: 1rem auto;
+        padding: 0 1rem;
+    }
     
-    <!-- Capacity Stats -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h3 class="mb-0">{{ total_archived }}</h3>
-                    <p class="text-muted">Total Archived</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center bg-success text-white">
-                <div class="card-body">
-                    <h3 class="mb-0">{{ published_archived }}</h3>
-                    <p class="mb-0">Published</p>
-                    <small>Will restore as Published</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center bg-secondary text-white">
-                <div class="card-body">
-                    <h3 class="mb-0">{{ draft_archived }}</h3>
-                    <p class="mb-0">Draft</p>
-                    <small>Will restore as Draft</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center {% if capacity.available_slots > 0 %}bg-info{% else %}bg-warning{% endif %}">
-                <div class="card-body">
-                    <h3 class="mb-0">{{ capacity.available_slots }}</h3>
-                    <p class="mb-0">Available Slots</p>
-                    <small>{{ capacity.current_active }}/{{ capacity.plan_limit }} used</small>
-                </div>
-            </div>
-        </div>
-    </div>
+    .archived-header {
+        padding: 1.5rem;
+        flex-direction: column;
+        text-align: center;
+    }
     
-    {% if total_archived == 0 %}
-    <div class="alert alert-info text-center">
-        <h4>No archived products</h4>
-        <p>Products are archived when you switch from Multiple to Single theme.</p>
-        <a href="{% url 'theme_manager:switch_to_single' store.id %}" class="btn btn-warning">Switch to Single Theme</a>
-    </div>
-    {% else %}
+    .archived-title {
+        font-size: 1.5rem;
+    }
     
-    <!-- Filters -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="GET" class="row g-3">
-                <div class="col-md-3">
-                    <input type="text" name="search" class="form-control" placeholder="Search products..." value="{{ filters.search }}">
+    .archived-content {
+        padding: 1.5rem;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .filter-form {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .bulk-actions {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .archived-title {
+        font-size: 1.3rem;
+    }
+    
+    .archived-content {
+        padding: 1rem;
+    }
+}
+@media (max-width: 900px) {
+        .content{
+            margin-top: 70px;
+        }
+    }
+@media (max-width: 480px) {
+    .archived-container {
+        padding: 0 0.75rem;
+    }
+    
+    .archived-header {
+        padding: 1rem;
+    }
+    
+    .product-card__image {
+        height: 150px;
+    }
+}
+</style>
+
+<div class="content">
+<div class="archived-container">
+
+    <!-- Header -->
+    <div class="archived-header">
+        <div class="archived-title-section">
+            <h1 class="archived-title">
+                <i class="fas fa-archive"></i> Archived Products
+            </h1>
+            <p class="archived-subtitle">{{ store.store_name }} - Manage and restore archived products</p>
+        </div>
+        <a href="{% url 'resellers:store_dashboard' store.id %}" class="archived-back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- White Content Card -->
+    <div class="archived-content">
+
+        {% if total_archived == 0 %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h4>No archived products</h4>
+            <p>Products are archived when you switch from Multiple to Single theme.</p>
+            <a href="{% url 'theme_manager:switch_to_single' store.id %}" class="btn-warning">
+                 Switch to Single Theme
+            </a>
+        </div>
+        {% else %}
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card stat-card--total">
+                <div class="stat-number">{{ total_archived }}</div>
+                <div class="stat-label">Total Archived</div>
+                <div class="stat-sub">Products in archive</div>
+            </div>
+            <div class="stat-card stat-card--published">
+                <div class="stat-number">{{ published_archived }}</div>
+                <div class="stat-label">Published</div>
+                <div class="stat-sub">Will restore as Published</div>
+            </div>
+            <div class="stat-card stat-card--draft">
+                <div class="stat-number">{{ draft_archived }}</div>
+                <div class="stat-label">Draft</div>
+                <div class="stat-sub">Will restore as Draft</div>
+            </div>
+            <div class="stat-card stat-card--slots">
+                <div class="stat-number">{{ capacity.available_slots }}</div>
+                <div class="stat-label">Available Slots</div>
+                <div class="stat-sub">{{ capacity.current_active }}/{{ capacity.plan_limit }} used</div>
+            </div>
+        </div>
+
+        <!-- Filter Card -->
+        <div class="filter-card">
+            <form method="GET" class="filter-form">
+                <div class="filter-group">
+                    <label class="filter-label">Search</label>
+                    <input type="text" name="search" class="filter-input" placeholder="Product name..." value="{{ filters.search }}">
                 </div>
-                <div class="col-md-2">
-                    <input type="number" name="min_price" class="form-control" placeholder="Min Price" value="{{ filters.min_price }}">
+                <div class="filter-group">
+                    <label class="filter-label">Min Price</label>
+                    <input type="number" name="min_price" class="filter-input" placeholder="Min Price" value="{{ filters.min_price }}">
                 </div>
-                <div class="col-md-2">
-                    <input type="number" name="max_price" class="form-control" placeholder="Max Price" value="{{ filters.max_price }}">
+                <div class="filter-group">
+                    <label class="filter-label">Max Price</label>
+                    <input type="number" name="max_price" class="filter-input" placeholder="Max Price" value="{{ filters.max_price }}">
                 </div>
-                <div class="col-md-2">
-                    <select name="published_status" class="form-select">
+                <div class="filter-group">
+                    <label class="filter-label">Status</label>
+                    <select name="published_status" class="filter-select">
                         <option value="">All Status</option>
                         <option value="published" {% if filters.published_status == 'published' %}selected{% endif %}>Published Only</option>
                         <option value="draft" {% if filters.published_status == 'draft' %}selected{% endif %}>Draft Only</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <select name="sort" class="form-select">
+                <div class="filter-group">
+                    <label class="filter-label">Sort By</label>
+                    <select name="sort" class="filter-select">
                         {% for option in sort_options %}
                         <option value="{{ option.value }}" {% if filters.sort == option.value %}selected{% endif %}>{{ option.label }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-1">
-                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                <div class="filter-group">
+                    <button type="submit" class="filter-btn">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
                 </div>
             </form>
         </div>
-    </div>
-    
-    <!-- Bulk Actions -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <input type="checkbox" id="select-all"> Select All
+
+        <!-- Bulk Actions Bar -->
+        <div class="bulk-actions">
+            <div class="select-all-wrapper">
+                <input type="checkbox" id="select-all" class="select-all-checkbox">
+                <label for="select-all" class="select-all-label">
+                    <i class="far fa-check-square"></i> Select All
+                </label>
+            </div>
+            {% if can_restore_all %}
+            <form method="POST" action="{% url 'theme_manager:restore_archived_products' store.id %}" 
+                  onsubmit="return confirm('Restore ALL archived products?');" style="margin:0;">
+                {% csrf_token %}
+                <input type="hidden" name="restore_all" value="true">
+                <button type="submit" class="restore-all-btn">
+                    <i class="fas fa-sync-alt"></i> Restore All ({{ capacity.available_slots }})
+                </button>
+            </form>
+            {% endif %}
         </div>
-        {% if can_restore_all %}
-        <form method="POST" action="{% url 'theme_manager:restore_archived_products' store.id %}" 
-              onsubmit="return confirm('Restore ALL archived products?');">
+
+        <!-- Products Grid -->
+        <form method="POST" action="{% url 'theme_manager:restore_archived_products' store.id %}" id="restore-form">
             {% csrf_token %}
-            <input type="hidden" name="restore_all" value="true">
-            <button type="submit" class="btn btn-success">Restore All Possible ({{ capacity.available_slots }})</button>
+            
+            <div class="products-grid">
+                {% for record in page_obj %}
+                <div class="product-card">
+                    <div class="product-card__checkbox">
+                        <input type="checkbox" name="restore_ids" value="{{ record.product.id }}" 
+                               class="product-checkbox"
+                               {% if capacity.available_slots == 0 %}disabled{% endif %}>
+                    </div>
+                    
+                    <div class="product-card__image">
+                        {% if record.product.main_image %}
+                            <img src="{{ record.product.main_image.url }}" alt="{{ record.product.name }}">
+                        {% elif record.product.source_product and record.product.source_product.main_image %}
+                            <img src="{{ record.product.source_product.main_image.url }}" alt="{{ record.product.name }}">
+                        {% else %}
+                            <div class="no-image">
+                                <i class="fas fa-image"></i>
+                                <span>No Image</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="product-card__body">
+                        <h5 class="product-card__title">{{ record.product.name }}</h5>
+                        <div class="product-card__price">₹{{ record.product.selling_price }}</div>
+                        <div class="product-card__stock">
+                            <i class="fas fa-boxes"></i> Stock: {{ record.product.stock }}
+                        </div>
+                        <div class="product-card__status">
+                            <span class="badge-custom {% if record.product.is_published %}badge-published{% else %}badge-draft{% endif %}">
+                                <i class="fas {% if record.product.is_published %}fa-check-circle{% else %}fa-clock{% endif %}"></i>
+                                {{ record.published_badge }}
+                            </span>
+                        </div>
+                        <div class="product-card__date">
+                            <i class="far fa-calendar-alt"></i>
+                            Archived: {{ record.archived_at|date:"M d, Y" }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                <a href="?page=1&{{ request.GET.urlencode }}" class="pagination-item">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" class="pagination-item">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+                {% endif %}
+                
+                <span class="pagination-item active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" class="pagination-item">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}" class="pagination-item">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Fixed Bottom Bar -->
+            <div class="restore-bar" id="restoreBar">
+                <div class="restore-bar-content">
+                    <button type="submit" class="restore-btn" id="restore-btn" disabled>
+                        <i class="fas fa-undo-alt"></i> Restore Selected (<span id="selected-count">0</span>)
+                    </button>
+                    <p class="restore-info">
+                        <i class="fas fa-info-circle"></i> Products will be restored with their original published/draft status
+                    </p>
+                </div>
+            </div>
         </form>
         {% endif %}
     </div>
-    
-    <!-- Products Grid -->
-    <form method="POST" action="{% url 'theme_manager:restore_archived_products' store.id %}" id="restore-form">
-        {% csrf_token %}
-        
-        <div class="row">
-            {% for record in page_obj %}
-            <div class="col-md-3 mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="form-check mb-2">
-                            <input type="checkbox" name="restore_ids" value="{{ record.product.id }}" 
-                                   class="form-check-input product-checkbox"
-                                   {% if capacity.available_slots == 0 %}disabled{% endif %}>
-                        </div>
-                        
-                        {% if record.product.main_image %}
-                        <img src="{{ record.product.main_image.url }}" class="card-img-top" alt="{{ record.product.name }}" style="height: 150px; object-fit: cover;">
-                        {% endif %}
-                        
-                        <h5 class="card-title mt-2">{{ record.product.name }}</h5>
-                        <p class="card-text">
-                            <strong>Price:</strong> ₹{{ record.product.selling_price }}<br>
-                            <strong>Stock:</strong> {{ record.product.stock }}<br>
-                            <strong>Status:</strong>
-                            <span class="badge {% if record.product.is_published %}bg-success{% else %}bg-secondary{% endif %}">
-                                {{ record.published_badge }}
-                            </span>
-                        </p>
-                        <small class="text-muted">Archived: {{ record.archived_at|date:"M d, Y" }}</small>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        
-        <!-- Pagination -->
-        {% if page_obj.has_other_pages %}
-        <nav class="mt-4">
-            <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                <li class="page-item"><a class="page-link" href="?page=1&{{ request.GET.urlencode }}">First</a></li>
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">Previous</a></li>
-                {% endif %}
-                
-                <li class="page-item active"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
-                
-                {% if page_obj.has_next %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Next</a></li>
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}">Last</a></li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% endif %}
-        
-        <!-- Restore Button -->
-        <div class="fixed-bottom bg-white p-3 shadow" style="z-index: 1000;">
-            <div class="container text-center">
-                <button type="submit" class="btn btn-primary btn-lg" id="restore-btn" disabled>
-                    Restore Selected (<span id="selected-count">0</span>)
-                </button>
-                <p class="text-muted mt-2 mb-0">Products will be restored with their original published/draft status</p>
-            </div>
-        </div>
-    </form>
-    {% endif %}
+</div>
 </div>
 
 <script>
-document.getElementById('select-all')?.addEventListener('change', function(e) {
-    document.querySelectorAll('.product-checkbox').forEach(checkbox => {
-        if (!checkbox.disabled) checkbox.checked = e.target.checked;
-    });
-    updateSelectedCount();
-});
+// Select All functionality
+const selectAllCheckbox = document.getElementById('select-all');
+const productCheckboxes = document.querySelectorAll('.product-checkbox');
+const restoreBtn = document.getElementById('restore-btn');
+const selectedCountSpan = document.getElementById('selected-count');
+const restoreBar = document.getElementById('restoreBar');
 
 function updateSelectedCount() {
-    const count = document.querySelectorAll('.product-checkbox:checked').length;
-    document.getElementById('selected-count').textContent = count;
-    document.getElementById('restore-btn').disabled = count === 0;
+    const checkedCount = document.querySelectorAll('.product-checkbox:checked').length;
+    selectedCountSpan.textContent = checkedCount;
+    
+    if (restoreBtn) {
+        restoreBtn.disabled = checkedCount === 0;
+    }
+    
+    // Show/hide restore bar
+    if (restoreBar) {
+        if (checkedCount > 0) {
+            restoreBar.classList.add('visible');
+        } else {
+            restoreBar.classList.remove('visible');
+        }
+    }
+    
+    // Update select all checkbox
+    if (selectAllCheckbox) {
+        const total = productCheckboxes.length;
+        const checked = document.querySelectorAll('.product-checkbox:checked').length;
+        
+        if (checked === total && total > 0) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checked > 0 && checked < total) {
+            selectAllCheckbox.indeterminate = true;
+        } else {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        }
+    }
 }
 
-document.querySelectorAll('.product-checkbox').forEach(checkbox => {
+// Select All event
+if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener('change', function(e) {
+        productCheckboxes.forEach(checkbox => {
+            if (!checkbox.disabled) {
+                checkbox.checked = e.target.checked;
+            }
+        });
+        updateSelectedCount();
+    });
+}
+
+// Individual checkbox events
+productCheckboxes.forEach(checkbox => {
     checkbox.addEventListener('change', updateSelectedCount);
 });
+
+// Initial update
 updateSelectedCount();
+
+// Show restore bar on page load if any checked
+document.addEventListener('DOMContentLoaded', function() {
+    updateSelectedCount();
+});
 </script>
+
 {% endblock %}
