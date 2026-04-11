@@ -1299,6 +1299,7 @@ height:50px;
                     {% for variant in variants %}
                     <tr data-variant-row-id="{{ variant.id }}">
                         <tr>
+                            <td>
                             {% if variant.main_image %}
                             <img src="{{ variant.main_image.url }}" class="variant-thumb-modern" alt="{{ variant.variant_name }}">
                             {% else %}
