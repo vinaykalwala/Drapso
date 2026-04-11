@@ -185,27 +185,58 @@ def wholeseller_product_list(request):
         'has_valid_address': has_valid_address,  # ✅ key
     })
     
+from accounts.models import WholesellerAddress 
+
 @login_required
 @user_passes_test(is_wholeseller)
 def wholeseller_product_create(request):
 
-    if request.method == 'POST':
-        form = WholesellerProductForm(request.POST, request.FILES)
+    # =========================
+    # ✅ CHECK INVENTORY
+    # =========================
+    try:
+        inventory = request.user.inventory
+    except:
+        messages.error(request, "⚠️ Please create your inventory first.")
+        return redirect('wholesellers:create_inventory')
 
-        # ✅ DO NOT pass instance here
+    # =========================
+    # ✅ CHECK VERIFICATION (RECOMMENDED)
+    # =========================
+    if not inventory.is_verified:
+        messages.warning(request, "⚠️ Complete KYC verification before adding products.")
+        return redirect('wholesellers:submit_kyc')
+
+    # =========================
+    # ✅ CHECK PRIMARY ADDRESS
+    # =========================
+    has_primary_address = WholesellerAddress.objects.filter(
+        user=request.user,
+        is_primary=True,
+        is_active=True
+    ).exists()
+
+    if not has_primary_address:
+        messages.error(request, "⚠️ Please add a primary warehouse address before creating a product.")
+        return redirect('accounts:wholeseller_addresses')  # adjust URL if needed
+
+    # =========================
+    # MAIN LOGIC
+    # =========================
+    if request.method == 'POST':
+
+        form = WholesellerProductForm(request.POST, request.FILES)
         image_formset = WholesellerProductImageFormSet(request.POST, request.FILES)
 
         if form.is_valid() and image_formset.is_valid():
 
-            # ✅ STEP 1: Save product first
+            # SAVE PRODUCT
             product = form.save(commit=False)
             product.wholeseller = request.user
             product.save()
 
-            # ✅ STEP 2: Attach product to formset
+            # SAVE IMAGES
             image_formset.instance = product
-
-            # ✅ STEP 3: Save images
             image_formset.save()
 
             messages.success(
@@ -216,8 +247,7 @@ def wholeseller_product_create(request):
             return redirect('products:wholeseller_product_variants', product_id=product.id)
 
         else:
-            print("FORM ERRORS:", form.errors)
-            print("FORMSET ERRORS:", image_formset.errors)
+            messages.error(request, "❌ Please fix the errors in the form.")
 
     else:
         form = WholesellerProductForm()
@@ -228,7 +258,6 @@ def wholeseller_product_create(request):
         'image_formset': image_formset,
         'title': 'Add New Product',
     })
-
 
 @login_required
 @user_passes_test(is_wholeseller)
