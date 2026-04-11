@@ -934,52 +934,87 @@
             </div>
         </div>
         
-        <!-- Price Card -->
-        <div class="pd-price-card">
-            {% if product.source_type == "imported" %}
-            <div class="pd-price-label">Selling Price</div>
-            <div class="pd-price-amount">₹{{ product.selling_price }}</div>
-            {% endif %}
+     <!-- Price Card -->
+<div class="pd-price-card">
 
-            <div class="pd-price-breakdown">
-              <div class="pd-price-item">
-
-    <span class="pd-price-item-label">
+    <!-- MAIN PRICE -->
+    <div class="pd-price-label">
 
         {% if product.source_type == "imported" %}
-            Source Price
+            Selling Price
+
+        {% elif product.source_type == "own" %}
+            Price
+
         {% else %}
             Price
+
         {% endif %}
 
-    </span>
+    </div>
 
 
-    <span class="pd-price-item-value">
+    <div class="pd-price-amount">
 
         {% if product.source_type == "imported" %}
-            ₹{{ product.source_price }}
+            ₹{{ product.selling_price }}
+
+        {% elif product.source_type == "own" %}
+            ₹{{ product.selling_price }}
+
         {% else %}
             ₹{{ product.price }}
+
         {% endif %}
 
-    </span>
+    </div>
 
-</div>
-                {% if product.source_type == "imported" %}
-                <div class="pd-price-item">
-                    <span class="pd-price-item-label">Margin</span>
-                    <span class="pd-price-item-value" style="color: var(--success);">+₹{{ product.margin_rupees }}</span>
-                </div>
-                {% endif %}
 
-                <div class="pd-price-item">
-                    <span class="pd-price-item-label">Stock</span>
-                    <span class="pd-price-item-value">{{ product.stock }} units</span>
-                </div>
-            </div>
+    <!-- BREAKDOWN -->
+    <div class="pd-price-breakdown">
+
+        {% if product.source_type == "imported" %}
+
+        <div class="pd-price-item">
+            <span class="pd-price-item-label">
+                Source Price
+            </span>
+
+            <span class="pd-price-item-value">
+                ₹{{ product.source_price }}
+            </span>
         </div>
-        
+
+
+        <div class="pd-price-item">
+            <span class="pd-price-item-label">
+                Margin
+            </span>
+
+            <span class="pd-price-item-value">
+                +₹{{ product.margin_rupees }}
+            </span>
+        </div>
+
+        {% endif %}
+
+
+        <!-- STOCK -->
+        <div class="pd-price-item">
+
+            <span class="pd-price-item-label">
+                Stock
+            </span>
+
+            <span class="pd-price-item-value">
+                {{ product.stock }} Units
+            </span>
+
+        </div>
+
+    </div>
+
+</div>  
         <!-- Basic Information Section with Box Styling -->
         <div class="pd-detail-section">
             <div class="pd-section-title">
@@ -1271,24 +1306,35 @@
    <div class="pd-variant-detail-row">
 
     <span class="pd-variant-detail-label">
-
         <i class="fas fa-tag"></i>
 
         {% if product.source_type == "imported" %}
             Source Price
+
+        {% elif product.source_type == "own" %}
+            Price
+
         {% else %}
             Price
-        {% endif %}
 
+        {% endif %}
     </span>
 
 
     <span class="pd-variant-detail-value">
 
         {% if product.source_type == "imported" %}
+
             ₹{{ variant.source_price }}
+
+        {% elif product.source_type == "own" %}
+
+            ₹{{ variant.selling_price }}
+
         {% else %}
+
             ₹{{ variant.price }}
+
         {% endif %}
 
     </span>
