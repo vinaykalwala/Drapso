@@ -1308,6 +1308,16 @@ def low_stock_alerts(request):
     # =========================
     elif user.role == 'reseller':
 
+        # ✅ FIX: ensure store always exists
+        store = getattr(request, 'current_store', None)
+
+        if not store:
+            store = Store.objects.filter(reseller=user).first()
+
+        if not store:
+            messages.error(request, "⚠️ No store found. Please create a store first.")
+            return redirect('resellers:reseller_dashboard')
+
         # OWN PRODUCTS
         own_products = ResellerProduct.objects.filter(
             reseller=user,
@@ -1323,7 +1333,7 @@ def low_stock_alerts(request):
             is_active=True
         ).select_related('product')
 
-        # IMPORTED PRODUCTS → USE SOURCE PRODUCT STOCK
+        # IMPORTED PRODUCTS
         imported_products = ResellerProduct.objects.filter(
             reseller=user,
             source_type='imported',
@@ -1331,7 +1341,7 @@ def low_stock_alerts(request):
             is_active=True
         ).select_related('source_product')
 
-        # IMPORTED VARIANTS → USE SOURCE VARIANT STOCK
+        # IMPORTED VARIANTS
         imported_variants = ResellerProductVariant.objects.filter(
             product__reseller=user,
             product__source_type='imported',
@@ -1340,14 +1350,12 @@ def low_stock_alerts(request):
         ).select_related('product', 'source_variant')
 
         context.update({
+            'store': store,  # ✅ THIS FIXES YOUR ERROR
             'own_products': own_products,
             'own_variants': own_variants,
             'imported_products': imported_products,
             'imported_variants': imported_variants,
             'role': 'reseller'
         })
-
-    else:
-        context = {}
 
     return render(request, 'resellers/low_stock_alerts.html', context)
