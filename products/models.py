@@ -96,6 +96,20 @@ class WholesellerProduct(models.Model):
     
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
+
+    weight = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    length = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    breadth = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    height = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+
+    is_shippable = models.BooleanField(default=True)
+
+    is_returnable = models.BooleanField(default=False)
+    return_window_days = models.PositiveIntegerField(default=3)
+
+    is_replaceable = models.BooleanField(default=False)
+    replacement_window_days = models.PositiveIntegerField(default=3)
+
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -250,6 +264,18 @@ class WholesellerProductVariant(models.Model):
     
     order = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    weight = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    length = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    breadth = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    height = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+
+    # ================= RETURNS =================
+    is_returnable = models.BooleanField(default=False)
+    return_window_days = models.PositiveIntegerField(default=3)
+
+    is_replaceable = models.BooleanField(default=False)
+    replacement_window_days = models.PositiveIntegerField(default=3)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -436,6 +462,20 @@ class ResellerProduct(models.Model):
     is_featured = models.BooleanField(default=False)
     is_published = models.BooleanField(default=False)
     
+    weight = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    length = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    breadth = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    height = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+
+    is_shippable = models.BooleanField(default=True)
+
+    # ================= RETURNS =================
+    is_returnable = models.BooleanField(default=False)
+    return_window_days = models.PositiveIntegerField(default=3)
+
+    is_replaceable = models.BooleanField(default=False)
+    replacement_window_days = models.PositiveIntegerField(default=3)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     published_at = models.DateTimeField(null=True, blank=True)
@@ -459,6 +499,8 @@ class ResellerProduct(models.Model):
                 self.save(update_fields=['stock', 'updated_at'])
     
     def save(self, *args, **kwargs):
+
+        # ================= SLUG GENERATION =================
         if not self.slug:
             base_slug = slugify(self.name)
             self.slug = base_slug
@@ -466,25 +508,32 @@ class ResellerProduct(models.Model):
             while ResellerProduct.objects.filter(store=self.store, slug=self.slug).exists():
                 self.slug = f"{base_slug}-{counter}"
                 counter += 1
-        
-        # For imported products, ALWAYS sync stock and attributes from source
+
+        # ================= IMPORTED PRODUCT SYNC =================
         if self.source_type == 'imported' and self.source_product:
-            # Force stock sync from source product
-            self.stock = self.source_product.stock
-            
+
             is_new = self.pk is None
-            
+
+            # STOCK SYNC
+            self.stock = self.source_product.stock
+
+            # PRICE CHANGE TRACKING
             if not is_new:
-                # Check for price changes
                 if self.source_price != self.source_product.price:
                     self.last_known_source_price = self.source_price
-                    self.price_status = 'price_increased' if self.source_product.price > self.source_price else 'price_decreased'
+
+                    if self.source_product.price > self.source_price:
+                        self.price_status = 'price_increased'
+                    else:
+                        self.price_status = 'price_decreased'
+
                     self.price_change_notified_at = timezone.now()
-            
+
+            # PRICE SYNC
             self.source_price = self.source_product.price
             self.selling_price = self.source_price + self.margin_rupees
-            
-            # Copy product attributes
+
+            # ================= ATTRIBUTE SYNC =================
             self.brand = self.source_product.brand
             self.model_name = self.source_product.model_name
             self.size = self.source_product.size
@@ -494,11 +543,35 @@ class ResellerProduct(models.Model):
             self.attributes = self.source_product.attributes
             self.specification = self.source_product.specification
             self.threshold_limit = self.source_product.threshold_limit
-            
+
+            # ================= SHIPPING SYNC =================
+            self.weight = self.source_product.weight
+            self.length = self.source_product.length
+            self.breadth = self.source_product.breadth
+            self.height = self.source_product.height
+            self.is_shippable = self.source_product.is_shippable
+
+            # ================= RETURN POLICY SYNC =================
+            self.is_returnable = self.source_product.is_returnable
+            self.return_window_days = self.source_product.return_window_days
+            self.is_replaceable = self.source_product.is_replaceable
+            self.replacement_window_days = self.source_product.replacement_window_days
+
+            # INITIAL STATE
             if is_new:
                 self.price_status = 'up_to_date'
                 self.last_known_source_price = self.source_price
-        
+
+        # ================= OWN PRODUCT LOGIC =================
+        else:
+            # Own products should NOT have source linkage
+            self.source_price = 0
+
+            # Optional: enforce selling_price must exist
+            if not self.selling_price:
+                raise ValueError("Selling price is required for own products")
+
+        # ================= FINAL SAVE =================
         super().save(*args, **kwargs)
     
     def has_price_change_pending(self):
@@ -577,6 +650,17 @@ class ResellerProductVariant(models.Model):
     
     order = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    weight = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    length = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    breadth = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    height = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+
+    # ================= RETURNS =================
+    is_returnable = models.BooleanField(default=False)
+    return_window_days = models.PositiveIntegerField(default=3)
+
+    is_replaceable = models.BooleanField(default=False)
+    replacement_window_days = models.PositiveIntegerField(default=3)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -588,27 +672,54 @@ class ResellerProductVariant(models.Model):
         ]
     
     def save(self, *args, **kwargs):
-        # For imported variants, ALWAYS sync stock and attributes from source variant
-        if self.source_variant:
+
+        # ================= VARIANT NAME =================
+        if not self.variant_name:
+            parts = []
+            if self.size:
+                parts.append(self.size)
+            if self.color:
+                parts.append(self.color)
+            self.variant_name = " - ".join(parts) if parts else "Default"
+
+        # ================= IMPORTED VARIANT =================
+        if self.source_variant and self.product.source_type == 'imported':
+
+            is_new = self.pk is None
+
+            # STOCK SYNC
+            self.stock = self.source_variant.stock
+
+            # PRICE SYNC
             self.source_price = self.source_variant.price
             self.selling_price = self.source_price + self.margin_rupees
-            self.size = self.source_variant.size
-            self.color = self.source_variant.color
-            self.variant_name = self.source_variant.variant_name
-            self.threshold_limit = self.source_variant.threshold_limit
-            
-            # CRITICAL: Auto-sync stock from source variant
-            self.stock = self.source_variant.stock
-        
-        if not self.sku and self.product:
-            self.sku = f"RV{self.product.id}{self.order}"
-        
+
+            # ================= SHIPPING SYNC =================
+            self.weight = self.source_variant.weight
+            self.length = self.source_variant.length
+            self.breadth = self.source_variant.breadth
+            self.height = self.source_variant.height
+
+            # ================= RETURN SYNC =================
+            self.is_returnable = self.source_variant.is_returnable
+            self.return_window_days = self.source_variant.return_window_days
+            self.is_replaceable = self.source_variant.is_replaceable
+            self.replacement_window_days = self.source_variant.replacement_window_days
+
+        # ================= OWN VARIANT =================
+        else:
+            # Own variant must have selling price
+            if not self.selling_price:
+                raise ValueError("Selling price is required for own variants")
+
+        # ================= FINAL SAVE =================
         super().save(*args, **kwargs)
-        
-        # For own product variants, update parent stock
+
+        # ================= POST SAVE STOCK UPDATE =================
+        # Only for own products
         if self.product.source_type == 'own':
             self.product._update_stock_from_variants()
-    
+        
     def is_low_stock(self):
         return self.stock <= self.threshold_limit
     

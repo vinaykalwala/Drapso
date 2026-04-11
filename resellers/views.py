@@ -1410,3 +1410,69 @@ Thank you for continuing with Drapso!
     else:
         messages.error(request, 'Payment verification failed.')
         return redirect('resellers:manage_subscription', store_id=request.session.get('new_subscription_data', {}).get('store_id'))
+
+
+from django.shortcuts import get_object_or_404
+from products.models import ResellerProduct, ResellerProductVariant
+from django.db.models import Prefetch
+
+def store_product_detail(request, product_slug):
+    """
+    Product detail page for store frontend (Multiple Products Theme)
+    """
+    store = getattr(request, 'current_store', None)
+    
+    if not store:
+        raise Http404("Store not found")
+    
+    if store.status in ['expired', 'suspended'] or not store.is_published:
+        return render(request, 'resellers/store_not_found.html')
+    
+    # Get the product with all related data
+    product = get_object_or_404(
+        ResellerProduct.objects.filter(
+            store=store,
+            is_active=True,
+            is_published=True,
+            slug=product_slug
+        ).select_related('category', 'subcategory')
+        .prefetch_related(
+            'additional_images',
+            Prefetch(
+                'variants',
+                queryset=ResellerProductVariant.objects.filter(is_active=True)
+                .prefetch_related('additional_images')
+            )
+        ),
+        slug=product_slug
+    )
+    
+    # Increment visitor count
+    try:
+        store.increment_visitor()
+    except Exception:
+        pass
+    
+    # Get other products from same store (for related products section)
+    other_products = ResellerProduct.objects.filter(
+        store=store,
+        is_active=True,
+        is_published=True
+    ).exclude(id=product.id)[:4]
+    
+    # Generate store URL
+    current_host = request.get_host()
+    if 'localhost' in current_host or '127.0.0.1' in current_host:
+        port = ':8000' if ':' not in current_host else f":{current_host.split(':')[1]}"
+        store_url = f"http://{store.subdomain}.localhost{port}"
+    else:
+        store_url = store.get_full_url(request)
+    
+    context = {
+        'store': store,
+        'store_url': store_url,
+        'product': product,
+        'other_products': other_products,
+    }
+    
+    return render(request, 'resellers/store_product_detail.html', context)

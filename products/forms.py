@@ -43,8 +43,19 @@ class WholesellerProductForm(forms.ModelForm):
         fields = [
             'category', 'subcategory', 'name', 'description', 'specification',
             'brand', 'model_name', 'size', 'color', 'material', 'gender',
-            'price', 'stock', 'threshold_limit', 'main_image', 'is_active', 'is_featured'
+
+            # SHIPPING
+            'weight', 'length', 'breadth', 'height',
+            'is_shippable',
+
+            # RETURNS
+            'is_returnable', 'return_window_days',
+            'is_replaceable', 'replacement_window_days',
+
+            'price', 'stock', 'threshold_limit',
+            'main_image', 'is_active', 'is_featured'
         ]
+
         widgets = {
             'category': forms.Select(attrs={'class': 'form-control'}),
             'subcategory': forms.Select(attrs={'class': 'form-control'}),
@@ -57,6 +68,20 @@ class WholesellerProductForm(forms.ModelForm):
             'color': forms.TextInput(attrs={'class': 'form-control'}),
             'material': forms.TextInput(attrs={'class': 'form-control'}),
             'gender': forms.Select(attrs={'class': 'form-control'}),
+
+            # SHIPPING UI
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'length': forms.NumberInput(attrs={'class': 'form-control'}),
+            'breadth': forms.NumberInput(attrs={'class': 'form-control'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control'}),
+            'is_shippable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+
+            # RETURNS UI
+            'is_returnable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'return_window_days': forms.NumberInput(attrs={'class': 'form-control'}),
+            'is_replaceable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'replacement_window_days': forms.NumberInput(attrs={'class': 'form-control'}),
+
             'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'stock': forms.NumberInput(attrs={'class': 'form-control'}),
             'threshold_limit': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -90,23 +115,48 @@ class WholesellerProductForm(forms.ModelForm):
 
         else:
             self.fields['subcategory'].queryset = Subcategory.objects.none()
+
 class WholesellerVariantForm(forms.ModelForm):
     class Meta:
         model = WholesellerProductVariant
-        fields = ['size', 'color', 'price', 'stock', 'threshold_limit', 'main_image', 'order', 'is_active']
+        fields = [
+            'size', 'color', 'price', 'stock', 'threshold_limit',
+
+            # SHIPPING
+            'weight', 'length', 'breadth', 'height',
+
+            # RETURNS
+            'is_returnable', 'return_window_days',
+            'is_replaceable', 'replacement_window_days',
+
+            'main_image', 'order', 'is_active'
+        ]
+
         widgets = {
             'size': forms.TextInput(attrs={'class': 'form-control'}),
             'color': forms.TextInput(attrs={'class': 'form-control'}),
             'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'stock': forms.NumberInput(attrs={'class': 'form-control'}),
             'threshold_limit': forms.NumberInput(attrs={'class': 'form-control'}),
+
+            # SHIPPING
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'length': forms.NumberInput(attrs={'class': 'form-control'}),
+            'breadth': forms.NumberInput(attrs={'class': 'form-control'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control'}),
+
+            # RETURNS
+            'is_returnable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'return_window_days': forms.NumberInput(attrs={'class': 'form-control'}),
+            'is_replaceable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'replacement_window_days': forms.NumberInput(attrs={'class': 'form-control'}),
+
             'main_image': forms.FileInput(attrs={'class': 'form-control'}),
             'order': forms.NumberInput(attrs={'class': 'form-control'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
 
-# ============ RESELLER FORMS ============
 
 class ResellerImportProductForm(forms.ModelForm):
     margin_rupees = forms.DecimalField(
@@ -153,8 +203,17 @@ class ResellerOwnProductForm(forms.ModelForm):
         fields = [
             'category', 'subcategory', 'name', 'description', 'specification',
             'brand', 'model_name', 'size', 'color', 'material', 'gender',
-            'selling_price', 'stock', 'threshold_limit', 'main_image',
-            'is_active', 'is_featured', 'is_published'
+
+            # SHIPPING
+            'weight', 'length', 'breadth', 'height',
+            'is_shippable',
+
+            # RETURNS
+            'is_returnable', 'return_window_days',
+            'is_replaceable', 'replacement_window_days',
+
+            'selling_price', 'stock', 'threshold_limit',
+            'main_image', 'is_active', 'is_featured', 'is_published'
         ]
 
         widgets = {
@@ -169,8 +228,20 @@ class ResellerOwnProductForm(forms.ModelForm):
             'color': forms.TextInput(attrs={'class': 'form-control'}),
             'material': forms.TextInput(attrs={'class': 'form-control'}),
 
-            # ✅ IMPORTANT
             'gender': forms.Select(attrs={'class': 'form-control'}),
+
+            # SHIPPING
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'length': forms.NumberInput(attrs={'class': 'form-control'}),
+            'breadth': forms.NumberInput(attrs={'class': 'form-control'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control'}),
+            'is_shippable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+
+            # RETURNS
+            'is_returnable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'return_window_days': forms.NumberInput(attrs={'class': 'form-control'}),
+            'is_replaceable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'replacement_window_days': forms.NumberInput(attrs={'class': 'form-control'}),
 
             'selling_price': forms.NumberInput(attrs={'class': 'form-control'}),
             'stock': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -213,14 +284,16 @@ class ResellerVariantForm(forms.ModelForm):
     class Meta:
         model = ResellerProductVariant
         fields = [
-            'size',
-            'color',
-            'selling_price',   # ✅ instead of margin
-            'stock',
-            'threshold_limit',
-            'main_image',
-            'order',
-            'is_active'
+            'size', 'color', 'selling_price', 'stock', 'threshold_limit',
+
+            # SHIPPING
+            'weight', 'length', 'breadth', 'height',
+
+            # RETURNS
+            'is_returnable', 'return_window_days',
+            'is_replaceable', 'replacement_window_days',
+
+            'main_image', 'order', 'is_active'
         ]
 
         widgets = {
@@ -229,6 +302,19 @@ class ResellerVariantForm(forms.ModelForm):
             'selling_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'stock': forms.NumberInput(attrs={'class': 'form-control'}),
             'threshold_limit': forms.NumberInput(attrs={'class': 'form-control'}),
+
+            # SHIPPING
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'length': forms.NumberInput(attrs={'class': 'form-control'}),
+            'breadth': forms.NumberInput(attrs={'class': 'form-control'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control'}),
+
+            # RETURNS
+            'is_returnable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'return_window_days': forms.NumberInput(attrs={'class': 'form-control'}),
+            'is_replaceable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'replacement_window_days': forms.NumberInput(attrs={'class': 'form-control'}),
+
             'main_image': forms.FileInput(attrs={'class': 'form-control'}),
             'order': forms.NumberInput(attrs={'class': 'form-control'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),

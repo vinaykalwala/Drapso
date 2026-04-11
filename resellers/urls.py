@@ -43,6 +43,8 @@ urlpatterns = [
     path('admin/store/<int:store_id>/', views.admin_store_detail, name='admin_store_detail'),
     
     path('', views.store_frontend, name='store_frontend'),
+    path('product/<slug:product_slug>/', views.store_product_detail, name='store_product_detail'),
+    
     path('manage-subscription/<int:store_id>/', views.manage_subscription, name='manage_subscription'),
     path('renew-subscription/<int:store_id>/', views.process_renewal, name='renew_subscription'),
     path('renew-subscription/<int:store_id>/<int:plan_id>/', views.process_renewal, name='renew_subscription_with_plan'),
