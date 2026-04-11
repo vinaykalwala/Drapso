@@ -14,6 +14,11 @@ class WholesellerInventory(models.Model):
         ('retailer', 'Retailer'),
     ]
     
+    DELIVERY_CHOICES = [
+        ('self', 'Self Delivery'),
+        ('platform', 'Platform Delivery'),
+    ]
+    
     wholeseller = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='inventory')
     
     # Business Information
@@ -34,6 +39,11 @@ class WholesellerInventory(models.Model):
     contact_phone = models.CharField(max_length=15)
     contact_email = models.EmailField()
     
+    delivery_type = models.CharField(
+        max_length=20,
+        choices=DELIVERY_CHOICES,
+        default='platform'
+    )
     # Status
     is_kyc_submitted = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)

@@ -146,6 +146,7 @@ def wholeseller_dashboard(request):
         'kyc_status': kyc.status if kyc else 'not_submitted',
         'progress': progress,
         'business_types': dict(WholesellerInventory.BUSINESS_TYPES),
+        'delivery_type': inventory.get_delivery_type_display(),
     }
     return render(request, 'wholeseller/kycdashboard.html', context)
 

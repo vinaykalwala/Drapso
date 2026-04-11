@@ -15,7 +15,7 @@ class WholesellerInventoryForm(forms.ModelForm):
             'business_name', 'business_type',
             'warehouse_name', 'address_line1', 'address_line2', 
             'city', 'state', 'country', 'postal_code',
-            'contact_person', 'contact_phone', 'contact_email'
+            'contact_person', 'contact_phone', 'contact_email','delivery_type'
         ]
         widgets = {
             'business_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your Business Name'}),
@@ -29,6 +29,7 @@ class WholesellerInventoryForm(forms.ModelForm):
             'contact_person': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contact Person Name'}),
             'contact_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'}),
             'contact_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email Address'}),
+            'delivery_type': forms.Select(attrs={'class': 'form-control'}),
         }
     
     def __init__(self, *args, **kwargs):
