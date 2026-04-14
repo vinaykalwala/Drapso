@@ -185,27 +185,58 @@ def wholeseller_product_list(request):
         'has_valid_address': has_valid_address,  # ✅ key
     })
     
+from accounts.models import WholesellerAddress 
+
 @login_required
 @user_passes_test(is_wholeseller)
 def wholeseller_product_create(request):
 
-    if request.method == 'POST':
-        form = WholesellerProductForm(request.POST, request.FILES)
+    # =========================
+    # ✅ CHECK INVENTORY
+    # =========================
+    try:
+        inventory = request.user.inventory
+    except:
+        messages.error(request, "⚠️ Please create your inventory first.")
+        return redirect('wholesellers:create_inventory')
 
-        # ✅ DO NOT pass instance here
+    # =========================
+    # ✅ CHECK VERIFICATION (RECOMMENDED)
+    # =========================
+    if not inventory.is_verified:
+        messages.warning(request, "⚠️ Complete KYC verification before adding products.")
+        return redirect('wholesellers:submit_kyc')
+
+    # =========================
+    # ✅ CHECK PRIMARY ADDRESS
+    # =========================
+    has_primary_address = WholesellerAddress.objects.filter(
+        user=request.user,
+        is_primary=True,
+        is_active=True
+    ).exists()
+
+    if not has_primary_address:
+        messages.error(request, "⚠️ Please add a primary warehouse address before creating a product.")
+        return redirect('accounts:wholeseller_addresses')  # adjust URL if needed
+
+    # =========================
+    # MAIN LOGIC
+    # =========================
+    if request.method == 'POST':
+
+        form = WholesellerProductForm(request.POST, request.FILES)
         image_formset = WholesellerProductImageFormSet(request.POST, request.FILES)
 
         if form.is_valid() and image_formset.is_valid():
 
-            # ✅ STEP 1: Save product first
+            # SAVE PRODUCT
             product = form.save(commit=False)
             product.wholeseller = request.user
             product.save()
 
-            # ✅ STEP 2: Attach product to formset
+            # SAVE IMAGES
             image_formset.instance = product
-
-            # ✅ STEP 3: Save images
             image_formset.save()
 
             messages.success(
@@ -216,8 +247,7 @@ def wholeseller_product_create(request):
             return redirect('products:wholeseller_product_variants', product_id=product.id)
 
         else:
-            print("FORM ERRORS:", form.errors)
-            print("FORMSET ERRORS:", image_formset.errors)
+            messages.error(request, "❌ Please fix the errors in the form.")
 
     else:
         form = WholesellerProductForm()
@@ -228,7 +258,6 @@ def wholeseller_product_create(request):
         'image_formset': image_formset,
         'title': 'Add New Product',
     })
-
 
 @login_required
 @user_passes_test(is_wholeseller)
@@ -535,13 +564,10 @@ def reseller_import_product(request, store_id, product_id):
 
             margin = form.cleaned_data.get('margin_rupees') or 0
 
-            # 🔥 CENTRAL PRICE FUNCTION
             def calc(price):
                 return float(price) + float(margin)
 
-            # -------------------------
-            # CREATE PRODUCT
-            # -------------------------
+            # ================= PRODUCT CREATE =================
             product = ResellerProduct.objects.create(
                 reseller=request.user,
                 store=store,
@@ -572,17 +598,24 @@ def reseller_import_product(request, store_id, product_id):
                 margin_rupees=margin,
                 selling_price=calc(source_product.price),
 
+                # ✅ SHIPPING
+                weight=source_product.weight,
+                length=source_product.length,
+                breadth=source_product.breadth,
+                height=source_product.height,
+                is_shippable=source_product.is_shippable,
+
+                # ✅ RETURNS
+                is_returnable=source_product.is_returnable,
+                return_window_days=source_product.return_window_days,
+                is_replaceable=source_product.is_replaceable,
+                replacement_window_days=source_product.replacement_window_days,
+
+                main_image=source_product.main_image,
                 is_published=False,
             )
 
-            # MAIN IMAGE
-            if source_product.main_image:
-                product.main_image = source_product.main_image
-                product.save()
-
-            # -------------------------
-            # COPY PRODUCT IMAGES
-            # -------------------------
+            # ================= PRODUCT IMAGES =================
             for img in source_product.additional_images.all():
                 ResellerProductImage.objects.create(
                     product=product,
@@ -591,9 +624,7 @@ def reseller_import_product(request, store_id, product_id):
                     order=img.order
                 )
 
-            # -------------------------
-            # COPY VARIANTS + IMAGES
-            # -------------------------
+            # ================= VARIANTS =================
             for sv in source_product.variants.all():
 
                 variant = ResellerProductVariant.objects.create(
@@ -611,15 +642,25 @@ def reseller_import_product(request, store_id, product_id):
                     stock=sv.stock,
                     threshold_limit=sv.threshold_limit,
                     order=sv.order,
-                    is_active=sv.is_active
+                    is_active=sv.is_active,
+
+                    # ✅ SHIPPING
+                    weight=sv.weight,
+                    length=sv.length,
+                    breadth=sv.breadth,
+                    height=sv.height,
+
+                    # ✅ RETURNS
+                    is_returnable=sv.is_returnable,
+                    return_window_days=sv.return_window_days,
+                    is_replaceable=sv.is_replaceable,
+                    replacement_window_days=sv.replacement_window_days,
                 )
 
-                # MAIN IMAGE
                 if sv.main_image:
                     variant.main_image = sv.main_image
                     variant.save()
 
-                # VARIANT IMAGES
                 for simg in sv.additional_images.all():
                     ResellerVariantImage.objects.create(
                         variant=variant,
@@ -627,8 +668,6 @@ def reseller_import_product(request, store_id, product_id):
                         alt_text=simg.alt_text,
                         order=simg.order
                     )
-
-            product.update_stock()
 
             messages.success(request, f'✅ Imported "{product.name}" with margin ₹{margin}')
             return redirect('products:reseller_product_list', store_id=store.id)
@@ -640,12 +679,7 @@ def reseller_import_product(request, store_id, product_id):
         'form': form,
         'source_product': source_product,
         'store': store,
-        'preview_price': source_product.price,
-        'variants_count': source_product.variants.count(),
-        'total_variant_images': sum(v.additional_images.count() for v in source_product.variants.all()),
-        'product_images_count': source_product.additional_images.count(),
     })
-
 
 @login_required
 @user_passes_test(is_reseller)
@@ -889,103 +923,130 @@ def reseller_product_delete(request, store_id, product_id):
 @login_required
 @user_passes_test(is_reseller)
 def price_change_notifications(request, store_id):
+
     store = get_object_or_404(Store, id=store_id, reseller=request.user)
-    
+
     notifications = PriceChangeNotification.objects.filter(
         store=store,
         reseller=request.user
-    ).select_related('reseller_product')
-    
+    ).select_related('reseller_product', 'reseller_variant')
+
     notifications.filter(is_read=False).update(is_read=True)
-    
+
     products_with_changes = ResellerProduct.objects.filter(
         store=store,
         price_status__in=['price_increased', 'price_decreased']
     )
-    
+
     return render(request, 'products/reseller/price_notifications.html', {
         'store': store,
         'notifications': notifications,
         'products_with_changes': products_with_changes,
     })
 
-
 @login_required
 @user_passes_test(is_reseller)
 def review_price_change(request, store_id, product_id):
+
     store = get_object_or_404(Store, id=store_id, reseller=request.user)
     product = get_object_or_404(ResellerProduct, id=product_id, store=store)
-    
-    if not product.has_price_change_pending():
-        messages.info(request, 'No pending price changes for this product.')
+
+    notification = PriceChangeNotification.objects.filter(
+        reseller=request.user,
+        store=store,
+        reseller_product=product
+    ).order_by('-created_at').first()
+
+    if not notification:
+        messages.error(request, "No price change found")
         return redirect('products:reseller_product_list', store_id=store.id)
-    
+
+    variant = notification.reseller_variant
+
+    old_base = notification.old_price
+    new_base = notification.new_price
+
+    old_selling = notification.old_selling_price
+    new_selling = notification.new_selling_price
+
+    diff = notification.get_difference()
+
     if request.method == 'POST':
         action = request.POST.get('action')
-        
-        if action == 'update':
-            old_price = product.selling_price
-            product.apply_price_update()
-            
-            for variant in product.variants.all():
-                if variant.source_variant:
-                    variant.selling_price = variant.source_variant.price + variant.margin_rupees
-                    variant.save()
-            
-            messages.success(request, f'✅ Price updated for "{product.name}"! Old: ₹{old_price} → New: ₹{product.selling_price}')
-            
-        elif action == 'ignore':
-            product.ignore_price_update()
-            messages.info(request, f'Price change ignored for "{product.name}". Keeping current price ₹{product.selling_price}')
-        
-        elif action == 'custom_margin':
-            new_margin = request.POST.get('new_margin')
-            if new_margin:
-                new_margin = float(new_margin)
-                product.margin_rupees = new_margin
-                product.selling_price = product.source_price + new_margin
+
+        if variant:
+            if action == 'update':
+                variant.source_price = new_base
+                variant.selling_price = new_selling
+                variant.save()
+
+        else:
+            if action == 'update':
+                product.source_price = new_base
+                product.selling_price = new_selling
                 product.price_status = 'reviewed'
-                product.price_reviewed_at = timezone.now()
                 product.save()
-                messages.success(request, f'Custom margin applied! New selling price: ₹{product.selling_price}')
-        
-        return redirect('products:reseller_product_list', store_id=store.id)
-    
+
+            elif action == 'ignore':
+                product.price_status = 'reviewed'
+                product.save()
+
+            elif action == 'custom_margin':
+                margin = float(request.POST.get('new_margin'))
+                product.margin_rupees = margin
+                product.selling_price = new_base + margin
+                product.save()
+
+        notification.is_actioned = True
+        notification.save()
+
+        return redirect('products:price_notifications', store_id=store.id)
+
     return render(request, 'products/reseller/review_price_change.html', {
         'store': store,
         'product': product,
-        'old_selling_price': product.get_old_selling_price(),
-        'new_selling_price': product.get_new_selling_price(),
-        'price_difference': product.get_price_difference(),
-        'is_increase': product.price_status == 'price_increased',
+        'variant': variant,
+        'notification': notification,
+        'old_base_price': old_base,
+        'new_base_price': new_base,
+        'old_selling_price': old_selling,
+        'new_selling_price': new_selling,
+        'price_difference': diff,
+        'is_increase': diff > 0,
     })
-
 
 @login_required
 @user_passes_test(is_reseller)
 def dismiss_price_notification(request, notification_id):
-    notification = get_object_or_404(PriceChangeNotification, id=notification_id, reseller=request.user)
-    notification.is_read = True
-    notification.save()
-    return JsonResponse({'success': True})
+    notification = get_object_or_404(
+        PriceChangeNotification,
+        id=notification_id,
+        reseller=request.user
+    )
 
+    # ✅ enforce review first
+    if not notification.is_actioned:
+        messages.error(request, "You must review before dismissing.")
+        return redirect('products:price_notifications', store_id=notification.store.id)
+
+    store_id = notification.store.id
+
+    notification.delete()
+
+    messages.success(request, "Notification dismissed.")
+
+    # ✅ CORRECT REDIRECT
+    return redirect('products:price_notifications', store_id=store_id)
 
 @login_required
 @user_passes_test(is_reseller)
 def get_notification_count(request):
-    count = PriceChangeNotification.objects.filter(reseller=request.user, is_read=False).count()
-    pending_products = ResellerProduct.objects.filter(
+    count = PriceChangeNotification.objects.filter(
         reseller=request.user,
-        price_status__in=['price_increased', 'price_decreased']
+        is_read=False
     ).count()
-    
-    return JsonResponse({
-        'notification_count': count,
-        'pending_products': pending_products,
-        'total': count + pending_products
-    })
 
-
+    return JsonResponse({'count': count})
 # ============ AJAX ENDPOINTS ============
 
 
@@ -1019,6 +1080,7 @@ def calculate_price(request):
 @login_required
 @user_passes_test(is_wholeseller)
 def wholeseller_product_detail(request, product_id):
+
     product = get_object_or_404(
         WholesellerProduct.objects.prefetch_related('variants', 'additional_images'),
         id=product_id,
@@ -1026,21 +1088,27 @@ def wholeseller_product_detail(request, product_id):
     )
 
     return render(request, 'products/product_detail.html', {
-        'product': product
+        'product': product,
+        'store': None  # optional (prevents sidebar crash if expecting store)
     })
 
+
 @login_required
+@user_passes_test(is_reseller)
 def reseller_product_detail(request, store_id, product_id):
+
+    store = get_object_or_404(Store, id=store_id, reseller=request.user)
+
     product = get_object_or_404(
         ResellerProduct.objects.prefetch_related('variants', 'additional_images'),
         id=product_id,
-        store_id=store_id
+        store=store
     )
 
     return render(request, 'products/product_detail.html', {
-        'product': product
+        'product': product,
+        'store': store   # ✅ required for sidebar url
     })
-
 
 
 from django.db import transaction
@@ -1052,22 +1120,19 @@ def reseller_product_full_create(request, store_id):
 
     store = get_object_or_404(Store, id=store_id, reseller=request.user)
 
-    # 🔥 CHECK PRIMARY ADDRESS
-    has_primary_address = ResellerAddress.objects.filter(
-        user=request.user,
-        is_primary=True
-    ).exists()
-
-    if not has_primary_address:
+    # PRIMARY ADDRESS CHECK
+    if not ResellerAddress.objects.filter(user=request.user, is_primary=True).exists():
         messages.error(request, "⚠️ Please add a primary address before creating a product.")
-        return redirect('accounts:reseller_addresses')  # 👈 update this URL to your address page
+        return redirect('accounts:reseller_addresses')
 
-    # 🔥 CHECK PRODUCT LIMIT
-    current_count = ResellerProduct.objects.filter(store=store, is_active=True).count()
-    max_products = store.get_max_products()
+    # PRODUCT LIMIT CHECK
+    current_count = ResellerProduct.objects.filter(
+        store=store,
+        is_active=True
+    ).count()
 
-    if current_count >= max_products:
-        messages.error(request, f'Product limit reached. Maximum {max_products} products allowed.')
+    if current_count >= store.get_max_products():
+        messages.error(request, f'Product limit reached.')
         return redirect('products:reseller_product_list', store_id=store.id)
 
     if request.method == 'POST':
@@ -1078,21 +1143,30 @@ def reseller_product_full_create(request, store_id):
 
         if product_form.is_valid() and image_formset.is_valid() and variant_formset.is_valid():
 
-            # SAVE PRODUCT
+            # PRODUCT VALIDATION
+            if product_form.cleaned_data.get('weight', 0) <= 0:
+                messages.error(request, "⚠️ Product weight is required.")
+                return redirect(request.path)
+
             product = product_form.save(commit=False)
             product.reseller = request.user
             product.store = store
             product.source_type = 'own'
             product.save()
 
-            # SAVE PRODUCT IMAGES
+            # PRODUCT IMAGES
             image_formset.instance = product
             image_formset.save()
 
-            # SAVE VARIANTS
+            # VARIANTS
             variants = variant_formset.save(commit=False)
 
             for i, variant in enumerate(variants):
+
+                if variant.weight <= 0:
+                    messages.error(request, f"⚠️ Variant {i+1} weight is required.")
+                    raise Exception("Invalid variant weight")
+
                 variant.product = product
                 variant.save()
 
@@ -1103,8 +1177,13 @@ def reseller_product_full_create(request, store_id):
                         image=img
                     )
 
+            variant_formset.save_m2m()
+
             messages.success(request, "✅ Product created successfully!")
             return redirect('products:reseller_product_list', store_id=store.id)
+
+        else:
+            messages.error(request, "❌ Please fix the errors in the form.")
 
     else:
         product_form = ResellerOwnProductForm()
@@ -1144,33 +1223,26 @@ def reseller_product_full_edit(request, store_id, product_id):
             prefix='variants'
         )
 
-        # 🔥 DEBUG (IMPORTANT)
-        if not product_form.is_valid():
-            print("PRODUCT ERRORS:", product_form.errors)
-
-        if not image_formset.is_valid():
-            print("IMAGE ERRORS:", image_formset.errors)
-
-        if not variant_formset.is_valid():
-            print("VARIANT ERRORS:", variant_formset.errors)
-
         if product_form.is_valid() and image_formset.is_valid() and variant_formset.is_valid():
 
-            # ✅ SAVE PRODUCT
+            # PRODUCT VALIDATION
+            if product_form.cleaned_data.get('weight', 0) <= 0:
+                messages.error(request, "⚠️ Product weight is required.")
+                return redirect(request.path)
+
             product = product_form.save()
 
-            # ✅ SAVE PRODUCT IMAGES
+            # PRODUCT IMAGES
             image_formset.save()
 
-            # ✅ DELETE VARIANT IMAGES (checkbox)
+            # DELETE VARIANT IMAGES
             for img in ResellerVariantImage.objects.filter(variant__product=product):
                 if request.POST.get(f'delete_variant_image_{img.id}'):
                     img.delete()
 
-            # ✅ SAVE VARIANTS
             variants = variant_formset.save(commit=False)
 
-            # delete removed variants
+            # DELETE REMOVED VARIANTS
             for obj in variant_formset.deleted_objects:
                 obj.delete()
 
@@ -1180,10 +1252,14 @@ def reseller_product_full_edit(request, store_id, product_id):
                     continue
 
                 variant = form.save(commit=False)
+
+                if variant.weight <= 0:
+                    messages.error(request, f"⚠️ Variant {i+1} weight is required.")
+                    raise Exception("Invalid variant weight")
+
                 variant.product = product
                 variant.save()
 
-                # 🔥 ADD NEW VARIANT IMAGES
                 images = request.FILES.getlist(f'variant_images_{i}')
                 for img in images:
                     ResellerVariantImage.objects.create(
@@ -1196,8 +1272,10 @@ def reseller_product_full_edit(request, store_id, product_id):
             messages.success(request, "✅ Product updated successfully!")
             return redirect('products:reseller_product_list', store_id=store.id)
 
-    else:
+        else:
+            messages.error(request, "❌ Please fix the errors in the form.")
 
+    else:
         product_form = ResellerOwnProductForm(instance=product)
 
         image_formset = ResellerProductImageFormSet(
@@ -1217,3 +1295,96 @@ def reseller_product_full_edit(request, store_id, product_id):
         'product': product,
         'store': store,
     })
+
+from django.db.models import F, Q, Prefetch
+
+from products.models import (
+    WholesellerProduct, WholesellerProductVariant,
+    ResellerProduct, ResellerProductVariant
+)
+
+
+@login_required
+def low_stock_alerts(request):
+    user = request.user
+    context = {}
+
+    # =========================
+    # WHOLESELLER
+    # =========================
+    if user.role == 'wholeseller':
+
+        low_products = WholesellerProduct.objects.filter(
+            wholeseller=user,
+            stock__lte=F('threshold_limit'),
+            is_active=True
+        )
+
+        low_variants = WholesellerProductVariant.objects.filter(
+            product__wholeseller=user,
+            stock__lte=F('threshold_limit'),
+            is_active=True
+        ).select_related('product')
+
+        context.update({
+            'low_products': low_products,
+            'low_variants': low_variants,
+            'role': 'wholeseller'
+        })
+
+    # =========================
+    # RESELLER
+    # =========================
+    elif user.role == 'reseller':
+
+        # ✅ FIX: ensure store always exists
+        store = getattr(request, 'current_store', None)
+
+        if not store:
+            store = Store.objects.filter(reseller=user).first()
+
+        if not store:
+            messages.error(request, "⚠️ No store found. Please create a store first.")
+            return redirect('resellers:reseller_dashboard')
+
+        # OWN PRODUCTS
+        own_products = ResellerProduct.objects.filter(
+            reseller=user,
+            source_type='own',
+            stock__lte=F('threshold_limit'),
+            is_active=True
+        )
+
+        own_variants = ResellerProductVariant.objects.filter(
+            product__reseller=user,
+            product__source_type='own',
+            stock__lte=F('threshold_limit'),
+            is_active=True
+        ).select_related('product')
+
+        # IMPORTED PRODUCTS
+        imported_products = ResellerProduct.objects.filter(
+            reseller=user,
+            source_type='imported',
+            source_product__stock__lte=F('source_product__threshold_limit'),
+            is_active=True
+        ).select_related('source_product')
+
+        # IMPORTED VARIANTS
+        imported_variants = ResellerProductVariant.objects.filter(
+            product__reseller=user,
+            product__source_type='imported',
+            source_variant__stock__lte=F('source_variant__threshold_limit'),
+            is_active=True
+        ).select_related('product', 'source_variant')
+
+        context.update({
+            'store': store,  # ✅ THIS FIXES YOUR ERROR
+            'own_products': own_products,
+            'own_variants': own_variants,
+            'imported_products': imported_products,
+            'imported_variants': imported_variants,
+            'role': 'reseller'
+        })
+
+    return render(request, 'resellers/low_stock_alerts.html', context)

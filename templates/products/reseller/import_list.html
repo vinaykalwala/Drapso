@@ -1,106 +1,1113 @@
+{% extends 'dashboard_base.html' %}
 {% load static %}
 
+{% block title %}Import Products - {{ store.store_name }}{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-4">
+<style>
+    /* ============================================
+       IMPORT PRODUCTS PAGE - PREMIUM LAYOUT
+       ============================================ */
+
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --primary-light: #eef2ff;
+        --success: #10b981;
+        --success-light: #d1fae5;
+        --warning: #f59e0b;
+        --warning-light: #fef3c7;
+        --danger: #ef4444;
+        --danger-light: #fee2e2;
+        --info: #06b6d4;
+        --info-light: #cffafe;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        --radius: 16px;
+        --radius-lg: 20px;
+    }
+
+    .import-page {
+        background: linear-gradient(135deg, #f5f3ff 0%, #f8fafc 100%);
+        min-height: 100vh;
+        padding: 28px 32px;
+    }
+
+    .import-container {
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Header */
+    .import-header {
+justify-content:center;
+background-image:url("{% static 'images/bg.avif' %}");
+background-size:cover;
+background-position:center;        border-radius: 24px;
+        padding: 20px 32px;
+        margin-bottom: 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(79, 70, 229, 0.1);
+    }
+
+    .header-title h2 {
+        font-size: 26px;
+        font-weight: 800;
+        color: #fff;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .header-title h2 i {
+        color: var(--primary);
+        background: var(--primary-light);
+        padding: 12px;
+        border-radius: 16px;
+    }
+
+    .header-title p {
+        color: var(--gray-500);
+        margin: 5px 0 0 0;
+        font-size: 14px;
+    }
+
+    .slot-badge {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        padding: 12px 28px;
+        border-radius: 60px;
+        font-weight: 700;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Grid */
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 15px;
+        
+    }
+
+    /* Card */
+    .product-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(79, 70, 229, 0.08);
+        position: relative;
+    }
+
+    .product-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-lg);
+        border-color: rgba(79, 70, 229, 0.2);
+    }
+
+    /* Price Change Badge */
+    .price-alert-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: var(--warning);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        z-index: 10;
+    }
+
+    /* Image Section */
+    .image-section {
+        padding: 20px;
+        background: linear-gradient(135deg, #faf5ff, white);
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .main-image-container {
+        background: white;
+        border-radius: 18px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 15px;
+        height: 220px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+    }
+
+    .main-image {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        transition: transform 0.3s;
+        cursor: pointer;
+    }
+
+    .main-image:hover {
+        transform: scale(1.03);
+    }
+
+    .zoom-icon {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        background: rgba(0,0,0,0.6);
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 14px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        cursor: pointer;
+    }
+
+    .main-image-container:hover .zoom-icon {
+        opacity: 1;
+    }
+
+    /* Thumbnails */
+    .thumb-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .thumb-scroll-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: white;
+        border: 1px solid var(--gray-300);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .thumb-scroll-btn:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .thumb-strip {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        flex: 1;
+        padding: 5px 0;
+        scrollbar-width: thin;
+    }
+
+    .thumb-strip::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .thumb-strip::-webkit-scrollbar-track {
+        background: var(--gray-200);
+        border-radius: 10px;
+    }
+
+    .thumb-strip::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 10px;
+    }
+
+    .thumb-img {
+        width: 55px;
+        height: 55px;
+        border-radius: 10px;
+        object-fit: cover;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .thumb-img:hover {
+        transform: scale(1.05);
+        border-color: var(--primary);
+    }
+
+    .thumb-img.active {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px var(--primary-light);
+    }
+
+    /* Back Button */
+    .back-main-btn {
+        margin-top: 12px;
+        padding: 6px 14px;
+        background: var(--gray-100);
+        border: none;
+        border-radius: 30px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--gray-700);
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .back-main-btn:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    /* Variants Section */
+    .variants-section {
+        padding: 14px 18px;
+        background: var(--gray-50);
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .variants-header {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--gray-600);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .variants-list {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        padding-bottom: 5px;
+        scrollbar-width: thin;
+    }
+
+    .variants-list::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .variant-card {
+        flex-shrink: 0;
+        width: 90px;
+        text-align: center;
+        cursor: pointer;
+        padding: 10px 6px;
+        border-radius: 14px;
+        transition: all 0.2s;
+        background: white;
+        border: 1px solid var(--gray-200);
+    }
+
+    .variant-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .variant-card.active {
+        border-color: var(--primary);
+        background: var(--primary-light);
+    }
+
+    .variant-img {
+        width: 60px;
+        height: 60px;
+        border-radius: 10px;
+        object-fit: cover;
+        margin-bottom: 6px;
+    }
+
+    .variant-name {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--gray-700);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .variant-price {
+        font-size: 10px;
+        color: var(--primary);
+        font-weight: 700;
+        margin-top: 4px;
+    }
+
+    /* No Variants */
+    .no-variants {
+        text-align: center;
+        padding: 20px;
+        background: white;
+        border-radius: 14px;
+        color: var(--gray-500);
+    }
+
+    /* Info Section */
+    .info-section {
+        padding: 18px;
+    }
+
+    .product-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin-bottom: 5px;
+        line-height: 1.4;
+    }
+
+    .product-brand {
+        font-size: 12px;
+        color: var(--gray-500);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .price-stock-box {
+        background: linear-gradient(135deg, var(--primary-light), white);
+        padding: 14px;
+        border-radius: 14px;
+        border: 1px solid var(--gray-200);
+    }
+
+    .price-amount {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    .stock-info {
+        font-size: 11px;
+        color: var(--gray-600);
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Import Button */
+    .import-footer {
+        padding: 0 18px 20px 18px;
+    }
+
+    .import-btn {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 14px;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .import-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -8px var(--primary);
+    }
+
+    /* Empty State */
+    /* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 28px;
+    border: 2px dashed var(--gray-300);
+
+    grid-column: 1 / -1; /* FULL WIDTH */
+    width: 100%;
+}
+
+    .empty-state i {
+        font-size: 64px;
+        color: var(--gray-400);
+        margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+        font-size: 22px;
+        color: var(--gray-700);
+        margin-bottom: 8px;
+    }
+
+    /* Lightbox */
+    .global-lightbox {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.96);
+        z-index: 1100;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .global-lightbox.active {
+        display: flex;
+    }
+
+    .global-lightbox img {
+        max-width: 85%;
+        max-height: 85%;
+        object-fit: contain;
+        border-radius: 16px;
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: 25px;
+        right: 35px;
+        color: white;
+        font-size: 40px;
+        cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+        .import-page {
+            padding: 20px;
+        }
+        .products-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        .import-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        .main-image-container {
+            height: 200px;
+        }
+        .variant-card {
+            width: 80px;
+        }
+        .variant-img {
+            width: 50px;
+            height: 50px;
+        }
+    }
+    @media (max-width: 768px) {
+        .content {
+            margin-top: 60px;
+        }
+    }
+</style>
+
+<div class="content">
+<div class="import-page">
+<div class="import-container">
 
     <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Import Products</h2>
-        <span class="badge bg-info">Remaining Slots: {{ remaining_slots }}</span>
+    <div class="import-header">
+        <div class="header-title">
+            <h2>
+                <i class="fas fa-download"></i>
+                Import Products
+            </h2>
+        </div>
+        <div class="slot-badge">
+            <i class="fas fa-layer-group"></i>
+            {{ remaining_slots }} slots remaining
+        </div>
     </div>
 
-    <!-- PRODUCTS -->
-    <div class="row">
+    <!-- PRODUCTS GRID -->
+    <div class="products-grid">
 
         {% for product in products %}
-        <div class="col-md-4 mb-4">
+        <div class="product-card" data-product-id="{{ product.id }}">
 
-            <div class="card h-100 shadow-sm">
+            {% if product.has_price_change_pending %}
+                <div class="price-alert-badge">
+                    <i class="fas fa-exclamation-circle"></i> Price Changed
+                </div>
+            {% endif %}
 
-                <!-- 🔥 PRODUCT IMAGES -->
-                <div class="p-2">
+            <!-- IMAGE SECTION -->
+            <div class="image-section">
+                <div class="main-image-container">
+                    <img id="mainImage-{{ product.id }}" 
+                         src="{% if product.main_image %}{{ product.main_image.url }}{% else %}https://via.placeholder.com/300x300?text=No+Image{% endif %}" 
+                         class="main-image" 
+                         alt="{{ product.name }}">
+                    <div class="zoom-icon" onclick="event.stopPropagation(); openLightbox(getCurrentImage('{{ product.id }}'))">
+                        <i class="fas fa-search-plus"></i>
+                    </div>
+                </div>
 
-                    {% if product.main_image %}
-                        <img src="{{ product.main_image.url }}"
-                             class="img-fluid mb-2"
-                             style="height:150px; width:100%; object-fit:cover;">
-                    {% endif %}
-
-                    <div class="d-flex flex-wrap gap-1">
+                <!-- Thumbnails -->
+                <div class="thumb-wrapper">
+                    <button class="thumb-scroll-btn" onclick="scrollThumbs('{{ product.id }}', -1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="thumb-strip" id="thumbStrip-{{ product.id }}">
+                        {% if product.main_image %}
+                        <img src="{{ product.main_image.url }}" 
+                             class="thumb-img active" 
+                             data-full="{{ product.main_image.url }}"
+                             onclick="changeMainImage('{{ product.id }}', this, '{{ product.main_image.url }}')">
+                        {% endif %}
                         {% for img in product.additional_images.all %}
-                            <img src="{{ img.image.url }}" width="40" height="40">
+                        <img src="{{ img.image.url }}" 
+                             class="thumb-img" 
+                             data-full="{{ img.image.url }}"
+                             onclick="changeMainImage('{{ product.id }}', this, '{{ img.image.url }}')">
                         {% endfor %}
                     </div>
-
+                    <button class="thumb-scroll-btn" onclick="scrollThumbs('{{ product.id }}', 1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
 
-                <!-- BODY -->
-                <div class="card-body">
+                <!-- Back Button -->
+                <button class="back-main-btn" id="backBtn-{{ product.id }}" style="display: none;" onclick="resetToMain('{{ product.id }}')">
+                    <i class="fas fa-arrow-left"></i> Back to Main Product
+                </button>
+            </div>
 
-                    <h6>{{ product.name }}</h6>
-                    <small class="text-muted">{{ product.brand }}</small>
-
-                    <div class="mt-2">
-                        <strong>₹{{ product.price }}</strong><br>
-                        <small>Stock: {{ product.stock }}</small>
-                    </div>
-
-                    <!-- 🔥 VARIANTS -->
-                    <div class="mt-3">
-                        <strong>Variants</strong>
-
-                        <div style="max-height:150px; overflow-y:auto;">
-
-                            {% for v in product.variants.all %}
-                            <div class="border-bottom py-2">
-
-                                <!-- VARIANT IMAGES -->
-                                <div class="d-flex flex-wrap gap-1 mb-1">
-
-                                    {% if v.main_image %}
-                                        <img src="{{ v.main_image.url }}" width="30" height="30">
-                                    {% endif %}
-
-                                    {% for img in v.additional_images.all %}
-                                        <img src="{{ img.image.url }}" width="30" height="30">
-                                    {% endfor %}
-
-                                </div>
-
-                                <!-- TEXT -->
-                                <small>
-                                    {{ v.variant_name }} - ₹{{ v.price }}
-                                </small>
-
+            <!-- VARIANTS SECTION -->
+            <div class="variants-section">
+                <div class="variants-header">
+                    <i class="fas fa-cubes"></i> Variants ({{ product.variants.count }})
+                </div>
+                
+                {% if product.variants.exists %}
+                <div class="variants-list" id="variantsList-{{ product.id }}">
+                    {% for variant in product.variants.all %}
+                    <div class="variant-card" 
+                         data-variant-id="{{ variant.id }}"
+                         data-variant-name="{{ variant.variant_name }}"
+                         data-variant-price="{{ variant.price }}"
+                         data-variant-stock="{{ variant.stock }}"
+                         data-main-image="{% if variant.main_image %}{{ variant.main_image.url }}{% endif %}"
+                         data-gallery='[
+                            {% if variant.main_image %}"{{ variant.main_image.url }}"{% endif %}
+                            {% for img in variant.additional_images.all %},"{{ img.image.url }}"{% endfor %}
+                         ]'
+                         onclick="showVariant('{{ product.id }}', this)">
+                        
+                        {% if variant.main_image %}
+                            <img src="{{ variant.main_image.url }}" class="variant-img" alt="{{ variant.variant_name }}">
+                        {% else %}
+                            <div class="variant-img" style="background: var(--gray-200); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-image" style="color: var(--gray-400); font-size: 20px;"></i>
                             </div>
-                            {% empty %}
-                                <small class="text-muted">No variants</small>
-                            {% endfor %}
-
-                        </div>
+                        {% endif %}
+                        <div class="variant-name">{{ variant.variant_name|truncatechars:10 }}</div>
+                        <div class="variant-price">₹{{ variant.price }}</div>
                     </div>
-
+                    {% endfor %}
                 </div>
-
-                <!-- FOOTER -->
-                <div class="card-footer">
-                    <a href="{% url 'products:reseller_import_product' store.id product.id %}"
-                       class="btn btn-primary w-100">
-                        Import
-                    </a>
+                {% else %}
+                <div class="no-variants">
+                    <i class="fas fa-box-open"></i>
+                    <p>No variants available</p>
                 </div>
+                {% endif %}
+            </div>
 
+            <!-- INFO SECTION -->
+            <div class="info-section">
+                <div class="product-title">{{ product.name }}</div>
+                <div class="product-brand">
+                    <i class="fas fa-building"></i> {{ product.brand|default:"No Brand" }}
+                </div>
+                <div class="price-stock-box" id="priceStock-{{ product.id }}">
+                    <div class="price-amount">₹{{ product.price }}</div>
+                    <div class="stock-info">
+                        <i class="fas fa-box"></i> Stock: {{ product.stock }} units
+                    </div>
+                </div>
+            </div>
+
+            <!-- IMPORT BUTTON -->
+            <div class="import-footer">
+                <a href="{% url 'products:reseller_import_product' store.id product.id %}" class="import-btn">
+                    <i class="fas fa-download"></i> Import Product
+                </a>
             </div>
 
         </div>
-
         {% empty %}
-        <div class="col-12 text-center py-5">
-            <h4>No products found</h4>
+
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>No Products Available</h3>
+            <p>No products found from wholesellers at the moment</p>
         </div>
         {% endfor %}
 
     </div>
 
 </div>
+</div>
+</div>
+
+<!-- Lightbox Modal -->
+<div id="globalLightbox" class="global-lightbox" onclick="closeLightbox()">
+    <span class="lightbox-close">&times;</span>
+    <img id="lightboxImg" src="">
+</div>
+
+<script>
+
+const originalThumbs = {};
+const originalPriceStock = {};
+
+
+// scroll thumbnails
+function scrollThumbs(productId, direction) {
+
+    const container =
+        document.getElementById(`thumbStrip-${productId}`);
+
+    if (container) {
+        container.scrollLeft += direction * 110;
+    }
+}
+
+
+// change main image manually
+function changeMainImage(productId, element, imageUrl) {
+
+    const mainImage =
+        document.getElementById(`mainImage-${productId}`);
+
+    if (mainImage) mainImage.src = imageUrl;
+
+    const thumbs =
+        document.querySelectorAll(
+            `#thumbStrip-${productId} .thumb-img`
+        );
+
+    thumbs.forEach(t =>
+        t.classList.remove('active')
+    );
+
+    element.classList.add('active');
+
+    const variants =
+        document.querySelectorAll(
+            `#variantsList-${productId} .variant-card`
+        );
+
+    variants.forEach(v =>
+        v.classList.remove('active')
+    );
+
+    const backBtn =
+        document.getElementById(`backBtn-${productId}`);
+
+    if (backBtn) backBtn.style.display = 'none';
+}
+
+
+
+// show variant (NO duplicate images)
+function showVariant(productId, variantElement) {
+
+    const variantPrice =
+        variantElement.dataset.variantPrice;
+
+    const variantStock =
+        variantElement.dataset.variantStock;
+
+    const variantMainImg =
+        variantElement.dataset.mainImage;
+
+    let variantGallery = [];
+
+
+    try {
+
+        const galleryStr =
+            variantElement.dataset.gallery;
+
+        if (galleryStr && galleryStr !== '[]') {
+
+            variantGallery =
+                JSON.parse(
+                    galleryStr.replace(/&quot;/g,'"')
+                );
+        }
+
+    } catch(e) {
+
+        variantGallery = [];
+    }
+
+
+
+    const thumbContainer =
+        document.getElementById(
+            `thumbStrip-${productId}`
+        );
+
+
+    if (!originalThumbs[productId] && thumbContainer) {
+
+        originalThumbs[productId] =
+            thumbContainer.innerHTML;
+    }
+
+
+
+    const priceStockBox =
+        document.getElementById(
+            `priceStock-${productId}`
+        );
+
+
+    if (!originalPriceStock[productId] && priceStockBox) {
+
+        originalPriceStock[productId] =
+            priceStockBox.innerHTML;
+    }
+
+
+
+    // remove duplicate images
+    const allImages =
+        [...new Set([
+            variantMainImg,
+            ...variantGallery
+        ].filter(Boolean))];
+
+
+
+    // set main image
+    const mainImage =
+        document.getElementById(
+            `mainImage-${productId}`
+        );
+
+
+    if (mainImage && allImages.length > 0) {
+
+        mainImage.src = allImages[0];
+    }
+
+
+
+    // rebuild thumbnails
+    if (thumbContainer) {
+
+        thumbContainer.innerHTML = '';
+
+        allImages.forEach((imgUrl,index)=>{
+
+            const thumb =
+                document.createElement('img');
+
+            thumb.src = imgUrl;
+
+            thumb.className =
+                'thumb-img' +
+                (index===0 ? ' active':'');
+
+            thumb.setAttribute(
+                'data-full',
+                imgUrl
+            );
+
+
+            thumb.onclick = function(){
+
+                changeMainImage(
+                    productId,
+                    this,
+                    imgUrl
+                );
+
+                const thumbs =
+                    thumbContainer.querySelectorAll(
+                        '.thumb-img'
+                    );
+
+                thumbs.forEach(t =>
+                    t.classList.remove('active')
+                );
+
+                thumb.classList.add('active');
+            };
+
+
+            thumbContainer.appendChild(thumb);
+
+        });
+    }
+
+
+
+    // update price + stock
+    if (priceStockBox) {
+
+        priceStockBox.innerHTML = `
+            <div class="price-amount">
+                ₹${variantPrice}
+            </div>
+
+            <div class="stock-info">
+                <i class="fas fa-box"></i>
+                Stock: ${variantStock} units
+            </div>
+        `;
+    }
+
+
+
+    // highlight selected variant
+    const variants =
+        document.querySelectorAll(
+            `#variantsList-${productId} .variant-card`
+        );
+
+
+    variants.forEach(v =>
+        v.classList.remove('active')
+    );
+
+
+    variantElement.classList.add('active');
+
+
+
+    // show back button
+    const backBtn =
+        document.getElementById(
+            `backBtn-${productId}`
+        );
+
+
+    if (backBtn) {
+
+        backBtn.style.display = 'inline-flex';
+    }
+}
+
+
+
+
+// reset product images
+function resetToMain(productId) {
+
+    const thumbContainer =
+        document.getElementById(
+            `thumbStrip-${productId}`
+        );
+
+    const mainImage =
+        document.getElementById(
+            `mainImage-${productId}`
+        );
+
+    const priceStockBox =
+        document.getElementById(
+            `priceStock-${productId}`
+        );
+
+
+
+    if (originalThumbs[productId] && thumbContainer) {
+
+        thumbContainer.innerHTML =
+            originalThumbs[productId];
+
+
+        const restoredThumbs =
+            thumbContainer.querySelectorAll(
+                '.thumb-img'
+            );
+
+
+        restoredThumbs.forEach(thumb=>{
+
+            const imgUrl =
+                thumb.getAttribute('data-full');
+
+            thumb.onclick=function(){
+
+                changeMainImage(
+                    productId,
+                    this,
+                    imgUrl
+                );
+
+                const allThumbs =
+                    thumbContainer.querySelectorAll(
+                        '.thumb-img'
+                    );
+
+                allThumbs.forEach(t =>
+                    t.classList.remove('active')
+                );
+
+                thumb.classList.add('active');
+            };
+
+        });
+
+
+
+        if (restoredThumbs.length>0) {
+
+            restoredThumbs.forEach(t =>
+                t.classList.remove('active')
+            );
+
+            restoredThumbs[0].classList.add('active');
+
+            const firstImg =
+                restoredThumbs[0].getAttribute(
+                    'data-full'
+                );
+
+
+            if (mainImage && firstImg) {
+
+                mainImage.src = firstImg;
+            }
+        }
+    }
+
+
+
+    if (originalPriceStock[productId] && priceStockBox) {
+
+        priceStockBox.innerHTML =
+            originalPriceStock[productId];
+    }
+
+
+
+    const variants =
+        document.querySelectorAll(
+            `#variantsList-${productId} .variant-card`
+        );
+
+
+    variants.forEach(v =>
+        v.classList.remove('active')
+    );
+
+
+
+    const backBtn =
+        document.getElementById(
+            `backBtn-${productId}`
+        );
+
+
+    if (backBtn) {
+
+        backBtn.style.display = 'none';
+    }
+}
+
+
+
+
+// lightbox
+function getCurrentImage(productId){
+
+    const mainImage =
+        document.getElementById(
+            `mainImage-${productId}`
+        );
+
+    return mainImage ? mainImage.src : '';
+}
+
+
+
+function openLightbox(imgSrc){
+
+    if(!imgSrc || imgSrc.includes('placeholder'))
+        return;
+
+    const lightbox =
+        document.getElementById(
+            'globalLightbox'
+        );
+
+    const lightboxImg =
+        document.getElementById(
+            'lightboxImg'
+        );
+
+    lightboxImg.src = imgSrc;
+
+    lightbox.classList.add('active');
+}
+
+
+
+function closeLightbox(){
+
+    document
+        .getElementById('globalLightbox')
+        .classList.remove('active');
+}
+
+
+
+document.addEventListener('keydown',(e)=>{
+
+    if(e.key==='Escape')
+        closeLightbox();
+
+});
+
+</script>
+
 {% endblock %}

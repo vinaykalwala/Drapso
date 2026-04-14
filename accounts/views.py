@@ -1266,21 +1266,28 @@ def delete_wholeseller_address(request, address_id):
 
 # ============ RESELLER ADDRESS VIEWS ============
 
+from resellers.models import Store
+
 @login_required
 def reseller_addresses(request):
     """List all addresses for reseller"""
+    
     if request.user.role != User.Role.RESELLER:
         messages.error(request, 'Access denied. Only resellers can access this page.')
         return redirect('accounts:dashboard')
     
     addresses = ResellerAddress.objects.filter(user=request.user)
-    
+
+    # 🔥 ADD THIS
+    store = Store.objects.filter(reseller=request.user).first()
+
     context = {
         'addresses': addresses,
-        'primary_address': addresses.filter(is_primary=True).first()
+        'primary_address': addresses.filter(is_primary=True).first(),
+        'store': store   # 👈 THIS FIXES YOUR ERROR
     }
-    return render(request, 'accounts/reseller_addresses.html', context)
 
+    return render(request, 'accounts/reseller_addresses.html', context)
 
 @login_required
 def add_reseller_address(request):
@@ -1288,7 +1295,7 @@ def add_reseller_address(request):
     if request.user.role != User.Role.RESELLER:
         messages.error(request, 'Access denied. Only resellers can access this page.')
         return redirect('accounts:dashboard')
-    
+    store = Store.objects.filter(reseller=request.user).first()
     if request.method == 'POST':
         clear_messages(request)
         form = ResellerAddressForm(request.POST)
@@ -1321,7 +1328,7 @@ def add_reseller_address(request):
     else:
         form = ResellerAddressForm()
     
-    return render(request, 'accounts/add_reseller_address.html', {'form': form})
+    return render(request, 'accounts/add_reseller_address.html', {'form': form,'store': store})
 
 
 @login_required
@@ -1332,7 +1339,7 @@ def edit_reseller_address(request, address_id):
         return redirect('accounts:dashboard')
     
     address = get_object_or_404(ResellerAddress, id=address_id, user=request.user)
-    
+    store = Store.objects.filter(reseller=request.user).first()
     if request.method == 'POST':
         clear_messages(request)
         form = ResellerAddressForm(request.POST, instance=address)
@@ -1359,7 +1366,7 @@ def edit_reseller_address(request, address_id):
     else:
         form = ResellerAddressForm(instance=address)
     
-    return render(request, 'accounts/edit_reseller_address.html', {'form': form, 'address': address})
+    return render(request, 'accounts/edit_reseller_address.html', {'form': form, 'address': address,'store': store})
 
 
 @login_required

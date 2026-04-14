@@ -70,7 +70,76 @@ class StoreCreationForm(forms.ModelForm):
             except ValidationError:
                 raise ValidationError('Enter a valid email address.')
         return email
+# forms.py
 
+from django import forms
+from django.core.exceptions import ValidationError
+from .models import Store
+import re
+
+
+class StoreEditForm(forms.ModelForm):
+    """Edit store details ONLY (no plan/theme logic)"""
+
+    class Meta:
+        model = Store
+        fields = [
+            'store_name', 'store_description', 'contact_email',
+            'contact_phone', 'store_address', 'store_logo', 'store_banner'
+        ]
+
+        widgets = {
+            'store_description': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control'
+            }),
+            'store_address': forms.Textarea(attrs={
+                'rows': 2,
+                'class': 'form-control'
+            }),
+            'contact_email': forms.EmailInput(attrs={
+                'class': 'form-control'
+            }),
+            'contact_phone': forms.TextInput(attrs={
+                'class': 'form-control'
+            }),
+            'store_name': forms.TextInput(attrs={
+                'class': 'form-control',
+            }),
+            'store_logo': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            }),
+            'store_banner': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            }),
+        }
+
+    def clean_store_name(self):
+        store_name = self.cleaned_data.get('store_name')
+
+        if not store_name:
+            return store_name
+
+        # Match model validation (important consistency)
+        if not re.match(r'^[a-zA-Z0-9-]+$', store_name):
+            raise ValidationError(
+                'Store name can only contain letters, numbers, and hyphens.'
+            )
+
+        if len(store_name) < 3:
+            raise ValidationError('Store name must be at least 3 characters long.')
+
+        # Exclude current instance (this is why separate form matters)
+        qs = Store.objects.filter(store_name__iexact=store_name)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise ValidationError('This store name is already taken.')
+
+        return store_name.lower()
 
 class PlanSelectionForm(forms.Form):
     """Step 2: Select subscription plan"""

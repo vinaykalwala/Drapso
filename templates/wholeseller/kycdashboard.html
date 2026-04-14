@@ -178,12 +178,40 @@
     }
 
     .dr-info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 25px;
-        margin-top: 35px;
+
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 25px;
+
+    margin-top: 35px;
+
+}
+
+
+/* tablet */
+@media (max-width: 1024px){
+
+    .dr-info-grid{
+
+        grid-template-columns: repeat(2, 1fr);
+
     }
 
+}
+
+
+/* mobile */
+@media (max-width: 600px){
+
+    .dr-info-grid{
+
+        grid-template-columns: 1fr;
+
+    }
+
+}
     .dr-info-tile {
         background: #ffffff;
         padding: 25px;
@@ -299,6 +327,23 @@
                     <span class="dr-label">Business Name</span>
                     <span class="dr-value">{{ inventory.business_name }}</span>
                 </div>
+               <div class="dr-info-tile">
+
+    <span class="dr-label">
+        Delivery Type
+    </span>
+
+    <span class="dr-value">
+
+        {% if inventory.delivery_type == "self" %}
+            Self Delivery System
+        {% else %}
+            Platform Dependent Delivery System
+        {% endif %}
+
+    </span>
+
+</div>
                 <div class="dr-info-tile">
                     <span class="dr-label">Category</span>
                     <span class="dr-value">{{ inventory.get_business_type_display }}</span>

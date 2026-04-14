@@ -297,6 +297,24 @@
                     <label>Contact Email *</label>
                     {{ form.contact_email }}
                 </div>
+                <div class="col-md-4 dr-form-group">
+
+    <label>Delivery Type *</label>
+
+    <select name="delivery_type" class="form-control">
+
+        <option value="platform"
+            {% if form.delivery_type.value == "platform" %}selected{% endif %}>
+            Platform Delivery
+        </option>
+
+        <option value="self" disabled>
+            Self Delivery (Coming Soon)
+        </option>
+
+    </select>
+
+</div>
             </div>
 
             <div class="dr-action-row">

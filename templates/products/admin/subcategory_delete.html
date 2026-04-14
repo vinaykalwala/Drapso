@@ -1,38 +1,196 @@
-
+{% extends "dashboard_base.html" %}
 {% load static %}
 
 {% block title %}Delete Subcategory - Admin{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-md-6 offset-md-3">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-danger text-white">
-                    <h3 class="card-title mb-0">Confirm Delete</h3>
-                </div>
-                <div class="card-body">
-                    <p>Are you sure you want to delete subcategory <strong>"{{ subcategory.name }}"</strong>?</p>
-                    <p class="text-muted">Parent Category: <strong>{{ subcategory.category.name }}</strong></p>
-                    
-                    {% if subcategory.image %}
-                        <div class="alert alert-warning">
-                            <i class="fas fa-image"></i> The subcategory image will also be deleted.
-                        </div>
-                    {% endif %}
-                    
-                    <form method="post">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash"></i> Yes, Delete
-                        </button>
-                        <a href="{% url 'products:subcategory_list' %}" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Cancel
-                        </a>
-                    </form>
-                </div>
-            </div>
-        </div>
+
+<style>
+  /* ===== GLOBAL RESETS & VARIABLES ===== */
+  .content {
+    padding: 10px 25px;
+  }
+
+  /* heading */
+  .page-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #c73002;
+  }
+
+  /* delete card */
+  .delete-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #eee;
+    overflow: hidden;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  /* card header */
+  .card-header-danger {
+    background: #dc2626;
+    color: white;
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* card body */
+  .card-body-custom {
+    padding: 30px 28px;
+  }
+
+  /* typography */
+  .confirm-text {
+    font-size: 16px;
+    margin-bottom: 20px;
+    color: #1e293b;
+  }
+
+  .subcat-name {
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .parent-category {
+    background: #f8fafc;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-left: 4px solid #4f46e5;
+    margin: 20px 0;
+    color: #334155;
+  }
+
+  .parent-category strong {
+    color: #1e293b;
+    font-weight: 600;
+  }
+
+  /* warning alert */
+  .warning-alert {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 14px 16px;
+    color: #92400e;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 25px;
+  }
+
+  .warning-alert i {
+    font-size: 18px;
+    color: #f59e0b;
+  }
+
+  /* buttons */
+  .btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .btn-danger {
+    background: #dc2626;
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background: #b91c1c;
+    color: white;
+  }
+
+  .btn-secondary {
+    background: #f1f5f9;
+    color: #334155;
+  }
+
+  .btn-secondary:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  /* header layout */
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+</style>
+
+<div class="content">
+
+  <!-- Header -->
+  <!-- <div class="header-row">
+    <div class="page-title">
+      <i class="fa-solid fa-trash-can"></i>
+      Delete Subcategory
     </div>
+  </div> -->
+
+  <!-- Delete Card -->
+  <div class="delete-card">
+    <div class="card-header-danger">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      Confirm Deletion
+    </div>
+    <div class="card-body-custom">
+      <div class="confirm-text">
+        Are you sure you want to delete the subcategory
+        <span class="subcat-name">"{{ subcategory.name }}"</span>?
+      </div>
+
+      <div class="parent-category">
+        <i class="fas fa-folder me-2" style="color: #4f46e5;"></i>
+        Parent Category: <strong>{{ subcategory.category.name }}</strong>
+      </div>
+
+      {% if subcategory.image %}
+      <div class="warning-alert">
+        <i class="fas fa-image"></i>
+        <span>The subcategory image will also be permanently deleted.</span>
+      </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="action-buttons">
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash-alt"></i> Yes, Delete
+          </button>
+          <a href="{% url 'products:subcategory_list' %}" class="btn btn-secondary">
+            <i class="fas fa-times"></i> Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock %}

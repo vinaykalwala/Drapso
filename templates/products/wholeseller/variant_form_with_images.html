@@ -1,131 +1,495 @@
+{% extends "dashboard_base.html" %}
 {% load static %}
 
 {% block content %}
-<div class="container py-4">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - {{ product.name }}</title>
+    <!-- Bootstrap 5 + Icons + Font -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
 
-<h4>{{ title }} - {{ product.name }}</h4>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #a5b4fc;
+            --accent: #f43f5e;
+            --bg-canvas: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-light: #475569;
+            --text-muted: #94a3b8;
+            --border-color: #eef2ff;
+            --success: #10b981;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.02);
+            --shadow: 0 10px 25px -5px rgb(0 0 0 / 0.04), 0 8px 10px -6px rgb(0 0 0 / 0.02);
+            --shadow-lg: 0 20px 35px -12px rgb(0 0 0 / 0.1);
+            --shadow-glow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+        }
 
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-canvas);
+            color: var(--text-main);
+        }
 
-    <div class="row">
+        .content {
+            padding: 10px;
+        }
 
-        <!-- LEFT: VARIANT FIELDS -->
-        <div class="col-md-7">
+        .form-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
 
-            {% for field in form %}
-                {% if field.name != "main_image" %}
-                    <div class="mb-3">
-                        <label>{{ field.label }}</label>
-                        {{ field }}
-                    </div>
-                {% endif %}
-            {% endfor %}
+        .form-header {
+            margin-bottom: 2rem;
+        }
 
-        </div>
+        .form-header h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-main), var(--primary-dark));
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
 
-        <!-- RIGHT: IMAGES -->
-        <div class="col-md-5">
+        .form-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            transition: all 0.2s ease;
+            overflow: hidden;
+            /* height: 100%; */
+        }
 
-            <!-- MAIN IMAGE -->
-            <div class="mb-4">
-                <label>Main Image</label>
+        .form-card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(248, 250, 252, 0.5);
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-                <div id="mainImagePreview" class="mb-2 text-center">
-                    {% if form.instance.main_image %}
-                        <img src="{{ form.instance.main_image.url }}" style="max-height:150px;">
-                    {% else %}
-                        <div class="bg-light p-3">No Image</div>
-                    {% endif %}
-                </div>
+        .form-card-header i {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
 
-                {{ form.main_image }}
-            </div>
+        .form-card-body {
+            padding: 1.5rem;
+        }
 
-            <!-- ADDITIONAL IMAGES -->
-            <div>
-                <label>Variant Gallery</label>
+        /* Form field styling */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
 
-                {{ image_formset.management_form }}
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-                <div id="imageFormsList">
+        .form-group label i {
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
 
-                    {% for f in image_formset %}
-                    <div class="border p-2 mb-2 rounded">
+        select, input:not([type="file"]), textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            border: 1.5px solid var(--border-color);
+            background: var(--card-bg);
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            color: var(--text-main);
+        }
 
-                        {% if f.instance.pk and f.instance.image %}
-                            <div class="text-center mb-2">
-                                <img src="{{ f.instance.image.url }}" style="max-height:80px;">
-                            </div>
-                        {% endif %}
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: var(--shadow-glow);
+        }
 
-                        {{ f.image }}
-                        {{ f.alt_text }}
-                        {{ f.order }}
+        /* File input styling */
+        input[type="file"] {
+            padding: 0.5rem;
+            border: 1px dashed var(--border-color);
+            background: #fefce8;
+            cursor: pointer;
+        }
 
-                        {% if f.instance.pk %}
-                            Delete {{ f.DELETE }}
-                        {% endif %}
+        input[type="file"]:hover {
+            border-color: var(--primary);
+            background: #fef9c3;
+        }
 
-                        {{ f.id }}
+        /* Image preview */
+        .image-preview {
+            background: #f8fafc;
+            border-radius: var(--radius-md);
+            padding: 0.75rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1rem;
+        }
 
-                    </div>
-                    {% endfor %}
+        .image-preview img {
+            max-height: 180px;
+            object-fit: cover;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+        }
 
-                </div>
+        /* Additional images formset */
+        .image-form-item {
+            background: #fefefe;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
 
-                <button type="button" id="addImageBtn" class="btn btn-sm btn-secondary mt-2">
-                    + Add Image
-                </button>
+        .image-form-item:hover {
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-sm);
+        }
 
-            </div>
+        .btn-add-image {
+            background: #f1f5f9;
+            border: 1px solid var(--border-color);
+            border-radius: 40px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 500;
+            color: var(--primary-dark);
+            transition: all 0.2s;
+            width: 100%;
+        }
 
-        </div>
+        .btn-add-image:hover {
+            background: #eef2ff;
+            border-color: var(--primary-light);
+            transform: translateY(-1px);
+        }
 
+        .btn-save {
+            background: linear-gradient(105deg, var(--primary), var(--primary-dark));
+            border: none;
+            padding: 0.85rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.25);
+            transition: all 0.2s;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 26px rgba(79, 70, 229, 0.3);
+            background: linear-gradient(105deg, var(--primary-dark), var(--primary));
+        }
+
+        /* Toggle switch for boolean fields (is_active etc) */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-switch .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #e2e8f0;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch .slider::before {
+            content: "";
+            position: absolute;
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            top: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .toggle-switch input:checked + .slider {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+
+        .toggle-switch input:checked + .slider::before {
+            transform: translateX(24px);
+        }
+
+        .toggle-switch:hover .slider {
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 0 1rem;
+            }
+            .form-card-body {
+                padding: 1.25rem;
+            }
+        }
+
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .form-card {
+            animation: fadeSlide 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+<div class="content">
+<div class="form-container">
+    <div class="form-header">
+        <h3><i class="fas fa-cube me-2" style="color: var(--primary);"></i> {{ title }} <span class="text-muted fs-5">for “{{ product.name }}”</span></h3>
+        <p class="text-muted mt-2">Configure variant details, pricing, inventory, and images.</p>
     </div>
 
-    <button type="submit" class="btn btn-primary mt-3">Save Variant</button>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
 
-</form>
+        <div class="row g-4">
+            <!-- LEFT SIDE: Variant fields (excluding main_image) -->
+            <div class="col-lg-7">
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <i class="fas fa-tags"></i> Variant Information
+                    </div>
+                    <div class="form-card-body">
+                        {% for field in form %}
+                            {% if field.name != "main_image" %}
+                                <div class="form-group">
+                                    {% if field.field.widget.input_type == "checkbox" %}
+                                        <!-- Boolean field rendered as toggle switch -->
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span>{{ field.label }}</span>
+                                            <label class="toggle-switch">
+                                                {{ field }}
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    {% else %}
+                                        <label>
+                                            {% if field.name == "sku" %}
+                                                <i class="fas fa-barcode"></i>
+                                            {% elif field.name == "price" %}
+                                                <i class="fas fa-dollar-sign"></i>
+                                            {% elif field.name == "compare_price" %}
+                                                <i class="fas fa-tags"></i>
+                                            {% elif field.name == "stock" %}
+                                                <i class="fas fa-boxes"></i>
+                                            {% elif field.name == "weight" %}
+                                                <i class="fas fa-weight-hanging"></i>
+                                            {% else %}
+                                                <i class="fas fa-edit"></i>
+                                            {% endif %}
+                                            {{ field.label }}
+                                        </label>
+                                        {{ field }}
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="text-danger small mt-1">
+                                            <i class="fas fa-exclamation-circle"></i> {{ error }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
 
+            <!-- RIGHT SIDE: Images (Main + Gallery) -->
+            <div class="col-lg-5">
+                <!-- MAIN IMAGE -->
+                <div class="form-card mb-4">
+                    <div class="form-card-header">
+                        <i class="fas fa-camera"></i> Main Image
+                    </div>
+                    <div class="form-card-body">
+                        <div id="mainImagePreview" class="image-preview">
+                            {% if form.instance.main_image %}
+                                <img src="{{ form.instance.main_image.url }}" alt="Main image preview">
+                            {% else %}
+                                <div class="py-4 text-muted">
+                                    <i class="fas fa-image fa-2x mb-2 d-block"></i>
+                                    No image selected
+                                </div>
+                            {% endif %}
+                        </div>
+                        {{ form.main_image }}
+                        <small class="text-muted mt-2 d-block">Recommended: JPG, PNG. Max 2MB.</small>
+                    </div>
+                </div>
+
+                <!-- ADDITIONAL IMAGES (Variant Gallery) -->
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <i class="fas fa-images"></i> Variant Gallery
+                    </div>
+                    <div class="form-card-body">
+                        {{ image_formset.management_form }}
+
+                        <div id="imageFormsList">
+                            {% for f in image_formset %}
+                            <div class="image-form-item">
+                                {% if f.instance.pk and f.instance.image %}
+                                    <div class="text-center mb-2">
+                                        <img src="{{ f.instance.image.url }}" style="max-height: 80px; border-radius: 12px;" class="shadow-sm">
+                                    </div>
+                                {% endif %}
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-md-12 mb-2">
+                                        <label class="small fw-semibold">Image file</label>
+                                        {{ f.image }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-semibold">Alt text</label>
+                                        {{ f.alt_text }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="small fw-semibold">Order</label>
+                                        {{ f.order }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        {% if f.instance.pk %}
+                                            <label class="small text-danger">Delete</label>
+                                            <div class="mt-1">{{ f.DELETE }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {{ f.id }}
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <button type="button" id="addImageBtn" class="btn btn-add-image mt-2">
+                            <i class="fas fa-plus-circle me-1"></i> Add another image
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-4">
+            <button type="submit" class="btn btn-save text-white">
+                <i class="fas fa-save me-2"></i> Save Variant
+            </button>
+        </div>
+    </form>
+</div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
+    // ========================
     // MAIN IMAGE PREVIEW
-    document.querySelector("#id_main_image")?.addEventListener("change", function () {
-        const preview = document.getElementById("mainImagePreview");
+    // ========================
+    const mainImageInput = document.querySelector("#id_main_image");
+    const previewDiv = document.getElementById("mainImagePreview");
 
-        if (this.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => preview.innerHTML = `<img src="${e.target.result}" style="max-height:150px;">`;
-            reader.readAsDataURL(this.files[0]);
-        }
-    });
+    if (mainImageInput) {
+        mainImageInput.addEventListener("change", function () {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewDiv.innerHTML = `<img src="${e.target.result}" class="img-fluid rounded shadow-sm" style="max-height:180px;">`;
+                };
+                reader.readAsDataURL(this.files[0]);
+            } else {
+                // revert to original if exists
+                {% if form.instance.main_image %}
+                    previewDiv.innerHTML = `<img src="{{ form.instance.main_image.url }}" class="img-fluid rounded shadow-sm" style="max-height:180px;">`;
+                {% else %}
+                    previewDiv.innerHTML = `<div class="py-4 text-muted"><i class="fas fa-image fa-2x mb-2 d-block"></i>No image selected</div>`;
+                {% endif %}
+            }
+        });
+    }
 
-    // ADD IMAGE FORMSET
+    // ========================
+    // DYNAMIC IMAGE FORMSET (ADD MORE)
+    // ========================
     const addBtn = document.getElementById("addImageBtn");
     const container = document.getElementById("imageFormsList");
-    const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
-    const prefix = totalForms.name.replace('-TOTAL_FORMS', '');
+    const totalFormsInput = document.querySelector('[name$="-TOTAL_FORMS"]');
+    
+    if (totalFormsInput) {
+        const prefix = totalFormsInput.name.replace('-TOTAL_FORMS', '');
 
-    addBtn.addEventListener("click", function () {
-
-        const count = parseInt(totalForms.value);
-
-        const html = `
-        <div class="border p-2 mb-2 rounded">
-            <input type="file" name="${prefix}-${count}-image" class="form-control mb-1">
-            <input type="text" name="${prefix}-${count}-alt_text" class="form-control mb-1">
-            <input type="number" name="${prefix}-${count}-order" class="form-control mb-1">
-        </div>
-        `;
-
-        container.insertAdjacentHTML("beforeend", html);
-        totalForms.value = count + 1;
-    });
-
+        addBtn.addEventListener("click", function () {
+            const formCount = parseInt(totalFormsInput.value);
+            const newFormHtml = `
+                <div class="image-form-item">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-12 mb-2">
+                            <label class="small fw-semibold">Image file</label>
+                            <input type="file" name="${prefix}-${formCount}-image" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-semibold">Alt text</label>
+                            <input type="text" name="${prefix}-${formCount}-alt_text" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="small fw-semibold">Order</label>
+                            <input type="number" name="${prefix}-${formCount}-order" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <!-- no delete checkbox for new items -->
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML("beforeend", newFormHtml);
+            totalFormsInput.value = formCount + 1;
+        });
+    }
 });
 </script>
+</body>
+</html>
 {% endblock %}

@@ -1,0 +1,375 @@
+{% extends "dashboard_base.html" %}
+{% load static %}
+
+{% block title %}Edit Store - Wholeseller{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Store | Wholeseller</title>
+    <!-- Bootstrap 5 + Icons + Font -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #a5b4fc;
+            --accent: #f43f5e;
+            --bg-canvas: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-light: #475569;
+            --text-muted: #94a3b8;
+            --border-color: #eef2ff;
+            --success: #10b981;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.02);
+            --shadow: 0 10px 25px -5px rgb(0 0 0 / 0.04), 0 8px 10px -6px rgb(0 0 0 / 0.02);
+            --shadow-lg: 0 20px 35px -12px rgb(0 0 0 / 0.1);
+            --shadow-glow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-canvas);
+            color: var(--text-main);
+        }
+
+        .content {
+            padding-top: 10px;
+        }
+
+        .form-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .form-header {
+            margin-bottom: 2rem;
+        }
+
+        .form-header h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-main), var(--primary-dark));
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+
+        .form-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            animation: fadeSlideUp 0.35s ease;
+        }
+
+        .form-card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(248, 250, 252, 0.5);
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-card-header i {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .form-card-body {
+            padding: 1.8rem;
+        }
+
+        /* Form field styling */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group label i {
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            border: 1.5px solid var(--border-color);
+            background: var(--card-bg);
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            color: var(--text-main);
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* File input styling */
+        input[type="file"] {
+            padding: 0.5rem;
+            border: 1px dashed var(--border-color);
+            background: #fefce8;
+            cursor: pointer;
+        }
+
+        input[type="file"]:hover {
+            border-color: var(--primary);
+            background: #fef9c3;
+        }
+
+        /* Image preview */
+        .image-preview {
+            background: #f8fafc;
+            border-radius: var(--radius-md);
+            padding: 0.75rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            margin-top: 0.75rem;
+        }
+
+        .image-preview img {
+            max-height: 100px;
+            object-fit: contain;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-update {
+            background: linear-gradient(105deg, var(--primary), var(--primary-dark));
+            border: none;
+            padding: 0.85rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.25);
+            transition: all 0.2s;
+            margin-right: 1rem;
+        }
+
+        .btn-update:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 26px rgba(79, 70, 229, 0.3);
+            background: linear-gradient(105deg, var(--primary-dark), var(--primary));
+        }
+
+        .btn-cancel {
+            background: #f1f5f9;
+            border: 1px solid var(--border-color);
+            padding: 0.85rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-cancel:hover {
+            background: #eef2ff;
+            border-color: var(--primary-light);
+            color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .action-buttons {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 0 1rem;
+            }
+            .form-card-body {
+                padding: 1.25rem;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+            .btn-update, .btn-cancel {
+                width: 100%;
+                text-align: center;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="content">    
+<div class="form-container">
+    <div class="form-header">
+        <h3><i class="fas fa-store me-2" style="color: var(--primary);"></i> Edit Store</h3>
+        <p class="text-muted mt-2">Update your store information, contact details, and branding.</p>
+    </div>
+
+    <div class="form-card">
+        <div class="form-card-header">
+            <i class="fas fa-building"></i> Store Details
+        </div>
+        <div class="form-card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Store Name -->
+                <div class="form-group">
+                    <label><i class="fas fa-tag"></i> Store Name</label>
+                    {{ form.store_name }}
+                </div>
+
+                <!-- Description -->
+                <div class="form-group">
+                    <label><i class="fas fa-align-left"></i> Description</label>
+                    {{ form.store_description }}
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    {{ form.contact_email }}
+                </div>
+
+                <!-- Phone -->
+                <div class="form-group">
+                    <label><i class="fas fa-phone-alt"></i> Phone</label>
+                    {{ form.contact_phone }}
+                </div>
+
+                <!-- Address -->
+                <div class="form-group">
+                    <label><i class="fas fa-map-marker-alt"></i> Address</label>
+                    {{ form.store_address }}
+                </div>
+
+                <!-- Logo -->
+                <div class="form-group">
+                    <label><i class="fas fa-image"></i> Logo</label>
+                    {{ form.store_logo }}
+                    <div id="logoPreview" class="image-preview">
+                        {% if store.store_logo %}
+                            <img src="{{ store.store_logo.url }}" alt="Store Logo">
+                        {% else %}
+                            <div class="py-2 text-muted"><i class="fas fa-image"></i> No logo uploaded</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Banner -->
+                <div class="form-group">
+                    <label><i class="fas fa-banner"></i> Banner</label>
+                    {{ form.store_banner }}
+                    <div id="bannerPreview" class="image-preview">
+                        {% if store.store_banner %}
+                            <img src="{{ store.store_banner.url }}" alt="Store Banner">
+                        {% else %}
+                            <div class="py-2 text-muted"><i class="fas fa-image"></i> No banner uploaded</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="btn-update text-white">
+                        <i class="fas fa-save me-2"></i> Update Store
+                    </button>
+                    <a href="{% url 'resellers:store_dashboard' store.id %}" class="btn-cancel">
+                        <i class="fas fa-times me-2"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+    // Logo preview
+    const logoInput = document.querySelector('#id_store_logo');
+    const logoPreview = document.getElementById('logoPreview');
+
+    if (logoInput) {
+        logoInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    logoPreview.innerHTML = `<img src="${e.target.result}" alt="Logo preview">`;
+                };
+                reader.readAsDataURL(this.files[0]);
+            } else {
+                // revert to original if exists
+                {% if store.store_logo %}
+                    logoPreview.innerHTML = `<img src="{{ store.store_logo.url }}" alt="Store Logo">`;
+                {% else %}
+                    logoPreview.innerHTML = `<div class="py-2 text-muted"><i class="fas fa-image"></i> No logo uploaded</div>`;
+                {% endif %}
+            }
+        });
+    }
+
+    // Banner preview
+    const bannerInput = document.querySelector('#id_store_banner');
+    const bannerPreview = document.getElementById('bannerPreview');
+
+    if (bannerInput) {
+        bannerInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    bannerPreview.innerHTML = `<img src="${e.target.result}" alt="Banner preview">`;
+                };
+                reader.readAsDataURL(this.files[0]);
+            } else {
+                // revert to original if exists
+                {% if store.store_banner %}
+                    bannerPreview.innerHTML = `<img src="{{ store.store_banner.url }}" alt="Store Banner">`;
+                {% else %}
+                    bannerPreview.innerHTML = `<div class="py-2 text-muted"><i class="fas fa-image"></i> No banner uploaded</div>`;
+                {% endif %}
+            }
+        });
+    }
+</script>
+</body>
+</html>
+{% endblock %}

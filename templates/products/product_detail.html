@@ -1,126 +1,1550 @@
+{% extends 'dashboard_base.html' %}
 {% load static %}
 
+{% block title %}{{ product.name }} - Product Details{% endblock %}
+
 {% block content %}
-<div class="container py-4">
+<style>
+    /* ============================================
+       PREMIUM PRODUCT DETAILS PAGE DESIGN
+       EQUAL HEIGHT COLUMNS + SCROLLABLE RIGHT SIDE
+       ============================================ */
 
-<div class="row">
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --primary-light: #eef2ff;
+        --success: #10b981;
+        --success-light: #d1fae5;
+        --warning: #f59e0b;
+        --warning-light: #fef3c7;
+        --danger: #ef4444;
+        --danger-light: #fee2e2;
+        --info: #06b6d4;
+        --info-light: #cffafe;
+        --gray-50: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-300: #cbd5e1;
+        --gray-400: #94a3b8;
+        --gray-500: #64748b;
+        --gray-600: #475569;
+        --gray-700: #334155;
+        --gray-800: #1e293b;
+        --gray-900: #0f172a;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        --radius: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 20px;
+    }
 
-    <!-- LEFT: IMAGES -->
-    <div class="col-md-6">
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-        <!-- MAIN IMAGE -->
-        <div class="mb-3 text-center">
+    .pd-page {
+        background: var(--gray-50);
+        min-height: 100vh;
+        padding: 28px 32px;
+    }
+
+    .pd-inner {
+        max-width: 1440px;
+        margin: 0 auto;
+    }
+
+    /* ========== BACK BUTTON ========== */
+    .pd-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #eef2ff;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 24px;
+        padding: 8px 16px;
+        background:#4338ca;
+        border-radius: 40px;
+        transition: all 0.2s;
+        box-shadow: var(--shadow-sm);
+    }
+    .pd-back:hover { 
+        color: var(--primary); 
+        transform: translateX(-3px);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* ========== ALERT BANNER ========== */
+    .pd-alert-box {
+        background: var(--warning-light);
+        border-left: 4px solid var(--warning);
+        padding: 16px 24px;
+        border-radius: var(--radius-lg);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    .pd-alert-text { 
+        display: flex; 
+        align-items: center; 
+        gap: 12px;
+        font-weight: 500;
+        color: #92400e;
+    }
+    .pd-alert-text i { font-size: 22px; color: var(--warning); }
+    .pd-alert-btn {
+        background: var(--warning);
+        color: #000;
+        padding: 8px 20px;
+        border-radius: 40px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .pd-alert-btn:hover { transform: translateY(-2px); filter: brightness(0.95); }
+
+    /* ========== MAIN PRODUCT CARD - EQUAL HEIGHT ========== */
+    .pd-product-card {
+        background: white;
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        margin-bottom: 32px;
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    /* LEFT COLUMN - IMAGES (Fixed height, scrollable if needed) */
+    .pd-col-img { 
+        flex: 1; 
+        min-width: 45%; 
+        padding: 32px; 
+        background: linear-gradient(135deg, #fafafc 0%, #ffffff 100%);
+        border-right: 1px solid var(--gray-200);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* RIGHT COLUMN - DETAILS (Scrollable) */
+    .pd-col-info { 
+        flex: 1; 
+        min-width: 45%; 
+        padding: 32px;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    
+    /* Custom scrollbar for right column */
+    .pd-col-info::-webkit-scrollbar {
+        width: 6px;
+    }
+    .pd-col-info::-webkit-scrollbar-track {
+        background: var(--gray-200);
+        border-radius: 10px;
+    }
+    .pd-col-info::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 10px;
+    }
+    .pd-col-info::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-dark);
+    }
+
+    /* ========== GALLERY SECTION ========== */
+    .pd-gallery-main {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 40px 20px;
+        text-align: center;
+        margin-bottom: 20px;
+        min-height: 350px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--gray-200);
+    }
+    .pd-gallery-main img { 
+        max-width: 100%; 
+        max-height: 280px; 
+        object-fit: contain; 
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+    .pd-gallery-main img:hover { transform: scale(1.02); }
+    
+    .pd-thumb-scroll {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        padding: 12px 0;
+        scrollbar-width: thin;
+    }
+    .pd-thumb-scroll::-webkit-scrollbar {
+        height: 5px;
+    }
+    .pd-thumb-scroll::-webkit-scrollbar-track {
+        background: var(--gray-200);
+        border-radius: 10px;
+    }
+    .pd-thumb-scroll::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 10px;
+    }
+    .pd-thumb-scroll img {
+        width: 75px;
+        height: 75px;
+        object-fit: cover;
+        border-radius: var(--radius);
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.2s;
+        flex-shrink: 0;
+        box-shadow: var(--shadow-sm);
+    }
+    .pd-thumb-scroll img:hover { 
+        border-color: var(--primary); 
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+    }
+    .pd-thumb-scroll img.active { 
+        border-color: var(--primary); 
+        box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    /* ========== RIGHT COLUMN CONTENT ========== */
+    .pd-header-section {
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid var(--gray-200);
+    }
+    
+    .pd-name { 
+        font-size: 28px; 
+        font-weight: 700; 
+        color: var(--gray-900); 
+        margin-bottom: 12px;
+        line-height: 1.3;
+    }
+    
+    .pd-badges {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+    
+    .pd-source-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 14px;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .tag-imported { background: var(--info-light); color: var(--info); }
+    .tag-own { background: var(--success-light); color: var(--success); }
+    
+    .pd-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 14px;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .status-published { background: var(--success-light); color: var(--success); }
+    .status-draft { background: var(--gray-200); color: var(--gray-600); }
+    .status-up { background: var(--success-light); color: var(--success); }
+    .status-change { background: var(--warning-light); color: var(--warning); }
+
+    /* ========== PRICE CARD ========== */
+    .pd-price-card {
+        background: linear-gradient(135deg, var(--primary-light) 0%, #ffffff 100%);
+        padding: 24px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 28px;
+        border: 1px solid rgba(79, 70, 229, 0.2);
+    }
+    .pd-price-label {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--primary);
+        margin-bottom: 8px;
+    }
+    .pd-price-amount {
+        font-size: 36px;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 12px;
+    }
+    .pd-price-breakdown {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        padding-top: 12px;
+        border-top: 1px solid rgba(79, 70, 229, 0.2);
+    }
+    .pd-price-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .pd-price-item-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--gray-500);
+        text-transform: uppercase;
+    }
+    .pd-price-item-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--gray-800);
+    }
+
+    /* ========== DETAIL SECTIONS - WITH BOX SPACING ========== */
+    .pd-detail-section {
+        margin-bottom: 28px;
+    }
+    
+    .pd-section-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--gray-200);
+    }
+    .pd-section-title i {
+        color: var(--primary);
+        font-size: 18px;
+    }
+    
+    /* Info Grid - 2 Columns with Labels */
+    .pd-info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        background: var(--gray-50);
+        padding: 20px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--gray-200);
+        transition: all 0.3s;
+    }
+    .pd-info-grid:hover {
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-light);
+    }
+    
+    .pd-info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .pd-info-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--gray-500);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .pd-info-label i {
+        font-size: 12px;
+        color: var(--primary);
+        width: 16px;
+    }
+    
+    .pd-info-value {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--gray-800);
+        padding-left: 22px;
+    }
+    
+    /* Description & Spec Content */
+    .pd-content-box {
+        background: var(--gray-50);
+        padding: 20px;
+        border-radius: var(--radius-lg);
+        color: var(--gray-700);
+        line-height: 1.7;
+        font-size: 14px;
+        border: 1px solid var(--gray-200);
+        transition: all 0.3s;
+    }
+    .pd-content-box:hover {
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-light);
+    }
+    
+    /* Attributes Grid */
+    .pd-attributes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 12px;
+        background: var(--gray-50);
+        padding: 20px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--gray-200);
+        transition: all 0.3s;
+    }
+    .pd-attributes-grid:hover {
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-light);
+    }
+    
+    .pd-attribute-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px;
+        background: white;
+        border-radius: var(--radius);
+        border: 1px solid var(--gray-200);
+        transition: all 0.2s;
+    }
+    .pd-attribute-item:hover {
+        transform: translateX(4px);
+        border-color: var(--primary);
+    }
+    .pd-attribute-key {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--primary);
+        text-transform: uppercase;
+    }
+    .pd-attribute-value {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--gray-700);
+    }
+
+    /* ========== ACTION BUTTONS ========== */
+    .pd-action-group {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+        padding-top: 24px;
+        border-top: 2px solid var(--gray-200);
+        flex-wrap: wrap;
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding-bottom: 8px;
+    }
+    
+    .pd-btn {
+        flex: 1;
+        min-width: 100px;
+        padding: 12px 20px;
+        border-radius: var(--radius);
+        text-align: center;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        border: none;
+    }
+    
+    .btn-edit { 
+        background: var(--primary); 
+        color: white;
+        box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+    }
+    .btn-publish { 
+        background: var(--success); 
+        color: white;
+    }
+    .btn-unpublish { 
+        background: var(--gray-500); 
+        color: white;
+    }
+    .btn-delete { 
+        background: var(--danger); 
+        color: white;
+    }
+    
+    .pd-btn:hover { 
+        transform: translateY(-2px); 
+        filter: brightness(1.05);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* ========== VARIANTS SECTION - IMPROVED ========== */
+    .pd-variants-wrap {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 32px;
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .pd-variants-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid var(--gray-200);
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    
+    .pd-variants-header h2 {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--gray-800);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .pd-variant-count {
+        background: var(--primary-light);
+        color: var(--primary);
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-size: 13px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    /* Variant Grid - Equal Height Cards */
+    .pd-variant-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 24px;
+    }
+    
+    .pd-variant-card {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        transition: all 0.3s;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    
+    .pd-variant-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--primary-light);
+    }
+    
+    /* Variant Image */
+    .pd-variant-img-container {
+        position: relative;
+        width: 100%;
+        height: 220px;
+        background: linear-gradient(135deg, var(--gray-100), var(--gray-50));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    
+    .pd-variant-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .pd-variant-img-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--gray-100), var(--gray-200));
+    }
+    
+    .pd-variant-img-placeholder i {
+        font-size: 48px;
+        color: var(--gray-400);
+    }
+    
+    /* Variant Sub Images */
+    .pd-variant-sub {
+        padding: 12px;
+        background: var(--gray-50);
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        border-bottom: 1px solid var(--gray-200);
+        flex-shrink: 0;
+    }
+    
+    .pd-variant-sub::-webkit-scrollbar {
+        height: 3px;
+    }
+    
+    .pd-variant-sub img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: var(--radius);
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+    
+    .pd-variant-sub img:hover { 
+        transform: scale(1.05); 
+        border-color: var(--primary);
+    }
+    
+    /* Variant Info */
+    .pd-variant-info {
+        padding: 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .pd-variant-title {
+        font-weight: 700;
+        font-size: 18px;
+        color: var(--gray-800);
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--gray-200);
+    }
+    
+    /* Variant Details Grid */
+    .pd-variant-details {
+        flex: 1;
+        margin-bottom: 16px;
+    }
+    
+    .pd-variant-detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px dashed var(--gray-200);
+    }
+    
+    .pd-variant-detail-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--gray-600);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .pd-variant-detail-label i {
+        color: var(--primary);
+        font-size: 12px;
+        width: 16px;
+    }
+    
+    .pd-variant-detail-value {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gray-800);
+    }
+    
+    /* Variant Price */
+    .pd-variant-price-section {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 2px solid var(--gray-200);
+        background: var(--primary-light);
+        margin: 0 -20px -20px -20px;
+        padding: 16px 20px;
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    }
+    
+    .pd-variant-price-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+    }
+    
+    .pd-variant-price-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--primary);
+        letter-spacing: 0.5px;
+    }
+    
+    .pd-variant-price-value {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--primary);
+    }
+    
+    .pd-variant-margin {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 6px;
+        font-size: 11px;
+        color: var(--success);
+        font-weight: 600;
+    }
+    
+    /* Low Stock Badge */
+    .pd-low-stock-badge {
+        margin-top: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        background: var(--warning-light);
+        color: var(--warning);
+        border-radius: 30px;
+        font-size: 11px;
+        font-weight: 600;
+        align-self: flex-start;
+    }
+    
+    /* Empty State */
+    .pd-empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        background: var(--gray-50);
+        border-radius: var(--radius-lg);
+    }
+    .pd-empty-state i { 
+        font-size: 64px; 
+        color: var(--gray-300); 
+        margin-bottom: 16px;
+    }
+    .pd-empty-state h3 { 
+        color: var(--gray-700); 
+        margin-bottom: 8px;
+    }
+    .pd-empty-state p { 
+        color: var(--gray-500); 
+    }
+
+    /* Lightbox */
+    .pd-lightbox {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.95);
+        z-index: 1200;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    .pd-lightbox.active { display: flex; }
+    .pd-lightbox img { 
+        max-width: 85%; 
+        max-height: 85%; 
+        object-fit: contain; 
+        border-radius: var(--radius-lg);
+    }
+    .pd-lightbox-close {
+        position: absolute;
+        top: 30px;
+        right: 50px;
+        color: white;
+        font-size: 48px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .pd-lightbox-close:hover { opacity: 0.7; transform: scale(1.1); }
+
+    /* Responsive */
+    @media (max-width: 1000px) {
+        .pd-product-card {
+            flex-direction: column;
+        }
+        .pd-col-img, .pd-col-info { 
+            min-width: 100%; 
+        }
+        .pd-col-img {
+            border-right: none;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        .pd-col-info {
+            max-height: none;
+            overflow-y: visible;
+        }
+        .pd-page { padding: 20px; }
+        .pd-info-grid { grid-template-columns: 1fr; }
+        .pd-variant-grid { grid-template-columns: 1fr; }
+    }
+    
+    @media (max-width: 640px) {
+        .pd-name { font-size: 22px; }
+        .pd-price-amount { font-size: 28px; }
+        .pd-action-group { flex-direction: column; }
+        .pd-btn { width: 100%; }
+        .pd-variant-card { margin: 0; }
+    }
+    @media (max-width: 900px) {
+        
+        .content{
+            margin-top: 60px;
+        }
+    }
+    /* very small mobile screens */
+@media (max-width:360px){
+
+.pd-variant-details{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:10px;
+
+}
+
+.pd-variant-detail-row{
+
+    flex-direction:column;
+
+    align-items:flex-start;
+
+    gap:2px;
+
+    border-bottom:1px dashed #e2e8f0;
+
+    padding:8px 0;
+
+}
+
+.pd-variant-detail-label{
+
+    font-size:11px;
+
+}
+
+.pd-variant-detail-value{
+
+    font-size:13px;
+
+    padding-left:0;
+
+}
+
+}
+</style>
+
+<div class="content">
+<div class="pd-page">
+<div class="pd-inner">
+
+<!-- Back Button -->
+
+<!-- Price Change Alert -->
+{% if product.has_price_change_pending %}
+<div class="pd-alert-box">
+    <div class="pd-alert-text">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>Price change pending approval: ₹{{ product.last_known_source_price }} → ₹{{ product.source_price }}</span>
+    </div>
+    <a href="{% url 'products:review_price_change' store.id product.id %}" class="pd-alert-btn">
+        Review Changes <i class="fas fa-chevron-right"></i>
+    </a>
+</div>
+{% endif %}
+
+<!-- Main Product Card with Equal Height Columns -->
+<div class="pd-product-card">
+    
+    <!-- LEFT COLUMN: IMAGES -->
+    <div class="pd-col-img">
+        <a href="javascript:history.back()" class="pd-back">
+    <i class="fas fa-arrow-left"></i> Back to Products
+</a>
+
+        <div class="pd-gallery-main" onclick="openLightbox()">
             {% if product.main_image %}
-                <img id="mainImage" src="{{ product.main_image.url }}" class="img-fluid rounded" style="max-height:400px;">
+                <img id="mainImage" src="{{ product.main_image.url }}" alt="{{ product.name }}">
+            {% else %}
+                <i class="fas fa-image" style="font-size: 80px; color: var(--gray-300);"></i>
             {% endif %}
         </div>
-
-        <!-- THUMBNAILS -->
-        <div class="d-flex gap-2 overflow-auto">
+        <div class="pd-thumb-scroll">
             {% if product.main_image %}
-                <img src="{{ product.main_image.url }}" class="thumb" onclick="changeImage(this)">
+                <img src="{{ product.main_image.url }}" class="active" onclick="changeImage(this)" data-full="{{ product.main_image.url }}">
             {% endif %}
-
             {% for img in product.additional_images.all %}
-                <img src="{{ img.image.url }}" class="thumb" onclick="changeImage(this)">
+                <img src="{{ img.image.url }}" onclick="changeImage(this)" data-full="{{ img.image.url }}">
             {% endfor %}
+        </div>
+    </div>
+    
+    <!-- RIGHT COLUMN: DETAILS (Scrollable) -->
+    <div class="pd-col-info">
+        
+        <!-- Header Section -->
+        <div class="pd-header-section">
+            <h1 class="pd-name">{{ product.name }}</h1>
+            <div class="pd-badges">
+                <span class="pd-source-tag {% if product.source_type == 'imported' %}tag-imported{% else %}tag-own{% endif %}">
+                    <i class="fas {% if product.source_type == 'imported' %}fa-download{% else %}fa-crown{% endif %}"></i>
+                    {{ product.get_source_type_display }}
+                </span>
+                <span class="pd-status-badge {% if product.is_published %}status-published{% else %}status-draft{% endif %}">
+                    <i class="fas {% if product.is_published %}fa-check-circle{% else %}fa-eye-slash{% endif %}"></i>
+                    {% if product.is_published %}Published{% else %}Draft{% endif %}
+                </span>
+                {% if product.price_status %}
+                <span class="pd-status-badge {% if product.price_status == 'up_to_date' %}status-up{% else %}status-change{% endif %}">
+                    <i class="fas {% if product.price_status == 'up_to_date' %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}"></i>
+                    {{ product.get_price_status_display }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        
+     <!-- Price Card -->
+<div class="pd-price-card">
+
+    <!-- MAIN PRICE -->
+    <div class="pd-price-label">
+
+        {% if product.source_type == "imported" %}
+            Selling Price
+
+        {% elif product.source_type == "own" %}
+            Price
+
+        {% else %}
+            Price
+
+        {% endif %}
+
+    </div>
+
+
+    <div class="pd-price-amount">
+
+        {% if product.source_type == "imported" %}
+            ₹{{ product.selling_price }}
+
+        {% elif product.source_type == "own" %}
+            ₹{{ product.selling_price }}
+
+        {% else %}
+            ₹{{ product.price }}
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- BREAKDOWN -->
+    <div class="pd-price-breakdown">
+
+        {% if product.source_type == "imported" %}
+
+        <div class="pd-price-item">
+            <span class="pd-price-item-label">
+                Source Price
+            </span>
+
+            <span class="pd-price-item-value">
+                ₹{{ product.source_price }}
+            </span>
+        </div>
+
+
+        <div class="pd-price-item">
+            <span class="pd-price-item-label">
+                Margin
+            </span>
+
+            <span class="pd-price-item-value">
+                +₹{{ product.margin_rupees }}
+            </span>
+        </div>
+
+        {% endif %}
+
+
+        <!-- STOCK -->
+        <div class="pd-price-item">
+
+            <span class="pd-price-item-label">
+                Stock
+            </span>
+
+            <span class="pd-price-item-value">
+                {{ product.stock }} Units
+            </span>
+
         </div>
 
     </div>
 
-    <!-- RIGHT: DETAILS -->
-    <div class="col-md-6">
+</div>  
+        <!-- Basic Information Section with Box Styling -->
+        <div class="pd-detail-section">
+            <div class="pd-section-title">
+                <i class="fas fa-info-circle"></i>
+                Basic Information
+            </div>
+            <div class="pd-info-grid">
+                <div class="pd-info-item">
+                    <span class="pd-info-label"><i class="fas fa-building"></i> Brand</span>
+                    <span class="pd-info-value">{{ product.brand|default:"—" }}</span>
+                </div>
+                <div class="pd-info-item">
+                    <span class="pd-info-label"><i class="fas fa-tag"></i> Category</span>
+                    <span class="pd-info-value">{{ product.category.name|default:"—" }}</span>
+                </div>
+                <div class="pd-info-item">
+                    <span class="pd-info-label"><i class="fas fa-folder-open"></i> Subcategory</span>
+                    <span class="pd-info-value">{{ product.subcategory.name|default:"—" }}</span>
+                </div>
+                <div class="pd-info-item">
+                    <span class="pd-info-label"><i class="fas fa-microchip"></i> Model</span>
+                    <span class="pd-info-value">{{ product.model_name|default:"—" }}</span>
+                </div>
+                <div class="pd-info-item">
+                    <span class="pd-info-label"><i class="fas fa-venus-mars"></i> Gender</span>
+                    <span class="pd-info-value">{{ product.get_gender_display|default:"—" }}</span>
+                </div>
+                <div class="pd-info-item">
+                    <span class="pd-info-label"><i class="fas fa-palette"></i> Color</span>
+                    <span class="pd-info-value">{{ product.color|default:"—" }}</span>
+                </div>
+                <div class="pd-info-item">
+                    <span class="pd-info-label"><i class="fas fa-ruler"></i> Size</span>
+                    <span class="pd-info-value">{{ product.size|default:"—" }}</span>
+                </div>
+                <div class="pd-info-item">
+                    <span class="pd-info-label"><i class="fas fa-cube"></i> Material</span>
+                    <span class="pd-info-value">{{ product.material|default:"—" }}</span>
+                </div>
+                <div class="pd-info-item">
+                    <span class="pd-info-label"><i class="fas fa-calendar-alt"></i> Created Date</span>
+                    <span class="pd-info-value">{{ product.created_at|date:"d M Y, h:i A" }}</span>
+                </div>
+                <div class="pd-info-item">
+                    <span class="pd-info-label"><i class="fas fa-clock"></i> Last Updated</span>
+                    <span class="pd-info-value">{{ product.updated_at|date:"d M Y, h:i A" }}</span>
+                </div>
+            </div>
+        </div>
+        <!-- Shipping Details -->
+<div class="pd-detail-section">
 
-        <h3>{{ product.name }}</h3>
+    <div class="pd-section-title">
+        <i class="fas fa-shipping-fast"></i>
+        Shipping Details
+    </div>
 
-        <p class="text-muted">
-            {{ product.brand }} | {{ product.model_name }}
-        </p>
+    <div class="pd-info-grid">
 
-        <!-- ✅ FIXED PRICE -->
-        <h4 class="text-primary">{% if product.price %}
-    ₹{{ product.price }}
-{% elif product.selling_price %}
-    ₹{{ product.selling_price }}
-{% endif %}</h4>
+        <div class="pd-info-item">
+            <span class="pd-info-label">
+                <i class="fas fa-weight"></i> Weight
+            </span>
 
-        <p>{{ product.description }}</p>
+            <span class="pd-info-value">
+                {{ product.weight }} kg
+            </span>
+        </div>
 
-        <hr>
+        <div class="pd-info-item">
+            <span class="pd-info-label">
+                <i class="fas fa-ruler-combined"></i> Length
+            </span>
 
-        <h6>Specifications</h6>
-        <p>{{ product.specification }}</p>
+            <span class="pd-info-value">
+                {{ product.length }} cm
+            </span>
+        </div>
 
-        <hr>
+        <div class="pd-info-item">
+            <span class="pd-info-label">
+                <i class="fas fa-ruler"></i> Breadth
+            </span>
 
-        <h6>Details</h6>
-        <ul>
-            <li>Category: {{ product.category }}</li>
-            <li>Subcategory: {{ product.subcategory }}</li>
-            <li>Material: {{ product.material }}</li>
-            <li>Gender: {{ product.gender }}</li>
-        </ul>
+            <span class="pd-info-value">
+                {{ product.breadth }} cm
+            </span>
+        </div>
 
-        <hr>
+        <div class="pd-info-item">
+            <span class="pd-info-label">
+                <i class="fas fa-arrows-alt-v"></i> Height
+            </span>
 
-        <h6>Stock</h6>
-        <p>
-            {{ product.stock }}
-            {% if product.is_low_stock %}
-                <span class="badge bg-danger">Low Stock</span>
-            {% endif %}
-        </p>
+            <span class="pd-info-value">
+                {{ product.height }} cm
+            </span>
+        </div>
+
+        <div class="pd-info-item">
+            <span class="pd-info-label">
+                <i class="fas fa-truck"></i> Shippable
+            </span>
+
+            <span class="pd-info-value">
+                {% if product.is_shippable %}
+                    Yes
+                {% else %}
+                    No
+                {% endif %}
+            </span>
+        </div>
 
     </div>
 
 </div>
+        <!-- Description Section with Box Styling -->
+        {% if product.description %}
+        <div class="pd-detail-section">
+            <div class="pd-section-title">
+                <i class="fas fa-align-left"></i>
+                Description
+            </div>
+            <div class="pd-content-box">
+                {{ product.description|linebreaks }}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Specifications Section with Box Styling -->
+        {% if product.specification %}
+        <div class="pd-detail-section">
+            <div class="pd-section-title">
+                <i class="fas fa-microchip"></i>
+                Specifications
+            </div>
+            <div class="pd-content-box">
+                {{ product.specification|linebreaks }}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Attributes Section with Box Styling -->
+        {% if product.attributes %}
+        <div class="pd-detail-section">
+            <div class="pd-section-title">
+                <i class="fas fa-list-ul"></i>
+                Product Attributes
+            </div>
+            <div class="pd-attributes-grid">
+                {% for key, val in product.attributes.items %}
+                <div class="pd-attribute-item">
+                    <span class="pd-attribute-key">{{ key|title }}</span>
+                    <span class="pd-attribute-value">{{ val }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+      
+    </div>
+</div>
 
-<!-- VARIANTS -->
-<div class="mt-5">
-    <h5>Variants</h5>
+<!-- Variants Section -->
+{% if product.variants.exists %}
 
-    <div class="row">
-        {% for v in product.variants.all %}
-        <div class="col-md-3 mb-3">
+<div class="pd-variants-wrap">
 
-            <div class="card p-2">
+    <div class="pd-variants-header">
 
-                {% if v.main_image %}
-                    <img src="{{ v.main_image.url }}" class="img-fluid mb-2">
+        <h2>
+            <i class="fas fa-layer-group"></i>
+            Product Variants
+        </h2>
+
+        <span class="pd-variant-count">
+            <i class="fas fa-cubes"></i>
+            {{ product.variants.count }} Variant{% if product.variants.count > 1 %}s{% endif %}
+        </span>
+
+    </div>
+
+
+
+    <div class="pd-variant-grid">
+
+        {% for variant in product.variants.all %}
+
+        <div class="pd-variant-card">
+
+            <!-- Variant Main Image -->
+            <div class="pd-variant-img-container">
+
+                {% if variant.main_image %}
+
+                <img src="{{ variant.main_image.url }}"
+                     class="pd-variant-img variant-main-img"
+                     alt="{{ variant.variant_name }}">
+
+                {% else %}
+
+                <div class="pd-variant-img-placeholder">
+                    <i class="fas fa-image"></i>
+                </div>
+
                 {% endif %}
 
-                <strong>{{ v.variant_name }}</strong>
+            </div>
 
-                <!-- ✅ FIXED VARIANT PRICE -->
-                <small>₹{{ v.get_display_price }}</small>
 
-                <small>Stock: {{ v.stock }}</small>
+
+            <!-- Variant Sub Images -->
+            <div class="pd-variant-sub">
+
+                {% if variant.main_image %}
+                <img src="{{ variant.main_image.url }}"
+                     onclick="changeVariantMainImage(this)"
+                     class="active">
+                {% endif %}
+
+
+                {% for subimg in variant.additional_images.all %}
+                <img src="{{ subimg.image.url }}"
+                     onclick="changeVariantMainImage(this)"
+                     alt="Variant image {{ forloop.counter }}">
+                {% endfor %}
+
+            </div>
+
+
+
+            <!-- Variant Information -->
+            <div class="pd-variant-info">
+
+                <div class="pd-variant-title">
+                    {{ variant.variant_name }}
+                </div>
+
+
+                <div class="pd-variant-details">
+
+<div class="pd-variant-details">
+
+    <div class="pd-variant-detail-row">
+        <span class="pd-variant-detail-label">
+            <i class="fas fa-barcode"></i> SKU
+        </span>
+
+        <span class="pd-variant-detail-value">
+            {{ variant.sku|default:"—" }}
+        </span>
+    </div>
+
+
+    <div class="pd-variant-detail-row">
+        <span class="pd-variant-detail-label">
+            <i class="fas fa-ruler-combined"></i> Size
+        </span>
+
+        <span class="pd-variant-detail-value">
+            {{ variant.size|default:"—" }}
+        </span>
+    </div>
+
+
+    <div class="pd-variant-detail-row">
+        <span class="pd-variant-detail-label">
+            <i class="fas fa-palette"></i> Color
+        </span>
+
+        <span class="pd-variant-detail-value">
+            {{ variant.color|default:"—" }}
+        </span>
+    </div>
+
+
+    <div class="pd-variant-detail-row">
+        <span class="pd-variant-detail-label">
+            <i class="fas fa-boxes"></i> Stock
+        </span>
+
+        <span class="pd-variant-detail-value">
+            {{ variant.stock }} units
+        </span>
+    </div>
+
+
+   <div class="pd-variant-detail-row">
+
+    <span class="pd-variant-detail-label">
+        <i class="fas fa-tag"></i>
+
+        {% if product.source_type == "imported" %}
+            Source Price
+
+        {% elif product.source_type == "own" %}
+            Price
+
+        {% else %}
+            Price
+
+        {% endif %}
+    </span>
+
+
+    <span class="pd-variant-detail-value">
+
+        {% if product.source_type == "imported" %}
+
+            ₹{{ variant.source_price }}
+
+        {% elif product.source_type == "own" %}
+
+            ₹{{ variant.selling_price }}
+
+        {% else %}
+
+            ₹{{ variant.price }}
+
+        {% endif %}
+
+    </span>
+
+</div>
+
+    <!-- NEW DIMENSIONS -->
+
+    <div class="pd-variant-detail-row">
+        <span class="pd-variant-detail-label">
+            <i class="fas fa-weight"></i> Weight
+        </span>
+
+        <span class="pd-variant-detail-value">
+            {{ variant.weight }} kg
+        </span>
+    </div>
+
+
+    <div class="pd-variant-detail-row">
+        <span class="pd-variant-detail-label">
+            <i class="fas fa-arrows-alt-h"></i> Length
+        </span>
+
+        <span class="pd-variant-detail-value">
+            {{ variant.length }} cm
+        </span>
+    </div>
+
+
+    <div class="pd-variant-detail-row">
+        <span class="pd-variant-detail-label">
+            <i class="fas fa-arrows-alt-h"></i> Breadth
+        </span>
+
+        <span class="pd-variant-detail-value">
+            {{ variant.breadth }} cm
+        </span>
+    </div>
+
+
+    <div class="pd-variant-detail-row">
+        <span class="pd-variant-detail-label">
+            <i class="fas fa-arrows-alt-v"></i> Height
+        </span>
+
+        <span class="pd-variant-detail-value">
+            {{ variant.height }} cm
+        </span>
+    </div>
+
+</div>
+                </div>
+
+
+
+                <!-- Variant Price -->
+                <div class="pd-variant-price-section">
+                    {% if product.source_type == "imported" %}
+                    <div class="pd-variant-price-row">
+
+                        <span class="pd-variant-price-label">
+                            Selling Price
+                        </span>
+
+                        <span class="pd-variant-price-value">
+                            ₹{{ variant.selling_price }}
+                        </span>
+
+                    </div>
+                      {% endif %}
+
+
+                  {% if product.source_type == "imported" %}
+
+<div class="pd-variant-margin">
+    <i class="fas fa-chart-line"></i>
+    Margin: +₹{{ variant.margin_rupees }}
+</div>
+
+{% endif %}
+                </div>
+
+
+
+                {% if variant.is_low_stock %}
+
+                <div class="pd-low-stock-badge">
+
+                    <i class="fas fa-exclamation-triangle"></i>
+
+                    Low Stock Alert
+
+                </div>
+
+                {% endif %}
 
             </div>
 
         </div>
-        {% empty %}
-            <p class="text-muted">No variants available</p>
+
         {% endfor %}
+
     </div>
+
 </div>
 
+
+
+{% else %}
+
+<div class="pd-variants-wrap">
+
+    <div class="pd-empty-state">
+
+        <i class="fas fa-box-open"></i>
+
+        <h3>No Variants Available</h3>
+
+        <p>
+            This product doesn't have any variants configured yet.
+        </p>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+<!-- Lightbox Modal -->
+<div id="lightboxModal" class="pd-lightbox" onclick="closeLightbox()">
+    <span class="pd-lightbox-close">&times;</span>
+    <img id="lightboxImage" src="" alt="Product Image">
 </div>
 
 <script>
-function changeImage(el) {
-    document.getElementById("mainImage").src = el.src;
+    // Change main image when thumbnail is clicked
+    function changeImage(el) {
+        const mainImg = document.getElementById('mainImage');
+        const newSrc = el.getAttribute('data-full') || el.src;
+        if(mainImg && newSrc) {
+            mainImg.src = newSrc;
+        }
+        // Update active state
+        document.querySelectorAll('.pd-thumb-scroll img').forEach(thumb => {
+            thumb.classList.remove('active');
+        });
+        el.classList.add('active');
+    }
+    
+    // Open lightbox with main image
+    function openLightbox() {
+        const img = document.getElementById('mainImage');
+        if(img && img.src && !img.src.includes('placeholder') && img.src) {
+            const lightboxImg = document.getElementById('lightboxImage');
+            if(lightboxImg) {
+                lightboxImg.src = img.src;
+                document.getElementById('lightboxModal').classList.add('active');
+            }
+        }
+    }
+    
+    // Open lightbox with specific image URL
+    function openLightboxWithImage(src) {
+        if(src && src.trim()) {
+            const lightboxImg = document.getElementById('lightboxImage');
+            if(lightboxImg) {
+                lightboxImg.src = src;
+                document.getElementById('lightboxModal').classList.add('active');
+            }
+        }
+    }
+    
+    // Close lightbox
+    function closeLightbox() {
+        document.getElementById('lightboxModal').classList.remove('active');
+    }
+    
+    // Close lightbox with Escape key
+    document.addEventListener('keydown', function(e) {
+        if(e.key === 'Escape') {
+            closeLightbox();
+        }
+    });
+    
+    // Prevent closing when clicking on image
+    document.getElementById('lightboxImage')?.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+    function changeVariantMainImage(img){
+
+    const card =
+        img.closest('.pd-variant-card');
+
+    const mainImg =
+        card.querySelector('.variant-main-img');
+
+    if(mainImg){
+
+        mainImg.src = img.src;
+
+    }
+
+    // active border
+    card.querySelectorAll('.pd-variant-sub img')
+        .forEach(i => i.classList.remove('active'));
+
+    img.classList.add('active');
 }
 </script>
 
-<style>
-.thumb {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    cursor: pointer;
-    border-radius: 5px;
-}
-</style>
-
+</div>
 {% endblock %}

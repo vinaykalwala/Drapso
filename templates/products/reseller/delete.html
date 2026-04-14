@@ -1,31 +1,559 @@
-
+{% extends "dashboard_base.html" %}
 {% load static %}
 
-{% block title %}Delete Product - {{ store.store_name }}{% endblock %}
-
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-md-6 offset-md-3">
-            <div class="card shadow-sm">
-                <div class="card-header bg-danger text-white">
-                    <h3 class="card-title mb-0">Confirm Delete</h3>
-                </div>
-                <div class="card-body">
-                    <p>Are you sure you want to delete product <strong>"{{ product.name }}"</strong>?</p>
-                    {% if product.variants.count > 0 %}
-                        <div class="alert alert-warning">
-                            ⚠ This will also delete {{ product.variants.count }} variant(s).
-                        </div>
-                    {% endif %}
-                    <form method="post">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">Yes, Delete</button>
-                        <a href="{% url 'products:reseller_product_list' store.id %}" class="btn btn-secondary">Cancel</a>
-                    </form>
+
+<div class="content del-premium-bg">
+
+    <div class="del-premium-center">
+
+        <div class="del-premium-card">
+
+            <!-- floating icon -->
+            <div class="del-floating-icon">
+                <div class="del-icon-glow">
+                    🗑
                 </div>
             </div>
+
+
+            <!-- title -->
+            <h2 class="del-title-premium">
+                Delete Product
+            </h2>
+
+            <p class="del-sub-premium">
+                This action is permanent and cannot be undone
+            </p>
+
+
+
+            <!-- product name -->
+            <div class="del-product-box">
+
+                <span class="del-product-label">
+                    PRODUCT
+                </span>
+
+                <div class="del-product-name">
+                    {{ product.name }}
+                </div>
+
+            </div>
+
+
+
+            {% if product.variants.count > 0 %}
+            <div class="del-warning-premium">
+
+                <div class="warn-icon">
+                    ⚠
+                </div>
+
+                <div>
+                    Will also delete
+                    <strong>{{ product.variants.count }}</strong>
+                    variants
+                </div>
+
+            </div>
+            {% endif %}
+
+
+
+            <!-- actions -->
+            <form method="post" class="del-actions-premium">
+
+                {% csrf_token %}
+
+                <button type="submit" class="btn-delete-premium">
+                    Delete Forever
+                </button>
+
+
+                <a href="{% url 'products:reseller_product_list' store.id %}"
+                   class="btn-cancel-premium">
+
+                    Cancel
+                </a>
+
+            </form>
+
+
         </div>
+
     </div>
+
 </div>
+
+
+
+<style>
+
+
+/* animated background */
+
+.del-premium-bg{
+
+    min-height:100vh;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:linear-gradient(-45deg,#fff1f1,#ffe4e4,#fff7f7,#ffeaea);
+
+    background-size:300% 300%;
+
+    animation:bgMove 10s ease infinite;
+
+}
+
+
+/* tablet */
+@media (max-width:992px){
+
+.del-premium-card{
+
+    padding:35px 25px;
+
+}
+
+.del-product-name{
+
+    font-size:20px;
+
+}
+
+.del-title-premium{
+
+    font-size:24px;
+
+}
+
+}
+
+
+
+/* mobile */
+@media (max-width:768px){
+
+.del-premium-bg{
+
+    padding:20px;
+
+}
+
+
+.del-premium-card{
+
+    padding:30px 20px;
+
+    border-radius:16px;
+
+}
+
+
+.del-icon-glow{
+
+    width:65px;
+
+    height:65px;
+
+    font-size:26px;
+
+}
+
+
+.del-title-premium{
+
+    font-size:22px;
+
+}
+
+
+.del-sub-premium{
+
+    font-size:13px;
+
+}
+
+
+.del-product-box{
+
+    padding:16px;
+
+}
+
+
+.del-product-name{
+
+    font-size:18px;
+
+}
+
+
+.del-warning-premium{
+
+    font-size:13px;
+
+    padding:10px;
+
+}
+
+
+.btn-delete-premium{
+
+    padding:12px;
+
+    font-size:14px;
+
+}
+
+
+.btn-cancel-premium{
+
+    padding:12px;
+
+    font-size:14px;
+
+}
+
+}
+
+
+
+/* small mobile */
+@media (max-width:480px){
+
+.del-premium-card{
+
+    padding:25px 15px;
+
+}
+
+
+.del-product-name{
+
+    font-size:17px;
+
+}
+
+
+.del-title-premium{
+
+    font-size:20px;
+
+}
+
+
+.del-floating-icon{
+
+    top:-28px;
+
+}
+
+
+.del-icon-glow{
+
+    width:60px;
+
+    height:60px;
+
+    font-size:24px;
+
+}
+
+}
+
+
+/* center */
+
+.del-premium-center{
+
+    width:100%;
+
+    max-width:520px;
+
+}
+
+
+
+/* glass card */
+
+.del-premium-card{
+
+    position:relative;
+
+    padding:45px 35px;
+
+    border-radius:20px;
+
+    background:rgba(255,255,255,0.75);
+
+    backdrop-filter:blur(12px);
+
+    box-shadow:0 25px 60px rgba(0,0,0,0.12);
+
+    text-align:center;
+
+    animation:cardFade .4s ease;
+
+}
+
+
+
+/* floating icon */
+
+.del-floating-icon{
+
+    position:absolute;
+
+    top:-35px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+}
+
+
+
+.del-icon-glow{
+
+    width:75px;
+
+    height:75px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:32px;
+
+    color:white;
+
+    background:linear-gradient(135deg,#ff4d4d,#c40000);
+
+    box-shadow:0 15px 35px rgba(255,0,0,.35);
+
+}
+
+
+
+/* text */
+
+.del-title-premium{
+
+    margin-top:30px;
+
+    font-weight:700;
+
+    letter-spacing:.5px;
+
+}
+
+
+
+.del-sub-premium{
+
+    color:#777;
+
+    margin-bottom:25px;
+
+}
+
+
+
+/* product highlight */
+
+.del-product-box{
+
+    background:linear-gradient(135deg,#fff,#fff5f5);
+
+    border-radius:14px;
+
+    padding:20px;
+
+    margin-bottom:20px;
+
+    border:1px solid #ffe3e3;
+
+}
+
+
+
+.del-product-label{
+
+    font-size:11px;
+
+    letter-spacing:1px;
+
+    color:#999;
+
+}
+
+
+
+.del-product-name{
+
+    font-size:22px;
+
+    font-weight:700;
+
+    margin-top:5px;
+
+}
+
+
+
+/* warning */
+
+.del-warning-premium{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    background:#fff3cd;
+
+    padding:12px 15px;
+
+    border-radius:10px;
+
+    margin-bottom:20px;
+
+    font-size:14px;
+
+}
+
+
+
+.warn-icon{
+
+    font-size:18px;
+
+}
+
+
+
+/* buttons */
+
+.del-actions-premium{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:12px;
+
+}
+
+
+
+.btn-delete-premium{
+
+    border:none;
+
+    padding:14px;
+
+    border-radius:12px;
+
+    background:linear-gradient(135deg,#ff3b3b,#b80000);
+
+    color:white;
+
+    font-weight:600;
+
+    letter-spacing:.3px;
+
+    transition:.3s;
+
+}
+
+
+
+.btn-delete-premium:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:0 15px 35px rgba(255,0,0,.35);
+
+}
+
+
+
+.btn-cancel-premium{
+
+    text-decoration:none;
+
+    padding:13px;
+
+    border-radius:12px;
+
+    background:#f4f4f4;
+
+    color:#444;
+
+    font-weight:600;
+
+    transition:.3s;
+
+}
+
+
+
+.btn-cancel-premium:hover{
+
+    background:#e9e9e9;
+
+}
+
+
+
+/* animations */
+
+@keyframes bgMove{
+
+    0%{background-position:0% 50%}
+
+    50%{background-position:100% 50%}
+
+    100%{background-position:0% 50%}
+
+}
+
+
+
+@keyframes cardFade{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(20px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+
+</style>
+
+
 {% endblock %}

@@ -13,6 +13,7 @@ urlpatterns = [
     path('wholesellers/',include('wholesellers.urls')),
     path('resellers/', include('resellers.urls')),
     path('products/', include('products.urls')),
+    path('thememanager/',include('theme_manager.urls')),
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
     path('terms/', views.terms, name='terms'),
     path('about/', views.about, name='about'),
@@ -37,4 +38,4 @@ urlpatterns = [
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

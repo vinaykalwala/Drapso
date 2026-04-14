@@ -22,6 +22,9 @@ urlpatterns = [
     path('store/<int:store_id>/', views.store_dashboard, name='store_dashboard'),
     path('store/<int:store_id>/preview/', views.preview_store, name='preview_store'),
     path('store/<int:store_id>/copy-link/', views.copy_store_link, name='copy_store_link'),
+   
+
+    path('store/<int:store_id>/edit/', views.edit_store, name='edit_store'),    
     
     # Admin Plan CRUD
     path('admin/plans/', views.plan_list, name='plan_list'),
@@ -40,6 +43,8 @@ urlpatterns = [
     path('admin/store/<int:store_id>/', views.admin_store_detail, name='admin_store_detail'),
     
     path('', views.store_frontend, name='store_frontend'),
+    path('product/<slug:product_slug>/', views.store_product_detail, name='store_product_detail'),
+    
     path('manage-subscription/<int:store_id>/', views.manage_subscription, name='manage_subscription'),
     path('renew-subscription/<int:store_id>/', views.process_renewal, name='renew_subscription'),
     path('renew-subscription/<int:store_id>/<int:plan_id>/', views.process_renewal, name='renew_subscription_with_plan'),

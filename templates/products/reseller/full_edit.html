@@ -1,146 +1,933 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Edit Product</title>
-</head>
-<body>
+{% extends "dashboard_base.html" %}
+{% block content %}
 
-<h2>Edit Product</h2>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* ============================================
+           PREMIUM PRODUCT EDIT FORM DESIGN
+           Matching the Create Product aesthetic
+           ============================================ */
 
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
+        /* CSS Variables */
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-light: #eef2ff;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
 
-    <!-- 🔴 SHOW ERRORS -->
-    {{ product_form.errors }}
-    {{ image_formset.errors }}
-    {{ variant_formset.errors }}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <!-- PRODUCT -->
-    <h3>Product</h3>
-    {{ product_form.as_p }}
+        body {
+            background: var(--gray-100);
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            color: var(--gray-800);
+        }
 
-    <!-- PRODUCT IMAGES -->
-    <h3>Product Images</h3>
-    {{ image_formset.management_form }}
+        /* Main Container */
+        .product-edit-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 24px;
+        }
 
-    {% for form in image_formset %}
-        {{ form.id }}
+        /* Page Header */
+        .product-edit-header {
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--gray-200);
+        }
 
-        {% if form.instance.image %}
-            <img src="{{ form.instance.image.url }}" width="80">
-        {% endif %}
+        .product-edit-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-        {{ form.image }}
-        {{ form.alt_text }}
-        {{ form.order }}
-        {{ form.DELETE }} Delete
-    {% endfor %}
+        .product-edit-header h2 i {
+            color: var(--primary);
+        }
 
-    <div id="image-formset"></div>
+        /* Modern Box Cards */
+        .product-box-modern {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            margin-bottom: 28px;
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+            transition: box-shadow 0.3s ease;
+        }
 
-    <div id="empty-image-form" style="display:none;">
-        {{ image_formset.empty_form.as_p }}
+        .product-box-modern:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Colored Card Header */
+        .product-box-header {
+            padding: 18px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-bottom: none;
+        }
+
+        .product-box-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+
+        .product-box-header h3 i {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .product-box-body {
+            padding: 24px;
+        }
+
+        /* Django Form Styling */
+        .product-box-body p {
+            margin-bottom: 20px;
+        }
+
+        .product-box-body label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+
+        .product-box-body label i {
+            margin-right: 6px;
+            color: var(--primary);
+        }
+
+        .product-box-body input,
+        .product-box-body select,
+        .product-box-body textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--gray-300);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            background: #f8fafc;
+            font-family: inherit;
+            height: 44px;
+            box-sizing: border-box;
+        }
+
+        .product-box-body textarea {
+            height: auto;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .product-box-body input:focus,
+        .product-box-body select:focus,
+        .product-box-body textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+            background: white;
+        }
+
+        .product-box-body input[type="checkbox"],
+        .product-box-body input[type="radio"] {
+            width: auto;
+            height: auto;
+            margin-right: 8px;
+        }
+
+        .product-box-body .helptext {
+            font-size: 0.7rem;
+            color: var(--gray-500);
+            margin-top: 5px;
+            display: block;
+        }
+
+        .product-box-body .errorlist {
+            color: var(--danger);
+            font-size: 0.75rem;
+            list-style: none;
+            padding: 0;
+            margin: 5px 0 0 0;
+        }
+
+        /* Grid Layout for Form Fields */
+        .form-fields-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .form-fields-grid p {
+            margin: 0;
+        }
+
+        .form-fields-grid .full-width-field {
+            grid-column: span 2;
+        }
+
+        /* Image Items (Existing + New) */
+        .image-items-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .image-item-modern {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .image-item-modern:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .image-preview-modern {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .btn-remove-image {
+            background: var(--danger-light);
+            color: var(--danger);
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-top: 12px;
+            width: 100%;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .btn-remove-image:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .checkbox-delete-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: var(--danger);
+        }
+
+        /* Variant Box Styling */
+        .variant-box-modern {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+
+        .variant-box-modern:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .variant-header-modern {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .variant-title-modern {
+            font-weight: 600;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-remove-variant {
+            background: var(--danger-light);
+            color: var(--danger);
+            border: none;
+            border-radius: 8px;
+            padding: 5px 12px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+        }
+
+        .btn-remove-variant:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .variant-box-modern p {
+            margin-bottom: 14px;
+        }
+
+        .variant-box-modern label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .variant-box-modern input,
+        .variant-box-modern select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            height: 40px;
+            box-sizing: border-box;
+        }
+
+        /* Existing variant images gallery */
+        .existing-variant-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 15px 0;
+            padding: 12px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .variant-image-card {
+            position: relative;
+            display: inline-block;
+        }
+
+        .variant-image-card img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .variant-image-delete {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            cursor: pointer;
+            border: none;
+        }
+
+        .variant-images-new {
+            margin-top: 12px;
+        }
+
+        .btn-add-variant-image {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border: 1px solid var(--primary);
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+
+        .btn-add-variant-image:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Buttons */
+        .btn-modern {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary-modern {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary-modern:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-outline-modern {
+            background: transparent;
+            border: 1px solid var(--gray-300);
+            color: var(--gray-700);
+        }
+
+        .btn-outline-modern:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .btn-success-modern {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success-modern:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .add-btn-modern {
+            margin-top: 10px;
+        }
+
+        /* Submit Section */
+        .submit-section-modern {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            padding: 20px 24px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            margin-top: 28px;
+        }
+
+        .btn-submit-modern {
+            padding: 12px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .product-edit-wrapper {
+                padding: 16px;
+            }
+            .form-fields-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            .form-fields-grid .full-width-field {
+                grid-column: span 1;
+            }
+            .submit-section-modern {
+                flex-direction: column;
+            }
+            .submit-section-modern .btn-modern {
+                width: 100%;
+                justify-content: center;
+            }
+            .image-items-container {
+                grid-template-columns: 1fr;
+            }
+        }
+          @media (max-width:900px) {
+            .content {
+                margin-top: 60px;
+            }
+        }
+        /* make textarea same height as inputs */
+.product-box-body textarea {
+    height: 44px;   /* same as input height */
+    min-height: 44px;
+    resize: none;
+}
+    </style>
+
+<div class="content">
+<div class="product-edit-wrapper">
+    <!-- Header -->
+    <div class="product-edit-header">
+        <h2>
+            <i class="fas fa-edit"></i>
+            Edit Product
+        </h2>
     </div>
 
-    <button type="button" onclick="addImage()">+ Add Image</button>
+    <form method="POST" enctype="multipart/form-data" id="productEditForm">
+        {% csrf_token %}
 
-    <hr>
-
-    <!-- VARIANTS -->
-    <h3>Variants</h3>
-    {{ variant_formset.management_form }}
-
-    <div id="variant-formset">
-
-        {% for form in variant_formset %}
-        <div data-index="{{ forloop.counter0 }}">
-
-            {{ form.id }}
-            {{ form.as_p }}
-            {{ form.DELETE }} Delete Variant
-
-            <!-- EXISTING IMAGES -->
-            {% for img in form.instance.additional_images.all %}
-                <img src="{{ img.image.url }}" width="70">
-                <input type="checkbox" name="delete_variant_image_{{ img.id }}"> Delete
-            {% endfor %}
-
-            <!-- NEW IMAGES -->
-            <div class="variant-images"></div>
-
-            <button type="button" onclick="addVariantImage(this)">
-                + Add Variant Image
-            </button>
-
-            <hr>
+        <!-- ================= PRODUCT INFO ================= -->
+        <div class="product-box-modern">
+            <div class="product-box-header">
+                <h3>
+                    <i class="fas fa-info-circle"></i>
+                    Product Information
+                </h3>
+            </div>
+            <div class="product-box-body">
+                <div class="form-fields-grid">
+                    {{ product_form.as_p }}
+                </div>
+                {% if product_form.errors %}
+                    <div class="errorlist" style="margin-top: 15px;">Please correct errors above.</div>
+                {% endif %}
+            </div>
         </div>
-        {% endfor %}
 
-    </div>
+        <!-- ================= PRODUCT IMAGES ================= -->
+        <div class="product-box-modern">
+            <div class="product-box-header">
+                <h3>
+                    <i class="fas fa-images"></i>
+                    Product Images
+                </h3>
+            </div>
+            <div class="product-box-body">
+                {{ image_formset.management_form }}
+                <div id="image-formset" class="image-items-container">
+                    {% for form in image_formset %}
+                        <div class="image-item-modern" data-image-id="{{ form.instance.id|default:'' }}">
+                            {{ form.id }}
+                            {% if form.instance.image %}
+                                <img src="{{ form.instance.image.url }}" class="image-preview-modern" alt="Preview">
+                            {% endif %}
+                            <div>
+                                {{ form.image.label_tag }}
+                                {{ form.image }}
+                                <span class="helptext">{{ form.image.help_text }}</span>
+                            </div>
+                            <div>
+                                {{ form.alt_text.label_tag }}
+                                {{ form.alt_text }}
+                            </div>
+                            <div>
+                                {{ form.order.label_tag }}
+                                {{ form.order }}
+                            </div>
+                            <div class="checkbox-delete-row">
+                                {{ form.DELETE }} <label for="{{ form.DELETE.id_for_label }}" style="display: inline; margin:0;">Delete this image</label>
+                            </div>
+                            <button type="button" class="btn-remove-image" onclick="removeImageItem(this)">
+                                <i class="fas fa-trash"></i> Remove from form
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
 
-    <!-- EMPTY -->
-    <div id="empty-variant-form" style="display:none;">
-        <div data-index="__prefix__">
-            {{ variant_formset.empty_form.as_p }}
+                <div id="empty-image-form" style="display:none;">
+                    <div class="image-item-modern" data-index="__prefix__">
+                        {{ image_formset.empty_form.as_p }}
+                        <button type="button" class="btn-remove-image" onclick="removeImageItem(this)">
+                            <i class="fas fa-trash"></i> Remove Image
+                        </button>
+                    </div>
+                </div>
+                <button type="button" class="btn-modern btn-outline-modern add-btn-modern" onclick="addImage()">
+                    <i class="fas fa-plus"></i> Add New Image
+                </button>
+            </div>
+        </div>
 
-            <div class="variant-images"></div>
+        <!-- ================= VARIANTS ================= -->
+        <div class="product-box-modern">
+            <div class="product-box-header">
+                <h3>
+                    <i class="fas fa-layer-group"></i>
+                    Variants
+                </h3>
+            </div>
+            <div class="product-box-body">
+                {{ variant_formset.management_form }}
+                <div id="variant-formset">
+                    {% for form in variant_formset %}
+                        <div class="variant-box-modern" data-variant-index="{{ forloop.counter0 }}">
+                            <div class="variant-header-modern">
+                                <span class="variant-title-modern">
+                                    <i class="fas fa-cube"></i>
+                                    Variant {{ forloop.counter }}
+                                </span>
+                                <button type="button" class="btn-remove-variant" onclick="removeVariantItem(this)">
+                                    <i class="fas fa-trash"></i> Remove Variant
+                                </button>
+                            </div>
+                            {{ form.id }}
+                            {{ form.as_p }}
+                            <div class="checkbox-delete-row">
+                                {{ form.DELETE }} <label for="{{ form.DELETE.id_for_label }}" style="display:inline;">Delete this variant entirely</label>
+                            </div>
 
-            <button type="button" onclick="addVariantImage(this)">
-                + Add Variant Image
+                            <!-- Existing Variant Images -->
+                            {% with variant=form.instance %}
+                                {% if variant.id %}
+                                    <div class="existing-variant-images" data-variant-id="{{ variant.id }}">
+                                        <strong><i class="fas fa-image"></i> Existing Images:</strong>
+                                        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px;">
+                                            {% for img in variant.additional_images.all %}
+                                                <div class="variant-image-card" data-img-id="{{ img.id }}">
+                                                    <img src="{{ img.image.url }}" alt="Variant Image">
+                                                    <button type="button" class="variant-image-delete" onclick="markVariantImageForDeletion(this, {{ img.id }})">
+                                                        ✕
+                                                    </button>
+                                                    <input type="hidden" name="delete_variant_image_{{ img.id }}" id="del_img_{{ img.id }}" value="0">
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+
+                            <!-- New Variant Images upload section -->
+                            <div class="variant-images-new" id="variant-new-images-{{ forloop.counter0 }}">
+                                <div class="variant-images-container" id="variant-images-container-{{ forloop.counter0 }}"></div>
+                                <button type="button" class="btn-add-variant-image" onclick="addVariantImage(this, {{ forloop.counter0 }})">
+                                    <i class="fas fa-plus"></i> Upload New Variant Image
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div id="empty-variant-form" style="display:none;">
+                    <div class="variant-box-modern" data-index="__prefix__">
+                        <div class="variant-header-modern">
+                            <span class="variant-title-modern">
+                                <i class="fas fa-cube"></i>
+                                Variant <span class="variant-number">__prefix__</span>
+                            </span>
+                            <button type="button" class="btn-remove-variant" onclick="removeVariantItem(this)">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                        </div>
+                        {{ variant_formset.empty_form.as_p }}
+                        <div class="variant-images-new" id="variant-new-images-__prefix__">
+                            <div class="variant-images-container" id="variant-images-container-__prefix__"></div>
+                            <button type="button" class="btn-add-variant-image" onclick="addVariantImage(this, '__prefix__')">
+                                <i class="fas fa-plus"></i> Upload New Variant Image
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-modern btn-outline-modern add-btn-modern" onclick="addVariant()">
+                    <i class="fas fa-plus"></i> Add New Variant
+                </button>
+            </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="submit-section-modern">
+            <button type="button" class="btn-modern btn-outline-modern" onclick="window.history.back()">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="submit" class="btn-modern btn-success-modern btn-submit-modern">
+                <i class="fas fa-save"></i> Update Product
             </button>
         </div>
-    </div>
-
-    <button type="button" onclick="addVariant()">+ Add Variant</button>
-
-    <br><br>
-    <button type="submit">Update</button>
-
-</form>
-
+    </form>
+</div>
+</div>
 <script>
+    /* ================= IMAGE FORMSET LOGIC ================= */
+    function addImage() {
+        let total = document.getElementById('id_images-TOTAL_FORMS');
+        let index = parseInt(total.value);
+        let template = document.getElementById('empty-image-form').innerHTML.replace(/__prefix__/g, index);
+        document.getElementById('image-formset').insertAdjacentHTML('beforeend', template);
+        total.value = index + 1;
+        attachImagePreviewToNew();
+    }
 
-function addImage() {
-    let total = document.getElementById('id_images-TOTAL_FORMS');
-    let index = parseInt(total.value);
+    function removeImageItem(button) {
+        const imageItem = button.closest('.image-item-modern');
+        if (imageItem) {
+            imageItem.remove();
+            let total = document.getElementById('id_images-TOTAL_FORMS');
+            let remaining = document.querySelectorAll('#image-formset .image-item-modern').length;
+            total.value = remaining;
+        }
+    }
 
-    let template = document.getElementById('empty-image-form').innerHTML
-        .replace(/__prefix__/g, index);
+    function attachImagePreviewToNew() {
+        document.querySelectorAll('.image-item-modern input[type="file"]').forEach(input => {
+            if (!input.hasAttribute('data-preview-bound')) {
+                input.setAttribute('data-preview-bound', 'true');
+                input.addEventListener('change', function(e) {
+                    if (e.target.files && e.target.files[0]) {
+                        const reader = new FileReader();
+                        const parent = this.closest('.image-item-modern');
+                        let preview = parent.querySelector('.image-preview-modern');
+                        if (!preview) {
+                            preview = document.createElement('img');
+                            preview.className = 'image-preview-modern';
+                            parent.insertBefore(preview, parent.firstChild);
+                        }
+                        reader.onload = function(evt) { preview.src = evt.target.result; };
+                        reader.readAsDataURL(e.target.files[0]);
+                    }
+                });
+            }
+        });
+    }
 
-    document.getElementById('image-formset')
-        .insertAdjacentHTML('beforeend', template);
+    /* ================= VARIANT LOGIC ================= */
+    function addVariant() {
+        let total = document.getElementById('id_variants-TOTAL_FORMS');
+        let index = parseInt(total.value);
+        let template = document.getElementById('empty-variant-form').innerHTML.replace(/__prefix__/g, index);
+        document.getElementById('variant-formset').insertAdjacentHTML('beforeend', template);
+        total.value = index + 1;
+        // Reassign data attributes and numbering
+        document.querySelectorAll('.variant-box-modern').forEach((box, idx) => {
+            box.setAttribute('data-variant-index', idx);
+            const numberSpan = box.querySelector('.variant-number');
+            if (numberSpan) numberSpan.textContent = idx + 1;
+            // Update new image container IDs if needed
+            const newImgDiv = box.querySelector('.variant-images-new');
+            if (newImgDiv && !newImgDiv.id) {
+                newImgDiv.id = `variant-new-images-${idx}`;
+                const containerDiv = newImgDiv.querySelector('.variant-images-container');
+                if (containerDiv) containerDiv.id = `variant-images-container-${idx}`;
+                const addBtn = newImgDiv.querySelector('.btn-add-variant-image');
+                if (addBtn) addBtn.setAttribute('onclick', `addVariantImage(this, ${idx})`);
+            }
+        });
+    }
 
-    total.value = index + 1;
-}
+    function removeVariantItem(button) {
+        const variantBox = button.closest('.variant-box-modern');
+        if (variantBox) {
+            variantBox.remove();
+            let total = document.getElementById('id_variants-TOTAL_FORMS');
+            let remaining = document.querySelectorAll('.variant-box-modern').length;
+            total.value = remaining;
+            // re-index remaining variants for visual numbering
+            document.querySelectorAll('.variant-box-modern').forEach((box, idx) => {
+                box.setAttribute('data-variant-index', idx);
+                const titleSpan = box.querySelector('.variant-title-modern');
+                if (titleSpan) {
+                    const numSpan = titleSpan.querySelector('.variant-number');
+                    if (numSpan) numSpan.textContent = idx + 1;
+                }
+                // adjust container id for dynamic image adds
+                const newDiv = box.querySelector('.variant-images-new');
+                if (newDiv) {
+                    const oldId = newDiv.id;
+                    const newId = `variant-new-images-${idx}`;
+                    newDiv.id = newId;
+                    const container = newDiv.querySelector('.variant-images-container');
+                    if (container) container.id = `variant-images-container-${idx}`;
+                    const btn = newDiv.querySelector('.btn-add-variant-image');
+                    if (btn) btn.setAttribute('onclick', `addVariantImage(this, ${idx})`);
+                }
+            });
+        }
+    }
 
-function addVariant() {
-    let total = document.getElementById('id_variants-TOTAL_FORMS');
-    let index = parseInt(total.value);
+    /* Variant Image upload - dynamic file inputs (supports multiple) */
+    function addVariantImage(button, variantIndex) {
+        let container = document.getElementById(`variant-images-container-${variantIndex}`);
+        if (!container) {
+            // fallback: find parent variant box
+            let parentBox = button.closest('.variant-box-modern');
+            if (parentBox) {
+                let idx = parentBox.getAttribute('data-variant-index');
+                if (idx === null) idx = variantIndex;
+                container = parentBox.querySelector('.variant-images-container');
+                if (!container) {
+                    let newDiv = document.createElement('div');
+                    newDiv.className = 'variant-images-container';
+                    parentBox.querySelector('.variant-images-new').appendChild(newDiv);
+                    container = newDiv;
+                }
+            }
+        }
+        if (container) {
+            let inputWrapper = document.createElement('div');
+            inputWrapper.style.marginBottom = '8px';
+            let fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.name = `variant_images_${variantIndex}`;
+            fileInput.accept = 'image/*';
+            fileInput.style.marginRight = '8px';
+            let removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            removeBtn.style.background = 'var(--danger-light)';
+            removeBtn.style.border = 'none';
+            removeBtn.style.borderRadius = '20px';
+            removeBtn.style.padding = '2px 8px';
+            removeBtn.style.cursor = 'pointer';
+            removeBtn.style.fontSize = '0.7rem';
+            removeBtn.onclick = function() { inputWrapper.remove(); };
+            inputWrapper.appendChild(fileInput);
+            inputWrapper.appendChild(removeBtn);
+            container.appendChild(inputWrapper);
+        }
+    }
 
-    let template = document.getElementById('empty-variant-form').innerHTML
-        .replace(/__prefix__/g, index);
+    /* Mark existing variant image for deletion via hidden input */
+    function markVariantImageForDeletion(btn, imageId) {
+        const hiddenInput = document.getElementById(`del_img_${imageId}`);
+        if (hiddenInput) {
+            hiddenInput.value = "1";
+            const card = btn.closest('.variant-image-card');
+            if (card) {
+                card.style.opacity = '0.5';
+                card.style.textDecoration = 'line-through';
+                btn.disabled = true;
+                btn.innerHTML = '✓';
+            }
+        } else {
+            // create hidden input dynamically if not exists
+            const container = btn.closest('.existing-variant-images');
+            if (container) {
+                let inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = `delete_variant_image_${imageId}`;
+                inp.value = "1";
+                container.appendChild(inp);
+                const card = btn.closest('.variant-image-card');
+                if (card) card.style.opacity = '0.5';
+                btn.disabled = true;
+                btn.innerHTML = '✓';
+            }
+        }
+    }
 
-    document.getElementById('variant-formset')
-        .insertAdjacentHTML('beforeend', template);
+    /* Image preview for product images on existing forms */
+    function initImagePreviews() {
+        document.querySelectorAll('.image-item-modern input[type="file"]').forEach(input => {
+            if (!input.hasAttribute('data-preview-bound')) {
+                input.setAttribute('data-preview-bound', 'true');
+                input.addEventListener('change', function(e) {
+                    if (e.target.files && e.target.files[0]) {
+                        const reader = new FileReader();
+                        const parent = this.closest('.image-item-modern');
+                        let preview = parent.querySelector('.image-preview-modern');
+                        if (!preview) {
+                            preview = document.createElement('img');
+                            preview.className = 'image-preview-modern';
+                            parent.insertBefore(preview, parent.firstChild);
+                        }
+                        reader.onload = function(evt) { preview.src = evt.target.result; };
+                        reader.readAsDataURL(e.target.files[0]);
+                    }
+                });
+            }
+        });
+    }
 
-    total.value = index + 1;
-}
+    /* Form submit loading state */
+    document.getElementById('productEditForm')?.addEventListener('submit', function() {
+        const submitBtn = this.querySelector('.btn-submit-modern');
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            submitBtn.disabled = true;
+        }
+    });
 
-function addVariantImage(button) {
-    let parent = button.closest('[data-index]');
-    let index = parent.getAttribute('data-index');
-
-    let container = parent.querySelector('.variant-images');
-
-    let input = document.createElement('input');
-    input.type = 'file';
-    input.name = `variant_images_${index}`;
-    input.multiple = true;
-
-    container.appendChild(input);
-}
-
+    /* Style labels with icons & initialize */
+    document.addEventListener('DOMContentLoaded', function() {
+        initImagePreviews();
+        // Add icon to labels in product form and variant forms
+        const labels = document.querySelectorAll('.product-box-body label');
+        const iconMap = {
+            'name': 'tag', 'category': 'folder-open', 'subcategory': 'sitemap',
+            'price': 'rupee-sign', 'compare': 'chart-line', 'sku': 'barcode',
+            'stock': 'boxes', 'description': 'align-left', 'attribute': 'palette',
+            'value': 'circle', 'additional price': 'plus-circle', 'quantity': 'cube'
+        };
+        labels.forEach(label => {
+            const text = label.textContent.toLowerCase();
+            for (let [key, icon] of Object.entries(iconMap)) {
+                if (text.includes(key)) {
+                    if (!label.querySelector('i')) {
+                        label.innerHTML = `<i class="fas fa-${icon}"></i> ${label.innerHTML}`;
+                    }
+                    break;
+                }
+            }
+        });
+        // Ensure all variant image containers have proper IDs for existing variants
+        document.querySelectorAll('.variant-box-modern').forEach((box, idx) => {
+            box.setAttribute('data-variant-index', idx);
+            const newDiv = box.querySelector('.variant-images-new');
+            if (newDiv && !newDiv.id) newDiv.id = `variant-new-images-${idx}`;
+            let container = box.querySelector('.variant-images-container');
+            if (!container && newDiv) {
+                let newCont = document.createElement('div');
+                newCont.className = 'variant-images-container';
+                newCont.id = `variant-images-container-${idx}`;
+                newDiv.insertBefore(newCont, newDiv.querySelector('.btn-add-variant-image'));
+            } else if (container && !container.id) {
+                container.id = `variant-images-container-${idx}`;
+            }
+            const addBtn = newDiv?.querySelector('.btn-add-variant-image');
+            if (addBtn && addBtn.getAttribute('onclick')?.includes('undefined')) {
+                addBtn.setAttribute('onclick', `addVariantImage(this, ${idx})`);
+            }
+        });
+    });
 </script>
 
-</body>
-</html>
+{% endblock %}

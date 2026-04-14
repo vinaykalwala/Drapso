@@ -329,6 +329,27 @@
                 <label>Contact Email *</label>
                 {{ form.contact_email }}
             </div>
+            <div class="form-group-custom">
+
+<label>Delivery Type *</label>
+
+<select name="delivery_type" class="form-control">
+
+    <option value="platform"
+        {% if form.delivery_type.value == "platform" or not form.delivery_type.value %}
+            selected
+        {% endif %}
+    >
+        Platform Delivery
+    </option>
+
+    <option value="self" disabled>
+        Self Delivery (Coming Soon)
+    </option>
+
+</select>
+
+</div>
 
             <div class="info-bar">
                 <i class="fa-solid fa-circle-info"></i>

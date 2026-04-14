@@ -161,16 +161,29 @@ class Store(models.Model):
         ]
     
     def save(self, *args, **kwargs):
-        if not self.subdomain:
-            base_subdomain = slugify(self.store_name.lower())
-            self.subdomain = base_subdomain
-            counter = 1
-            original_subdomain = self.subdomain
-            while Store.objects.filter(subdomain=self.subdomain).exclude(id=self.id).exists():
-                self.subdomain = f"{original_subdomain}{counter}"
-                counter += 1
+        new_subdomain = slugify(self.store_name.lower())
+
+        if self.pk:
+            # Existing store → check if name changed
+            old = Store.objects.filter(pk=self.pk).values('store_name', 'subdomain').first()
+
+            if old:
+                if old['store_name'] != self.store_name:
+                    # 🔥 Update subdomain when name changes
+                    self.subdomain = new_subdomain
+        else:
+            # New store
+            self.subdomain = new_subdomain
+
+        # Ensure unique subdomain
+        original = self.subdomain
+        counter = 1
+        while Store.objects.filter(subdomain=self.subdomain).exclude(id=self.id).exists():
+            self.subdomain = f"{original}{counter}"
+            counter += 1
+
         super().save(*args, **kwargs)
-    
+        
     def get_full_url(self, request=None):
         """Generate full store URL dynamically"""
         if request:
