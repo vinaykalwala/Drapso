@@ -2,184 +2,323 @@
 {% block title %}Manage Subscription Plans{% endblock %}
 
 {% block content %}
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<!-- Font Awesome + Inter (clean reference style) -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 <style>
+    /* ----- REFERENCE DESIGN SYSTEM (consistent with image.png) ----- */
     :root {
-        --dr-primary: #4f46e5;
-        --dr-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        --dr-border: #e2e8f0;
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --primary-light: #dbeafe;
+        --gray-50: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-300: #cbd5e1;
+        --gray-600: #475569;
+        --gray-700: #334155;
+        --gray-800: #1e293b;
+        --gray-900: #0f172a;
+        --success: #10b981;
+        --success-light: #d1fae5;
+        --danger: #ef4444;
+        --danger-light: #fee2e2;
+        --card-radius: 24px;
+        --shadow-card: 0 8px 20px -6px rgba(0, 0, 0, 0.05), 0 4px 8px -2px rgba(0, 0, 0, 0.03);
+        --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        --transition: all 0.2s ease;
     }
 
-    /* --- Page Header Mobile Fix --- */
+    body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: #f5f9ff;  /* soft background like reference */
+        color: var(--gray-800);
+    }
+
+    .content {
+        padding: 1.5rem 1.5rem;
+    }
+
+    .dr-plan-wrapper {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0.5rem 0;
+    }
+
+    /* ----- Page Header (clean, aligned) ----- */
     .dr-page-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 30px;
-        gap: 15px;
-        flex-wrap: wrap; 
-        padding-top: 10px; /* Prevents text from hitting the very top */
-    }
-
-    .dr-page-title {
-        flex: 1;
-        min-width: 280px; 
+        margin-bottom: 2.5rem;
+        gap: 1.5rem;
+        flex-wrap: wrap;
     }
 
     .dr-page-title h1 {
-        font-size: clamp(22px, 7vw, 32px); 
-        font-weight: 800;
-        color: #0f172a;
-        letter-spacing: normal; /* Fixed: Removed negative spacing that caused overlapping */
-        margin: 0;
-        line-height: 1.3; /* Fixed: Added breathing room between lines */
+        font-size: 2.2rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--gray-900);
+        margin-bottom: 0.25rem;
+        line-height: 1.2;
     }
 
     .dr-page-title p {
-        font-size: 14px;
-        margin-top: 4px;
-        color: #64748b;
+        font-size: 0.95rem;
+        color: var(--gray-600);
+        font-weight: 500;
     }
 
     .dr-btn-add {
-        background: var(--dr-gradient);
+        background: var(--primary);
         color: white !important;
-        padding: 12px 24px;
-        border-radius: 14px;
-        font-weight: 700;
+        padding: 0.8rem 1.8rem;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.95rem;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        font-size: 14px;
+        gap: 10px;
         white-space: nowrap;
-        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.15);
-        transition: 0.3s;
+        box-shadow: 0 8px 16px -6px rgba(37, 99, 235, 0.25);
+        transition: var(--transition);
+        border: 1px solid rgba(255,255,255,0.1);
     }
 
-    /* --- Responsive Plan Grid --- */
+    .dr-btn-add:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 14px 20px -8px rgba(37, 99, 235, 0.3);
+    }
+
+    /* ----- Plan Grid (responsive card layout) ----- */
     .dr-plan-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
-        gap: 20px;
+        gap: 1.8rem;
     }
 
     .dr-plan-card {
-        background: #fff;
-        border: 1px solid var(--dr-border);
-        border-radius: 28px;
-        padding: 25px;
+        background: #ffffff;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--card-radius);
+        padding: 1.8rem 1.5rem 1.5rem;
         position: relative;
         display: flex;
         flex-direction: column;
-        transition: 0.3s ease;
+        box-shadow: var(--shadow-card);
+        transition: var(--transition);
+        transform: translateY(0);
     }
 
     .dr-plan-card:hover {
-        transform: translateY(-5px);
-        border-color: var(--dr-primary);
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-hover);
+        border-color: var(--gray-300);
     }
 
+    /* Active badge (matching reference style) */
     .dr-plan-badge {
         position: absolute;
-        top: 20px; right: 20px;
-        padding: 4px 10px;
-        border-radius: 50px;
-        font-size: 10px;
-        font-weight: 800;
-        background: #ecfdf5;
-        color: #10b981;
+        top: 16px;
+        right: 16px;
+        padding: 0.3rem 1rem;
+        border-radius: 40px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        background: var(--success-light);
+        color: var(--success);
+        border: 1px solid rgba(16, 185, 129, 0.2);
     }
 
-    .dr-plan-name { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
-    .dr-plan-duration { font-size: 13px; color: #64748b; margin-bottom: 15px; display: flex; align-items: center; gap: 5px; }
+    .dr-plan-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin-bottom: 0.25rem;
+        letter-spacing: -0.01em;
+    }
+
+    .dr-plan-duration {
+        font-size: 0.85rem;
+        color: var(--gray-600);
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 500;
+    }
 
     .dr-plan-price {
-        font-size: clamp(28px, 5vw, 36px);
-        font-weight: 800;
-        color: var(--dr-primary);
-        margin-bottom: 15px;
-    }
-    .dr-plan-price span { font-size: 14px; color: #94a3b8; font-weight: 600; }
-
-    .dr-theme-limit {
-        background: #f5f3ff;
-        color: var(--dr-primary);
-        padding: 10px;
-        border-radius: 12px;
-        font-size: 13px;
+        font-size: 2.5rem;
         font-weight: 700;
-        text-align: center;
-        margin-bottom: 20px;
+        color: var(--primary);
+        margin-bottom: 1.2rem;
+        line-height: 1;
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
     }
 
+    .dr-plan-price span {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--gray-600);
+    }
+
+    /* Theme limit pill */
+    .dr-theme-limit {
+        background: var(--primary-light);
+        color: var(--primary-dark);
+        padding: 0.75rem 1rem;
+        border-radius: 16px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(37, 99, 235, 0.15);
+    }
+
+    /* Feature list — clean checkmarks */
     .dr-feature-list {
         list-style: none;
         padding: 0;
-        margin-bottom: 20px;
-        flex-grow: 1;
+        margin: 0 0 1.5rem;
+        flex: 1;
     }
 
     .dr-feature-item {
-        font-size: 14px;
-        color: #475569;
-        margin-bottom: 8px;
+        font-size: 0.9rem;
+        color: var(--gray-700);
+        margin-bottom: 0.6rem;
         display: flex;
         align-items: flex-start;
-        gap: 8px;
+        gap: 10px;
     }
 
-    .dr-feature-item i { color: #10b981; margin-top: 3px; }
+    .dr-feature-item i {
+        color: var(--success);
+        font-size: 0.95rem;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
 
-    /* --- Action Buttons --- */
+    /* Action buttons (edit/delete) */
     .dr-card-actions {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 10px;
-        padding-top: 15px;
-        border-top: 1px solid #f1f5f9;
+        padding-top: 1.2rem;
+        border-top: 1px solid var(--gray-100);
     }
 
     .btn-action {
-        padding: 12px;
-        border-radius: 12px;
+        padding: 0.7rem 0.5rem;
+        border-radius: 14px;
         text-align: center;
         text-decoration: none;
-        font-weight: 700;
-        font-size: 13px;
+        font-weight: 600;
+        font-size: 0.85rem;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 6px;
+        transition: var(--transition);
+        border: 1px solid transparent;
     }
 
-    .btn-edit { background: #f8fafc; color: #334155; border: 1.5px solid #e2e8f0; }
-    .btn-delete { background: #fff1f2; color: #ef4444; border: 1.5px solid #ffe4e6; }
+    .btn-edit {
+        background: var(--gray-50);
+        color: var(--gray-700);
+        border-color: var(--gray-200);
+    }
+
+    .btn-edit:hover {
+        background: white;
+        border-color: var(--primary);
+        color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 10px -4px rgba(0,0,0,0.05);
+    }
+
+    .btn-delete {
+        background: var(--danger-light);
+        color: var(--danger);
+        border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .btn-delete:hover {
+        background: white;
+        border-color: var(--danger);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 10px -4px rgba(239, 68, 68, 0.1);
+    }
+
+    /* ----- Responsive Fine-Tuning ----- */
     @media (max-width: 900px) {
         .content {
-         margin-top: 50px;
+            padding: 1rem 1rem;
+        }
+        .dr-page-title h1 {
+            font-size: 2rem;
         }
     }
-    /* --- Specific Mobile Media Query --- */
-    @media (max-width: 576px) {
+
+    @media (max-width: 600px) {
         .dr-page-header {
             flex-direction: column;
             align-items: stretch;
-            text-align: left;
+            gap: 1rem;
         }
         .dr-btn-add {
             width: 100%;
             justify-content: center;
         }
         .dr-card-actions {
-            grid-template-columns: 1fr; /* Stacks edit/delete on small screens */
+            grid-template-columns: 1fr;
         }
+        .dr-plan-card {
+            padding: 1.5rem 1.2rem;
+        }
+        .dr-plan-price {
+            font-size: 2.2rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .dr-plan-name {
+            font-size: 1.3rem;
+        }
+        .dr-plan-badge {
+            top: 12px;
+            right: 12px;
+            font-size: 0.65rem;
+        }
+    }
+
+    /* subtle animation */
+    .dr-plan-card {
+        animation: cardFade 0.4s ease backwards;
+    }
+    @keyframes cardFade {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* accessibility */
+    .btn-action:focus-visible, .dr-btn-add:focus-visible {
+        outline: 3px solid var(--primary);
+        outline-offset: 3px;
     }
 </style>
 
 <div class="content">
-    <div class="dr-plan-wrapper" style="padding: 20px;">
+    <div class="dr-plan-wrapper">
         <header class="dr-page-header">
             <div class="dr-page-title">
                 <h1>Subscription Plans</h1>
@@ -199,7 +338,7 @@
                 <div class="dr-plan-duration"><i class="far fa-clock"></i> {{ plan.get_duration_display }}</div>
 
                 <div class="dr-plan-price">
-                    {{ plan.price }} rs<span>/ {{ plan.get_duration_display }}</span>
+                    {{ plan.price }} ₹<span>/ {{ plan.get_duration_display }}</span>
                 </div>
 
                 <div class="dr-theme-limit">
@@ -225,6 +364,16 @@
                 </div>
             </div>
             {% endfor %}
+        </div>
+        {% else %}
+        <!-- Optional: empty state with same design language -->
+        <div style="text-align: center; padding: 4rem 2rem; background: white; border-radius: var(--card-radius); border: 1px dashed var(--gray-300);">
+            <i class="fas fa-layer-group" style="font-size: 3rem; color: var(--gray-400); margin-bottom: 1rem;"></i>
+            <h3 style="font-weight: 600; color: var(--gray-700);">No plans yet</h3>
+            <p style="color: var(--gray-600); margin-bottom: 1.5rem;">Create your first subscription plan to get started.</p>
+            <a href="{% url 'resellers:plan_create' %}" class="dr-btn-add" style="display: inline-flex;">
+                <i class="fas fa-plus-circle"></i> Add New Plan
+            </a>
         </div>
         {% endif %}
     </div>

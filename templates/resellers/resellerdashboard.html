@@ -4,451 +4,310 @@
 {% block content %}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-<link
-    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
-    rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+
 <style>
-    /* ----- FRESH DESIGN SYSTEM: DARK-LIGHT AURA ----- */
     :root {
         --primary: #4f46e5;
-        --primary-light: #6366f1;
-        --primary-gradient: linear-gradient(135deg, #4f46e5, #6366f1);
-        --secondary-bg: #f8fafc;
-        --border-glow: rgba(99, 102, 241, 0.2);
-    }
-
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+        --primary-dark: #3730a3;
+        --hut-wood: #ffffff; 
+        --hut-border: #e2e8f0;
+        --roof-color: #4f46e5;
     }
 
     body {
         font-family: 'Inter', sans-serif;
-        background: var(--secondary-bg);
-        color: #1f2e3a;
-        line-height: 1.5;
+        background-color: #f1f5f9;
+        overflow-x: hidden;
     }
 
-    /* main content with left sidebar offset (same logic) */
+    .content {
+        padding-top: 10px;
+    }
+
     .main-content {
-        margin-left: 280px;
-        transition: all 0.2s ease;
-        min-height: 100vh;
-    }
-
-    /* custom scroll */
-    ::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: #dce5ec;
-        border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: var(--primary);
-        border-radius: 10px;
-    }
-
-    /* glassmorphism modern cards */
-    .dashboard-card {
-        background: var(--card-bg);
-        border-radius: var(--border-radius-xl);
-        box-shadow: var(--shadow-fresh);
-        border: 1px solid rgba(44, 125, 160, 0.08);
-        overflow: hidden;
+        padding: clamp(20px, 5vw, 60px) 15px;
         transition: all 0.3s ease;
     }
 
-    .dashboard-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 25px 40px -16px rgba(0, 0, 0, 0.18);
-    }
-
-    .card-header-fancy {
-        background: linear-gradient(105deg, #fff 0%, #f6fafd 100%);
-        padding: 1.6rem 2rem;
-        border-bottom: 2px solid var(--primary-light);
+    .hut-grand-wrapper {
+        max-width: 1000px;
+        margin: 0 auto;
         position: relative;
     }
 
-    .hero-icon-bg {
-        background: rgba(44, 125, 160, 0.1);
-        width: 52px;
-        height: 52px;
+    .hut-roof-crown {
+        width: 100%;
+        height: clamp(100px, 18vw, 180px);
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        margin-bottom: -1px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: clamp(15px, 4vw, 30px);
+        position: relative;
+        box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3);
+    }
+
+    .roof-logo {
+        color: white;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 900;
+        font-size: clamp(1.2rem, 4vw, 2.5rem);
+        letter-spacing: -1px;
+        text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        text-align: center;
+    }
+
+    .chimney {
+        width: 45px;
+        height: 80px;
+        background: #1e293b;
+        position: absolute;
+        top: 40px;
+        right: 22%;
+        border-radius: 4px 4px 0 0;
+        z-index: -1;
+    }
+
+    .hut-main-body {
+        background: #ffffff;
+        border: clamp(6px, 1.5vw, 12px) solid #ffffff;
+        border-radius: 0 0 clamp(40px, 10vw, 80px) clamp(40px, 10vw, 80px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        padding: clamp(20px, 6vw, 50px);
+        min-height: 500px;
+        position: relative;
+        border-top: 8px solid var(--primary);
+    }
+
+    .store-focal-point {
+        max-width: 800px;
+        margin: 0 auto;
+        position: relative; /* Context for absolute logo */
+    }
+
+    .store-hero-banner {
+        width: 100%;
+        height: clamp(160px, 25vw, 250px);
+        border-radius: clamp(20px, 5vw, 40px);
+        overflow: hidden; /* Clips the banner image */
+        position: relative;
+        background: #f8fafc;
+        border: 2px solid #f1f5f9;
+        margin-bottom: 0; /* Margin handled by logo space now */
+    }
+
+    .store-hero-banner img {
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover;
+    }
+
+    /* --- FIXED FULL LOGO POSITIONING --- */
+    .store-hero-logo {
+        width: clamp(100px, 18vw, 140px);
+        height: clamp(100px, 18vw, 140px);
+        background: white;
+        border-radius: clamp(25px, 4vw, 40px);
+        border: clamp(4px, 1vw, 8px) solid white;
+        
+        /* Positioning outside the overflow hidden banner */
+        margin: -60px auto 30px; 
+        position: relative;
+        z-index: 20; /* Ensures it sits above everything */
+        
+        box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.2);
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 28px;
-        color: var(--primary);
-        font-size: 1.6rem;
-    }
-
-    .greeting-modern {
-        background: linear-gradient(115deg, #ffffff, #fefaf5);
-        border-radius: 1.5rem;
-        border: 1px solid #ffe6d5;
-        padding: 0.75rem 1.5rem;
-        transition: 0.2s;
-    }
-
-    /* store card alternative: floating style */
-    .store-orbital {
-        background: white;
-        border-radius: 1.75rem;
-        transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
-        border: 1px solid #eef2f8;
         overflow: hidden;
+    }
+
+    .store-hero-logo img {
+        width: 100%;
         height: 100%;
-        display: flex;
-        flex-direction: column;
-        backdrop-filter: blur(0px);
+        object-fit: contain; /* Shows full logo without cropping */
+        padding: 5px;
     }
 
-    .store-orbital:hover {
-        border-color: var(--primary);
-        box-shadow: 0 20px 32px -15px var(--border-glow);
-        transform: translateY(-6px);
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: clamp(10px, 2vw, 20px);
+        margin-bottom: 40px;
     }
 
-    .store-header-gradient {
-        background: linear-gradient(120deg, #f9fcff, #ffffff);
-        padding: 1.2rem 1.5rem 0.8rem 1.5rem;
-        border-bottom: 1px solid #eef2fa;
+    .stat-card {
+        background: #f8fafc;
+        padding: clamp(15px, 3vw, 25px) 10px;
+        border-radius: 25px;
+        text-align: center;
+        border: 1px solid #eef2f6;
+        transition: 0.3s;
     }
 
-    .badge-neon {
-        font-weight: 600;
-        padding: 0.3rem 1rem;
-        border-radius: 50px;
-        font-size: 0.7rem;
-        letter-spacing: 0.3px;
-        backdrop-filter: blur(2px);
+    .stat-card:hover {
+        background: #ffffff;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
     }
 
-    .badge-active {
-        background: #dcfce7;
-        color: #166534;
-        font-weight: 600;
-    }
-
-    .badge-pending {
-        background: #fee2e2;
-        color: #b91c1c;
-        font-weight: 600;
-    }
-
-    .badge-expired {
-        background: #fee2e2;
-        color: #991b1b;
-    }
-
-    .plan-chip {
-        background: #f1f5f9;
-        border-radius: 40px;
-        padding: 0.3rem 1rem;
+    .stat-label {
         font-size: 0.7rem;
         font-weight: 700;
+        text-transform: uppercase;
+        color: #94a3b8;
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .stat-value {
+        font-size: clamp(1rem, 2.5vw, 1.4rem);
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    .hut-door-link {
+        background: var(--primary);
+        color: white;
+        text-decoration: none;
+        padding: 18px clamp(25px, 5vw, 40px);
+        border-radius: 22px;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        font-weight: 700;
+        font-size: clamp(0.9rem, 2vw, 1.1rem);
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
     }
 
-    .plan-gold-chip {
-        background: linear-gradient(135deg, #facc15, #eab308);
-        color: #78350f;
-        font-weight: bold;
-    }
-
-    .plan-silver-chip {
-        background: linear-gradient(135deg, #e5e7eb, #9ca3af);
-        color: #1f2937;
-        font-weight: bold;
-    }
-
-    .plan-premium-chip {
-        background: linear-gradient(135deg, #6366f1, #4f46e5);
+    .hut-door-link:hover {
+        background: var(--primary-dark);
         color: white;
-        font-weight: bold;
+        transform: scale(1.03);
     }
 
-    .theme-pill {
-        background: #eef2ff;
-        padding: 0.3rem 1rem;
-        border-radius: 40px;
-        font-size: 0.7rem;
-        font-weight: 500;
-    }
-
-    .btn-aurora {
-        background: var(--primary-gradient);
-        border: none;
-        border-radius: 2.2rem;
-        padding: 0.55rem 1.2rem;
-        font-weight: 600;
-        transition: all 0.2s;
+    .status-ribbon {
+        position: absolute;
+        top: 20px;
+        right: -10px;
+        background: #22c55e;
         color: white;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        padding: 8px 25px;
+        font-weight: 800;
+        font-size: 0.75rem;
+        border-radius: 10px 0 0 10px;
+        text-transform: uppercase;
+        box-shadow: -5px 5px 15px rgba(0,0,0,0.1);
+        z-index: 5;
     }
 
-    .btn-aurora:hover {
-        background: linear-gradient(95deg, #1f6a8c, #124c63);
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px -8px rgba(44, 125, 160, 0.5);
-        color: white;
+    @media (max-width: 991px) {
+        .main-content { margin-left: 0; padding: 20px 10px; }
+        .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
-    .btn-outline-soft {
-        background: transparent;
-        border: 1.5px solid var(--primary-brand);
-        color: var(--primary-brand);
-        border-radius: 2rem;
-        font-weight: 500;
-        transition: 0.2s;
-    }
-
-    .btn-outline-soft:hover {
-        background: var(--primary-brand);
-        color: white;
-        transform: translateY(-1px);
-    }
-
-    .empty-illustration {
-        background: #eef3fc;
-        width: 110px;
-        height: 110px;
-        border-radius: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1.5rem;
-        color: var(--primary-brand);
-        font-size: 3rem;
-    }
-
-    hr.dash-line {
-        border-top: 2px dashed #dce5ec;
-        opacity: 0.6;
-        margin: 1rem 0;
-    }
-
-    @media (max-width: 768px) {
-        .main-content {
-            margin-left: 0;
-        }
-
-        .card-header-fancy {
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .greeting-modern {
-            flex-direction: column;
-            align-items: flex-start !important;
-            gap: 12px;
-        }
-    }
-
-    .stat-badge {
-        font-size: 0.7rem;
-        background: #f1f5f9;
-        border-radius: 20px;
-        padding: 0.2rem 0.7rem;
-    }
-
-    .store-container-card {
-        background: white;
-        border-radius: 1.5rem;
-        padding: 1.5rem;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-        border: 1px solid #eef2f8;
-    }
-
-    .store-scroll-box {
-    max-height: calc(100vh - 300px);  /* 👈 dynamic height */
-    overflow-y: auto;
-    padding-right: 5px;
-    padding-bottom: 20px;
-}
-.store-scroll-box .col-12:last-child {
-    margin-bottom: 20px;
-}
-    /* scrollbar styling */
-    .store-scroll-box::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .store-scroll-box::-webkit-scrollbar-thumb {
-        background: var(--primary);
-        border-radius: 10px;
-    }
-
-    .greeting-modern {
-        text-align: center;
-        width: 100%;
+    @media (max-width: 576px) {
+        .dashboard-grid { grid-template-columns: 1fr; }
+        .chimney { display: none; }
+        .status-ribbon { right: 0; top: 10px; padding: 5px 15px; }
+        .hut-door-link { width: 100%; justify-content: center; }
+        .store-hero-logo { margin-top: -40px; }
     }
 </style>
-</head>
 
-<body>
-
+<div class="content"> 
     <div class="main-content">
-        <div class="container py-4 py-xl-5 px-3 px-lg-4">
-            <div class="row g-4">
-                <div class="col-12">
-                    <!-- MAIN DASHBOARD CARD - redesigned with fresh header pattern -->
-                    <div class="dashboard-card">
-                        <div class="card-header-fancy d-flex flex-wrap justify-content-between align-items-center">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="hero-icon-bg">
-                                    <i class="fas fa-chart-line"></i>
-                                </div>
-                                <div>
-                                    <h2 class="fw-bold mb-0" style="color: #0a2f3f;">Reseller Dashboard</h2>
-                                    <p class="text-secondary-emphasis small mb-0">Control tower · Store intelligence</p>
-                                </div>
+        <div class="hut-grand-wrapper">
+            <div class="chimney"></div>
+            <div class="hut-roof-crown">
+                <span class="roof-logo">Reseller Dashboard</span>
+            </div>
+
+            <div class="hut-main-body">
+                {% if stores %}
+                    {% with store=stores|first %} 
+                    <div class="store-focal-point text-center">
+                        
+                        {% if store.status == 'active' %}
+                        <div class="status-ribbon">Store Live</div>
+                        {% endif %}
+
+                        <div class="store-hero-banner">
+                            {% if store.store_banner %}
+                                <img src="{{ store.store_banner.url }}" alt="banner">
+                            {% else %}
+                                <img src="{% static 'images/bg.png' %}" alt="default banner">
+                            {% endif %}
+                        </div>
+
+                        <div class="store-hero-logo">
+                            {% if store.store_logo %}
+                                <img src="{{ store.store_logo.url }}" alt="logo">
+                            {% else %}
+                                <img src="{% static 'images/user.png' %}" alt="default logo">
+                            {% endif %}
+                        </div>
+
+                        <h1 class="fw-800 mb-1" style="font-size: clamp(1.8rem, 5vw, 2.5rem); color: #0f172a;">{{ store.store_name }}</h1>
+                        <a href="https://{{ store.subdomain }}.example.com" target="_blank" class="text-decoration-none">
+                            <p class="text-primary fw-600 mb-4">{{ store.subdomain }}.example.com</p>
+                        </a>
+                        
+                        <p class="text-muted mx-auto mb-5" style="max-width: 600px; font-size: 0.95rem;">
+                            {{ store.store_description|default:"Your premium digital storefront is ready for business. Manage your products, themes, and analytics below." }}
+                        </p>
+
+                        <div class="dashboard-grid">
+                            <div class="stat-card">
+                                <span class="stat-label">Visitor Traffic</span>
+                                <span class="stat-value"><i class="fas fa-users me-2 text-primary"></i>{{ store.total_visitors }}</span>
                             </div>
-                            <div class="mt-2 mt-sm-0">
-                                <a href="{% url 'resellers:create_store_step1' %}" class="btn btn-aurora px-3 py-1">
-                                    <i class="fas fa-plus me-1"></i> New Store
-                                </a>
+                            <div class="stat-card">
+                                <span class="stat-label">Current Plan</span>
+                                <span class="stat-value"><i class="fas fa-crown me-2 text-warning"></i>{{ store.subscription_plan.get_name_display }}</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-label">Subscription</span>
+                                <span class="stat-value">
+                                    <i class="fas fa-clock me-2 text-info"></i>
+                                    {% if store.subscription_end %}
+                                        {{ store.days_until_expiry }}d left
+                                    {% else %}
+                                        Lifetime
+                                    {% endif %}
+                                </span>
                             </div>
                         </div>
 
-                        <div class="p-4 p-xl-5">
-                            <!-- Welcome + CTA block (modernized) -->
-                            <div
-                                class="greeting-modern text-center d-flex flex-column align-items-center justify-content-center mb-4">
-                                <div>
-                                    <h4 class="fw-semibold mb-1 d-flex gap-2 align-items-center">
-                                        <i class="fas fa-hand-peace text-primary"></i> Hello, {{ user.first_name }}!
-                                    </h4>
-                                    <p class="text-muted small mb-0">Optimize your store portfolio & track growth
-                                        metrics</p>
-                                </div>
-
+                        <div class="mb-5 d-flex flex-wrap justify-content-center gap-3">
+                            <div class="small bg-light px-3 py-2 rounded-pill">
+                                <i class="fas fa-layer-group me-2"></i>Theme: <strong>{{ store.theme.name }}</strong>
                             </div>
-
-                            <!-- Conditional: stores existing or empty state -->
-                            {% if stores %}
-                            <div class="store-container-card p-4 mb-5">
-
-                                <!-- HEADER -->
-                                <div class="d-flex align-items-center justify-content-between mb-3">
-                                    <h5 class="fw-semibold mb-0">
-                                        <i class="fas fa-th-large me-2" style="color: var(--primary);"></i>
-                                        Your Store Ecosystem
-                                    </h5>
-                                    <span class="badge bg-secondary bg-opacity-10 text-dark px-3 py-2 rounded-pill">
-                                        {{ stores|length }} Active Store{{ stores|length|pluralize:"s" }}
-                                    </span>
-                                </div>
-
-                                <!-- SCROLL AREA -->
-                                <div class="row g-4 store-scroll-box">
-                                    {% for store in stores %}
-                                    <div class="col-12 col-md-6 d-flex align-items-stretch">
-                                        <div class="store-orbital w-100">
-
-                                            <!-- HEADER -->
-                                            <div
-                                                class="store-header-gradient d-flex justify-content-between align-items-start">
-                                                <div class="d-flex gap-3">
-                                                    <div
-                                                        style="background: #eef3fc; width: 44px; height: 44px; border-radius: 18px; display: flex; align-items: center; justify-content: center;">
-                                                        <i class="fas fa-store-alt"
-                                                            style="color: var(--primary); font-size: 1.3rem;"></i>
-                                                    </div>
-                                                    <div>
-                                                        <h5 class="fw-bold mb-0">{{ store.store_name }}</h5>
-                                                        <p class="text-muted small mb-0 mt-1">
-                                                            {{ store.store_description|default:"— quick description —"|truncatewords:14 }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <div>
-                                                    {% if store.status == 'active' and store.is_published %}
-                                                    <span class="badge-neon badge-active">Live</span>
-                                                    {% elif store.status == 'pending_payment' %}
-                                                    <span class="badge-neon badge-pending">Payment pending</span>
-                                                    {% else %}
-                                                    <span class="badge-neon badge-expired">{{ store.status }}</span>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-
-                                            <!-- BODY -->
-                                            <div class="p-4 flex-grow-1">
-
-                                                <div class="row g-3 mb-3">
-                                                    <div class="col-6">
-                                                        <span class="text-uppercase small">Plan</span><br>
-                                                        <span class="plan-chip">{{ store.subscription_plan }}</span>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <span class="text-uppercase small">Theme</span><br>
-                                                        <span class="theme-pill">{{ store.theme }}</span>
-                                                    </div>
-                                                </div>
-
-                                                <hr class="dash-line">
-
-                                                <a href="{{ store.next_step_url }}" class="btn btn-aurora w-100">
-                                                    {{ store.next_step }}
-                                                </a>
-
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-
+                            <div class="small bg-light px-3 py-2 rounded-pill">
+                                <i class="fas fa-calendar-alt me-2"></i>Since: <strong>{{ store.created_at|date:"M Y" }}</strong>
                             </div>
-                            {% else %} 
-                            <!-- empty state: fresh, vibrant and inspiring -->
-                            <div class="text-center py-5 my-3">
-                                <div class="empty-illustration">
-                                    <i class="fas fa-store-slash fa-3x"></i>
-                                </div>
-                                <h3 class="fw-bold mt-3" style="color: #0f3b4f;">Launch your digital storefront</h3>
-                                <p class="text-secondary mx-auto px-2" style="max-width: 500px;">Create a
-                                    professional online store with powerful tools, custom themes, and seamless
-                                    checkout experience.</p>
-                                <div class="mt-4">
-                                    <a href="{% url 'resellers:create_store_step1' %}"
-                                        class="btn btn-aurora btn-lg rounded-pill px-5 py-3 shadow-sm">
-                                        <i class="fas fa-magic me-2"></i> Create Your Store
-                                    </a>
-                                </div>
-                                <div class="mt-5 d-flex justify-content-center gap-3 flex-wrap small text-secondary">
-                                    <span><i class="fas fa-tachometer-alt me-1"></i> Instant setup</span>
-                                    <span><i class="fas fa-chart-line me-1"></i> Real-time stats</span>
-                                    <span><i class="fas fa-headset me-1"></i> Priority support</span>
-                                </div>
-                            </div>
-{% endif %}
                         </div>
+
+                        <a href="{{ store.next_step_url }}" class="hut-door-link">
+                            <span>{{ store.next_step }}</span>
+                            <i class="fas fa-door-open ms-3"></i>
+                        </a>
                     </div>
-
-                </div>
+                    {% endwith %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-campground fa-5x mb-4 text-light"></i>
+                        <h2 class="fw-bold">Hut is Vacant</h2>
+                        <p class="text-muted">No active stores were found for your account.</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // All links, context variables, and dynamic behavior exactly same as original
-        // This ensures no functional change – only visual layer updated
-        (function () {
-            console.log("Design refreshed (alternate version) — full backend compatibility preserved");
-            // any potential tooltips or additional interactions are optional but zero override
-        })();
-    </script>
-</body>
+</div>
 
-</html>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}
