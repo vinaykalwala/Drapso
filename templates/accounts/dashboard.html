@@ -1,31 +1,729 @@
+{% include "includes/sidebar.html" %}
+{% load static %}
 
-  {% include "includes/sidebar.html" %}
 {% block content %}
-<div class="content">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h4>
-            </div>
-          
-                    
-                    <i class="fas fa-user-circle fa-5x text-primary mb-3" style="display: none;"></i>
-                    <h2 class="display-4">Welcome, {{ user.first_name|default:user.username }}!</h2>
-                    <p class="lead text-muted">You are logged in as a <strong>{{ user.get_role_display }}</strong></p>
-                    
-                    <hr class="my-4 w-50 mx-auto">
-                    
-                    <div class="mt-4">
-                        <a href="{% url 'accounts:profile' %}" class="btn btn-info btn-lg me-2">
-                            <i class="fas fa-user-edit me-2"></i>My Profile
-                        </a>
-                        <a href="{% url 'accounts:change_password' %}" class="btn btn-warning btn-lg">
-                            <i class="fas fa-key me-2"></i>Change Password
-                        </a>
-                    </div>
-                </div>
-            </div>
+<div class="dashboard-wrapper">
+
+    <!-- HEADER -->
+    <div class="dashboard-top">
+        <h2 class="dashboard-title">
+            <i class="fas fa-gauge-high"></i> Dashboard
+        </h2>
+
+        <div class="date-box">
+            <i class="fas fa-calendar-days"></i>
+            <span id="currentDate"></span>
         </div>
     </div>
+
+
+    <!-- WELCOME HERO -->
+    <div class="welcome-card">
+
+        <div class="welcome-left">
+            <h1 class="welcome-heading">
+    Welcome, {{ user.first_name|default:user.username }}!
+    <span class="heart-icon"><i class="fas fa-heart heart-icon"></i></span>
+</h1>
+
+            <p class="nice-day"><i class="far fa-smile smile-icon"></i> Have a nice day at work</p>
+
+            <div class="role-badge">
+                <i class="fas fa-user"></i>
+                You are logged in as a {{ user.get_role_display }}
+            </div>
+
+            <div class="btn-group-custom">
+                <a href="{% url 'accounts:profile' %}" class="profile-btn">
+                    <i class="fas fa-user"></i> My Profile
+                </a>
+
+                <a href="{% url 'accounts:change_password' %}" class="password-btn">
+                    <i class="fas fa-key"></i> Change Password
+                </a>
+            </div>
+        </div>
+
+        <div class="welcome-right">
+    {% if store and store.store_banner %}
+        <img src="{{ store.store_banner.url }}" alt="{{ store.store_name }} Banner">
+    {% else %}
+        <div class="default-banner-placeholder">
+            <i class="fas fa-store"></i>
+            <span>No Banner Uploaded</span>
+        </div>
+    {% endif %}
 </div>
+    </div>
+
+
+    {% if store %}
+    <!-- STATS -->
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <i class="fas fa-store"></i>
+            <h3>{{ store.store_name }}</h3>
+            <p>Store Name</p>
+        </div>
+
+        <div class="stat-card">
+            <i class="fas fa-layer-group"></i>
+            <h3>{{ store.subscription_plan.get_name_display }}</h3>
+            <p>Subscription Plan</p>
+        </div>
+
+        <div class="stat-card">
+            <i class="fas fa-chart-line"></i>
+            <h3>{{ store.total_visitors }}</h3>
+            <p>Total Visitors</p>
+        </div>
+
+        <div class="stat-card">
+            <i class="fas fa-check-circle"></i>
+            <h3>
+                <span class="status-badge status-{{ store.status }}">
+                    {{ store.status|title }}
+                </span>
+            </h3>
+            <p>Store Status</p>
+        </div>
+
+    </div>
+
+
+    <!-- DETAILS + ACTIONS -->
+    <div class="bottom-grid">
+
+        <!-- STORE DETAILS -->
+        <div class="info-card">
+          <h3>
+    {% if store.store_logo %}
+        <img src="{{ store.store_logo.url }}" class="summary-logo">
+    {% else %}
+        <span class="summary-logo-fallback">
+            <i class="fas fa-store"></i>
+        </span>
+    {% endif %}
+    Store Summary
+</h3>
+
+            <div class="summary-grid">
+
+                <div class="summary-box">
+                    <small>Theme</small>
+                    <strong>{{ store.theme.name }}</strong>
+                </div>
+
+                <div class="summary-box">
+                    <small>Subdomain</small>
+                    <strong>{{ store.subdomain }}</strong>
+                </div>
+
+                <div class="summary-box">
+                    <small>Published</small>
+                    <strong>
+                        {% if store.is_published %}Yes{% else %}No{% endif %}
+                    </strong>
+                </div>
+
+                <div class="summary-box">
+                    <small>Expiry</small>
+                    <strong>
+                        {% if store.subscription_end %}
+                        {{ store.subscription_end|date:"M d, Y" }}
+                        {% else %}
+                        Lifetime
+                        {% endif %}
+                    </strong>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- QUICK ACTIONS -->
+        <div class="info-card">
+            <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+
+            <div class="quick-actions">
+
+                <a href="{% url 'resellers:store_dashboard' store.id %}">
+                    <i class="fas fa-shop"></i> Manage Store
+                </a>
+
+                <a href="{% url 'resellers:preview_store' store.id %}">
+                    <i class="fas fa-eye"></i> Preview Store
+                </a>
+
+                <a href="{% url 'resellers:edit_store' store.id %}">
+                    <i class="fas fa-edit"></i> Edit Store
+                </a>
+
+                <a href="{% url 'resellers:manage_subscription' store.id %}">
+                    <i class="fas fa-sync"></i> Subscription
+                </a>
+
+            </div>
+        </div>
+
+    </div>
+    {% endif %}
+
+</div>
+
+
+<script>
+    const dateElement = document.getElementById("currentDate");
+
+    dateElement.innerHTML = new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
+</script>
+<style>
+    .dashboard-wrapper {
+        margin-left: 260px;
+        padding: 30px;
+        background: #f5f7ff;
+        min-height: 100vh;
+    }
+
+    .dashboard-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .dashboard-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1e1b4b;
+    }
+
+    .date-box {
+        background: #fff;
+        padding: 14px 24px;
+        border-radius: 50px;
+        box-shadow: 0 4px 20px rgba(99, 102, 241, .08);
+    }
+
+    .welcome-card {
+        background: #fff;
+        border-radius: 24px;
+        padding: 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 40px;
+        box-shadow: 0 4px 20px rgba(99, 102, 241, .08);
+        margin-bottom: 30px;
+    }
+
+    .welcome-left {
+        flex: 1;
+    }
+
+    .welcome-right {
+        flex: 1.3;
+        text-align: right;
+        position: relative;
+        z-index: 2;
+    }
+
+    .welcome-right img {
+        width: 100%;
+        max-width: 480px;
+        height: 280px;
+        object-fit: cover;
+        border-radius: 22px;
+        box-shadow: 0 20px 40px rgba(79, 70, 229, 0.15);
+        border: 4px solid rgba(255, 255, 255, 0.7);
+    }
+
+    .welcome-card h1 {
+        font-size: 2.7rem;
+        color: #4f46e5;
+        font-weight: 800;
+    }
+
+    .nice-day {
+        font-size: 1.1rem;
+        color: #64748b;
+        margin: 15px 0;
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 12px 24px;
+        background: #eef2ff;
+        border-radius: 50px;
+        color: #4f46e5;
+        margin-bottom: 25px;
+        font-weight: 600;
+    }
+
+    .btn-group-custom {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .profile-btn,
+    .password-btn {
+        padding: 14px 28px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .profile-btn {
+        border: 2px solid #4f46e5;
+        color: #4f46e5;
+    }
+
+    .password-btn {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        color: #fff;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: #fff;
+        padding: 25px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(99, 102, 241, .08);
+    }
+
+    .stat-card i {
+        font-size: 28px;
+        color: #4f46e5;
+        margin-bottom: 15px;
+    }
+
+    .stat-card h3 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1e1b4b;
+    }
+
+    .stat-card p {
+        color: #64748b;
+    }
+
+    .bottom-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .info-card {
+        background: #fff;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(99, 102, 241, .08);
+    }
+
+    .info-card h3 {
+        margin-bottom: 20px;
+        color: #1e1b4b;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+
+    .quick-actions {
+        display: grid;
+        gap: 15px;
+    }
+
+    .quick-actions a {
+        text-decoration: none;
+        padding: 14px 20px;
+        background: #eef2ff;
+        color: #4f46e5;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .welcome-card {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #ffffff 0%, #eef2ff 100%);
+    }
+
+    .welcome-card::before {
+        content: "";
+        position: absolute;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        background: rgba(99, 102, 241, 0.08);
+        top: -80px;
+        right: -60px;
+    }
+
+    .welcome-card::after {
+        content: "";
+        position: absolute;
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: rgba(79, 70, 229, 0.08);
+        bottom: -50px;
+        right: 180px;
+    }
+
+    .stat-card,
+    .info-card,
+    .welcome-card {
+        transition: all .3s ease;
+    }
+
+    .stat-card:hover,
+    .info-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 18px 35px rgba(79, 70, 229, .12);
+    }
+
+    .quick-actions a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: .3s;
+    }
+
+    .quick-actions a:hover {
+        background: #4f46e5;
+        color: white;
+        transform: translateX(5px);
+    }
+
+    .stat-card i {
+        width: 55px;
+        height: 55px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        border-radius: 50%;
+        background: #eef2ff;
+        color: #4f46e5;
+        font-size: 22px;
+    }
+
+    .status-badge {
+        padding: 8px 14px;
+        border-radius: 30px;
+        font-size: 14px;
+    }
+
+    .status-active {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+
+    .status-pending_payment {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .status-expired {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .summary-box {
+        background: #f8faff;
+        border: 1px solid #eef2ff;
+        padding: 18px;
+        border-radius: 16px;
+        transition: .3s;
+    }
+
+    .summary-box:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(79, 70, 229, .08);
+    }
+
+    .summary-box small {
+        display: block;
+        color: #64748b;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .summary-box strong {
+        font-size: 16px;
+        color: #1e1b4b;
+    }
+    .summary-logo{
+    width:40px;
+    height:40px;
+    border-radius:12px;
+    object-fit:cover;
+    margin-right:10px;
+    vertical-align:middle;
+}
+
+.summary-logo-fallback{
+    width:40px;
+    height:40px;
+    border-radius:12px;
+    background:#eef2ff;
+    color:#4f46e5;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    margin-right:10px;}
+/* =========================================
+   LARGE LAPTOPS / SMALL DESKTOPS
+========================================= */
+@media (max-width: 1400px) {
+    .welcome-right img {
+        max-width: 420px;
+        height: 240px;
+    }
+
+    .welcome-card h1 {
+        font-size: 2.3rem;
+    }
+}
+
+
+/* =========================================
+   TABLETS / SMALL LAPTOPS
+========================================= */
+@media (max-width: 1200px) {
+    .dashboard-wrapper {
+        padding: 25px;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .bottom-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .welcome-right img {
+        max-width: 380px;
+        height: 220px;
+    }
+}
+
+
+/* =========================================
+   TABLETS
+========================================= */
+@media (max-width: 992px) {
+    .welcome-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 30px;
+    }
+
+    .welcome-left,
+    .welcome-right {
+        width: 100%;
+    }
+
+    .welcome-right {
+        text-align: center;
+    }
+
+    .welcome-right img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .btn-group-custom {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px){
+
+    .dashboard-wrapper{
+        margin-left: 0;
+        padding: 85px 16px 20px;
+    }
+
+    .dashboard-top{
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .dashboard-title{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        width: 100%;
+    }
+
+    .date-box{
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
+/* =========================================
+   MOBILE DEVICES
+========================================= */
+@media (max-width: 768px) {
+   
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .welcome-card h1 {
+        font-size: 2rem;
+    }
+
+    .profile-btn,
+    .password-btn {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .btn-group-custom {
+        flex-direction: column;
+        width: 100%;
+    }
+}
+
+
+/* =========================================
+   SMALL MOBILE DEVICES
+========================================= */
+@media (max-width: 480px) {
+    .dashboard-wrapper {
+      padding: 80px 12px 16px;
+    }
+
+    .welcome-card,
+    .info-card,
+    .stat-card {
+        padding: 20px;
+        border-radius: 16px;
+    }
+
+    .welcome-card h1 {
+        font-size: 1.6rem;
+        line-height: 1.4;
+    }
+
+    .nice-day {
+        font-size: 0.95rem;
+    }
+
+    .dashboard-title {
+        font-size: 1.3rem;
+    }
+
+    .date-box {
+        font-size: 13px;
+        padding: 10px 14px;
+    }
+
+    .summary-box {
+        padding: 14px;
+    }
+
+    .quick-actions a {
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+
+    .stat-card h3 {
+        font-size: 18px;
+    }
+}
+.welcome-heading{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    font-size:2.7rem;
+    color:#4f46e5;
+    font-weight:800;
+    margin-bottom:10px;
+}
+
+.heart-icon{
+    font-size:2.3rem;
+    line-height:1;
+    display:inline-flex;
+    align-items:center;
+}/* STORE LOGO FALLBACK */
+.summary-logo-fallback{
+    width:40px;
+    height:40px;
+    border-radius:12px;
+    background:#eef2ff;
+    color:#4f46e5;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    margin-right:10px;
+    vertical-align:middle;
+    font-size:18px;
+}
+
+
+/* STORE BANNER FALLBACK */
+.default-banner-placeholder{
+    width:100%;
+    max-width:480px;
+    height:280px;
+    border-radius:22px;
+    background:linear-gradient(135deg,#eef2ff,#dbeafe);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    color:#4f46e5;
+    font-weight:600;
+    font-size:15px;
+    box-shadow:0 20px 40px rgba(79,70,229,0.10);
+    border:2px dashed rgba(79,70,229,0.15);
+}
+
+.default-banner-placeholder i{
+    font-size:42px;
+}
+</style>
 {% endblock %}
