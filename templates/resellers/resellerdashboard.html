@@ -61,14 +61,14 @@
     }
 
     .chimney {
-        width: 45px;
-        height: 80px;
-        background: #1e293b;
-        position: absolute;
-        top: 40px;
-        right: 22%;
-        border-radius: 4px 4px 0 0;
-        z-index: -1;
+    width: clamp(25px, 5vw, 45px);
+    height: clamp(50px, 10vw, 80px);
+    background: #1e293b;
+    position: absolute;
+    top: clamp(20px, 5vw, 40px);
+    right: clamp(10%, 15vw, 22%);
+    border-radius: 4px 4px 0 0;
+    z-index: -1; /* IMPORTANT: bring it above */
     }
 
     .hut-main-body {
@@ -211,17 +211,24 @@
 
     @media (max-width: 576px) {
         .dashboard-grid { grid-template-columns: 1fr; }
-        .chimney { display: none; }
+        /* .chimney { display: none; } */
         .status-ribbon { right: 0; top: 10px; padding: 5px 15px; }
         .hut-door-link { width: 100%; justify-content: center; }
         .store-hero-logo { margin-top: -40px; }
+    }
+
+    @media (max-width: 576px) {
+        .chimney {
+            right: 18%;
+            top: 25px;
+        }
     }
 </style>
 
 <div class="content"> 
     <div class="main-content">
         <div class="hut-grand-wrapper">
-
+            <div class="chimney"></div>
             <!-- HEADER -->
             <div class="hut-roof-crown">
                 <span class="roof-logo">Reseller Dashboard</span>
