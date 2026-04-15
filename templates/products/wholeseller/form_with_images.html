@@ -41,6 +41,10 @@
             color: var(--text-main);
         }
 
+        .content{
+            padding-top: 10px;
+        }
+        
         .form-container {
             max-width: 1400px;
             margin: 2rem auto;
@@ -314,7 +318,7 @@
 
         <div class="form-group">
 
-            {% if field.name == "is_active" or field.name == "is_featured" %}
+            {% if field.name == "is_active" or field.name == "is_featured" or field.name == "is_shippable" or field.name == "is_returnable" or field.name == "is_replaceable" %}
 
                 <!-- TOGGLE UI -->
                 <div class="d-flex justify-content-between align-items-center">

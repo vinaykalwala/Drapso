@@ -4,618 +4,306 @@
 {% block content %}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-<link
-    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
-    rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+
 <style>
-    /* ----- SOPHISTICATED DARK-LIGHT DESIGN SYSTEM (SAME COLORS, BOLDER ARCHITECTURE) ----- */
     :root {
         --primary: #4f46e5;
-        --primary-light: #6366f1;
-        --primary-dark: #4338ca;
-        --primary-gradient: linear-gradient(135deg, #4f46e5, #6366f1);
-        --secondary-bg: #f8fafc;
-        --border-glow: rgba(99, 102, 241, 0.2);
-        --card-radius: 1.5rem;
-        --glass-border: rgba(255, 255, 255, 0.5);
-    }
-
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+        --primary-dark: #3730a3;
+        --hut-wood: #ffffff; 
+        --hut-border: #e2e8f0;
+        --roof-color: #4f46e5;
     }
 
     body {
         font-family: 'Inter', sans-serif;
-        background: linear-gradient(145deg, #f1f5f9 0%, #f8fafc 100%);
-        color: #0f172a;
-        line-height: 1.5;
+        background-color: #f1f5f9;
+        overflow-x: hidden;
     }
 
-    /* main content with left sidebar offset */
+    .content {
+        padding-top: 10px;
+    }
+
     .main-content {
-        margin-left: 280px;
-        transition: all 0.2s ease;
-        min-height: 100vh;
+        padding: clamp(20px, 5vw, 60px) 15px;
+        transition: all 0.3s ease;
     }
 
-    /* modern scroll */
-    ::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: #e2e8f0;
-        border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: var(--primary);
-        border-radius: 10px;
-    }
-
-    /* dashboard master card */
-    .dashboard-card {
-        background: rgba(255, 255, 255, 0.96);
-        backdrop-filter: blur(0px);
-        border-radius: var(--card-radius);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
-        border: 1px solid rgba(79, 70, 229, 0.12);
-        overflow: hidden;
-    }
-
-    /* layered header */
-    .card-header-fancy {
-        background: linear-gradient(125deg, #ffffff 0%, #fef9f0 100%);
-        padding: 1.8rem 2rem;
-        border-bottom: 3px solid var(--primary);
-        position: relative;
-    }
-
-    .card-header-fancy::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 200px;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.03));
-        pointer-events: none;
-    }
-
-    .hero-icon-bg {
-        background: linear-gradient(145deg, rgba(79, 70, 229, 0.12), rgba(99, 102, 241, 0.08));
-        width: 60px;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 20px;
-        color: var(--primary);
-        font-size: 1.8rem;
-        border: 1px solid rgba(79, 70, 229, 0.2);
-    }
-
-    /* welcome card - split style */
-    .greeting-modern {
-        background: linear-gradient(115deg, #ffffff, #fffaf5);
-        border-radius: 1.75rem;
-        border: 1px solid #ffe6d5;
-        padding: 1.2rem 2rem;
-        transition: 0.2s;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-    }
-
-    /* store card: neo-brutalist soft */
-    .store-orbital {
-        background: white;
-        border-radius: 1.75rem;
-        transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
-        border: 1px solid #eef2f8;
-        overflow: hidden;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
-    }
-
-    .store-orbital::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        border-radius: 1.75rem;
-        padding: 1px;
-        background: linear-gradient(145deg, transparent 30%, var(--primary-light) 100%);
-        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        -webkit-mask-composite: xor;
-        mask-composite: exclude;
-        opacity: 0;
-        transition: opacity 0.3s;
-        pointer-events: none;
-    }
-
-    .store-orbital:hover::after {
-        opacity: 1;
-    }
-
-    .store-orbital:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 25px 35px -18px var(--border-glow);
-        border-color: rgba(79, 70, 229, 0.2);
-    }
-
-    .store-header-gradient {
-        background: #ffffff;
-        padding: 1.4rem 1.5rem 1rem 1.5rem;
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-    /* badges redesign */
-    .badge-neon {
-        font-weight: 600;
-        padding: 0.35rem 1rem;
-        border-radius: 40px;
-        font-size: 0.7rem;
-        letter-spacing: 0.2px;
-        backdrop-filter: blur(2px);
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .badge-active {
-        background: #dcfce7;
-        color: #166534;
-        border: 1px solid #bbf7d0;
-    }
-
-    .badge-pending {
-        background: #fffbeb;
-        color: #b45309;
-        border: 1px solid #fde68a;
-    }
-
-    .badge-expired {
-        background: #f1f5f9;
-        color: #475569;
-        border: 1px solid #e2e8f0;
-    }
-
-    .plan-chip {
-        background: #f1f5f9;
-        border-radius: 40px;
-        padding: 0.3rem 1rem;
-        font-size: 0.7rem;
-        font-weight: 700;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .plan-gold-chip {
-        background: linear-gradient(135deg, #facc15, #eab308);
-        color: #78350f;
-    }
-
-    .plan-silver-chip {
-        background: linear-gradient(135deg, #e5e7eb, #9ca3af);
-        color: #1f2937;
-    }
-
-    .plan-premium-chip {
-        background: linear-gradient(135deg, #6366f1, #4f46e5);
-        color: white;
-    }
-
-    .theme-pill {
-        background: #eef2ff;
-        padding: 0.3rem 1rem;
-        border-radius: 40px;
-        font-size: 0.7rem;
-        font-weight: 500;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    /* buttons: refined */
-    .btn-aurora {
-        background: var(--primary-gradient);
-        border: none;
-        border-radius: 2rem;
-        padding: 0.7rem 1.2rem;
-        font-weight: 600;
-        transition: all 0.2s;
-        color: white;
-        box-shadow: 0 4px 8px rgba(79, 70, 229, 0.2);
-    }
-
-    .btn-aurora:hover {
-        background: linear-gradient(95deg, #4338ca, #4f46e5);
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px -8px rgba(79, 70, 229, 0.5);
-        color: white;
-    }
-
-    .btn-outline-soft {
-        background: transparent;
-        border: 1.5px solid var(--primary);
-        color: var(--primary);
-        border-radius: 2rem;
-        font-weight: 500;
-        transition: 0.2s;
-    }
-
-    .btn-outline-soft:hover {
-        background: var(--primary);
-        color: white;
-        transform: translateY(-1px);
-    }
-
-    .empty-illustration {
-        background: linear-gradient(145deg, #eef3fc, #ffffff);
-        width: 120px;
-        height: 120px;
-        border-radius: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1.5rem;
-        color: var(--primary);
-        font-size: 3.2rem;
-        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05);
-        border: 1px solid #eef2ff;
-    }
-
-    hr.dash-line {
-        border-top: 2px dotted #cbd5e1;
-        opacity: 0.6;
-        margin: 1rem 0;
-    }
-
-    /* scroll container for stores */
-    .store-scroll-box {
-    padding-right: 0;
-    padding-bottom: 0;
-}
-    .store-scroll-box::-webkit-scrollbar {
-        width: 4px;
-    }
-
-    .store-scroll-box::-webkit-scrollbar-thumb {
-        background: var(--primary);
-        border-radius: 10px;
-    }
-
-    .store-logo-small {
-        width: 52px;
-        height: 52px;
-        border-radius: 16px;
-        object-fit: cover;
-        border: 1px solid #eef2ff;
-        background: #fafcff;
-    }
-
-    .single-store-card {
-        max-width: 580px;
+    .hut-grand-wrapper {
+        max-width: 1000px;
         margin: 0 auto;
-    }
-
-    .store-container-card {
-        background: #ffffff;
-        border-radius: 2rem;
-        padding: 2rem;
-        box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.06);
-        border: 1px solid #edf2f7;
-    }.store-container-card {
-    margin-top: 0 !important;
-    padding-top: 1.2rem;  /* reduce from 2rem */
-}
-.pro-welcome-card {
-    margin-bottom: 10px !important;
-}
-    /* feature chips */
-    .feature-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 12px;
-    }
-
-    .feature-chip {
-        background: #f8fafc;
-        padding: 4px 10px;
-        border-radius: 30px;
-        font-size: 0.7rem;
-        color: #334155;
-        border: 1px solid #e2e8f0;
-    }
-
-    @media (max-width: 768px) {
-        .main-content {
-            margin-left: 0;
-        }
-
-        .card-header-fancy {
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .greeting-modern {
-            flex-direction: column;
-            text-align: center;
-            gap: 12px;
-        }
-
-        .store-container-card {
-            padding: 1.2rem;
-        }
-    }
-
-    .stat-badge {
-        font-size: 0.7rem;
-        background: #f1f5f9;
-        border-radius: 30px;
-        padding: 0.25rem 0.9rem;
-    }
-
-    .text-gradient-primary {
-        background: var(--primary-gradient);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-    }
-
-    .reseller-header-pro {
         position: relative;
     }
 
-    .pro-icon {
-        background: linear-gradient(135deg, #6366f1, #4f46e5);
-        color: white;
-        box-shadow: 0 6px 18px rgba(79, 70, 229, 0.3);
-    }
-
-    .reseller-badge {
-        background: #eef2ff;
-        padding: 6px 14px;
-        border-radius: 30px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #4f46e5;
+    .hut-roof-crown {
+        width: 100%;
+        height: clamp(100px, 18vw, 180px);
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        margin-bottom: -1px;
         display: flex;
-        align-items: center;
-        gap: 6px;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: clamp(15px, 4vw, 30px);
+        position: relative;
+        box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3);
     }
 
-    .pro-welcome-card {
-        background: linear-gradient(135deg, #ffffff, #f8fafc);
-        border-radius: 1.5rem;
-        padding: 1.2rem 1.5rem;
-        border: 1px solid #eef2f8;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+    .roof-logo {
+        color: white;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 900;
+        font-size: clamp(1.2rem, 4vw, 2.5rem);
+        letter-spacing: -1px;
+        text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        text-align: center;
     }
 
-    .welcome-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 14px;
-        background: linear-gradient(135deg, #6366f1, #4f46e5);
+    .chimney {
+        width: 45px;
+        height: 80px;
+        background: #1e293b;
+        position: absolute;
+        top: 40px;
+        right: 22%;
+        border-radius: 4px 4px 0 0;
+        z-index: -1;
+    }
+
+    .hut-main-body {
+        background: #ffffff;
+        border: clamp(6px, 1.5vw, 12px) solid #ffffff;
+        border-radius: 0 0 clamp(40px, 10vw, 80px) clamp(40px, 10vw, 80px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        padding: clamp(20px, 6vw, 50px);
+        min-height: 500px;
+        position: relative;
+        border-top: 8px solid var(--primary);
+    }
+
+    .store-focal-point {
+        max-width: 800px;
+        margin: 0 auto;
+        position: relative; /* Context for absolute logo */
+    }
+
+    .store-hero-banner {
+        width: 100%;
+        height: clamp(160px, 25vw, 250px);
+        border-radius: clamp(20px, 5vw, 40px);
+        overflow: hidden; /* Clips the banner image */
+        position: relative;
+        background: #f8fafc;
+        border: 2px solid #f1f5f9;
+        margin-bottom: 0; /* Margin handled by logo space now */
+    }
+
+    .store-hero-banner img {
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover;
+    }
+
+    /* --- FIXED FULL LOGO POSITIONING --- */
+    .store-hero-logo {
+        width: clamp(100px, 18vw, 140px);
+        height: clamp(100px, 18vw, 140px);
+        background: white;
+        border-radius: clamp(25px, 4vw, 40px);
+        border: clamp(4px, 1vw, 8px) solid white;
+        
+        /* Positioning outside the overflow hidden banner */
+        margin: -60px auto 30px; 
+        position: relative;
+        z-index: 20; /* Ensures it sits above everything */
+        
+        box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.2);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
-        font-size: 1.3rem;
+        overflow: hidden;
     }
 
-    .username-highlight {
-        color: #4f46e5;
-        font-weight: 700;
+    .store-hero-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* Shows full logo without cropping */
+        padding: 5px;
     }
 
-    .welcome-stats {
-        background: #eef2ff;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #4f46e5;
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: clamp(10px, 2vw, 20px);
+        margin-bottom: 40px;
     }
 
-    .clean-card {
-        border-radius: 1.5rem;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
-    }
-
-    .clean-card:hover {
-        transform: translateY(-4px);
-    }
-
-    .info-box {
+    .stat-card {
         background: #f8fafc;
-        border-radius: 14px;
-        padding: 12px;
-        border: 1px solid #e2e8f0;
+        padding: clamp(15px, 3vw, 25px) 10px;
+        border-radius: 25px;
+        text-align: center;
+        border: 1px solid #eef2f6;
+        transition: 0.3s;
     }
 
-    .info-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
+    .stat-card:hover {
+        background: #ffffff;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
     }
 
-    .info-item:last-child {
-        margin-bottom: 0;
-    }
-
-    .info-label {
+    .stat-label {
         font-size: 0.7rem;
+        font-weight: 700;
         text-transform: uppercase;
-        color: #64748b;
-        font-weight: 600;
+        color: #94a3b8;
+        display: block;
+        margin-bottom: 8px;
     }
 
-    .btn-strong {
-        padding: 10px;
-        font-size: 0.95rem;
-        border-radius: 12px;
+    .stat-value {
+        font-size: clamp(1rem, 2.5vw, 1.4rem);
+        font-weight: 800;
+        color: #0f172a;
     }
 
-    .store-title {
-        font-size: 1.1rem;
-        letter-spacing: 0.3px;
+    .hut-door-link {
+        background: var(--primary);
+        color: white;
+        text-decoration: none;
+        padding: 18px clamp(25px, 5vw, 40px);
+        border-radius: 22px;
+        display: inline-flex;
+        align-items: center;
+        font-weight: 700;
+        font-size: clamp(0.9rem, 2vw, 1.1rem);
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
     }
-.store-container-card .row {
-    justify-content: flex-start;
-}
+
+    .hut-door-link:hover {
+        background: var(--primary-dark);
+        color: white;
+        transform: scale(1.03);
+    }
+
+    .status-ribbon {
+        position: absolute;
+        top: 20px;
+        right: -10px;
+        background: #22c55e;
+        color: white;
+        padding: 8px 25px;
+        font-weight: 800;
+        font-size: 0.75rem;
+        border-radius: 10px 0 0 10px;
+        text-transform: uppercase;
+        box-shadow: -5px 5px 15px rgba(0,0,0,0.1);
+        z-index: 5;
+    }
+
+    @media (max-width: 991px) {
+        .main-content { margin-left: 0; padding: 20px 10px; }
+        .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 576px) {
+        .dashboard-grid { grid-template-columns: 1fr; }
+        .chimney { display: none; }
+        .status-ribbon { right: 0; top: 10px; padding: 5px 15px; }
+        .hut-door-link { width: 100%; justify-content: center; }
+        .store-hero-logo { margin-top: -40px; }
+    }
 </style>
 
-<div class="main-content">
-    <div class="container py-4 py-xl-5 px-3 px-lg-4">
-        <div class="row g-2">
-            <div class="col-12">
-                <!-- MAIN DASHBOARD CARD - bold & elegant -->
-                <div class="dashboard-card">
-                    <div
-                        class="card-header-fancy d-flex align-items-center justify-content-between reseller-header-pro">
+<div class="content"> 
+    <div class="main-content">
+        <div class="hut-grand-wrapper">
+            <div class="chimney"></div>
+            <div class="hut-roof-crown">
+                <span class="roof-logo">Reseller Dashboard</span>
+            </div>
 
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="hero-icon-bg pro-icon">
-                                <i class="fas fa-layer-group"></i>
-                            </div>
-
-                            <div>
-                                <h2 class="fw-bold mb-0 text-gradient-primary">Reseller Hub</h2>
-                                <p class="small mb-0 text-muted">Manage · Analyze · Grow</p>
-                            </div>
-                        </div>
-
-                        <!-- right side badge -->
-                        <div class="reseller-badge">
-                            <i class="fas fa-bolt"></i> Pro Dashboard
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="p-4 p-xl-5">
-                    <!-- Welcome block: split style with CTA hint -->
-                    <div
-                        class="greeting-modern pro-welcome-card d-flex align-items-center justify-content-between mb-1">
-
-                        <!-- LEFT -->
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="welcome-icon">
-                                <i class="fas fa-user"></i>
-                            </div>
-
-                            <div>
-                                <h4 class="mb-1 welcome-text">
-                                    Welcome back,
-                                    <span class="username-highlight">{{ user.first_name }}</span>
-                                </h4>
-                                <p class="small mb-0 text-muted">
-                                    Manage your stores, track performance & grow faster 🚀
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- RIGHT -->
-                        <div class="welcome-stats">
-                            <span><i class="fas fa-store"></i> {{ stores|length }} Stores</span>
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- Conditional: stores existing or empty state -->
+            <div class="hut-main-body">
                 {% if stores %}
-                <div class="store-container-card mb-3">
-                    <!-- HEADER with counter -->
+                    {% with store=stores|first %} 
+                    <div class="store-focal-point text-center">
+                        
+                        {% if store.status == 'active' %}
+                        <div class="status-ribbon">Store Live</div>
+                        {% endif %}
 
-
-                    <!-- SCROLLABLE GRID (stores) -->
-                    <div class="row g-3 store-scroll-box">
-                        {% for store in stores %}
-                        <div
-                            class="col-12 {% if stores|length == 1 %}d-flex justify-content-center{% else %}col-lg-4{% endif %} d-flex align-items-stretch">
-                            <div
-                                class="store-orbital clean-card w-100 {% if stores|length == 1 %}single-store-card{% endif %}">
-                                <!-- Header: logo, title, status -->
-                                <div class="store-header-gradient d-flex justify-content-between align-items-start">
-                                    <div class="d-flex gap-3">
-                                        {% if store.store_logo %}
-                                        <img src="{{ store.store_logo.url }}" class="store-logo-small"
-                                            alt="{{ store.store_name }}">
-                                        {% else %}
-                                        <div
-                                            style="background: linear-gradient(145deg, #eff3f8, #ffffff); width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid #eef2ff;">
-                                            <i class="fas fa-store-alt"
-                                                style="color: var(--primary); font-size: 1.5rem;"></i>
-                                        </div>
-                                        {% endif %}
-                                        <div>
-                                            <h5 class="fw-bold mb-0 store-title">{{ store.store_name }}</h5>
-                                            <p class="text-secondary small mb-0 mt-1">
-                                                {{ store.store_description|default:"Ready for action"|truncatewords:10}}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        {% if store.status == 'active' and store.is_published %}
-                                        <span class="badge-neon badge-active"><i class="fas fa-circle-check"></i>
-                                            Live</span>
-                                        {% elif store.status == 'pending_payment' %}
-                                        <span class="badge-neon badge-pending"><i class="fas fa-hourglass-half"></i>
-                                            Pending</span>
-                                        {% else %}
-                                        <span class="badge-neon badge-expired">{{ store.status|title }}</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-
-                                <!-- BODY: plan, theme and quick features -->
-                                <div class="p-4 flex-grow-1 d-flex flex-column justify-content-between">
-
-                                    <!-- PLAN + THEME BOX -->
-                                    <div class="info-box">
-                                        <div class="info-item">
-                                            <span class="info-label">Subscription</span>
-                                            <span class="plan-chip">
-                                                <i class="fas fa-gem me-1"></i> {{ store.subscription_plan }}
-                                            </span>
-                                        </div>
-
-                                        <div class="info-item">
-                                            <span class="info-label">Theme</span>
-                                            <span class="theme-pill">
-                                                <i class="fas fa-palette me-1"></i> {{ store.theme }}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <!-- CTA -->
-                                    <div class="mt-3">
-                                        <a href="{{ store.next_step_url }}" class="btn btn-aurora w-100 btn-strong">
-                                            {{ store.next_step }} →
-                                        </a>
-                                    </div>
-
-                                </div>
-
-
-
+                        <div class="store-hero-banner">
+                            {% if store.store_banner %}
+                                <img src="{{ store.store_banner.url }}" alt="banner">
+                            {% else %}
+                                <img src="{% static 'images/bg.png' %}" alt="default banner">
+                            {% endif %}
                         </div>
+
+                        <div class="store-hero-logo">
+                            {% if store.store_logo %}
+                                <img src="{{ store.store_logo.url }}" alt="logo">
+                            {% else %}
+                                <img src="{% static 'images/user.png' %}" alt="default logo">
+                            {% endif %}
+                        </div>
+
+                        <h1 class="fw-800 mb-1" style="font-size: clamp(1.8rem, 5vw, 2.5rem); color: #0f172a;">{{ store.store_name }}</h1>
+                        <a href="https://{{ store.subdomain }}.example.com" target="_blank" class="text-decoration-none">
+                            <p class="text-primary fw-600 mb-4">{{ store.subdomain }}.example.com</p>
+                        </a>
+                        
+                        <p class="text-muted mx-auto mb-5" style="max-width: 600px; font-size: 0.95rem;">
+                            {{ store.store_description|default:"Your premium digital storefront is ready for business. Manage your products, themes, and analytics below." }}
+                        </p>
+
+                        <div class="dashboard-grid">
+                            <div class="stat-card">
+                                <span class="stat-label">Visitor Traffic</span>
+                                <span class="stat-value"><i class="fas fa-users me-2 text-primary"></i>{{ store.total_visitors }}</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-label">Current Plan</span>
+                                <span class="stat-value"><i class="fas fa-crown me-2 text-warning"></i>{{ store.subscription_plan.get_name_display }}</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-label">Subscription</span>
+                                <span class="stat-value">
+                                    <i class="fas fa-clock me-2 text-info"></i>
+                                    {% if store.subscription_end %}
+                                        {{ store.days_until_expiry }}d left
+                                    {% else %}
+                                        Lifetime
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mb-5 d-flex flex-wrap justify-content-center gap-3">
+                            <div class="small bg-light px-3 py-2 rounded-pill">
+                                <i class="fas fa-layer-group me-2"></i>Theme: <strong>{{ store.theme.name }}</strong>
+                            </div>
+                            <div class="small bg-light px-3 py-2 rounded-pill">
+                                <i class="fas fa-calendar-alt me-2"></i>Since: <strong>{{ store.created_at|date:"M Y" }}</strong>
+                            </div>
+                        </div>
+
+                        <a href="{{ store.next_step_url }}" class="hut-door-link">
+                            <span>{{ store.next_step }}</span>
+                            <i class="fas fa-door-open ms-3"></i>
+                        </a>
                     </div>
-                    {% endfor %}
-                </div>
+                    {% endwith %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-campground fa-5x mb-4 text-light"></i>
+                        <h2 class="fw-bold">Hut is Vacant</h2>
+                        <p class="text-muted">No active stores were found for your account.</p>
+                    </div>
+                {% endif %}
             </div>
             {% else %}
             <!-- empty state: fresh, energetic and inspiring -->
@@ -642,16 +330,6 @@
         </div>
     </div>
 </div>
-</div>
-</div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // no backend modifications — design only, full compatibility preserved
-    (function () {
-        console.log("✨ Reseller Dashboard — fresh architectural redesign applied (same colors, enhanced UX)");
-        // All backend links, store iteration, next_step_url remain untouched
-    })();
-</script>
 {% endblock %}
