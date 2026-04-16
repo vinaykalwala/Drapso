@@ -1,0 +1,234 @@
+{% load static %}
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>{{ store.store_name }}</title>
+
+<style>
+
+/* THEME COLORS (same as preview file) */
+
+:root{
+--primary:#e96609;
+--primary-dark:#e85d04;
+--soft:#fff4ec;
+--border:#f1f1f1;
+}
+
+body{
+margin:0;
+font-family:Arial;
+background:#fafafa;
+color:#222;
+}
+
+
+/* container */
+
+.container{
+width:1400px;
+max-width:92%;
+margin:auto;
+}
+
+
+/* =====================
+HEADER
+===================== */
+
+.header{
+background:var(--primary);
+padding:12px 0;
+color:white;
+}
+
+.header-row{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:15px;
+}
+
+.logo img{
+height:34px;
+}
+
+/* store name scrolling */
+
+.store-scroll{
+flex:1;
+margin:0 15px;
+font-size:20px;
+font-weight:700;
+white-space:nowrap;
+}
+
+/* track button */
+
+.track-btn{
+background:white;
+color:var(--primary);
+padding:8px 18px;
+border-radius:8px;
+text-decoration:none;
+font-weight:700;
+font-size:14px;
+}
+
+
+/* =====================
+COMMON STYLES
+===================== */
+
+a{
+text-decoration:none;
+color:var(--primary);
+}
+
+.btn{
+background:var(--primary);
+color:white;
+padding:12px 18px;
+border:none;
+border-radius:10px;
+font-weight:700;
+cursor:pointer;
+}
+
+.section{
+margin-top:30px;
+}
+
+
+/* =====================
+FOOTER
+===================== */
+
+.footer{
+margin-top:40px;
+padding:20px 0;
+background:white;
+border-top:1px solid #eee;
+}
+
+.footer-row{
+display:flex;
+justify-content:center;
+gap:25px;
+font-size:13px;
+flex-wrap:wrap;
+}
+
+.footer a{
+color:var(--primary);
+}
+
+
+/* mobile */
+
+@media(max-width:600px){
+
+.store-scroll{
+font-size:16px;
+}
+
+.footer-row{
+flex-direction:column;
+gap:8px;
+text-align:center;
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+
+<div class="header">
+
+<div class="container">
+
+<div class="header-row">
+
+<!-- dynamic logo -->
+
+<div class="logo">
+
+{% if store.store_logo %}
+
+<img src="{{ store.store_logo.url }}">
+
+{% else %}
+
+<img src="{% static 'images/multilogo.jpg' %}">
+
+{% endif %}
+
+</div>
+
+<!-- dynamic store name -->
+
+<div class="store-scroll">
+
+<marquee>
+
+{{ store.store_name }}
+
+</marquee>
+
+</div>
+
+<a href="#" class="track-btn">
+
+Track My Order
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- PAGE CONTENT -->
+
+{% block content %}
+
+{% endblock %}
+
+<!-- FOOTER -->
+
+<div class="footer">
+
+<div class="container">
+
+<div class="footer-row">
+
+<a href="#">Privacy</a>
+
+<a href="#">Terms</a>
+
+<a href="#">Contact</a>
+
+<span>© {{ store.store_name }}</span>
+
+</div>
+
+</div>
+
+</div>
+
+</body>
+
+</html>

@@ -714,23 +714,49 @@ from django.db.models import Prefetch
 from products.models import *
 
 def store_frontend(request):
+    """
+    Handles ALL subdomain requests
+    """
 
+    # Not a subdomain → let Django handle normal routes
     if not getattr(request, 'is_store_request', False):
         raise Http404("Not a store request")
 
     store = getattr(request, 'current_store', None)
 
+    # ❌ Store does not exist
     if not store:
-        return render(request, 'resellers/store_not_found.html')
+        return render(request, 'resellers/store_not_found.html', {
+            'subdomain': getattr(request, 'subdomain', 'unknown'),
+            'reason': 'Store not found'
+        })
 
-    if store.status in ['expired', 'suspended'] or not store.is_published:
-        return render(request, 'resellers/store_not_found.html')
+    # ❌ Handle different failure states clearly
+    if store.status == 'expired':
+        return render(request, 'resellers/store_not_found.html', {
+            'subdomain': store.subdomain,
+            'reason': 'Subscription expired'
+        })
 
+    if store.status == 'suspended':
+        return render(request, 'resellers/store_not_found.html', {
+            'subdomain': store.subdomain,
+            'reason': 'Store suspended'
+        })
+
+    if not store.is_published or store.status != 'active':
+        return render(request, 'resellers/store_not_found.html', {
+            'subdomain': store.subdomain,
+            'reason': 'Store not published'
+        })
+
+    # ✅ ACTIVE STORE → SHOW FRONTEND
     try:
         store.increment_visitor()
     except Exception:
         pass
 
+    # Generate URL
     current_host = request.get_host()
     if 'localhost' in current_host or '127.0.0.1' in current_host:
         port = ':8000' if ':' not in current_host else f":{current_host.split(':')[1]}"
@@ -760,10 +786,15 @@ def store_frontend(request):
         'products_count': products.count(),
     }
 
-    template = 'resellers/store_frontend.html'
+    # Theme-based rendering
+    if store.theme and store.theme.theme_type == 'single':
+        template = 'resellers/single_product_theme.html'
+    else:
+        template = 'resellers/store_frontend.html'
+
     return render(request, template, context)
 
-
+    
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 import os

@@ -1,453 +1,426 @@
+{% extends "includes/multitheme_base.html" %}
 {% load static %}
+
 {% block content %}
 
 <style>
-    :root {
-        --primary: #16a34a;
-        --border: #e5e7eb;
-        --bg: #f8fafc;
-        --text: #111827;
-        --muted: #6b7280;
-    }
 
+/* banner */
 
-    /* PAGE */
+.banner-wrap{
+padding:25px 0;
+}
 
-    .pr-page {
-        max-width: 1280px;
-        margin: auto;
-        padding: 40px 18px;
-        background: var(--bg);
-    }
+.banner img{
+width:100%;
+height:350px;
+object-fit:cover;
+border-radius:12px;
+}
 
 
-    /* STORE HEADER */
+/* heading */
 
-    .pr-store {
-        text-align: center;
-        margin-bottom: 35px;
-    }
+.heading{
+text-align:center;
+font-size:30px;
+font-weight:800;
+color:#059669;
+margin-bottom:28px;
+letter-spacing:.5px;
+font-family:Verdana, sans-serif;
+}
 
-    .pr-title {
-        font-size: 28px;
-        font-weight: 700;
-        color: var(--text);
-    }
+.heading:after{
+content:"";
+display:block;
+width:80px;
+height:4px;
+background:#059669;
+margin:10px auto 0;
+border-radius:4px;
+}
 
-    .pr-desc {
-        color: var(--muted);
-        font-size: 14px;
-    }
 
+/* PRODUCTS GRID */
 
-    /* GRID */
+.products{
+display:grid;
 
-    .pr-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-        gap: 22px;
-    }
+grid-template-columns:repeat(4, minmax(0,1fr));
 
+gap:22px;
 
-    /* CARD */
+align-items:stretch;
+}
 
-    .pr-card {
-        background: white;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-    }
 
+/* CARD */
 
-    /* MAIN IMAGE SAME HEIGHT */
+.card{
+background:white;
+padding:14px;
+border-radius:12px;
+box-shadow:0 4px 14px rgba(0,0,0,.06);
 
-    .pr-img-box {
-        height: 220px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #f9fafb;
-        border-bottom: 1px solid var(--border);
-    }
+display:flex;
+flex-direction:column;
 
-    .pr-main-img {
-        max-height: 100%;
-        max-width: 100%;
-        object-fit: contain;
-    }
+}
 
 
-    /* BODY */
+/* IMAGE */
 
-    .pr-body {
-        padding: 14px;
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-    }
+.main-img{
+width:100%;
+height:220px;
+object-fit:cover;
+border-radius:10px;
+background:#f3f4f6;
+}
 
 
-    /* NAME */
+/* PRODUCT NAME LIMIT */
 
-    .pr-name {
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--text);
-        min-height: 38px;
-    }
+.name{
+font-weight:600;
+margin-top:8px;
 
 
-    /* PRICE */
+}
 
-    .pr-price {
-        font-size: 18px;
-        font-weight: 700;
-        color: var(--primary);
-        margin-top: 5px;
-    }
 
+/* PRICE */
 
-    /* VARIANT SECTION */
+.price{
+color:#059669;
+font-weight:700;
+margin-top:4px;
+font-size:18px;
+}
 
-    .pr-variant-wrap {
-        margin-top: 10px;
-    }
 
+/* VARIANT TITLE */
 
-    /* HEADING */
+.variant-title{
+font-size:13px;
+font-weight:600;
+margin-top:10px;
+color:#555;
+}
 
-    .pr-variant-heading {
-        font-size: 12px;
-        color: var(--muted);
-        margin-bottom: 6px;
-        font-weight: 600;
-    }
 
+/* VARIANTS SCROLL */
 
-    /* CONTINUOUS SCROLL AREA */
+.variants{
+display:flex;
+gap:12px;
+margin-top:8px;
 
-    .pr-variant-scroll {
-        overflow: hidden;
-        position: relative;
-    }
+flex-wrap:nowrap;
+overflow-x:auto;
+overflow-y:hidden;
 
+height:110px;
 
-    /* TRACK MOVES */
+scrollbar-width:none;
+margin-bottom: 10px;
+}
 
-    .pr-variant-track {
-        display: flex;
-        gap: 8px;
-        width: max-content;
-        animation: scrollVariants 18s linear infinite;
-    }
+.variants::-webkit-scrollbar{
+display:none;
+}
 
 
-    /* SCROLL ANIMATION */
+/* VARIANT BOX */
 
-    @keyframes scrollVariants {
+.variant-box{
+width:72px;
+min-width:72px;
+text-align:center;
+flex-shrink:0;
+}
 
-        0% {
-            transform: translateX(0);
-        }
+.variant-box img{
+width:72px;
+height:72px;
+object-fit:cover;
+border-radius:8px;
+border:1px solid #eee;
+}
 
-        100% {
-            transform: translateX(-50%);
-        }
 
-    }
+/* VARIANT TEXT */
 
+.v-name{
+font-size:12px;
+margin-top:4px;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+}
 
-    /* VARIANT CARD */
+.v-price{
+font-size:13px;
+font-weight:700;
+color:#059669;
+}
 
-    .pr-variant {
-        min-width: 70px;
-        text-align: center;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 6px;
-        background: white;
-    }
 
+/* NO VARIANT BOX */
 
-    /* VARIANT IMAGE */
+.no-variant{
+margin-top:8px;
 
-    .pr-var-img {
-        height: 48px;
-        width: 48px;
-        object-fit: contain;
-        margin: auto;
-        display: block;
-        margin-bottom: 4px;
-    }
+height:100px;
 
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
 
-    /* SIZE */
+background:#f8fafc;
+border-radius:8px;
+border:1px dashed #d1d5db;
 
-    .pr-size {
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--text);
-    }
+font-size:12px;
+color:#6b7280;
+}
 
 
-    /* VARIANT PRICE */
+/* BUTTON */
 
-    .pr-var-price {
-        font-size: 11px;
-        color: var(--primary);
-        font-weight: 600;
-    }
+.btn{
+margin-top:auto;
 
+padding:11px;
+background:#059669;
+border:none;
+color:white;
+border-radius:8px;
 
-    /* NO VARIANT */
+font-weight:700;
+font-size:14px;
+text-decoration:none;
+display:block;
+text-align:center;
+}
 
-    .pr-no-variant {
-        font-size: 12px;
-        color: #9ca3af;
-    }
+.btn:hover{
+background:#047857;
+}
 
+/* Tablet */
+@media (max-width: 1024px) {
 
-    /* BUTTON SAME ROW */
+.products{
+grid-template-columns:repeat(2, minmax(0,1fr));
+gap:18px;
+}
 
-    .pr-btn {
-        margin-top: auto;
-        display: block;
-        text-align: center;
-        padding: 9px;
-        border-radius: 8px;
-        border: 1px solid var(--primary);
-        color: var(--primary);
-        font-size: 13px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: .2s;
-        margin: 10px;
-    }
+.main-img{
+height:200px;
+}
 
-    .pr-btn:hover {
-        background: var(--primary);
-        color: white;
-    }
+.heading{
+font-size:26px;
+}
 
-    .pr-no-variant {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: #f1f5f9;
-        border-radius: 8px;
-        height: 80px;
-        border: 1px dashed #d1d5db;
-    }
+}
 
-    .pr-no-icon {
-        font-size: 20px;
-        margin-bottom: 4px;
-        opacity: .7;
-    }
 
-    .pr-no-text {
-        font-size: 12px;
-        color: #6b7280;
-        font-weight: 500;
-        text-align: center;
-    }
+/* Mobile */
+@media (max-width: 640px) {
+
+.products{
+grid-template-columns:repeat(1, minmax(0,1fr));
+gap:16px;
+}
+
+.main-img{
+height:180px;
+}
+
+.heading{
+font-size:22px;
+}
+
+.card{
+padding:12px;
+}
+
+.variant-box{
+width:65px;
+min-width:65px;
+}
+
+.variant-box img{
+width:65px;
+height:65px;
+}
+
+.variants{
+height:100px;
+}
+
+.btn{
+font-size:13px;
+padding:10px;
+}
+
+}
+
 </style>
 
 
 
-<div class="pr-page">
+{% if store.store_banner %}
 
+<div class="banner-wrap">
 
-    <!-- STORE HEADER -->
+<div class="container">
 
-    <div class="pr-store">
+<div class="banner">
 
-        <h2 class="pr-title">
-            {{ store.store_name }}
-        </h2>
+<img src="{{ store.store_banner.url }}">
 
-        <p class="pr-desc">
-            {{ store.store_description }}
-        </p>
+</div>
 
-    </div>
+</div>
 
+</div>
 
+{% endif %}
 
-    <!-- PRODUCT GRID -->
 
-    <div class="pr-grid">
 
+<div class="container">
 
-        {% for product in products %}
+<div class="heading">
 
-        <div class="pr-card">
+Our Products
 
+</div>
 
-            <!-- IMAGE -->
 
-            <div class="pr-img-box">
 
-                {% if product.main_image %}
+<div class="products">
 
-                <img src="{{ product.main_image.url }}" class="pr-main-img">
 
-                {% else %}
+{% for product in products %}
 
-                <img src="{% static 'img/no-image.png' %}" class="pr-main-img">
+<div class="card">
 
-                {% endif %}
 
-            </div>
+{% if product.main_image %}
 
+<img src="{{ product.main_image.url }}" class="main-img">
 
+{% else %}
 
-            <div class="pr-body">
+<img src="{% static 'img/no-image.png' %}" class="main-img">
 
+{% endif %}
 
-                <!-- NAME -->
 
-                <div class="pr-name">
-                    {{ product.name }}
-                </div>
 
+<div class="name">
 
-                <!-- PRICE -->
+{{ product.name|truncatewords:3 }}
+</div>
 
-                <div class="pr-price">
-                    ₹{{ product.selling_price }}
-                </div>
 
 
+<div class="price">
 
-                <!-- VARIANTS -->
+₹{{ product.selling_price }}
 
-                <div class="pr-variant-wrap">
+</div>
 
-                    <div class="pr-variant-heading">
-                        Available Variants
-                    </div>
 
 
-                    {% if product.variants.exists %}
+<div class="variant-title">
 
-                    <div class="pr-variant-scroll">
+Available Variants
 
+</div>
 
-                        <div class="pr-variant-track">
 
 
-                            {% for variant in product.variants.all %}
+{% if product.variants.exists %}
 
-                            <div class="pr-variant">
+<div class="variants">
 
-                                {% if variant.main_image %}
 
-                                <img src="{{ variant.main_image.url }}" class="pr-var-img">
+{% for variant in product.variants.all %}
 
-                                {% endif %}
+<div class="variant-box">
 
 
-                                {% if variant.size %}
+{% if variant.main_image %}
 
-                                <div class="pr-size">
-                                    {{ variant.size }}
-                                </div>
+<img src="{{ variant.main_image.url }}">
 
-                                {% endif %}
+{% else %}
 
+<img src="{% static 'img/no-image.png' %}">
 
-                                <div class="pr-var-price">
-                                    ₹{{ variant.selling_price }}
-                                </div>
+{% endif %}
 
 
-                            </div>
+<div class="v-name">
 
-                            {% endfor %}
+{{ variant.size }}{% if variant.color %}-{{ variant.color }}{% endif %}
 
+</div>
 
 
-                            <!-- duplicate for continuous scroll -->
+<div class="v-price">
 
-                            {% for variant in product.variants.all %}
+₹{{ variant.selling_price }}
 
-                            <div class="pr-variant">
+</div>
 
-                                {% if variant.main_image %}
 
-                                <img src="{{ variant.main_image.url }}" class="pr-var-img">
+</div>
 
-                                {% endif %}
+{% endfor %}
 
 
-                                {% if variant.size %}
+</div>
 
-                                <div class="pr-size">
-                                    {{ variant.size }}
-                                </div>
 
-                                {% endif %}
+{% else %}
 
 
-                                <div class="pr-var-price">
-                                    ₹{{ variant.selling_price }}
-                                </div>
+<div class="no-variant">
 
+<div style="font-size:18px">📦</div>
 
-                            </div>
+<div>No variants available</div>
 
-                            {% endfor %}
+</div>
 
 
-                        </div>
+{% endif %}
 
 
-                    </div>
 
+<a href="/product/{{ product.slug }}/" class="btn">
 
-                    {% else %}
+View Details
 
-                    <div class="pr-no-variant">
+</a>
 
-                        <div class="pr-no-icon">
-                            📦
-                        </div>
 
-                        <div class="pr-no-text">
-                            No variants available
-                        </div>
 
-                    </div>
+</div>
 
-                    {% endif %}
+{% endfor %}
 
 
-                </div>
 
-
-
-                <!-- BUTTON -->
-
-                
-
-
-
-            </div>
-            <a href="/product/{{ product.slug }}/" class="pr-btn">
-        View Details
-    </a>
-
-        </div>
-
-        {% endfor %}
-
-
-    </div>
-
+</div>
 
 </div>
 

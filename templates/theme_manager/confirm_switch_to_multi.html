@@ -1,3 +1,4 @@
+<!-- FILE: switch_to_multiple_products_updated.html -->
 {% extends 'dashboard_base.html' %}
 {% load static %}
 
@@ -7,19 +8,18 @@
 <style>
 /* ============================================
    ✨ SWITCH TO MULTIPLE PRODUCTS THEME ✨
-   Orange Theme | Professional E-commerce
+   Thick Minty Green Header | Blue Highlights | Search
    ============================================ */
 
 :root {
-    --orange: #f97316;
-    --orange-dark: #ea580c;
-    --orange-light: #fed7aa;
-    --orange-soft: #fff7ed;
+    --mint: #018655;
+    --mint-dark: #00774f;
+    --mint-thick: #036143;
+    --mint-light: #d1fae5;
     --blue: #3b82f6;
+    --blue-dark: #2563eb;
     --blue-light: #dbeafe;
     --success: #10b981;
-    --success-dark: #059669;
-    --warning: #f59e0b;
     --gray-50: #f9fafb;
     --gray-100: #f3f4f6;
     --gray-200: #e5e7eb;
@@ -48,9 +48,9 @@
     padding: 0 1.5rem;
 }
 
-/* Header Card - Orange Theme */
+/* Header Card - Thick Minty Green */
 .switch-multiple__header {
-    background: linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fb923c 100%);
+    background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
     border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
     padding: 1.8rem 2rem;
     display: flex;
@@ -61,11 +61,11 @@
     box-shadow: var(--shadow-lg);
     position: relative;
     overflow: hidden;
-    border-bottom: 3px solid #fed7aa;
+    border-bottom: 3px solid rgba(255,255,255,0.2);
 }
 
 .switch-multiple__header::before {
-    content: '🔄';
+    content: '↺';
     position: absolute;
     right: -20px;
     bottom: -20px;
@@ -82,7 +82,7 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
     animation: shimmer 3s infinite;
 }
 
@@ -176,8 +176,8 @@
 }
 
 .search-input:focus {
-    border-color: var(--orange);
-    box-shadow: 0 0 0 3px rgba(249,115,22,0.1);
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
 }
 
 .search-results-count {
@@ -214,9 +214,9 @@
     border-left: 4px solid var(--blue);
 }
 
-.stat-card--orange {
-    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
-    border-left: 4px solid var(--orange);
+.stat-card--mint {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border-left: 4px solid var(--mint);
 }
 
 .stat-card__label {
@@ -237,8 +237,8 @@
     color: var(--blue);
 }
 
-.stat-card--orange .stat-card__value {
-    color: var(--orange);
+.stat-card--mint .stat-card__value {
+    color: var(--mint-dark);
 }
 
 .stat-card__unit {
@@ -247,22 +247,24 @@
     color: var(--gray-500);
 }
 
+/* What Will Happen Section - Minty Theme */
 .switch-multiple__success {
-    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-    border: 1px solid #bfdbfe;
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border: 1px solid #a7f3d0;
     border-radius: var(--radius-lg);
     padding: 1.25rem 1.5rem;
     margin-bottom: 1.5rem;
     position: relative;
     overflow: hidden;
 }
+
 .switch-multiple__success::before {
     content: '✨';
     position: absolute;
     right: -20px;
     bottom: -20px;
     font-size: 80px;
-    opacity: 0.1;
+    opacity: 0.15;
 }
 
 .success-title {
@@ -274,13 +276,13 @@
 
 .success-title i {
     font-size: 1.3rem;
-    color: #4568d8;
+    color: var(--mint-dark);
 }
 
 .success-title h5 {
     font-size: 1rem;
     font-weight: 700;
-    color: #4568d8;
+    color: #065f46;
     margin: 0;
 }
 
@@ -289,14 +291,10 @@
     padding: 0;
     margin: 0;
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 items per row */
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
 }
-@media (max-width: 768px) {
-    .success-list {
-        grid-template-columns: 1fr;
-    }
-}
+
 .success-list li {
     display: flex;
     align-items: center;
@@ -305,7 +303,7 @@
     background: rgba(255,255,255,0.6);
     border-radius: var(--radius-md);
     font-size: 0.85rem;
-    color:#4568d8;
+    color: #065f46;
 }
 
 .success-list li i {
@@ -313,10 +311,10 @@
 }
 
 .success-list li i.fa-box {
-    color: var(--orange);
+    color: var(--mint-dark);
 }
 
-/* Section Title */
+/* Section Title - Mint Highlight */
 .section-title {
     font-size: 1rem;
     font-weight: 700;
@@ -330,7 +328,7 @@
 }
 
 .section-title i {
-    color: var(--orange);
+    color: var(--mint);
 }
 
 .section-title span {
@@ -352,7 +350,7 @@
 }
 
 .archived-table thead {
-    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
 }
 
 .archived-table th {
@@ -361,9 +359,9 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--orange-dark);
+    color: #065f46;
     text-align: left;
-    border-bottom: 2px solid var(--orange-light);
+    border-bottom: 2px solid #a7f3d0;
 }
 
 .archived-table td {
@@ -400,13 +398,13 @@
     width: 50px;
     height: 50px;
     border-radius: var(--radius-md);
-    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--orange);
+    color: var(--mint);
     font-size: 1.2rem;
-    border: 1px solid var(--orange-light);
+    border: 1px solid #a7f3d0;
 }
 
 .product-name-cell {
@@ -418,7 +416,7 @@
 }
 
 .product-name-cell i {
-    color: var(--orange);
+    color: var(--mint);
     font-size: 0.8rem;
 }
 
@@ -461,7 +459,7 @@
 
 .more-products i {
     margin-right: 0.25rem;
-    color: var(--orange);
+    color: var(--mint);
 }
 
 /* Hidden class for search */
@@ -522,7 +520,7 @@
 }
 
 .btn-confirm {
-    background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dark) 100%);
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
     color: white;
     border: none;
     padding: 0.75rem 1.5rem;
@@ -534,12 +532,12 @@
     gap: 0.5rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(249,115,22,0.3);
+    box-shadow: 0 4px 12px rgba(5,150,105,0.3);
 }
 
 .btn-confirm:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(249,115,22,0.4);
+    box-shadow: 0 6px 20px rgba(5,150,105,0.4);
 }
 
 .btn-confirm:active {
@@ -659,7 +657,7 @@
 <div class="content">
 <div class="switch-multiple">
 
-    <!-- Header - Orange Theme -->
+    <!-- Header - Thick Minty Green -->
     <div class="switch-multiple__header">
         <div class="switch-multiple__title-section">
             <h1 class="switch-multiple__title">
@@ -688,7 +686,7 @@
                     Available Slots: <strong>{{ available_slots }}</strong>
                 </div>
             </div>
-            <div class="stat-card stat-card--orange">
+            <div class="stat-card stat-card--mint">
                 <div class="stat-card__label">
                     <i class="fas fa-archive"></i> Archived Products
                 </div>
@@ -705,7 +703,7 @@
             </div>
         </div>
 
-        <!-- What Will Happen Section -->
+        <!-- What Will Happen Section - Minty Theme -->
         {% if archived_count > 0 %}
         <div class="switch-multiple__success">
             <div class="success-title">
@@ -802,11 +800,11 @@
             {% endif %}
         </div>
         {% else %}
-        <!-- No Archived Products Message -->
-        <div class="switch-multiple__success" style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border-color: var(--orange-light);">
+        <!-- No Archived Products Message - Minty Theme -->
+        <div class="switch-multiple__success" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-color: #a7f3d0;">
             <div class="success-title">
-                <i class="fas fa-info-circle" style="color: var(--orange);"></i>
-                <h5 style="color: var(--orange-dark);">No Archived Products</h5>
+                <i class="fas fa-info-circle" style="color: var(--mint-dark);"></i>
+                <h5 style="color: #065f46;">No Archived Products</h5>
             </div>
             <ul class="success-list">
                 <li><i class="fas fa-plus-circle"></i> You can add new products directly</li>
