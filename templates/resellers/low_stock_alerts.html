@@ -73,11 +73,24 @@
         border: 1px solid var(--gray-200);
         overflow: hidden;
         box-shadow: var(--shadow-sm);
+        transition: box-shadow 0.2s;
+    }
+    .lowstock-section:hover {
+        box-shadow: var(--shadow-md);
     }
     .lowstock-section-header {
         padding: 16px 24px;
         background: var(--gray-50);
         border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.2s;
+    }
+    .lowstock-section-header:hover {
+        background: var(--gray-100);
     }
     .lowstock-section-header h5 {
         font-size: 1rem;
@@ -91,6 +104,27 @@
     .lowstock-section-header h5 i {
         color: var(--warning);
     }
+    .chevron-icon {
+        color: var(--gray-500);
+        font-size: 1rem;
+        transition: transform 0.3s ease;
+    }
+    .lowstock-section.active .chevron-icon {
+        transform: rotate(180deg);
+    }
+
+    /* Content wrapper (for smooth collapse) */
+    .lowstock-content {
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease, opacity 0.3s ease;
+    }
+    .lowstock-section.active .lowstock-content {
+        max-height: 2000px;   /* large enough for any content */
+        opacity: 1;
+    }
+
     .lowstock-list {
         padding: 0;
         margin: 0;
@@ -191,7 +225,11 @@
         font-size: 0.9rem;
     }
 
+    /* Responsive adjustments */
     @media (max-width: 768px) {
+        .content {
+            padding: 0.5rem;
+        }
         .lowstock-container {
             padding: 16px;
         }
@@ -218,198 +256,232 @@
     {% if role == 'wholeseller' %}
 
         <!-- Wholeseller Products -->
-        <div class="lowstock-section">
-            <div class="lowstock-section-header">
+        <div class="lowstock-section active">
+            <div class="lowstock-section-header" onclick="toggleSection(this)">
                 <h5><i class="fas fa-box"></i> Products</h5>
+                <i class="fas fa-chevron-down chevron-icon"></i>
             </div>
-            <ul class="lowstock-list">
-                {% for p in low_products %}
-                <li class="lowstock-item">
-                    <div class="lowstock-info">
-                        <a href="{% url 'products:wholeseller_product_detail' p.id %}" class="product-name">
-                            {{ p.name }}
-                        </a>
-                        <div class="meta">Threshold: {{ p.threshold_limit }}</div>
-                    </div>
-                    <div class="lowstock-stats">
-                        <span class="badge-lowstock"><i class="fas fa-warehouse"></i> Stock: {{ p.stock }}</span>
-                        <a href="{% url 'products:wholeseller_product_edit' p.id %}" class="btn-outline-primary-sm">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                    </div>
-                </li>
-                {% empty %}
-                <li class="lowstock-item">
-                    <div class="empty-state" style="width:100%; background:transparent; padding:20px;">
-                        <i class="fas fa-check-circle"></i>
-                        <p>No low stock products</p>
-                    </div>
-                </li>
-                {% endfor %}
-            </ul>
+            <div class="lowstock-content">
+                <ul class="lowstock-list">
+                    {% for p in low_products %}
+                    <li class="lowstock-item">
+                        <div class="lowstock-info">
+                            <a href="{% url 'products:wholeseller_product_detail' p.id %}" class="product-name">
+                                {{ p.name }}
+                            </a>
+                            <div class="meta">Threshold: {{ p.threshold_limit }}</div>
+                        </div>
+                        <div class="lowstock-stats">
+                            <span class="badge-lowstock"><i class="fas fa-warehouse"></i> Stock: {{ p.stock }}</span>
+                            <a href="{% url 'products:wholeseller_product_edit' p.id %}" class="btn-outline-primary-sm">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="lowstock-item">
+                        <div class="empty-state" style="width:100%; background:transparent; padding:20px;">
+                            <i class="fas fa-check-circle"></i>
+                            <p>No low stock products</p>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
 
         <!-- Wholeseller Variants -->
         <div class="lowstock-section">
-            <div class="lowstock-section-header">
+            <div class="lowstock-section-header" onclick="toggleSection(this)">
                 <h5><i class="fas fa-layer-group"></i> Variants</h5>
+                <i class="fas fa-chevron-down chevron-icon"></i>
             </div>
-            <ul class="lowstock-list">
-                {% for v in low_variants %}
-                <li class="lowstock-item">
-                    <div class="lowstock-info">
-                        <a href="{% url 'products:wholeseller_product_detail' v.product.id %}" class="product-name">
-                            {{ v.product.name }}
-                        </a>
-                        <div class="meta">{{ v.variant_name }} | Threshold: {{ v.threshold_limit }}</div>
-                    </div>
-                    <div class="lowstock-stats">
-                        <span class="badge-lowstock"><i class="fas fa-warehouse"></i> Stock: {{ v.stock }}</span>
-                        <a href="{% url 'products:wholeseller_variant_edit' v.id %}" class="btn-outline-primary-sm">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                    </div>
-                </li>
-                {% empty %}
-                <li class="lowstock-item">
-                    <div class="empty-state" style="width:100%; background:transparent; padding:20px;">
-                        <i class="fas fa-check-circle"></i>
-                        <p>No low stock variants</p>
-                    </div>
-                </li>
-                {% endfor %}
-            </ul>
+            <div class="lowstock-content">
+                <ul class="lowstock-list">
+                    {% for v in low_variants %}
+                    <li class="lowstock-item">
+                        <div class="lowstock-info">
+                            <a href="{% url 'products:wholeseller_product_detail' v.product.id %}" class="product-name">
+                                {{ v.product.name }}
+                            </a>
+                            <div class="meta">{{ v.variant_name }} | Threshold: {{ v.threshold_limit }}</div>
+                        </div>
+                        <div class="lowstock-stats">
+                            <span class="badge-lowstock"><i class="fas fa-warehouse"></i> Stock: {{ v.stock }}</span>
+                            <a href="{% url 'products:wholeseller_variant_edit' v.id %}" class="btn-outline-primary-sm">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="lowstock-item">
+                        <div class="empty-state" style="width:100%; background:transparent; padding:20px;">
+                            <i class="fas fa-check-circle"></i>
+                            <p>No low stock variants</p>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
 
     {% elif role == 'reseller' %}
 
         <!-- Own Products -->
-        <div class="lowstock-section">
-            <div class="lowstock-section-header">
+        <div class="lowstock-section active">
+            <div class="lowstock-section-header" onclick="toggleSection(this)">
                 <h5><i class="fas fa-star"></i> Own Products</h5>
+                <i class="fas fa-chevron-down chevron-icon"></i>
             </div>
-            <ul class="lowstock-list">
-                {% for p in own_products %}
-                <li class="lowstock-item">
-                    <div class="lowstock-info">
-                        <a href="{% url 'products:reseller_product_detail' p.store.id p.id %}" class="product-name">
-                            {{ p.name }}
-                        </a>
-                        <div class="meta">Store: {{ p.store.name }} | Threshold: {{ p.threshold_limit }}</div>
-                    </div>
-                    <div class="lowstock-stats">
-                        <span class="badge-lowstock badge-warning"><i class="fas fa-warehouse"></i> Stock: {{ p.stock }}</span>
-                        <a href="{% url 'products:reseller_product_full_edit' p.store.id p.id %}" class="btn-outline-primary-sm">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                    </div>
-                </li>
-                {% empty %}
-                <li class="lowstock-item">
-                    <div class="empty-state" style="width:100%; background:transparent; padding:20px;">
-                        <i class="fas fa-check-circle"></i>
-                        <p>No low stock own products</p>
-                    </div>
-                </li>
-                {% endfor %}
-            </ul>
+            <div class="lowstock-content">
+                <ul class="lowstock-list">
+                    {% for p in own_products %}
+                    <li class="lowstock-item">
+                        <div class="lowstock-info">
+                            <a href="{% url 'products:reseller_product_detail' p.store.id p.id %}" class="product-name">
+                                {{ p.name }}
+                            </a>
+                            <div class="meta">Store: {{ p.store.name }} | Threshold: {{ p.threshold_limit }}</div>
+                        </div>
+                        <div class="lowstock-stats">
+                            <span class="badge-lowstock badge-warning"><i class="fas fa-warehouse"></i> Stock: {{ p.stock }}</span>
+                            <a href="{% url 'products:reseller_product_full_edit' p.store.id p.id %}" class="btn-outline-primary-sm">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="lowstock-item">
+                        <div class="empty-state" style="width:100%; background:transparent; padding:20px;">
+                            <i class="fas fa-check-circle"></i>
+                            <p>No low stock own products</p>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
 
         <!-- Own Variants -->
         <div class="lowstock-section">
-            <div class="lowstock-section-header">
+            <div class="lowstock-section-header" onclick="toggleSection(this)">
                 <h5><i class="fas fa-layer-group"></i> Own Variants</h5>
+                <i class="fas fa-chevron-down chevron-icon"></i>
             </div>
-            <ul class="lowstock-list">
-                {% for v in own_variants %}
-                <li class="lowstock-item">
-                    <div class="lowstock-info">
-                        <a href="{% url 'products:reseller_product_detail' v.product.store.id v.product.id %}" class="product-name">
-                            {{ v.product.name }}
-                        </a>
-                        <div class="meta">{{ v.variant_name }} | Threshold: {{ v.threshold_limit }}</div>
-                    </div>
-                    <div class="lowstock-stats">
-                        <span class="badge-lowstock badge-warning"><i class="fas fa-warehouse"></i> Stock: {{ v.stock }}</span>
-                        <a href="{% url 'products:reseller_product_full_edit' v.product.store.id v.product.id %}" class="btn-outline-primary-sm">
-                            <i class="fas fa-edit"></i> Manage
-                        </a>
-                    </div>
-                </li>
-                {% empty %}
-                <li class="lowstock-item">
-                    <div class="empty-state" style="width:100%; background:transparent; padding:20px;">
-                        <i class="fas fa-check-circle"></i>
-                        <p>No low stock own variants</p>
-                    </div>
-                </li>
-                {% endfor %}
-            </ul>
+            <div class="lowstock-content">
+                <ul class="lowstock-list">
+                    {% for v in own_variants %}
+                    <li class="lowstock-item">
+                        <div class="lowstock-info">
+                            <a href="{% url 'products:reseller_product_detail' v.product.store.id v.product.id %}" class="product-name">
+                                {{ v.product.name }}
+                            </a>
+                            <div class="meta">{{ v.variant_name }} | Threshold: {{ v.threshold_limit }}</div>
+                        </div>
+                        <div class="lowstock-stats">
+                            <span class="badge-lowstock badge-warning"><i class="fas fa-warehouse"></i> Stock: {{ v.stock }}</span>
+                            <a href="{% url 'products:reseller_product_full_edit' v.product.store.id v.product.id %}" class="btn-outline-primary-sm">
+                                <i class="fas fa-edit"></i> Manage
+                            </a>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="lowstock-item">
+                        <div class="empty-state" style="width:100%; background:transparent; padding:20px;">
+                            <i class="fas fa-check-circle"></i>
+                            <p>No low stock own variants</p>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
 
         <!-- Imported Products -->
         <div class="lowstock-section">
-            <div class="lowstock-section-header">
+            <div class="lowstock-section-header" onclick="toggleSection(this)">
                 <h5><i class="fas fa-download"></i> Imported Products</h5>
+                <i class="fas fa-chevron-down chevron-icon"></i>
             </div>
-            <ul class="lowstock-list">
-                {% for p in imported_products %}
-                <li class="lowstock-item">
-                    <div class="lowstock-info">
-                        <a href="{% url 'products:reseller_product_detail' p.store.id p.id %}" class="product-name">
-                            {{ p.name }}
-                        </a>
-                        <div class="meta">Source: {{ p.source_product.wholeseller }}</div>
-                    </div>
-                    <div class="lowstock-stats">
-                        <span class="badge-lowstock"><i class="fas fa-truck"></i> Source Stock: {{ p.source_product.stock }}</span>
-                    </div>
-                </li>
-                {% empty %}
-                <li class="lowstock-item">
-                    <div class="empty-state" style="width:100%; background:transparent; padding:20px;">
-                        <i class="fas fa-check-circle"></i>
-                        <p>No low stock imported products</p>
-                    </div>
-                </li>
-                {% endfor %}
-            </ul>
+            <div class="lowstock-content">
+                <ul class="lowstock-list">
+                    {% for p in imported_products %}
+                    <li class="lowstock-item">
+                        <div class="lowstock-info">
+                            <a href="{% url 'products:reseller_product_detail' p.store.id p.id %}" class="product-name">
+                                {{ p.name }}
+                            </a>
+                            <div class="meta">Source: {{ p.source_product.wholeseller }}</div>
+                        </div>
+                        <div class="lowstock-stats">
+                            <span class="badge-lowstock"><i class="fas fa-truck"></i> Source Stock: {{ p.source_product.stock }}</span>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="lowstock-item">
+                        <div class="empty-state" style="width:100%; background:transparent; padding:20px;">
+                            <i class="fas fa-check-circle"></i>
+                            <p>No low stock imported products</p>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
 
         <!-- Imported Variants -->
         <div class="lowstock-section">
-            <div class="lowstock-section-header">
+            <div class="lowstock-section-header" onclick="toggleSection(this)">
                 <h5><i class="fas fa-layer-group"></i> Imported Variants</h5>
+                <i class="fas fa-chevron-down chevron-icon"></i>
             </div>
-            <ul class="lowstock-list">
-                {% for v in imported_variants %}
-                <li class="lowstock-item">
-                    <div class="lowstock-info">
-                        <a href="{% url 'products:reseller_product_detail' v.product.store.id v.product.id %}" class="product-name">
-                            {{ v.product.name }}
-                        </a>
-                        <div class="meta">{{ v.variant_name }}</div>
-                    </div>
-                    <div class="lowstock-stats">
-                        <span class="badge-lowstock"><i class="fas fa-truck"></i> Source Stock: {{ v.source_variant.stock }}</span>
-                        <a href="{% url 'products:reseller_product_full_edit' v.product.store.id v.product.id %}" class="btn-outline-primary-sm">
-                            <i class="fas fa-edit"></i> Manage
-                        </a>
-                    </div>
-                </li>
-                {% empty %}
-                <li class="lowstock-item">
-                    <div class="empty-state" style="width:100%; background:transparent; padding:20px;">
-                        <i class="fas fa-check-circle"></i>
-                        <p>No low stock imported variants</p>
-                    </div>
-                </li>
-                {% endfor %}
-            </ul>
+            <div class="lowstock-content">
+                <ul class="lowstock-list">
+                    {% for v in imported_variants %}
+                    <li class="lowstock-item">
+                        <div class="lowstock-info">
+                            <a href="{% url 'products:reseller_product_detail' v.product.store.id v.product.id %}" class="product-name">
+                                {{ v.product.name }}
+                            </a>
+                            <div class="meta">{{ v.variant_name }}</div>
+                        </div>
+                        <div class="lowstock-stats">
+                            <span class="badge-lowstock"><i class="fas fa-truck"></i> Source Stock: {{ v.source_variant.stock }}</span>
+                            <a href="{% url 'products:reseller_product_full_edit' v.product.store.id v.product.id %}" class="btn-outline-primary-sm">
+                                <i class="fas fa-edit"></i> Manage
+                            </a>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="lowstock-item">
+                        <div class="empty-state" style="width:100%; background:transparent; padding:20px;">
+                            <i class="fas fa-check-circle"></i>
+                            <p>No low stock imported variants</p>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
 
     {% endif %}
 
 </div>
 </div>
+
+<script>
+    function toggleSection(header) {
+        const section = header.closest('.lowstock-section');
+        section.classList.toggle('active');
+    }
+
+    // Ensure first section is open on load (in case the 'active' class was not set in HTML)
+    document.addEventListener('DOMContentLoaded', function() {
+        const firstSection = document.querySelector('.lowstock-section');
+        if (firstSection && !firstSection.classList.contains('active')) {
+            firstSection.classList.add('active');
+        }
+    });
+</script>
+
 {% endblock %}
