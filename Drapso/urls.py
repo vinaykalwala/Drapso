@@ -14,6 +14,7 @@ urlpatterns = [
     path('resellers/', include('resellers.urls')),
     path('products/', include('products.urls')),
     path('thememanager/',include('theme_manager.urls')),
+    path('orders/',include('orders.urls')),
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
     path('terms/', views.terms, name='terms'),
     path('about/', views.about, name='about'),

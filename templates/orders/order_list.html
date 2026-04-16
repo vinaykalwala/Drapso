@@ -1,0 +1,140 @@
+
+{% load static %}
+
+{% block title %}Orders - {{ store.store_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .orders-container {
+        padding: 20px;
+    }
+    .status-filter {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+    .filter-btn {
+        padding: 8px 20px;
+        border-radius: 30px;
+        background: #f0f0f0;
+        color: #333;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    .filter-btn.active {
+        background: #6366f1;
+        color: white;
+    }
+    .order-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+    }
+    .order-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8em;
+        font-weight: 500;
+    }
+    .status-pending { background: #ffc107; color: #000; }
+    .status-paid { background: #17a2b8; color: white; }
+    .status-approved { background: #6366f1; color: white; }
+    .status-shipped { background: #28a745; color: white; }
+    .status-delivered { background: #20c997; color: white; }
+    .status-cancelled { background: #dc3545; color: white; }
+    .btn-action {
+        padding: 6px 15px;
+        border-radius: 8px;
+        font-size: 0.9em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="orders-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Orders</h2>
+        <h5 class="text-muted">{{ store.store_name }}</h5>
+    </div>
+    
+    <!-- Status Filters -->
+    <div class="status-filter">
+        <a href="?status=" class="filter-btn {% if not status_filter %}active{% endif %}">All Orders</a>
+        <a href="?status=paid" class="filter-btn {% if status_filter == 'paid' %}active{% endif %}">Pending Approval</a>
+        <a href="?status=approved" class="filter-btn {% if status_filter == 'approved' %}active{% endif %}">Approved</a>
+        <a href="?status=shipped" class="filter-btn {% if status_filter == 'shipped' %}active{% endif %}">Shipped</a>
+        <a href="?status=out_for_delivery" class="filter-btn {% if status_filter == 'out_for_delivery' %}active{% endif %}">Out for Delivery</a>
+        <a href="?status=delivered" class="filter-btn {% if status_filter == 'delivered' %}active{% endif %}">Delivered</a>
+        <a href="?status=cancelled" class="filter-btn {% if status_filter == 'cancelled' %}active{% endif %}">Cancelled</a>
+        <a href="?status=return_requested" class="filter-btn {% if status_filter == 'return_requested' %}active{% endif %}">Return Requests</a>
+    </div>
+    
+    <!-- Orders List -->
+    {% for order in orders %}
+    <div class="order-card">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <div class="d-flex align-items-center gap-3">
+                    {% if order.product.main_image %}
+                        <img src="{{ order.product.main_image.url }}" alt="{{ order.product.name }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                    {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 8px;">
+                            <i class="fas fa-box fa-2x text-muted"></i>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <strong>{{ order.product.name }}</strong><br>
+                        <small class="text-muted">Qty: {{ order.quantity }}</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div><strong>Order ID:</strong> {{ order.order_id }}</div>
+                <div><strong>Customer:</strong> {{ order.customer_name }}</div>
+                <div><strong>Amount:</strong> ₹{{ order.total_amount|floatformat:2 }}</div>
+            </div>
+            
+            <div class="col-md-2">
+                <span class="status-badge status-{{ order.order_status }}">
+                    {{ order.get_order_status_display }}
+                </span>
+                <div class="small text-muted mt-1">{{ order.created_at|date:"d M Y" }}</div>
+            </div>
+            
+            <div class="col-md-3 text-end">
+                <a href="{% url 'orders:reseller_order_detail' store.id order.id %}" class="btn btn-sm btn-outline-primary btn-action">
+                    <i class="fas fa-eye"></i> View Details
+                </a>
+                
+                {% if order.order_status == 'paid' %}
+                    <a href="{% url 'orders:approve_order' store.id order.id %}" class="btn btn-sm btn-success btn-action">
+                        <i class="fas fa-check"></i> Approve
+                    </a>
+                {% endif %}
+                
+                {% if order.order_status == 'approved' %}
+                    <a href="{% url 'orders:mark_order_shipped' store.id order.id %}" class="btn btn-sm btn-info btn-action">
+                        <i class="fas fa-truck"></i> Ship
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-5">
+        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+        <h5>No orders found</h5>
+        <p class="text-muted">Orders will appear here once customers make purchases.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

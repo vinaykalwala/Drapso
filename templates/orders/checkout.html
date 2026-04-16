@@ -1,0 +1,290 @@
+{% load static %}
+
+{% block title %}Checkout | Drapso{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row g-4">
+        <div class="col-md-7">
+            <div class="card p-4 shadow-sm border-0 rounded-4">
+                <div class="d-flex align-items-center mb-4">
+                    <h4 class="mb-0">Shipping Details</h4>
+                    <span class="ms-auto badge bg-light text-primary border">Step 1 of 2</span>
+                </div>
+
+                <div class="alert alert-info py-2 small border-0 rounded-3">
+                    <i class="fas fa-shield-check me-2"></i> <strong>Prepaid Only:</strong> We currently accept online payments for all Drapso orders.
+                </div>
+
+                <form method="POST" id="checkoutForm">
+                    {% csrf_token %}
+                    
+                    <input type="hidden" name="shipping_charge" id="id_shipping_charge_hidden" value="0">
+                    <input type="hidden" name="courier_name" id="id_courier_name_hidden" value="Standard Shipping">
+                    <input type="hidden" name="estimated_delivery_date" id="id_estimated_delivery_date_hidden">
+                    <input type="hidden" name="pickup_address" id="id_pickup_address_hidden">
+                    <input type="hidden" name="pickup_pincode" id="id_pickup_pincode_hidden">
+                    <input type="hidden" name="pickup_address_type" id="id_pickup_address_type_hidden">
+
+                    <div class="row">
+                        {% for field in form %}
+                            <div class="{% if field.name == 'customer_name' or field.name == 'customer_email' or field.name == 'customer_phone' %}col-md-12{% else %}col-md-6{% endif %} mb-3">
+                                <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger small">{{ field.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div id="pincodeLoading" style="display:none;" class="text-primary small mb-3">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                        Verifying serviceability & calculating shipping...
+                    </div>
+
+                    <!-- Debug Panel (visible in development) -->
+                    {% if debug %}
+                    <div id="debugPanel" class="alert alert-dark small mb-3" style="display: none;">
+                        <strong>🔍 Debug Info:</strong><br>
+                        <span id="debugPickupType">Pickup Type: Not set</span><br>
+                        <span id="debugPickupAddress">Pickup Address: Not set</span><br>
+                        <span id="debugPickupPincode">Pickup Pincode: Not set</span><br>
+                        <span id="debugCourier">Courier: Not set</span><br>
+                        <span id="debugEDD">Est. Delivery: Not set</span>
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100 py-3 rounded-3 shadow-sm" id="submitBtn" disabled>
+                        <i class="fas fa-credit-card me-2"></i> Proceed to Payment
+                    </button>
+                    
+                    <p class="text-center text-muted small mt-3">
+                        <i class="fas fa-info-circle"></i> Button will enable once a valid pincode is entered.
+                    </p>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card p-4 bg-white border-0 shadow-sm rounded-4 sticky-top" style="top: 20px;">
+                <h5 class="mb-4">Order Summary</h5>
+                
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        {% if product.images.first %}
+                            <img src="{{ product.images.first.image.url }}" class="rounded-3" width="70" height="70" style="object-fit: cover;">
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-0">{{ product.name }}</h6>
+                        <small class="text-muted">
+                            {% if variant %}Variant: {{ variant.name }}{% endif %}
+                        </small>
+                    </div>
+                </div>
+
+                <hr class="text-muted opacity-25">
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Unit Price</span>
+                    <span>₹{{ variant.selling_price|default:product.selling_price|floatformat:2 }}</span>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Product Total</span>
+                    <span>₹<span id="productPriceDisplay">0.00</span></span>
+                </div>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Shipping (Shiprocket)</span>
+                    <span class="text-success fw-bold">₹<span id="shippingChargeDisplay">0.00</span></span>
+                </div>
+
+                <div id="deliveryInfo" class="p-2 rounded-3 bg-light text-success small mb-3 text-center" style="display:none;">
+                    <i class="fas fa-truck-fast"></i> Estimated Delivery: <strong id="deliveryTime"></strong>
+                </div>
+
+                <div class="d-flex justify-content-between fw-bold fs-4 mt-3 border-top pt-3">
+                    <span>Total Amount</span>
+                    <span class="text-primary">₹<span id="totalAmountDisplay">0.00</span></span>
+                </div>
+
+                <div class="mt-4">
+                    <img src="https://cdn.razorpay.com/static/assets/badge/badge.png" class="w-100" alt="Razorpay Secure">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const basePrice = parseFloat("{{ variant.selling_price|default:product.selling_price }}");
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // Hidden Fields references
+    const shippingHidden = document.getElementById('id_shipping_charge_hidden');
+    const courierHidden = document.getElementById('id_courier_name_hidden');
+    const etdHidden = document.getElementById('id_estimated_delivery_date_hidden');
+    const pickupAddressHidden = document.getElementById('id_pickup_address_hidden');
+    const pickupPincodeHidden = document.getElementById('id_pickup_pincode_hidden');
+    const pickupTypeHidden = document.getElementById('id_pickup_address_type_hidden');
+
+    let timer;
+
+    function updateDebugPanel(data) {
+        const debugPanel = document.getElementById('debugPanel');
+        if (!debugPanel) return;
+        
+        document.getElementById('debugPickupType').innerHTML = `Pickup Type: ${data.pickup_location_type || 'Not set'}`;
+        document.getElementById('debugPickupAddress').innerHTML = `Pickup Address: ${(data.pickup_address || 'Not set').substring(0, 50)}`;
+        document.getElementById('debugPickupPincode').innerHTML = `Pickup Pincode: ${data.pickup_pincode || 'Not set'}`;
+        document.getElementById('debugCourier').innerHTML = `Courier: ${data.courier_name || 'Not set'}`;
+        document.getElementById('debugEDD').innerHTML = `Est. Delivery: ${data.etd_date || 'Not set'}`;
+        
+        debugPanel.style.display = 'block';
+        setTimeout(() => {
+            debugPanel.style.display = 'none';
+        }, 8000);
+    }
+
+    function updateSummary() {
+        const pincodeField = document.querySelector('[name="shipping_pincode"]');
+        const qtyField = document.querySelector('[name="quantity"]');
+        
+        if (!pincodeField || !qtyField) return;
+
+        const pincode = pincodeField.value;
+        const qty = parseInt(qtyField.value) || 1;
+        
+        const productTotal = basePrice * qty;
+        document.getElementById('productPriceDisplay').innerText = productTotal.toFixed(2);
+        
+        // Reset state while typing/calculating
+        submitBtn.disabled = true;
+        shippingHidden.value = "0"; 
+        document.getElementById('deliveryInfo').style.display = 'none';
+        document.getElementById('shippingChargeDisplay').innerText = "0.00";
+        document.getElementById('totalAmountDisplay').innerText = productTotal.toFixed(2);
+
+        if (pincode.length === 6) {
+            document.getElementById('pincodeLoading').style.display = 'block';
+            
+            const apiUrl = `/orders/calculate-shipping/?product_id={{product.id}}&pincode=${pincode}&quantity=${qty}&store_id={{store.id}}{% if variant %}&variant_id={{variant.id}}{% endif %}`;
+            console.log("Fetching shipping data from:", apiUrl);
+            
+            fetch(apiUrl)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('pincodeLoading').style.display = 'none';
+                    
+                    console.log("=== SHIPPING API RESPONSE ===");
+                    console.log("Success:", data.success);
+                    console.log("Shipping Charge:", data.shipping_charge);
+                    console.log("Courier Name:", data.courier_name);
+                    console.log("Pickup Location Type:", data.pickup_location_type);
+                    console.log("Pickup Address:", data.pickup_address);
+                    console.log("Pickup Pincode:", data.pickup_pincode);
+                    console.log("ETD Date:", data.etd_date);
+                    console.log("Delivery Time:", data.delivery_time);
+                    console.log("==============================");
+                    
+                    if (data.success) {
+                        const shipCost = parseFloat(data.shipping_charge);
+                        const finalTotal = productTotal + shipCost;
+
+                        // 1. Update UI Elements
+                        document.getElementById('shippingChargeDisplay').innerText = shipCost.toFixed(2);
+                        document.getElementById('totalAmountDisplay').innerText = finalTotal.toFixed(2);
+                        document.getElementById('deliveryTime').innerHTML = `${data.delivery_time} ${data.etd_date ? '(by ' + data.etd_date + ')' : ''}`;
+                        document.getElementById('deliveryInfo').style.display = 'block';
+                        
+                        // 2. Update ALL Hidden Fields for the POST request
+                        shippingHidden.value = shipCost;
+                        courierHidden.value = data.courier_name || "Standard Shipping";
+                        etdHidden.value = data.etd_date || "";
+                        pickupAddressHidden.value = data.pickup_address || "";
+                        pickupPincodeHidden.value = data.pickup_pincode || "";
+                        pickupTypeHidden.value = data.pickup_location_type || "";
+                        
+                        // 3. Validate that pickup data is set
+                        if (!pickupTypeHidden.value || !pickupAddressHidden.value || !pickupPincodeHidden.value) {
+                            console.error("⚠️ WARNING: Pickup data is missing!");
+                            console.log("pickup_type:", pickupTypeHidden.value);
+                            console.log("pickup_address:", pickupAddressHidden.value);
+                            console.log("pickup_pincode:", pickupPincodeHidden.value);
+                            submitBtn.disabled = true;
+                            document.getElementById('deliveryInfo').className = "p-2 rounded-3 bg-warning small mb-3 text-center";
+                            document.getElementById('deliveryTime').innerHTML = "⚠️ Pickup location not configured. Please contact support.";
+                        } else {
+                            console.log("✅ Pickup data validated successfully!");
+                            console.log("Final values:");
+                            console.log("  pickup_type:", pickupTypeHidden.value);
+                            console.log("  pickup_address:", pickupAddressHidden.value);
+                            console.log("  pickup_pincode:", pickupPincodeHidden.value);
+                            console.log("  courier:", courierHidden.value);
+                            console.log("  etd:", etdHidden.value);
+                            submitBtn.disabled = false;
+                        }
+                        
+                        // Show debug panel with received data
+                        updateDebugPanel(data);
+                        
+                    } else {
+                        // Handle unserviceable area
+                        console.error("Shipping not available:", data.message);
+                        document.getElementById('shippingChargeDisplay').innerText = data.message || "Not Serviceable";
+                        document.getElementById('shippingChargeDisplay').className = "text-danger fw-bold";
+                        submitBtn.disabled = true;
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('pincodeLoading').style.display = 'none';
+                    console.error("Calculation Error:", err);
+                    submitBtn.disabled = true;
+                });
+        }
+    }
+
+    // Add form submission validation
+    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+        console.log("=== FORM SUBMISSION VALIDATION ===");
+        console.log("pickup_address_type:", pickupTypeHidden.value);
+        console.log("pickup_address:", pickupAddressHidden.value);
+        console.log("pickup_pincode:", pickupPincodeHidden.value);
+        console.log("estimated_delivery_date:", etdHidden.value);
+        console.log("courier_name:", courierHidden.value);
+        console.log("shipping_charge:", shippingHidden.value);
+        
+        if (!pickupTypeHidden.value || !pickupAddressHidden.value || !pickupPincodeHidden.value) {
+            console.error("❌ FORM VALIDATION FAILED: Missing pickup data!");
+            alert("Unable to process order: Shipping pickup location information is missing. Please check your pincode and try again.");
+            e.preventDefault();
+            return false;
+        }
+        
+        console.log("✅ FORM VALIDATION PASSED: All pickup data present");
+        return true;
+    });
+
+    // Event Listeners
+    const pincodeInput = document.querySelector('[name="shipping_pincode"]');
+    if (pincodeInput) {
+        pincodeInput.addEventListener('input', () => {
+            clearTimeout(timer);
+            timer = setTimeout(updateSummary, 700);
+        });
+    }
+
+    const quantityInput = document.querySelector('[name="quantity"]');
+    if (quantityInput) {
+        quantityInput.addEventListener('change', updateSummary);
+    }
+    
+    // Trigger update on initial load if pincode is already present
+    window.onload = function() {
+        updateSummary();
+        console.log("Checkout page loaded. Debug mode:", {% if debug %}true{% else %}false{% endif %});
+    };
+</script>
+{% endblock %}
