@@ -184,6 +184,70 @@
     .field-error {
         animation: headShake 0.5s; /* Using animate.css which you already linked */
     }
+    .split-register {
+        display: flex;
+        min-height: 95vh;
+        width: 94%;
+        margin: 20px auto;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        background: #fff;
+    }
+
+    /* UPDATED LEFT PANEL */
+    .left-hero {
+        flex: 1.2;
+        position: relative;
+        /* Changed to 'cover' so it fills the area, and added a default color */
+        background: #eef2ff url("{% static 'images/wholeseller.png' %}") center center / cover no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 300px; /* Ensures visibility on mobile */
+    }
+
+    /* ... (Keep your existing info-overlay, step-indicators, etc.) ... */
+
+    /* RESPONSIVE FIXES */
+    @media (max-width: 992px) {
+        .split-register {
+            flex-direction: column;
+            width: 98%;
+            margin: 10px auto;
+        }
+
+        .left-hero {
+            /* Remove 'display: none' */
+            flex: none;
+            height: 250px; /* Fixed height for mobile/tablet top banner */
+            width: 100%;
+            background-size: cover; /* Ensures the image covers the top area */
+        }
+
+        .right-form {
+            padding: 1.5rem;
+            max-height: none; /* Allow natural scrolling on mobile */
+        }
+        
+        .ws-reg-header h1 {
+            font-size: 24px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .left-hero {
+            height: 180px; /* Slightly smaller for small phones */
+        }
+        
+        .step-label {
+            display: none; /* Hide labels on tiny screens to prevent overlap */
+        }
+        
+        .info-overlay {
+            display: none; /* Hide overlay on mobile to keep image clear */
+        }
+    }
 </style>
 
 <div class="split-register">
