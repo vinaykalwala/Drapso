@@ -1,3 +1,4 @@
+<!-- FILE: switch_to_single_product_updated.html -->
 {% extends 'dashboard_base.html' %}
 {% load static %}
 
@@ -7,18 +8,19 @@
 <style>
 /* ============================================
    ✨ SWITCH TO SINGLE PRODUCT THEME ✨
-   Thick Minty Green Header | Blue Highlights | Search
+   Orange Theme | Professional E-commerce
    ============================================ */
 
 :root {
-    --mint: #018655;
-    --mint-dark: #00774f;
-    --mint-thick: #036143;
-    --mint-light: #d1fae5;
+    --orange: #f97316;
+    --orange-dark: #ea580c;
+    --orange-light: #fed7aa;
+    --orange-soft: #fff7ed;
     --blue: #3b82f6;
-    --blue-dark: #2563eb;
     --blue-light: #dbeafe;
     --success: #10b981;
+    --success-dark: #059669;
+    --warning: #f59e0b;
     --gray-50: #f9fafb;
     --gray-100: #f3f4f6;
     --gray-200: #e5e7eb;
@@ -47,9 +49,9 @@
     padding: 0 1.5rem;
 }
 
-/* Header Card - Thick Minty Green */
+/* Header Card - Orange Theme */
 .switch-theme__header {
-    background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+    background: linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fb923c 100%);
     border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
     padding: 1.8rem 2rem;
     display: flex;
@@ -60,11 +62,11 @@
     box-shadow: var(--shadow-lg);
     position: relative;
     overflow: hidden;
-    border-bottom: 3px solid rgba(255,255,255,0.2);
+    border-bottom: 3px solid #fed7aa;
 }
 
 .switch-theme__header::before {
-    content: '↺';
+    content: '🔄';
     position: absolute;
     right: -20px;
     bottom: -20px;
@@ -81,7 +83,7 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
     animation: shimmer 3s infinite;
 }
 
@@ -175,8 +177,8 @@
 }
 
 .search-input:focus {
-    border-color: var(--blue);
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(249,115,22,0.1);
 }
 
 .search-results-count {
@@ -187,7 +189,7 @@
 
 /* Info Alert - Blue Highlight */
 .switch-theme__info {
-    background: linear-gradient(135deg, var(--blue-light) 0%, #dbeafe 100%);
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
     border: 1px solid #bfdbfe;
     border-radius: var(--radius-lg);
     padding: 1rem 1.25rem;
@@ -221,10 +223,10 @@
     color: #1e3a8a;
 }
 
-/* Warning Alert - Minty Light */
+/* Warning Alert - Orange Light */
 .switch-theme__warning {
-    background: linear-gradient(135deg, var(--mint-light) 0%, #d1fae5 100%);
-    border: 1px solid #a7f3d0;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    border: 1px solid #fed7aa;
     border-radius: var(--radius-lg);
     padding: 1.25rem 1.5rem;
     margin-bottom: 1.5rem;
@@ -250,13 +252,13 @@
 
 .warning-title i {
     font-size: 1.3rem;
-    color: var(--mint-dark);
+    color: var(--orange-dark);
 }
 
 .warning-title h5 {
     font-size: 1rem;
     font-weight: 700;
-    color: #065f46;
+    color: #9a3412;
     margin: 0;
 }
 
@@ -265,7 +267,7 @@
     padding: 0;
     margin: 0;
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 in one row */
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
 }
 
@@ -277,7 +279,7 @@
     background: rgba(255,255,255,0.6);
     border-radius: var(--radius-md);
     font-size: 0.85rem;
-    color: #065f46;
+    color: #9a3412;
 }
 
 .warning-list li i {
@@ -285,14 +287,14 @@
 }
 
 .warning-list li i.fa-archive {
-    color: var(--blue);
+    color: var(--orange);
 }
 
 .warning-list li i.fa-sync-alt {
-    color: var(--mint-dark);
+    color: var(--orange-dark);
 }
 
-/* Section Title - Blue Highlight */
+/* Section Title - Orange Highlight */
 .section-title {
     font-size: 1.1rem;
     font-weight: 700;
@@ -306,7 +308,7 @@
 }
 
 .section-title i {
-    color: var(--blue);
+    color: var(--orange);
 }
 
 .section-title span {
@@ -352,9 +354,9 @@
 }
 
 .product-option input[type="radio"]:checked + .product-card {
-    border-color: var(--blue);
-    box-shadow: 0 8px 25px rgba(59,130,246,0.2);
-    background: linear-gradient(135deg, var(--blue-light) 0%, white 100%);
+    border-color: var(--orange);
+    box-shadow: 0 8px 25px rgba(249,115,22,0.2);
+    background: linear-gradient(135deg, #fff7ed 0%, white 100%);
 }
 
 /* Product Image */
@@ -472,16 +474,16 @@
 }
 
 .badge-featured {
-    background: linear-gradient(135deg, var(--blue-light) 0%, #bfdbfe 100%);
-    color: #1e40af;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    color: #9a3412;
 }
 
-/* Selected Badge - Blue Highlight */
+/* Selected Badge - Orange Highlight */
 .selected-badge {
     position: absolute;
     top: 8px;
     right: 8px;
-    background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+    background: linear-gradient(135deg, var(--orange), var(--orange-dark));
     color: white;
     padding: 0.25rem 0.7rem;
     border-radius: 50px;
@@ -506,18 +508,18 @@
     left: 0;
     right: 0;
     bottom: 0;
-    border: 3px solid var(--blue);
+    border: 3px solid var(--orange);
     border-radius: var(--radius-xl);
     pointer-events: none;
 }
 
 /* Selected product name highlight */
 .product-option input[type="radio"]:checked + .product-card .product-card__header h5 {
-    color: var(--blue-dark);
+    color: var(--orange-dark);
 }
 
 .product-option input[type="radio"]:checked + .product-card .product-card__header h5 i {
-    color: var(--blue);
+    color: var(--orange);
 }
 
 /* Hidden class for search */
@@ -579,7 +581,7 @@
 }
 
 .btn-confirm {
-    background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+    background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dark) 100%);
     color: white;
     border: none;
     padding: 0.75rem 1.5rem;
@@ -591,12 +593,12 @@
     gap: 0.5rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+    box-shadow: 0 4px 12px rgba(249,115,22,0.3);
 }
 
 .btn-confirm:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(59,130,246,0.4);
+    box-shadow: 0 6px 20px rgba(249,115,22,0.4);
 }
 
 .btn-confirm:active {
@@ -719,7 +721,7 @@
 <div class="content">
 <div class="switch-theme">
 
-    <!-- Header - Thick Minty Green -->
+    <!-- Header - Orange Theme -->
     <div class="switch-theme__header">
         <div class="switch-theme__title-section">
             <h1 class="switch-theme__title">
@@ -745,21 +747,21 @@
             </div>
         </div>
 
-        <!-- Warning Alert - Minty Light -->
+        <!-- Warning Alert - Orange Light -->
         <div class="switch-theme__warning">
             <div class="warning-title">
                 <i class="fas fa-exchange-alt"></i>
                 <h5>What will happen?</h5>
             </div>
             <ul class="warning-list">
-                <li><i class="fas fa-check-circle" style="color: var(--mint-dark);"></i> <strong>1 product</strong> will remain active</li>
-                <li><i class="fas fa-archive" style="color: var(--blue);"></i> <strong>{{ will_archive }} products</strong> will be archived</li>
-                <li><i class="fas fa-sync-alt" style="color: var(--mint-dark);"></i> Archived products can be restored when switching back</li>
-                <li><i class="fas fa-save" style="color: var(--blue);"></i> All product data is preserved</li>
+                <li><i class="fas fa-check-circle" style="color: var(--orange-dark);"></i> <strong>1 product</strong> will remain active</li>
+                <li><i class="fas fa-archive" style="color: var(--orange);"></i> <strong>{{ will_archive }} products</strong> will be archived</li>
+                <li><i class="fas fa-sync-alt" style="color: var(--orange-dark);"></i> Archived products can be restored when switching back</li>
+                <li><i class="fas fa-save" style="color: var(--orange);"></i> All product data is preserved</li>
             </ul>
         </div>
 
-        <!-- Section Title - Blue Highlight -->
+        <!-- Section Title - Orange Highlight -->
         <div class="section-title">
             <i class="fas fa-box"></i>
             Select which product to keep:
@@ -803,7 +805,7 @@
                         </div>
                         <div class="product-card__header">
                             <h5>
-                                <i class="fas fa-box" style="color: var(--mint-dark);"></i>
+                                <i class="fas fa-box" style="color: var(--orange-dark);"></i>
                                 {{ product.name }}
                             </h5>
                         </div>
