@@ -1,0 +1,323 @@
+
+{% load static %}
+
+{% block title %}Order Details - {{ order.order_id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .section-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .section-title {
+        font-size: 1.2em;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    .info-label {
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 5px;
+    }
+    .info-value {
+        font-size: 1.1em;
+    }
+    .status-timeline {
+        margin: 20px 0;
+    }
+    .return-video {
+        max-width: 100%;
+        border-radius: 12px;
+    }
+    .btn-approve {
+        background: #28a745;
+        color: white;
+    }
+    .btn-reject {
+        background: #dc3545;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Order Details</h2>
+        <a href="{% url 'orders:reseller_orders' store.id %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Orders
+        </a>
+    </div>
+    
+    <!-- Order Information -->
+    <div class="section-card">
+        <h5 class="section-title">Order Information</h5>
+        <div class="info-grid">
+            <div>
+                <div class="info-label">Order ID</div>
+                <div class="info-value"><strong>{{ order.order_id }}</strong></div>
+            </div>
+            <div>
+                <div class="info-label">Order Date</div>
+                <div class="info-value">{{ order.created_at|date:"F d, Y g:i A" }}</div>
+            </div>
+            <div>
+                <div class="info-label">Status</div>
+                <div class="info-value">
+                    <span class="badge bg-{% if order.order_status == 'delivered' %}success{% elif order.order_status == 'cancelled' %}danger{% else %}warning{% endif %}">
+                        {{ order.get_order_status_display }}
+                    </span>
+                </div>
+            </div>
+            <div>
+                <div class="info-label">Payment Status</div>
+                <div class="info-value">
+                    <span class="badge bg-{% if order.payment_status == 'success' %}success{% else %}warning{% endif %}">
+                        {{ order.get_payment_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Customer Information -->
+    <div class="section-card">
+        <h5 class="section-title">Customer Information</h5>
+        <div class="info-grid">
+            <div>
+                <div class="info-label">Name</div>
+                <div class="info-value">{{ order.customer_name }}</div>
+            </div>
+            <div>
+                <div class="info-label">Email</div>
+                <div class="info-value">{{ order.customer_email }}</div>
+            </div>
+            <div>
+                <div class="info-label">Phone</div>
+                <div class="info-value">{{ order.customer_phone }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Shipping Address -->
+    <div class="section-card">
+        <h5 class="section-title">Shipping Address</h5>
+        <div class="info-value">
+            {{ order.shipping_address|linebreaksbr }}<br>
+            {{ order.shipping_city }}, {{ order.shipping_state }} - {{ order.shipping_pincode }}
+        </div>
+    </div>
+    
+    <!-- Product Details -->
+    <div class="section-card">
+        <h5 class="section-title">Product Details</h5>
+        <div class="row">
+            <div class="col-md-8">
+                <table class="table">
+                    <tr>
+                        <th>Product</th>
+                        <td>{{ order.product.name }}</td>
+                    </tr>
+                    {% if order.variant %}
+                    <tr>
+                        <th>Variant</th>
+                        <td>{{ order.variant.variant_name }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <th>Quantity</th>
+                        <td>{{ order.quantity }}</td>
+                    </tr>
+                    <tr>
+                        <th>Product Price</th>
+                        <td>₹{{ order.product_price|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <th>Shipping Charge</th>
+                        <td>₹{{ order.shipping_charge|floatformat:2 }}</td>
+                    </tr>
+                    <tr class="table-active">
+                        <th>Total Amount</th>
+                        <td><strong>₹{{ order.total_amount|floatformat:2 }}</strong></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-4 text-center">
+                {% if order.product.main_image %}
+                    <img src="{{ order.product.main_image.url }}" alt="{{ order.product.name }}" class="img-fluid rounded" style="max-height: 200px;">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pickup Location -->
+    <div class="section-card">
+        <h5 class="section-title">Pickup Location (Shipping From)</h5>
+        <div class="info-value">
+            <strong>Type:</strong> {{ order.get_pickup_address_type_display }}<br>
+            {{ order.pickup_address|linebreaksbr }}<br>
+            Pincode: {{ order.pickup_pincode }}
+        </div>
+    </div>
+    
+    <!-- Shiprocket Details -->
+    {% if order.awb_code %}
+    <div class="section-card">
+        <h5 class="section-title">Shipping Details</h5>
+        <div class="info-grid">
+            <div>
+                <div class="info-label">AWB Number</div>
+                <div class="info-value">{{ order.awb_code }}</div>
+            </div>
+            <div>
+                <div class="info-label">Courier</div>
+                <div class="info-value">{{ order.courier_name }}</div>
+            </div>
+            <div>
+                <div class="info-label">Tracking URL</div>
+                <div class="info-value">
+                    {% if order.tracking_url %}
+                        <a href="{{ order.tracking_url }}" target="_blank">Track Shipment <i class="fas fa-external-link-alt"></i></a>
+                    {% else %}
+                        Not available
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Action Buttons -->
+    <div class="d-flex gap-3 mb-4">
+        {% if order.order_status == 'paid' %}
+            <a href="{% url 'orders:approve_order' store.id order.id %}" class="btn btn-success btn-lg">
+                <i class="fas fa-check-circle"></i> Approve Order
+            </a>
+        {% endif %}
+        
+        {% if order.order_status == 'approved' %}
+            <a href="{% url 'orders:mark_order_shipped' store.id order.id %}" class="btn btn-info btn-lg">
+                <i class="fas fa-truck"></i> Mark as Shipped
+            </a>
+        {% endif %}
+    </div>
+    
+    <!-- Return Request Section -->
+    {% if return_request %}
+    <div class="section-card">
+        <h5 class="section-title">Return Request</h5>
+        
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> 
+            Return requested on {{ return_request.created_at|date:"F d, Y g:i A" }}
+        </div>
+        
+        <div class="info-grid mb-3">
+            <div>
+                <div class="info-label">Reason</div>
+                <div class="info-value">{{ return_request.get_reason_display }}</div>
+            </div>
+            <div>
+                <div class="info-label">Status</div>
+                <div class="info-value">
+                    <span class="badge bg-{% if return_request.status == 'pending' %}warning{% elif return_request.status == 'approved' %}success{% else %}danger{% endif %}">
+                        {{ return_request.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <div class="info-label">Description</div>
+            <div class="info-value">{{ return_request.description }}</div>
+        </div>
+        
+        {% if return_request.unboxing_video %}
+        <div class="mb-3">
+            <div class="info-label">Unboxing Video</div>
+            <video controls class="return-video" style="max-width: 100%; max-height: 300px;">
+                <source src="{{ return_request.unboxing_video.url }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        {% endif %}
+        
+        {% if return_request.product_images %}
+        <div class="mb-3">
+            <div class="info-label">Product Images</div>
+            <img src="{{ return_request.product_images.url }}" alt="Product" class="img-fluid rounded" style="max-height: 200px;">
+        </div>
+        {% endif %}
+        
+        <div class="mb-3">
+            <div class="info-label">Return Address</div>
+            <div class="info-value">{{ return_request.return_address|linebreaksbr }}</div>
+        </div>
+        
+        {% if return_request.status == 'pending' %}
+        <div class="mt-3">
+            <form method="POST" action="{% url 'orders:review_return' store.id return_request.id %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Admin Notes</label>
+                    <textarea name="admin_notes" class="form-control" rows="3" placeholder="Add notes about the return request..."></textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" name="action" value="approve" class="btn btn-success">
+                        <i class="fas fa-check"></i> Approve Return & Schedule Pickup
+                    </button>
+                    <button type="submit" name="action" value="reject" class="btn btn-danger" onclick="return confirm('Are you sure you want to reject this return request?')">
+                        <i class="fas fa-times"></i> Reject Return
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% elif return_request.status == 'pickup_scheduled' %}
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> 
+            Return pickup scheduled for {{ return_request.return_pickup_scheduled_date }}<br>
+            Return AWB: {{ return_request.return_awb }} | Courier: {{ return_request.return_courier_name }}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- Status History -->
+    {% if order.status_history %}
+    <div class="section-card">
+        <h5 class="section-title">Status History</h5>
+        <div class="timeline">
+            {% for event in order.status_history|slice:":10" %}
+            <div class="d-flex mb-3">
+                <div class="me-3">
+                    <i class="fas fa-circle text-primary" style="font-size: 12px;"></i>
+                </div>
+                <div>
+                    <strong>{{ event.status|title }}</strong><br>
+                    <small class="text-muted">{{ event.timestamp|date:"F d, Y g:i A" }}</small>
+                    {% if event.details %}
+                        <div class="small text-muted">{{ event.details }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

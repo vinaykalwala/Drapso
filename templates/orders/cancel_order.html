@@ -1,0 +1,121 @@
+
+{% load static %}
+
+{% block title %}Cancel Order - {{ order.order_id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .cancel-container {
+        max-width: 600px;
+        margin: 60px auto;
+        padding: 0 20px;
+    }
+    .warning-card {
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .refund-form {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        padding: 30px;
+    }
+    .form-label {
+        font-weight: 500;
+    }
+    .btn-cancel {
+        background: #dc3545;
+        width: 100%;
+        padding: 12px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cancel-container">
+    <div class="warning-card">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle fa-2x text-warning me-3"></i>
+            <div>
+                <h5 class="mb-1">Confirm Order Cancellation</h5>
+                <p class="mb-0">Order: <strong>{{ order.order_id }}</strong> | Amount: <strong>₹{{ order.total_amount|floatformat:2 }}</strong></p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="refund-form">
+        <h5 class="mb-4">Refund Details</h5>
+        <p class="text-muted mb-4">Please provide your bank details to receive the refund. The amount will be transferred manually within 5-7 business days.</p>
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label class="form-label">Account Holder Name *</label>
+                <input type="text" name="account_holder_name" class="form-control" required placeholder="As per bank account">
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Account Number *</label>
+                <input type="text" name="account_number" class="form-control" required pattern="[0-9]{9,18}" placeholder="9-18 digits">
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Confirm Account Number *</label>
+                <input type="text" name="confirm_account_number" class="form-control" required>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">IFSC Code *</label>
+                    <input type="text" name="ifsc_code" class="form-control" required placeholder="SBIN0001234">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Bank Name *</label>
+                    <input type="text" name="bank_name" class="form-control" required placeholder="State Bank of India">
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label">UPI ID (Optional)</label>
+                <input type="text" name="upi_id" class="form-control" placeholder="username@okhdfcbank">
+                <small class="text-muted">Provide UPI ID for faster refund processing</small>
+            </div>
+            
+            <div class="alert alert-warning">
+                <i class="fas fa-info-circle"></i> 
+                Once cancelled, this action cannot be undone. Your refund will be processed manually after verification.
+            </div>
+            
+            <button type="submit" class="btn btn-danger btn-cancel" onclick="return confirm('Are you absolutely sure you want to cancel this order?')">
+                <i class="fas fa-times-circle"></i> Confirm Cancellation
+            </button>
+            
+            <a href="{% url 'orders:track_order' order.order_id %}" class="btn btn-outline-secondary w-100 mt-3">
+                <i class="fas fa-arrow-left"></i> Go Back
+            </a>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Account number validation
+    const accountNumber = document.querySelector('input[name="account_number"]');
+    const confirmAccount = document.querySelector('input[name="confirm_account_number"]');
+    
+    function validateAccountMatch() {
+        if (accountNumber.value !== confirmAccount.value) {
+            confirmAccount.setCustomValidity('Account numbers do not match');
+        } else {
+            confirmAccount.setCustomValidity('');
+        }
+    }
+    
+    accountNumber.addEventListener('change', validateAccountMatch);
+    confirmAccount.addEventListener('keyup', validateAccountMatch);
+</script>
+{% endblock %}

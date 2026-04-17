@@ -61,14 +61,14 @@
     }
 
     .chimney {
-        width: 45px;
-        height: 80px;
-        background: #1e293b;
-        position: absolute;
-        top: 40px;
-        right: 22%;
-        border-radius: 4px 4px 0 0;
-        z-index: -1;
+    width: clamp(25px, 5vw, 45px);
+    height: clamp(50px, 10vw, 80px);
+    background: #1e293b;
+    position: absolute;
+    top: clamp(20px, 5vw, 40px);
+    right: clamp(10%, 15vw, 22%);
+    border-radius: 4px 4px 0 0;
+    z-index: -1; /* IMPORTANT: bring it above */
     }
 
     .hut-main-body {
@@ -211,10 +211,17 @@
 
     @media (max-width: 576px) {
         .dashboard-grid { grid-template-columns: 1fr; }
-        .chimney { display: none; }
+        /* .chimney { display: none; } */
         .status-ribbon { right: 0; top: 10px; padding: 5px 15px; }
         .hut-door-link { width: 100%; justify-content: center; }
         .store-hero-logo { margin-top: -40px; }
+    }
+
+    @media (max-width: 576px) {
+        .chimney {
+            right: 18%;
+            top: 25px;
+        }
     }
 </style>
 
@@ -222,111 +229,145 @@
     <div class="main-content">
         <div class="hut-grand-wrapper">
             <div class="chimney"></div>
+            <!-- HEADER -->
             <div class="hut-roof-crown">
                 <span class="roof-logo">Reseller Dashboard</span>
             </div>
 
             <div class="hut-main-body">
+
                 {% if stores %}
-                    {% with store=stores|first %} 
+
+                    {% with store=stores|first %}
+
+                    <!-- ================= STORE EXISTS ================= -->
                     <div class="store-focal-point text-center">
-                        
+
                         {% if store.status == 'active' %}
-                        <div class="status-ribbon">Store Live</div>
+                            <div class="status-ribbon">Store Live</div>
                         {% endif %}
 
+                        <!-- Banner -->
                         <div class="store-hero-banner">
                             {% if store.store_banner %}
-                                <img src="{{ store.store_banner.url }}" alt="banner">
+                                <img src="{{ store.store_banner.url }}">
                             {% else %}
-                                <img src="{% static 'images/bg.png' %}" alt="default banner">
+                                <img src="{% static 'images/bg.png' %}">
                             {% endif %}
                         </div>
 
+                        <!-- Logo -->
                         <div class="store-hero-logo">
                             {% if store.store_logo %}
-                                <img src="{{ store.store_logo.url }}" alt="logo">
+                                <img src="{{ store.store_logo.url }}">
                             {% else %}
-                                <img src="{% static 'images/user.png' %}" alt="default logo">
+                                <img src="{% static 'images/user.png' %}">
                             {% endif %}
                         </div>
 
-                        <h1 class="fw-800 mb-1" style="font-size: clamp(1.8rem, 5vw, 2.5rem); color: #0f172a;">{{ store.store_name }}</h1>
-                        <a href="https://{{ store.subdomain }}.example.com" target="_blank" class="text-decoration-none">
-                            <p class="text-primary fw-600 mb-4">{{ store.subdomain }}.example.com</p>
+                        <!-- Info -->
+                        <h1 class="fw-bold mt-3">{{ store.store_name }}</h1>
+
+                        <a href="https://{{ store.subdomain }}.example.com" target="_blank">
+                            {{ store.subdomain }}.example.com
                         </a>
-                        
-                        <p class="text-muted mx-auto mb-5" style="max-width: 600px; font-size: 0.95rem;">
-                            {{ store.store_description|default:"Your premium digital storefront is ready for business. Manage your products, themes, and analytics below." }}
+
+                        <p class="text-muted mt-2">
+                            {{ store.store_description|default:"Your premium digital storefront is ready for business." }}
                         </p>
 
-                        <div class="dashboard-grid">
+                        <!-- Stats -->
+                        <div class="dashboard-grid mt-4">
+
                             <div class="stat-card">
-                                <span class="stat-label">Visitor Traffic</span>
-                                <span class="stat-value"><i class="fas fa-users me-2 text-primary"></i>{{ store.total_visitors }}</span>
+                                <span class="stat-label">Visitors</span>
+                                <span class="stat-value">{{ store.total_visitors }}</span>
                             </div>
+
                             <div class="stat-card">
-                                <span class="stat-label">Current Plan</span>
-                                <span class="stat-value"><i class="fas fa-crown me-2 text-warning"></i>{{ store.subscription_plan.get_name_display }}</span>
+                                <span class="stat-label">Plan</span>
+                                <span class="stat-value">
+                                    {{ store.subscription_plan.get_name_display }}
+                                </span>
                             </div>
+
                             <div class="stat-card">
                                 <span class="stat-label">Subscription</span>
                                 <span class="stat-value">
-                                    <i class="fas fa-clock me-2 text-info"></i>
                                     {% if store.subscription_end %}
-                                        {{ store.days_until_expiry }}d left
+                                        {{ store.days_until_expiry }} days left
                                     {% else %}
                                         Lifetime
                                     {% endif %}
                                 </span>
                             </div>
+
                         </div>
 
-                        <div class="mb-5 d-flex flex-wrap justify-content-center gap-3">
-                            <div class="small bg-light px-3 py-2 rounded-pill">
-                                <i class="fas fa-layer-group me-2"></i>Theme: <strong>{{ store.theme.name }}</strong>
+                        <!-- Extra Info -->
+                        <div class="mt-4 d-flex justify-content-center gap-3 flex-wrap small">
+                            <div class="bg-light px-3 py-2 rounded-pill">
+                                Theme: <strong>{{ store.theme.name }}</strong>
                             </div>
-                            <div class="small bg-light px-3 py-2 rounded-pill">
-                                <i class="fas fa-calendar-alt me-2"></i>Since: <strong>{{ store.created_at|date:"M Y" }}</strong>
+                            <div class="bg-light px-3 py-2 rounded-pill">
+                                Since: <strong>{{ store.created_at|date:"M Y" }}</strong>
                             </div>
                         </div>
 
-                        <a href="{{ store.next_step_url }}" class="hut-door-link">
-                            <span>{{ store.next_step }}</span>
-                            <i class="fas fa-door-open ms-3"></i>
-                        </a>
+                        <!-- CTA -->
+                        <div class="mt-4">
+                            <a href="{{ store.next_step_url }}" class="hut-door-link">
+                                {{ store.next_step }}
+                            </a>
+                        </div>
+
                     </div>
+
                     {% endwith %}
-                {% else %}
+
+                {% elif has_created_store %}
+
+                    <!-- ================= STORE EXISTS BUT NOT ACTIVE ================= -->
                     <div class="text-center py-5">
-                        <i class="fas fa-campground fa-5x mb-4 text-light"></i>
+                        <i class="fas fa-campground fa-4x mb-3 text-muted"></i>
                         <h2 class="fw-bold">Hut is Vacant</h2>
-                        <p class="text-muted">No active stores were found for your account.</p>
+                        <p class="text-muted">
+                            You have stores, but none are currently active.
+                        </p>
                     </div>
+
+                {% else %}
+
+                    <!-- ================= FIRST TIME USER ================= -->
+                    <div class="text-center py-5">
+
+                        <div class="mb-3">
+                            <i class="fas fa-store fa-3x text-primary"></i>
+                        </div>
+
+                        <h3 class="fw-bold">Your first store awaits</h3>
+
+                        <p class="text-muted mx-auto" style="max-width: 500px;">
+                            Launch a stunning online store in minutes. Beautiful themes,
+                            built-in SEO, and easy management.
+                        </p>
+
+                        <div class="mt-4">
+                            <a href="{% url 'resellers:create_store_step1' %}"
+                               class="btn btn-primary btn-lg px-4">
+                               Create Store
+                            </a>
+                        </div>
+
+                        <div class="mt-4 small text-muted">
+                            ⚡ Instant setup • 📊 Real-time stats • 🛟 24/7 support
+                        </div>
+
+                    </div>
+
                 {% endif %}
+
             </div>
-            {% else %}
-            <!-- empty state: fresh, energetic and inspiring -->
-            <div class="text-center py-5 my-3">
-                <div class="empty-illustration">
-                    <i class="fas fa-store fa-3x"></i>
-                </div>
-                <h3 class="fw-bold mt-4" style="color: #0f172a;">Your first store awaits</h3>
-                <p class="text-secondary mx-auto px-2" style="max-width: 540px;">Launch a stunning online store in
-                    minutes. Beautiful themes, built-in SEO, and easy management.</p>
-                <div class="mt-4">
-                    <a href="{% url 'resellers:create_store_step1' %}"
-                        class="btn btn-aurora btn-lg rounded-pill px-5 py-3 shadow-sm">
-                        <i class="fas fa-sparkle me-2"></i> Create Store
-                    </a>
-                </div>
-                <div class="mt-5 d-flex justify-content-center gap-3 flex-wrap small text-secondary">
-                    <span><i class="fas fa-bolt me-1 text-primary"></i> Instant setup</span>
-                    <span><i class="fas fa-chart-simple me-1 text-primary"></i> Real-time stats</span>
-                    <span><i class="fas fa-life-ring me-1 text-primary"></i> 24/7 support</span>
-                </div>
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>

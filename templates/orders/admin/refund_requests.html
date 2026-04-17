@@ -1,0 +1,137 @@
+
+{% load static %}
+
+{% block title %}Refund Requests - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .refund-container {
+        padding: 20px;
+    }
+    .refund-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .refund-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .bank-details {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 15px;
+        margin: 15px 0;
+    }
+    .btn-process {
+        background: #28a745;
+        color: white;
+    }
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8em;
+    }
+    .status-pending { background: #ffc107; }
+    .status-completed { background: #28a745; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="refund-container">
+    <h2 class="mb-4">Refund Requests</h2>
+    
+    <!-- Pending Refunds -->
+    <h4 class="mb-3">Pending Refunds ({{ refunds|length }})</h4>
+    {% for refund in refunds %}
+    <div class="refund-card">
+        <div class="refund-header">
+            <div>
+                <strong>Order: {{ refund.order.order_id }}</strong>
+                <span class="status-badge status-pending ms-2">Pending</span>
+            </div>
+            <div>
+                <strong>Amount: ₹{{ refund.refund_amount|floatformat:2 }}</strong>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div><strong>Customer:</strong> {{ refund.order.customer_name }}</div>
+                <div><strong>Email:</strong> {{ refund.order.customer_email }}</div>
+                <div><strong>Phone:</strong> {{ refund.order.customer_phone }}</div>
+                <div><strong>Refund Type:</strong> {{ refund.get_refund_type_display }}</div>
+                <div><strong>Requested:</strong> {{ refund.requested_at|date:"F d, Y g:i A" }}</div>
+            </div>
+            <div class="col-md-6">
+                <div class="bank-details">
+                    <strong>Bank Details for Refund:</strong><br>
+                    Account Holder: {{ refund.account_holder_name }}<br>
+                    Account Number: {{ refund.account_number }}<br>
+                    IFSC: {{ refund.ifsc_code }}<br>
+                    Bank: {{ refund.bank_name }}<br>
+                    {% if refund.upi_id %}UPI: {{ refund.upi_id }}{% endif %}
+                </div>
+            </div>
+        </div>
+        
+        {% if refund.return_request %}
+        <div class="mt-2">
+            <strong>Return Reason:</strong> {{ refund.return_request.get_reason_display }}<br>
+            <strong>Return Description:</strong> {{ refund.return_request.description }}
+        </div>
+        {% endif %}
+        
+        <div class="mt-3">
+            <a href="{% url 'orders:process_refund' refund.id %}" class="btn btn-process">
+                <i class="fas fa-money-bill-wave"></i> Process Refund
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-info">No pending refund requests.</div>
+    {% endfor %}
+    
+    <!-- Completed Refunds -->
+    {% if completed_refunds %}
+    <h4 class="mb-3 mt-4">Completed Refunds</h4>
+    {% for refund in completed_refunds %}
+    <div class="refund-card">
+        <div class="refund-header">
+            <div>
+                <strong>Order: {{ refund.order.order_id }}</strong>
+                <span class="status-badge status-completed ms-2">Completed</span>
+            </div>
+            <div>
+                <strong>Amount: ₹{{ refund.refund_amount|floatformat:2 }}</strong>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div><strong>Customer:</strong> {{ refund.order.customer_name }}</div>
+                <div><strong>Transaction ID:</strong> {{ refund.transaction_id|default:"N/A" }}</div>
+                <div><strong>Processed:</strong> {{ refund.processed_at|date:"F d, Y g:i A" }}</div>
+            </div>
+            <div class="col-md-6">
+                {% if refund.admin_notes %}
+                    <strong>Admin Notes:</strong> {{ refund.admin_notes }}
+                {% endif %}
+                {% if refund.transfer_proof %}
+                    <br><a href="{{ refund.transfer_proof.url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                        <i class="fas fa-file-pdf"></i> View Transfer Proof
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,70 +1,74 @@
 {% extends "dashboard_base.html" %}
 {% block content %}
 
+<!-- ========== REFERENCE DESIGN SYSTEM (consistent with manage plans UI) ========== -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
 <style>
-    /* ----- REFERENCE-BASED DESIGN SYSTEM (image.png) ----- */
+    /* ----- GLOBAL DESIGN TOKENS (from reference) ----- */
     :root {
-        --primary-blue: #2563eb;
+        --primary: #2563eb;
         --primary-dark: #1d4ed8;
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-300: #d1d5db;
-        --gray-600: #4b5563;
-        --gray-700: #374151;
-        --gray-800: #1f2937;
-        --gray-900: #111827;
-        --success-green: #10b981;
+        --primary-light: #dbeafe;
+        --gray-50: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-300: #cbd5e1;
+        --gray-600: #475569;
+        --gray-700: #334155;
+        --gray-800: #1e293b;
+        --gray-900: #0f172a;
+        --success: #10b981;
+        --success-light: #d1fae5;
+        --danger: #ef4444;
         --card-radius: 24px;
-        --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-        --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        --shadow-card: 0 8px 20px -6px rgba(0, 0, 0, 0.05), 0 4px 8px -2px rgba(0, 0, 0, 0.03);
         --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
         --transition: all 0.2s ease;
     }
 
     body {
-        background: #f5f7fc;
-        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: #f5f9ff;
         color: var(--gray-800);
-        line-height: 1.5;
     }
 
-    /* Layout containers (preserve structure) */
     .content {
-        padding-top: 10px;
+        padding: 0.5rem 0.5rem;
     }
 
+    /* page container - clean width like reference */
     .page-container {
-        max-width: 1280px;
+        max-width: 1400px;
         margin: 0 auto;
-        padding: 0 0.5rem;
+        padding: 0.5rem 0;
     }
 
-    .content-wrapper {
-        width: 100%;
-    }
-
-    /* ----- Header (clean, like reference) ----- */
+    /* ----- HEADER SECTION (refined) ----- */
     .header-section {
         text-align: center;
         margin-bottom: 3rem;
     }
 
     .page-title {
-        font-size: 2.25rem;
+        font-size: 2.2rem;
         font-weight: 700;
         letter-spacing: -0.02em;
         color: var(--gray-900);
         margin-bottom: 0.5rem;
+        line-height: 1.2;
     }
 
     .page-subtitle {
-        font-size: 1rem;
+        font-size: 0.95rem;
         color: var(--gray-600);
+        font-weight: 500;
         max-width: 550px;
         margin: 0 auto 1.75rem;
     }
 
+    /* progress component - consistent with reference badges */
     .progress-container {
         display: inline-flex;
         align-items: center;
@@ -72,8 +76,9 @@
         background: white;
         padding: 0.6rem 1.5rem;
         border-radius: 40px;
-        box-shadow: var(--shadow-sm);
+        box-shadow: var(--shadow-card);
         border: 1px solid var(--gray-200);
+        font-weight: 500;
     }
 
     .progress-label {
@@ -92,32 +97,32 @@
 
     .progress-bar-fill {
         height: 100%;
-        background: var(--primary-blue);
+        background: var(--primary);
         border-radius: 20px;
-        width: 50%; /* dynamic */
+        width: 50%; /* dynamic from backend, keep as is */
         transition: width 0.4s ease;
     }
 
-    /* ----- Pricing Cards Grid (exactly like reference: 3 columns) ----- */
+    /* ----- PLANS GRID (exactly reference style: 3 → 2 → 1 responsive) ----- */
     .plans-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 1.8rem;
-        align-items: stretch;
     }
 
+    /* plan cards — same as dr-plan-card from reference */
     .plan-card {
         background: #ffffff;
         border: 1px solid var(--gray-200);
         border-radius: var(--card-radius);
-        padding: 2rem 1.75rem 1.8rem;
-        box-shadow: var(--shadow-md);
-        transition: var(--transition);
-        cursor: pointer;
+        padding: 1.8rem 1.5rem 1.5rem;
         position: relative;
         display: flex;
         flex-direction: column;
+        box-shadow: var(--shadow-card);
+        transition: var(--transition);
         transform: translateY(0);
+        cursor: pointer;
     }
 
     .plan-card:hover {
@@ -126,32 +131,33 @@
         border-color: var(--gray-300);
     }
 
+    /* active selection border + subtle ring */
     .plan-card.active {
-        border: 2px solid var(--primary-blue);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), var(--shadow-md);
-        background: white;
+        border: 2px solid var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), var(--shadow-card);
     }
 
-    /* Popular badge (kept for gold plan) */
+    /* popular badge (centered, pill, primary) */
     .popular-badge {
         position: absolute;
         top: -12px;
         left: 50%;
         transform: translateX(-50%);
-        background: var(--primary-blue);
+        background: var(--primary);
         color: white;
         padding: 0.3rem 1.2rem;
-        border-radius: 30px;
-        font-size: 0.75rem;
+        border-radius: 40px;
+        font-size: 0.7rem;
         font-weight: 700;
         letter-spacing: 0.03em;
         text-transform: uppercase;
-        box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
         white-space: nowrap;
         z-index: 3;
+        border: 1px solid rgba(255,255,255,0.2);
     }
 
-    /* Selection indicator (radio check) */
+    /* selection indicator (radio circle) */
     .selection-indicator {
         position: absolute;
         top: 1.2rem;
@@ -168,19 +174,19 @@
     }
 
     .plan-card.active .selection-indicator {
-        background: var(--primary-blue);
-        border-color: var(--primary-blue);
+        background: var(--primary);
+        border-color: var(--primary);
     }
 
     .plan-card.active .selection-indicator::after {
         content: '\f00c';
         font-family: "Font Awesome 6 Free";
         font-weight: 900;
-        font-size: 13px;
+        font-size: 12px;
         color: white;
     }
 
-    /* Plan header */
+    /* plan header */
     .plan-header {
         margin-bottom: 1.8rem;
         text-align: left;
@@ -188,9 +194,9 @@
 
     .plan-name {
         font-size: 1rem;
-        font-weight: 600;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.03em;
         color: var(--gray-600);
         margin-bottom: 0.75rem;
     }
@@ -199,6 +205,7 @@
         display: flex;
         align-items: baseline;
         gap: 2px;
+        flex-wrap: wrap;
     }
 
     .currency {
@@ -208,8 +215,8 @@
     }
 
     .amount {
-        font-size: 3.2rem;
-        font-weight: 700;
+        font-size: 3rem;
+        font-weight: 800;
         color: var(--gray-900);
         letter-spacing: -0.02em;
         line-height: 1;
@@ -222,7 +229,7 @@
         margin-left: 4px;
     }
 
-    /* Features list — clean like reference */
+    /* features list — exactly as reference check style */
     .plan-features {
         list-style: none;
         margin: 1.5rem 0 2rem;
@@ -234,8 +241,8 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 0.5rem 0;
-        font-size: 0.95rem;
+        padding: 0.6rem 0;
+        font-size: 0.9rem;
         color: var(--gray-700);
         border-bottom: 1px solid var(--gray-100);
     }
@@ -245,9 +252,9 @@
     }
 
     .plan-features li i {
-        color: var(--success-green);
+        color: var(--success);
         font-size: 1rem;
-        width: 22px;
+        width: 20px;
         text-align: center;
         flex-shrink: 0;
     }
@@ -257,27 +264,22 @@
         color: var(--gray-900);
     }
 
-    /* Divider before exclusive features (kept) */
-    .plan-card.popular .plan-features li:nth-child(4) {
-        margin-top: 6px;
-        padding-top: 14px;
-        border-top: 1px dashed var(--gray-300);
-    }
-
+    /* divider before exclusive features (kept original behavior) */
+    .plan-card.popular .plan-features li:nth-child(4),
     .plan-card .plan-features li:nth-child(4) {
         margin-top: 6px;
         padding-top: 14px;
         border-top: 1px dashed var(--gray-300);
     }
 
-    /* Hidden radio */
+    /* hidden radio */
     .hidden-radio {
         position: absolute;
         opacity: 0;
         pointer-events: none;
     }
 
-    /* ----- Footer Buttons (Subscribe style from reference) ----- */
+    /* ----- FOOTER BUTTONS (reference style) ----- */
     .form-footer {
         margin-top: 3rem;
         display: flex;
@@ -287,7 +289,7 @@
     }
 
     .btn-action {
-        padding: 0.9rem 2.2rem;
+        padding: 0.8rem 2rem;
         border-radius: 40px;
         font-weight: 600;
         font-size: 0.95rem;
@@ -298,14 +300,15 @@
         align-items: center;
         gap: 10px;
         background: white;
-        box-shadow: var(--shadow-sm);
-        border: 1px solid var(--gray-300);
+        box-shadow: var(--shadow-card);
+        border: 1px solid var(--gray-200);
         color: var(--gray-700);
+        font-family: inherit;
     }
 
     .btn-primary-custom {
-        background: var(--primary-blue);
-        border: 1px solid var(--primary-blue);
+        background: var(--primary);
+        border: 1px solid var(--primary);
         color: white;
         box-shadow: 0 8px 16px -6px rgba(37, 99, 235, 0.25);
     }
@@ -318,16 +321,16 @@
 
     .btn-secondary-custom {
         background: white;
-        border: 1px solid var(--gray-300);
+        border: 1px solid var(--gray-200);
     }
 
     .btn-secondary-custom:hover {
         background: var(--gray-50);
-        border-color: var(--gray-400);
+        border-color: var(--gray-300);
         transform: translateY(-2px);
     }
 
-    /* ----- Responsive (all device sizes) ----- */
+    /* ----- RESPONSIVE (matching reference breakpoints) ----- */
     @media screen and (max-width: 1024px) {
         .plans-grid {
             gap: 1.2rem;
@@ -336,11 +339,17 @@
             padding: 1.5rem 1.2rem;
         }
         .amount {
-            font-size: 2.8rem;
+            font-size: 2.6rem;
+        }
+        .currency {
+            font-size: 1.4rem;
         }
     }
 
-    @media screen and (max-width: 900px) {
+    @media screen and (max-width: 992px) {
+        .plans-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
         .page-title {
             font-size: 2rem;
         }
@@ -349,12 +358,9 @@
     @media screen and (max-width: 768px) {
         .plans-grid {
             grid-template-columns: 1fr;
-            max-width: 480px;
+            max-width: 500px;
             margin-left: auto;
             margin-right: auto;
-        }
-        .plan-card {
-            padding: 2rem 1.8rem;
         }
         .form-footer {
             flex-direction: column-reverse;
@@ -382,54 +388,47 @@
             border-radius: 20px;
         }
         .amount {
-            font-size: 2.5rem;
-        }
-        .currency {
-            font-size: 1.4rem;
+            font-size: 2.4rem;
         }
         .popular-badge {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             padding: 0.25rem 1rem;
         }
+        .selection-indicator {
+            top: 1rem;
+            right: 1rem;
+            width: 22px;
+            height: 22px;
+        }
         .plan-features li {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
     }
 
-    /* Animation */
-    @keyframes fadeUp {
-        0% { opacity: 0; transform: translateY(16px); }
-        100% { opacity: 1; transform: translateY(0); }
+    /* subtle card entrance animation */
+    @keyframes cardFade {
+        from {
+            opacity: 0;
+            transform: translateY(12px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .plan-card {
-        animation: fadeUp 0.5s ease backwards;
+        animation: cardFade 0.4s ease backwards;
     }
     .plan-card:nth-child(1) { animation-delay: 0.05s; }
-    .plan-card:nth-child(2) { animation-delay: 0.15s; }
-    .plan-card:nth-child(3) { animation-delay: 0.25s; }
+    .plan-card:nth-child(2) { animation-delay: 0.1s; }
+    .plan-card:nth-child(3) { animation-delay: 0.15s; }
 
-    /* Accessibility */
-    .plan-card:focus-visible {
-        outline: 3px solid var(--primary-blue);
-        outline-offset: 4px;
-    }
+    /* focus accessibility */
+    .plan-card:focus-visible,
     .btn-action:focus-visible {
-        outline: 3px solid var(--primary-blue);
+        outline: 3px solid var(--primary);
         outline-offset: 3px;
-    }
-
-    /* Optional decorative elements (subtle) */
-    .content::before {
-        content: '';
-        position: absolute;
-        top: -50px;
-        right: -50px;
-        width: 300px;
-        height: 300px;
-        background: radial-gradient(circle, rgba(37,99,235,0.02) 0%, transparent 70%);
-        border-radius: 50%;
-        z-index: -1;
     }
 </style>
 
@@ -445,7 +444,7 @@
             <div class="progress-bar-bg">
                 <div class="progress-bar-fill" style="width: 50%;"></div>
             </div>
-            <span class="progress-label" style="color: var(--primary-blue);">50%</span>
+            <span class="progress-label" style="color: var(--primary);">50%</span>
         </div>
     </div>
 
@@ -466,7 +465,7 @@
                 <div class="plan-header">
                     <div class="plan-name">{{ plan.get_name_display|title }}</div>
                     <div class="plan-price">
-                        <span class="currency">$</span>
+                        <span class="currency">₹</span>
                         <span class="amount">{{ plan.price }}</span>
                         <span class="period">/{{ plan.get_duration_display }}</span>
                     </div>
@@ -514,20 +513,20 @@
 
 <script>
 /**
- * Handles plan card selection
+ * Handles plan card selection (preserved original logic)
  * @param {HTMLElement} element - The card element clicked
  * @param {string} planId - The ID of the plan
  */
 function selectPlan(element, planId) {
-    // 1. Remove 'active' class from all cards
+    // Remove 'active' class from all cards
     document.querySelectorAll('.plan-card').forEach(card => {
         card.classList.remove('active');
     });
 
-    // 2. Add 'active' class to clicked card
+    // Add 'active' class to clicked card
     element.classList.add('active');
 
-    // 3. Find the internal radio and check it
+    // Find internal radio and check it
     const radio = element.querySelector('.hidden-radio');
     if (radio) {
         radio.checked = true;

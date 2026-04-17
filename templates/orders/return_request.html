@@ -1,0 +1,213 @@
+
+{% load static %}
+
+{% block title %}Request Return - {{ order.order_id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .return-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+    .policy-card {
+        background: #f0f7ff;
+        border-left: 4px solid #6366f1;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    .video-requirement {
+        background: #fff3cd;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    .return-form {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        padding: 30px;
+    }
+    .video-preview {
+        margin-top: 10px;
+        display: none;
+    }
+    .image-preview {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+    .preview-img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    .btn-submit {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        width: 100%;
+        padding: 14px;
+        font-weight: 600;
+    }
+    .required-field::after {
+        content: " *";
+        color: red;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="return-container">
+    <h2 class="mb-4">Request Return</h2>
+    <p class="text-muted">Order: {{ order.order_id }} | Placed: {{ order.created_at|date:"F d, Y" }}</p>
+    
+    <div class="policy-card">
+        <i class="fas fa-info-circle text-primary"></i>
+        <strong>Return Policy:</strong> Returns are accepted within 7 days of delivery for damaged products, wrong items, or defective products.
+    </div>
+    
+    <div class="video-requirement">
+        <i class="fas fa-video text-warning"></i>
+        <strong>Unboxing Video Required!</strong>
+        <p class="mb-0 small">You must upload an unboxing video showing the sealed package, the entire unboxing process, and the issue with the product. Returns without valid video proof will be rejected.</p>
+    </div>
+    
+    <div class="return-form">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label class="form-label required-field">Reason for Return</label>
+                {{ form.reason }}
+                {% if form.reason.errors %}
+                    <div class="text-danger small">{{ form.reason.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                {{ form.description }}
+                <small class="text-muted">Please provide detailed information about the issue.</small>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label required-field">Unboxing Video *</label>
+                {{ form.unboxing_video }}
+                <small class="text-muted">MP4, MOV, or AVI format. Max 100MB.</small>
+                <div id="videoPreview" class="video-preview"></div>
+                {% if form.unboxing_video.errors %}
+                    <div class="text-danger small">{{ form.unboxing_video.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Product Images (Optional)</label>
+                {{ form.product_images }}
+                <small class="text-muted">Upload photos showing the issue (JPEG, PNG)</small>
+                <div id="imagePreview" class="image-preview"></div>
+            </div>
+            
+            <hr class="my-4">
+            <h6 class="mb-3">Refund Bank Details</h6>
+            <p class="small text-muted">Refund will be processed manually after product inspection.</p>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Account Holder Name</label>
+                    {{ form.account_holder_name }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Bank Name</label>
+                    {{ form.bank_name }}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Account Number</label>
+                    {{ form.account_number }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Confirm Account Number</label>
+                    {{ form.confirm_account_number }}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">IFSC Code</label>
+                    {{ form.ifsc_code }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">UPI ID (Optional)</label>
+                    {{ form.upi_id }}
+                </div>
+            </div>
+            
+            <div class="alert alert-info mt-3">
+                <i class="fas fa-info-circle"></i> 
+                Return address: <strong>{{ return_address|linebreaksbr }}</strong>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-submit">
+                <i class="fas fa-paper-plane"></i> Submit Return Request
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Video preview
+    const videoInput = document.querySelector('input[name="unboxing_video"]');
+    const videoPreview = document.getElementById('videoPreview');
+    
+    videoInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('video/')) {
+            const video = document.createElement('video');
+            video.controls = true;
+            video.style.maxWidth = '100%';
+            video.style.maxHeight = '200px';
+            video.src = URL.createObjectURL(file);
+            videoPreview.innerHTML = '';
+            videoPreview.appendChild(video);
+            videoPreview.style.display = 'block';
+        }
+    });
+    
+    // Image preview
+    const imageInput = document.querySelector('input[name="product_images"]');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    imageInput.addEventListener('change', function(e) {
+        imagePreview.innerHTML = '';
+        const files = Array.from(e.target.files);
+        files.forEach(file => {
+            if (file.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.className = 'preview-img';
+                imagePreview.appendChild(img);
+            }
+        });
+    });
+    
+    // Account number validation
+    const accNumber = document.querySelector('input[name="account_number"]');
+    const confirmAcc = document.querySelector('input[name="confirm_account_number"]');
+    
+    function validateMatch() {
+        if (accNumber.value !== confirmAcc.value) {
+            confirmAcc.setCustomValidity('Account numbers do not match');
+        } else {
+            confirmAcc.setCustomValidity('');
+        }
+    }
+    
+    accNumber.addEventListener('change', validateMatch);
+    confirmAcc.addEventListener('keyup', validateMatch);
+</script>
+{% endblock %}

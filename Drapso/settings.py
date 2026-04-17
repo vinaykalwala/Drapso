@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'resellers',
     'products',
     'theme_manager',
+    'orders',
+    'shiprocket',
 ]
 
 MIDDLEWARE = [
@@ -141,8 +143,8 @@ AUTH_USER_MODEL = 'accounts.User'
 AUTHENTICATION_BACKENDS = [
     'accounts.backends.EmailOrUsernameBackend',
 ]
-RAZORPAY_KEY_ID = 'rzp_test_KdiESTDcHPC74B'
-RAZORPAY_KEY_SECRET = 'F8aPdLzdQKLt3RmgTWFcnYBG'
+RAZORPAY_KEY_ID = 'rzp_test_SdgzqjgRGCLlMR'
+RAZORPAY_KEY_SECRET = 'xUvI6ERGRtOjM9ceHvi75MZW'
 RAZORPAY_CURRENCY = 'INR'
 
 SUBSCRIPTION_CURRENCY = "INR"
@@ -166,3 +168,11 @@ CACHES = {
     }
 }
 
+# Shiprocket Configuration
+SHIPROCKET_EMAIL = 'dandugulamanojkumar@gmail.com'
+SHIPROCKET_PASSWORD = 'rGe&NvTK@Xw9e@n&Ltbul1bTL8CIBKiE'
+SHIPROCKET_BASE_URL = 'https://apiv2.shiprocket.in/v1/external'
+SHIPROCKET_WEBHOOK_SECRET = ''
+
+
+# MAIN_WEBSITE_URL = "drapso.com"

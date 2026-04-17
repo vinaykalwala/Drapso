@@ -1,0 +1,39 @@
+
+{% block title %}Order Success - Drapso{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle" style="font-size: 64px; color: #28a745;"></i>
+                    </div>
+                    <h3 class="mb-3">Payment Successful!</h3>
+                    <p class="text-muted mb-4">
+                        Thank you for your order. Your payment has been received successfully.
+                    </p>
+                    
+                    <div class="alert alert-success">
+                        <strong>Order ID:</strong> #{{ order.order_id }}<br>
+                        <strong>Total Amount:</strong> ₹{{ order.total_amount }}
+                    </div>
+                    
+                    <p class="mb-4">
+                        We've sent a confirmation email to <strong>{{ order.customer_email }}</strong>.<br>
+                        You can track your order status using the link below.
+                    </p>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'orders:track_order' order_id=order.order_id %}" class="btn btn-primary">
+                            <i class="fas fa-truck"></i> Track Your Order
+                        </a>
+                
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

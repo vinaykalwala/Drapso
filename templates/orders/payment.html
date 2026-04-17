@@ -1,0 +1,156 @@
+{% load static %}
+
+{% block title %}Complete Your Payment | Drapso{% endblock %}
+
+{% block content %}
+<style>
+    .payment-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    .razorpay-brand-color {
+        background-color: #F37254;
+        border: none;
+        transition: all 0.3s ease;
+    }
+    .razorpay-brand-color:hover {
+        background-color: #e66042;
+        transform: translateY(-2px);
+    }
+    .price-display {
+        font-size: 2.5rem;
+        color: #2d3436;
+    }
+    #loading-spinner {
+        padding: 40px 0;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card payment-card p-4 p-md-5 text-center">
+                
+                {% if store.logo %}
+                    <img src="{{ store.logo.url }}" alt="{{ store.store_name }}" class="mb-4 mx-auto" style="max-height: 60px;">
+                {% else %}
+                    <h3 class="fw-bold mb-4 text-primary">{{ store.store_name|default:"Drapso" }}</h3>
+                {% endif %}
+
+                <p class="text-muted mb-1">Amount to Pay</p>
+                <h2 class="fw-bold price-display mb-4">₹{{ amount }}</h2>
+
+                <div class="alert alert-light border rounded-3 mb-4 text-start">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="small text-muted">Customer</span>
+                        <span class="small fw-bold">{{ form_data.customer_name }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-0">
+                        <span class="small text-muted">Phone</span>
+                        <span class="small fw-bold">{{ form_data.customer_phone }}</span>
+                    </div>
+                </div>
+
+                <form action="{% url 'orders:payment_success' %}" method="POST" id="payment-form">
+                    {% csrf_token %}
+                    
+                    <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+                    <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+                    <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+                    
+                    <input type="hidden" name="product_id" value="{{ product_id }}">
+                    <input type="hidden" name="variant_id" value="{{ variant_id }}">
+                    <input type="hidden" name="quantity" value="{{ quantity }}">
+                    
+                    <input type="hidden" name="product_price" value="{{ product_price }}">
+                    <input type="hidden" name="shipping_charge" value="{{ shipping_charge }}">
+                    <input type="hidden" name="total_amount" value="{{ amount }}">
+
+                    <input type="hidden" name="courier_name" value="{{ courier_name|default:'' }}">
+                    <input type="hidden" name="estimated_delivery_date" value="{{ estimated_delivery_date|default:'' }}">
+                    <input type="hidden" name="pickup_address" value="{{ pickup_address|default:'' }}">
+                    <input type="hidden" name="pickup_pincode" value="{{ pickup_pincode|default:'' }}">
+                    <input type="hidden" name="pickup_address_type" value="{{ pickup_address_type|default:'' }}">
+
+                    {% for key, value in form_data.items %}
+                        <input type="hidden" name="{{ key }}" value="{{ value }}">
+                    {% endfor %}
+                </form>
+
+                <div id="loading-spinner" style="display: none;">
+                    <div class="spinner-border text-primary mb-3" role="status"></div>
+                    <p class="mb-0 fw-bold">Verifying payment...</p>
+                    <small class="text-muted">Deducting inventory and creating your order. Please wait.</small>
+                </div>
+
+                <div id="action-buttons">
+                    <button id="pay-button" class="btn btn-primary btn-lg w-100 py-3 rounded-3 razorpay-brand-color shadow">
+                        <i class="fas fa-lock me-2"></i> Pay Securely ₹{{ amount }}
+                    </button>
+                    <div class="mt-4">
+                        <img src="https://cdn.razorpay.com/static/assets/badge/badge.png" class="img-fluid" style="max-width: 250px;" alt="Razorpay Secure">
+                    </div>
+                </div>
+
+            </div>
+            
+            <p class="text-center mt-4 small text-muted">
+                <i class="fas fa-shield-check text-success me-1"></i> 
+                Secure 256-bit encrypted payment via Razorpay
+            </p>
+        </div>
+    </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    const options = {
+        "key": "{{ razorpay_key_id }}",
+        "amount": "{{ amount_paise }}",
+        "currency": "INR",
+        "name": "Drapso",
+        "description": "Order for {{ form_data.customer_name|escapejs }}",
+        "image": "{% static 'images/drapsologo.jpg' %}",
+        "order_id": "{{ razorpay_order_id }}",
+        
+        "handler": function (response) {
+            // 1. Visual Feedback
+            document.getElementById('action-buttons').style.display = 'none';
+            document.getElementById('loading-spinner').style.display = 'block';
+            
+            // 2. Map Razorpay response to our hidden form
+            document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+            document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+            document.getElementById('razorpay_signature').value = response.razorpay_signature;
+            
+            // 3. Final submit to payment_success view
+            document.getElementById('payment-form').submit();
+        },
+        
+        "prefill": {
+            "name": "{{ form_data.customer_name|escapejs }}",
+            "email": "{{ form_data.customer_email|escapejs }}",
+            "contact": "{{ form_data.customer_phone|escapejs }}"
+        },
+        
+        "theme": {
+            "color": "#F37254"
+        },
+        
+        "modal": {
+            "ondismiss": function() {
+                // Allows user to try again if they accidentally close the popup
+                console.log('Payment modal closed');
+            }
+        }
+    };
+
+    const rzp1 = new Razorpay(options);
+
+    document.getElementById('pay-button').onclick = function(e) {
+        rzp1.open();
+        e.preventDefault();
+    };
+</script>
+{% endblock %}

@@ -1,0 +1,263 @@
+
+{% load static %}
+
+{% block title %}Track Order - {{ order.order_id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .track-container {
+        max-width: 1000px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+    .status-timeline {
+        position: relative;
+        padding: 40px 0;
+    }
+    .timeline-step {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        position: relative;
+    }
+    .timeline-icon {
+        width: 50px;
+        height: 50px;
+        background: #e9ecef;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+        z-index: 2;
+        position: relative;
+    }
+    .timeline-icon.completed {
+        background: #28a745;
+        color: white;
+    }
+    .timeline-icon.active {
+        background: #6366f1;
+        color: white;
+        animation: pulse 2s infinite;
+    }
+    .timeline-content {
+        flex: 1;
+        padding-bottom: 20px;
+    }
+    .timeline-content h6 {
+        margin-bottom: 5px;
+    }
+    .timeline-content p {
+        margin-bottom: 0;
+        color: #6c757d;
+        font-size: 0.9em;
+    }
+    .timeline-step:not(:last-child) .timeline-content::before {
+        content: '';
+        position: absolute;
+        left: 25px;
+        top: 50px;
+        bottom: -30px;
+        width: 2px;
+        background: #dee2e6;
+        z-index: 1;
+    }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+    }
+    .order-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .btn-cancel {
+        background: #dc3545;
+        color: white;
+    }
+    .btn-return {
+        background: #ffc107;
+        color: #000;
+    }
+    .tracking-info {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 15px;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="track-container">
+    <h2 class="mb-4">Track Your Order</h2>
+    
+    <div class="order-card">
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Order ID: <strong>{{ order.order_id }}</strong></h6>
+                <p class="mb-1">Placed on: {{ order.created_at|date:"F d, Y" }}</p>
+                <p>Status: 
+                    <span class="badge 
+                        {% if order.order_status == 'delivered' %}bg-success
+                        {% elif order.order_status == 'shipped' %}bg-info
+                        {% elif order.order_status == 'paid' %}bg-warning
+                        {% elif order.order_status == 'cancelled' %}bg-danger
+                        {% else %}bg-secondary{% endif %}">
+                        {{ order.get_order_status_display }}
+                    </span>
+                </p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <h6>Total Amount: <strong class="text-primary">₹{{ order.total_amount|floatformat:2 }}</strong></h6>
+                <p class="mb-0">Payment: 
+                    <span class="badge {% if order.payment_status == 'success' %}bg-success{% else %}bg-warning{% endif %}">
+                        {{ order.get_payment_status_display }}
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Status Timeline -->
+    <div class="order-card">
+        <h5 class="mb-4">Order Status</h5>
+        <div class="status-timeline">
+            <!-- Step 1: Order Placed -->
+            <div class="timeline-step">
+                <div class="timeline-icon {% if order.created_at %}completed{% endif %}">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="timeline-content">
+                    <h6>Order Placed</h6>
+                    <p>{{ order.created_at|date:"F d, Y g:i A" }}</p>
+                </div>
+            </div>
+            
+            <!-- Step 2: Payment Confirmed -->
+            <div class="timeline-step">
+                <div class="timeline-icon {% if order.paid_at %}completed{% elif order.payment_status == 'success' %}active{% endif %}">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+                <div class="timeline-content">
+                    <h6>Payment Confirmed</h6>
+                    <p>{% if order.paid_at %}{{ order.paid_at|date:"F d, Y g:i A" }}{% else %}Awaiting payment confirmation{% endif %}</p>
+                </div>
+            </div>
+            
+            <!-- Step 3: Order Approved -->
+            <div class="timeline-step">
+                <div class="timeline-icon {% if order.approved_at %}completed{% elif order.order_status == 'approved' %}active{% endif %}">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="timeline-content">
+                    <h6>Order Approved</h6>
+                    <p>{% if order.approved_at %}{{ order.approved_at|date:"F d, Y g:i A" }}{% else %}Awaiting seller approval{% endif %}</p>
+                </div>
+            </div>
+            
+            <!-- Step 4: Shipped -->
+            <div class="timeline-step">
+                <div class="timeline-icon {% if order.shipped_at %}completed{% elif order.order_status == 'shipped' %}active{% endif %}">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="timeline-content">
+                    <h6>Shipped</h6>
+                    <p>{% if order.shipped_at %}{{ order.shipped_at|date:"F d, Y g:i A" }}{% else %}Awaiting shipment{% endif %}</p>
+                    {% if order.awb_code %}
+                        <small class="text-muted">AWB: {{ order.awb_code }} | Courier: {{ order.courier_name }}</small>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Step 5: Out for Delivery -->
+            <div class="timeline-step">
+                <div class="timeline-icon {% if order.order_status == 'out_for_delivery' %}active{% elif order.order_status == 'delivered' %}completed{% endif %}">
+                    <i class="fas fa-person-walking-arrow-right"></i>
+                </div>
+                <div class="timeline-content">
+                    <h6>Out for Delivery</h6>
+                    <p>{% if order.order_status == 'out_for_delivery' %}Today{% elif order.delivered_at %}Delivered{% else %}Yet to dispatch{% endif %}</p>
+                </div>
+            </div>
+            
+            <!-- Step 6: Delivered -->
+            <div class="timeline-step">
+                <div class="timeline-icon {% if order.delivered_at %}completed{% endif %}">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="timeline-content">
+                    <h6>Delivered</h6>
+                    <p>{% if order.delivered_at %}{{ order.delivered_at|date:"F d, Y g:i A" }}{% else %}Yet to be delivered{% endif %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tracking Info from Shiprocket -->
+    {% if tracking_info and tracking_info.data %}
+    <div class="order-card">
+        <h5>Tracking Details</h5>
+        <div class="tracking-info">
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Current Status:</strong> {{ tracking_info.data.current_status }}<br>
+                    <strong>Location:</strong> {{ tracking_info.data.location|default:"Not available" }}
+                </div>
+                <div class="col-md-6">
+                    <strong>Expected Delivery:</strong> {{ tracking_info.data.expected_delivery_date|default:"Check with courier" }}<br>
+                    {% if order.tracking_url %}
+                        <a href="{{ order.tracking_url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                            <i class="fas fa-external-link-alt"></i> Track on Courier Website
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% if tracking_info.data.scans %}
+            <hr>
+            <strong>Scan History:</strong>
+            <div class="mt-2" style="max-height: 200px; overflow-y: auto;">
+                {% for scan in tracking_info.data.scans|slice:":10" %}
+                    <div class="small mb-2">
+                        <i class="fas fa-map-marker-alt text-muted"></i> 
+                        {{ scan.scan_time|date:"d M Y, h:i A" }} - {{ scan.status }}
+                        {% if scan.location %} ({{ scan.location }}){% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        {% if can_cancel %}
+            <a href="{% url 'orders:cancel_order' order.order_id %}" class="btn btn-cancel" onclick="return confirm('Are you sure you want to cancel this order? This action cannot be undone.')">
+                <i class="fas fa-times"></i> Cancel Order
+            </a>
+        {% endif %}
+        
+        {% if can_return and not has_return_request %}
+            <a href="{% url 'orders:request_return' order.order_id %}" class="btn btn-return">
+                <i class="fas fa-undo-alt"></i> Request Return
+            </a>
+        {% endif %}
+        
+        {% if has_return_request %}
+            <div class="alert alert-info mb-0">
+                <i class="fas fa-info-circle"></i> A return request has been submitted. We'll notify you once reviewed.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

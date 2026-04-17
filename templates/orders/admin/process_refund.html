@@ -1,0 +1,91 @@
+
+{% load static %}
+
+{% block title %}Process Refund{% endblock %}
+
+{% block extra_css %}
+<style>
+    .process-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+    .refund-card {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .bank-info {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    .btn-submit {
+        background: #28a745;
+        width: 100%;
+        padding: 12px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="process-container">
+    <div class="refund-card">
+        <h3 class="mb-4">Process Refund</h3>
+        
+        <div class="bank-info">
+            <h6>Customer Bank Details</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Account Holder:</strong> {{ refund.account_holder_name }}<br>
+                    <strong>Account Number:</strong> {{ refund.account_number }}<br>
+                    <strong>IFSC Code:</strong> {{ refund.ifsc_code }}
+                </div>
+                <div class="col-md-6">
+                    <strong>Bank Name:</strong> {{ refund.bank_name }}<br>
+                    <strong>UPI ID:</strong> {{ refund.upi_id|default:"Not provided" }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> 
+            <strong>Instructions:</strong> Transfer the refund amount to the customer's bank account using your company's banking portal, then fill in the details below.
+        </div>
+        
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label class="form-label">Refund Amount *</label>
+                {{ form.refund_amount }}
+                <small class="text-muted">Amount to refund (should match order amount)</small>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Transaction Reference ID</label>
+                {{ form.transaction_id }}
+                <small class="text-muted">NEFT/IMPS/UPI transaction reference number</small>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Transfer Proof *</label>
+                {{ form.transfer_proof }}
+                <small class="text-muted">Upload screenshot or PDF of bank transfer confirmation</small>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Admin Notes (Optional)</label>
+                {{ form.admin_notes }}
+            </div>
+            
+            <button type="submit" class="btn btn-success btn-submit" onclick="return confirm('Confirm that you have transferred the refund amount to the customer\'s account?')">
+                <i class="fas fa-check-circle"></i> Confirm Refund Processed
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -384,7 +384,7 @@ class ResellerAddress(models.Model):
     Address model for Resellers
     """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reseller_addresses', limit_choices_to={'role': 'reseller'})
-    
+    address_name = models.CharField(max_length=100, default="Primary", help_text="Nickname for Shiprocket (e.g., Home, Shop)")
     # Address Details
     address_line1 = models.CharField(max_length=255)
     address_line2 = models.CharField(max_length=255, blank=True)

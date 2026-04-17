@@ -37,7 +37,7 @@
     }
 
     .content {
-        padding: 1.5rem 1.5rem;
+        padding: 0.5rem 0.5rem;
     }
 
     .dr-plan-wrapper {
@@ -96,10 +96,10 @@
 
     /* ----- Plan Grid (responsive card layout) ----- */
     .dr-plan-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
-        gap: 1.8rem;
-    }
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* FORCE 3 IN ONE ROW */
+    gap: 1.8rem;
+}
 
     .dr-plan-card {
         background: #ffffff;
@@ -155,8 +155,8 @@
     }
 
     .dr-plan-price {
-        font-size: 2.5rem;
-        font-weight: 700;
+        font-size: 2rem;
+        font-weight: 600;
         color: var(--primary);
         margin-bottom: 1.2rem;
         line-height: 1;
@@ -314,6 +314,32 @@
     .btn-action:focus-visible, .dr-btn-add:focus-visible {
         outline: 3px solid var(--primary);
         outline-offset: 3px;
+    }
+
+    @media (max-width: 992px) {
+        .dr-plan-grid {
+            grid-template-columns: repeat(2, 1fr); /* tablet */
+        }
+    }
+
+    @media (max-width: 576px) {
+        .dr-plan-grid {
+            grid-template-columns: 1fr; /* mobile */
+        }
+    }
+
+    /* Tablet */
+    @media (max-width: 992px) {
+        .content {
+            padding: 1rem 1rem;
+        }
+    }
+
+    /* Mobile */
+    @media (max-width: 576px) {
+        .content {
+            padding: 0.5rem 0.5rem;
+        }
     }
 </style>
 

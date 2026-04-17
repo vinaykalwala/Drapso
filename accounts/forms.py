@@ -338,9 +338,10 @@ class ResellerAddressForm(forms.ModelForm):
     """Form for reseller address"""
     class Meta:
         model = ResellerAddress
-        fields = ['address_line1', 'address_line2', 'city', 'state', 'country', 
+        fields = ['address_name','address_line1', 'address_line2', 'city', 'state', 'country', 
                   'postal_code', 'contact_person', 'contact_phone', 'is_primary']
         widgets = {
+            'address_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nickname for Shiprocket (e.g., Home, Shop)'}),
             'address_line1': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Street address'}),
             'address_line2': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apartment, suite, etc. (optional)'}),
             'city': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'City'}),
