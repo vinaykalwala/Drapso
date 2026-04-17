@@ -218,13 +218,11 @@
         pointer-events: none;
     }
 
-    /* ----- CATEGORIES GRID (card style from first file) ----- */
-    .categories-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-    gap:24px;
-    width:100%;
-}
+    .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
 
     /* 1 card */
     .categories-grid:has(.category-card:only-child) {
@@ -372,15 +370,15 @@
     }
 
     .card-content {
-        padding: 16px;
-        flex: 1;
+        padding: 18px;
         display: flex;
         flex-direction: column;
+        gap: 10px;
     }
 
     .card-title {
-        font-size: 18px;
-        margin-bottom: 6px;
+        font-size: 19px;
+        margin-bottom: 4px;
         font-weight: 700;
         background: linear-gradient(135deg, #4f46e5, #a855f7);
         -webkit-background-clip: text;
@@ -410,13 +408,13 @@
 
     .card-meta {
         color: var(--text-light);
-        font-size: 12px;
+        font-size: 13px;
         margin-bottom: 10px;
         line-height: 1.4;
         font-weight: 400;
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 8px;
         flex: 1;
     }
 
@@ -474,19 +472,12 @@
 
     .card-actions {
         position: absolute;
-        top: 12px;
-        right: 12px;
-        opacity: 0;
-        transform: translateY(-10px);
-        transition: .3s;
-        flex-direction: column;
+        top: 10px;
+        right: 10px;
+        display: flex;
         gap: 8px;
     }
 
-    .category-card:hover .card-actions {
-        opacity: 1;
-        transform: translateY(0);
-    }
 
     .btn {
         border-radius: 10px;
@@ -699,93 +690,107 @@
             max-width: 100%;
         }
     }
-/* LARGE DESKTOP */
-@media (max-width:1400px){
-    .container-custom{
-        max-width:1200px;
-    }
-}
 
-/* LAPTOP */
-@media (max-width:1200px){
-    .categories-grid{
-        grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    /* LARGE DESKTOP */
+    @media (max-width:1400px) {
+        .container-custom {
+            max-width: 1200px;
+        }
     }
 
-    .container-custom{
-        padding:24px 18px;
-    }
-}
+    /* LAPTOP */
+    @media (max-width:1200px) {
+        .categories-grid {
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        }
 
-/* TABLET */
-@media (max-width:992px){
-    .header-top{
-        flex-direction:column;
-        align-items:flex-start;
-    }
-
-    .add-btn{
-        width:100%;
-        justify-content:center;
+        .container-custom {
+            padding: 24px 18px;
+        }
     }
 
-    .main-content{
-        margin-left:0;
-        width:100%;
+    /* TABLET */
+    @media (max-width:992px) {
+        .header-top {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .add-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .main-content {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        .categories-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
 
-    .categories-grid{
-        grid-template-columns:repeat(2,1fr);
-    }
-}
-
-/* MOBILE */
-@media (max-width:768px){
-    .container-custom{
-        padding:20px 14px;
+    @media (max-width: 992px) {
+        .categories-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
 
-    .categories-grid{
-        grid-template-columns:1fr;
-        gap:18px;
+    @media (max-width: 768px) {
+        .categories-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
-    .page-header{
-        padding:20px;
+    /* MOBILE */
+    @media (max-width:768px) {
+        .container-custom {
+            padding: 20px 14px;
+        }
+
+        .categories-grid {
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+
+        .page-header {
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+        }
+
+        .card-image {
+            height: 160px;
+        }
     }
 
-    h1{
-        font-size:24px;
+    /* SMALL MOBILE */
+    @media (max-width:480px) {
+        .container-custom {
+            padding: 14px 10px;
+        }
+
+        h1 {
+            font-size: 20px;
+        }
+
+        .card-content {
+            padding: 14px;
+        }
+
+        .card-image {
+            height: 140px;
+        }
+
+        .badge {
+            font-size: 10px;
+            padding: 4px 8px;
+        }
     }
 
-    .card-image{
-        height:160px;
-    }
-}
-
-/* SMALL MOBILE */
-@media (max-width:480px){
-    .container-custom{
-        padding:14px 10px;
-    }
-
-    h1{
-        font-size:20px;
-    }
-
-    .card-content{
-        padding:14px;
-    }
-
-    .card-image{
-        height:140px;
-    }
-
-    .badge{
-        font-size:10px;
-        padding:4px 8px;
-    }
-}
     /* 🔹 Mobile (576px - 767px) */
     @media (max-width: 767px) {
 
@@ -904,6 +909,56 @@
     .delete {
         background: #ef4444;
     }
+
+    .action-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 14px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .action-icon.edit {
+        background: rgba(79, 70, 229, 0.9);
+    }
+
+    .action-icon.delete {
+        background: rgba(239, 68, 68, 0.9);
+    }
+
+    .action-icon:hover {
+        transform: scale(1.1);
+    }
+
+    .description-box span {
+        display: block;
+        max-height: 40px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* hover scroll effect */
+    .description-box:hover span {
+        max-height: 80px;
+        overflow-y: auto;
+    }
+
+    .card-image::after {
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.3), transparent);
+    }
+
+    .category-card:hover {
+        transform: translateY(-6px);
+    }
+
+    .status-badges {
+        margin-top: 10px;
+    }
 </style>
 </head>
 
@@ -959,9 +1014,9 @@
                             </div>
 
                             {% if category.description %}
-                            <div class="meta-item text-muted-small">
+                            <div class="meta-item text-muted-small description-box">
                                 <i class="fas fa-align-left"></i>
-                                <span>{{ category.description|truncatechars:40 }}</span>
+                                <span>{{ category.description }}</span>
                             </div>
                             {% endif %}
 
@@ -987,15 +1042,12 @@
                                 <i class="fas fa-folder"></i> {{ category.subcategories.count }}
                             </span>
                         </div>
-
                         <div class="card-actions">
-                            <a href="{% url 'products:category_edit' category.id %}" class="btn btn-edit">
+                            <a href="{% url 'products:category_edit' category.id %}" class="action-icon edit">
                                 <i class="fas fa-pen"></i>
-                                Edit
                             </a>
-                            <a href="{% url 'products:category_delete' category.id %}" class="btn btn-delete">
+                            <a href="{% url 'products:category_delete' category.id %}" class="action-icon delete">
                                 <i class="fas fa-trash"></i>
-                                Delete
                             </a>
                         </div>
                     </div>
