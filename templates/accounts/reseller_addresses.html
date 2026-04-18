@@ -215,7 +215,7 @@
             {% if address.is_primary %}
                 <div class="primary-label"><i class="fa-solid fa-star"></i> Primary</div>
             {% endif %}
-
+              
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div class="city-tag">
                     <i class="fa-solid fa-map-pin"></i> {{ address.city }}
@@ -241,6 +241,9 @@
             </div>
 
             <div class="address-details">
+                <span style="font-weight:800;font-size:14px;color:#6366f1;">
+    {{ address.address_name }}
+</span><br>
                 <span style="font-weight: 800; font-size: 1.2rem; color: #0f172a;">{{ address.address_line1 }}</span><br>
                 {{ address.city }}, {{ address.state }} — {{ address.postal_code }}<br>
                 <small style="color: #94a3b8; font-weight: 700;">{{ address.country|upper }}</small>

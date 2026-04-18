@@ -1,65 +1,9 @@
-{% load static %}
-{% block content %}
+{% if store.theme.theme_type == "single" %}
 
-<div class="container py-4">
+    {% include "resellers/single_product_theme.html" %}
 
-    <!-- PREVIEW ALERT -->
-    <div class="alert alert-info">
-        Preview Mode → Draft + Published visible
-    </div>
+{% else %}
 
-    <h2 class="mb-4">{{ store.store_name }}</h2>
+    {% include "resellers/store_frontend.html" %}
 
-    <div class="row">
-
-        {% for product in products %}
-        <div class="col-md-4 mb-4">
-
-            <div class="card h-100 shadow-sm {% if not product.is_published %}border-warning{% endif %}">
-
-                <!-- DRAFT BADGE -->
-                {% if not product.is_published %}
-                    <span class="badge bg-warning position-absolute m-2">Draft</span>
-                {% endif %}
-
-                <!-- MAIN IMAGE -->
-                {% if product.main_image %}
-                    <img src="{{ product.main_image.url }}" class="card-img-top"
-                         style="height:200px; object-fit:cover;">
-                {% endif %}
-
-                <div class="card-body">
-
-                    <h5>{{ product.name }}</h5>
-                    <h6 class="text-primary">₹{{ product.selling_price }}</h6>
-
-                    <!-- PRODUCT IMAGES -->
-                    {% for img in product.additional_images.all %}
-                        <img src="{{ img.image.url }}" style="height:50px;">
-                    {% endfor %}
-
-                    <!-- VARIANTS -->
-                    {% for variant in product.variants.all %}
-                        <div class="border mt-2 p-2">
-
-                            {{ variant.variant_name }} - ₹{{ variant.selling_price }}
-
-                            {% if variant.main_image %}
-                                <img src="{{ variant.main_image.url }}" style="height:40px;">
-                            {% endif %}
-
-                        </div>
-                    {% endfor %}
-
-                </div>
-
-            </div>
-
-        </div>
-        {% endfor %}
-
-    </div>
-
-</div>
-
-{% endblock %}
+{% endif %}
