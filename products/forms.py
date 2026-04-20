@@ -70,10 +70,10 @@ class WholesellerProductForm(forms.ModelForm):
             'gender': forms.Select(attrs={'class': 'form-control'}),
 
             # SHIPPING UI
-            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
-            'length': forms.NumberInput(attrs={'class': 'form-control'}),
-            'breadth': forms.NumberInput(attrs={'class': 'form-control'}),
-            'height': forms.NumberInput(attrs={'class': 'form-control'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
+            'length': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
+            'breadth': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
             'is_shippable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
 
             # RETURNS UI
@@ -116,6 +116,31 @@ class WholesellerProductForm(forms.ModelForm):
         else:
             self.fields['subcategory'].queryset = Subcategory.objects.none()
 
+    def clean_weight(self):
+        weight = self.cleaned_data.get('weight')
+        if weight is not None and weight <= 0:
+            raise ValidationError('Weight must be greater than zero.')
+        return weight
+
+    def clean_length(self):
+        length = self.cleaned_data.get('length')
+        if length is not None and length <= 0:
+            raise ValidationError('Length must be greater than zero.')
+        return length
+
+    def clean_breadth(self):
+        breadth = self.cleaned_data.get('breadth')
+        if breadth is not None and breadth <= 0:
+            raise ValidationError('Breadth must be greater than zero.')
+        return breadth
+
+    def clean_height(self):
+        height = self.cleaned_data.get('height')
+        if height is not None and height <= 0:
+            raise ValidationError('Height must be greater than zero.')
+        return height
+
+
 class WholesellerVariantForm(forms.ModelForm):
     class Meta:
         model = WholesellerProductVariant
@@ -140,10 +165,10 @@ class WholesellerVariantForm(forms.ModelForm):
             'threshold_limit': forms.NumberInput(attrs={'class': 'form-control'}),
 
             # SHIPPING
-            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
-            'length': forms.NumberInput(attrs={'class': 'form-control'}),
-            'breadth': forms.NumberInput(attrs={'class': 'form-control'}),
-            'height': forms.NumberInput(attrs={'class': 'form-control'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
+            'length': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
+            'breadth': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
 
             # RETURNS
             'is_returnable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -156,6 +181,29 @@ class WholesellerVariantForm(forms.ModelForm):
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
+    def clean_weight(self):
+        weight = self.cleaned_data.get('weight')
+        if weight is not None and weight <= 0:
+            raise ValidationError('Weight must be greater than zero.')
+        return weight
+
+    def clean_length(self):
+        length = self.cleaned_data.get('length')
+        if length is not None and length <= 0:
+            raise ValidationError('Length must be greater than zero.')
+        return length
+
+    def clean_breadth(self):
+        breadth = self.cleaned_data.get('breadth')
+        if breadth is not None and breadth <= 0:
+            raise ValidationError('Breadth must be greater than zero.')
+        return breadth
+
+    def clean_height(self):
+        height = self.cleaned_data.get('height')
+        if height is not None and height <= 0:
+            raise ValidationError('Height must be greater than zero.')
+        return height
 
 
 class ResellerImportProductForm(forms.ModelForm):
@@ -231,10 +279,10 @@ class ResellerOwnProductForm(forms.ModelForm):
             'gender': forms.Select(attrs={'class': 'form-control'}),
 
             # SHIPPING
-            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
-            'length': forms.NumberInput(attrs={'class': 'form-control'}),
-            'breadth': forms.NumberInput(attrs={'class': 'form-control'}),
-            'height': forms.NumberInput(attrs={'class': 'form-control'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'length': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'breadth': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'is_shippable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
 
             # RETURNS
@@ -243,7 +291,7 @@ class ResellerOwnProductForm(forms.ModelForm):
             'is_replaceable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'replacement_window_days': forms.NumberInput(attrs={'class': 'form-control'}),
 
-            'selling_price': forms.NumberInput(attrs={'class': 'form-control'}),
+            'selling_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'stock': forms.NumberInput(attrs={'class': 'form-control'}),
             'threshold_limit': forms.NumberInput(attrs={'class': 'form-control'}),
             'main_image': forms.FileInput(attrs={'class': 'form-control'}),
@@ -260,6 +308,12 @@ class ResellerOwnProductForm(forms.ModelForm):
         # ✅ Make gender optional + placeholder
         self.fields['gender'].required = False
         self.fields['gender'].choices = [('', 'Select Gender')] + list(self.fields['gender'].choices)
+
+        # Make shipping fields optional (allow NULL/empty)
+        self.fields['weight'].required = False
+        self.fields['length'].required = False
+        self.fields['breadth'].required = False
+        self.fields['height'].required = False
 
         # 🔥 Subcategory logic (keep this)
         if self.data.get('category'):
@@ -279,6 +333,38 @@ class ResellerOwnProductForm(forms.ModelForm):
             )
         else:
             self.fields['subcategory'].queryset = Subcategory.objects.none()
+
+    def clean_weight(self):
+        weight = self.cleaned_data.get('weight')
+        # Only validate if a value was provided (not None)
+        if weight is not None and weight <= 0:
+            raise ValidationError('Please enter a valid weight greater than zero, or leave empty.')
+        return weight
+
+    def clean_length(self):
+        length = self.cleaned_data.get('length')
+        if length is not None and length <= 0:
+            raise ValidationError('Please enter a valid length greater than zero, or leave empty.')
+        return length
+
+    def clean_breadth(self):
+        breadth = self.cleaned_data.get('breadth')
+        if breadth is not None and breadth <= 0:
+            raise ValidationError('Please enter a valid breadth greater than zero, or leave empty.')
+        return breadth
+
+    def clean_height(self):
+        height = self.cleaned_data.get('height')
+        if height is not None and height <= 0:
+            raise ValidationError('Please enter a valid height greater than zero, or leave empty.')
+        return height
+
+    def clean_selling_price(self):
+        selling_price = self.cleaned_data.get('selling_price')
+        if selling_price is None or selling_price <= 0:
+            raise ValidationError('Please enter a valid selling price greater than zero.')
+        return selling_price
+
 
 class ResellerVariantForm(forms.ModelForm):
     class Meta:
@@ -304,10 +390,10 @@ class ResellerVariantForm(forms.ModelForm):
             'threshold_limit': forms.NumberInput(attrs={'class': 'form-control'}),
 
             # SHIPPING
-            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
-            'length': forms.NumberInput(attrs={'class': 'form-control'}),
-            'breadth': forms.NumberInput(attrs={'class': 'form-control'}),
-            'height': forms.NumberInput(attrs={'class': 'form-control'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'length': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'breadth': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
 
             # RETURNS
             'is_returnable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -320,6 +406,50 @@ class ResellerVariantForm(forms.ModelForm):
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make shipping fields optional (allow NULL/empty)
+        self.fields['weight'].required = False
+        self.fields['length'].required = False
+        self.fields['breadth'].required = False
+        self.fields['height'].required = False
+
+    def clean_weight(self):
+        weight = self.cleaned_data.get('weight')
+        # Only validate if a value was provided (not None)
+        if weight is not None and weight <= 0:
+            raise ValidationError('Please enter a valid weight greater than zero, or leave empty.')
+        return weight
+
+    def clean_length(self):
+        length = self.cleaned_data.get('length')
+        if length is not None and length <= 0:
+            raise ValidationError('Please enter a valid length greater than zero, or leave empty.')
+        return length
+
+    def clean_breadth(self):
+        breadth = self.cleaned_data.get('breadth')
+        if breadth is not None and breadth <= 0:
+            raise ValidationError('Please enter a valid breadth greater than zero, or leave empty.')
+        return breadth
+
+    def clean_height(self):
+        height = self.cleaned_data.get('height')
+        if height is not None and height <= 0:
+            raise ValidationError('Please enter a valid height greater than zero, or leave empty.')
+        return height
+
+    def clean_selling_price(self):
+        selling_price = self.cleaned_data.get('selling_price')
+        if selling_price is None or selling_price <= 0:
+            raise ValidationError('Please enter a valid selling price greater than zero.')
+        return selling_price
+
+    def clean_stock(self):
+        stock = self.cleaned_data.get('stock')
+        if stock is None or stock < 0:
+            raise ValidationError('Stock cannot be negative.')
+        return stock
 # ============ INLINE FORMSETS FOR MULTIPLE IMAGES ============
 
 WholesellerProductImageFormSet = inlineformset_factory(
@@ -329,6 +459,7 @@ WholesellerProductImageFormSet = inlineformset_factory(
     extra=0,   # IMPORTANT
     can_delete=True
 )
+
 # Wholeseller Variant Images Formset
 WholesellerVariantImageFormSet = inlineformset_factory(
     WholesellerProductVariant,
@@ -371,7 +502,6 @@ ResellerVariantImageFormSet = inlineformset_factory(
         'order': forms.NumberInput(attrs={'class': 'form-control', 'style': 'width: 80px;'}),
     }
 )
-
 
 # Product Images
 ResellerProductImageFormSet = inlineformset_factory(
