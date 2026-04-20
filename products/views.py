@@ -522,7 +522,11 @@ def reseller_import_product(request, store_id, product_id):
         if form.is_valid():
             margin = form.cleaned_data.get('margin_rupees') or 0
 
+            # IMPORTANT: Get the effective price (after discount) from wholeseller
+            source_effective_price = source_product.get_effective_price()
+            
             def calc(price):
+                # Apply margin on the discounted price
                 return float(price) + float(margin)
 
             # ================= PRODUCT CREATE =================
@@ -554,11 +558,12 @@ def reseller_import_product(request, store_id, product_id):
                 last_known_source_price=source_product.price,
 
                 margin_rupees=margin,
-                selling_price=calc(source_product.price),
+                # Selling price = discounted price + margin
+                selling_price=calc(source_effective_price),
 
                 # DISCOUNT FIELDS - SYNC FROM SOURCE
                 discount_percentage=source_product.discount_percentage,
-                discounted_price=calc(source_product.discounted_price) if source_product.discounted_price else None,
+                discounted_price=calc(source_effective_price) if source_product.discount_percentage == 0 else None,
 
                 # SHIPPING
                 weight=source_product.weight,
@@ -577,7 +582,7 @@ def reseller_import_product(request, store_id, product_id):
                 is_published=False,
             )
 
-            # Recalculate discounted price with reseller's margin
+            # Recalculate discounted price if product has discount
             if product.discount_percentage > 0:
                 discount_amount = (product.selling_price * product.discount_percentage) / 100
                 product.discounted_price = product.selling_price - discount_amount
@@ -594,6 +599,8 @@ def reseller_import_product(request, store_id, product_id):
 
             # ================= VARIANTS =================
             for sv in source_product.variants.all():
+                variant_effective_price = sv.get_effective_price()
+                
                 variant = ResellerProductVariant.objects.create(
                     product=product,
                     source_variant=sv,
@@ -604,7 +611,8 @@ def reseller_import_product(request, store_id, product_id):
 
                     source_price=sv.price,
                     margin_rupees=margin,
-                    selling_price=calc(sv.price),
+                    # Selling price = variant discounted price + margin
+                    selling_price=calc(variant_effective_price),
 
                     # DISCOUNT FIELDS - SYNC FROM SOURCE VARIANT
                     discount_percentage=sv.discount_percentage,
@@ -647,7 +655,7 @@ def reseller_import_product(request, store_id, product_id):
 
             messages.success(request, f'✅ Imported "{product.name}" with margin ₹{margin}')
             if source_product.discount_percentage > 0:
-                messages.info(request, f'🎉 This product has {source_product.discount_percentage}% discount applied!')
+                messages.info(request, f'🎉 Margin applied on discounted price! Original: ₹{source_product.price} → Discounted: ₹{source_effective_price} → Your price: ₹{product.selling_price}')
             
             return redirect('products:reseller_product_list', store_id=store.id)
 
@@ -659,7 +667,6 @@ def reseller_import_product(request, store_id, product_id):
         'source_product': source_product,
         'store': store,
     })
-
 
 @login_required
 @user_passes_test(is_reseller)

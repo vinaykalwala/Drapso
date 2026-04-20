@@ -826,6 +826,50 @@
             width: 100%;
         }
     }
+
+
+    .discount-badge {
+        background: linear-gradient(135deg, #f59e0b, #f97316);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 40px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .original-price-strikethrough {
+        text-decoration: line-through;
+        color: var(--gray-400);
+        font-size: 0.85rem;
+    }
+    
+    .discounted-price-highlight {
+        color: #f59e0b;
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+    
+    .price-info-box {
+        background: linear-gradient(135deg, #fef3c7, #fffbeb);
+        border-radius: var(--radius);
+        padding: 16px;
+        margin-top: 16px;
+        border-left: 4px solid #f59e0b;
+    }
+    
+    .price-info-box .price-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #fde68a;
+    }
+    
+    .price-info-box .price-row:last-child {
+        border-bottom: none;
+    }
 </style>
 
 <div class="content">
@@ -833,7 +877,6 @@
     
     <!-- Main Card -->
     <div class="import-card">
-        <!-- Card Header - NOW WITH BLUE BACKGROUND -->
         <div class="import-card-header">
             <div class="import-card-header-icon">
                 <i class="fas fa-box-open"></i>
@@ -863,19 +906,75 @@
                         <h5>{{ source_product.name }}</h5>
                         <p>{{ source_product.description|truncatewords:25|default:"No description available for this product." }}</p>
                         <div class="import-preview-meta">
+                            {% if source_product.discount_percentage > 0 %}
+                                <span class="import-preview-meta-item" style="background: var(--warning-light); border-color: #fde68a;">
+                                    <i class="fas fa-tag"></i> 
+                                    <strong>Original Price:</strong> 
+                                    <span class="original-price-strikethrough">₹{{ source_product.price }}</span>
+                                </span>
+                                <span class="import-preview-meta-item" style="background: var(--warning-light); border-color: #fde68a;">
+                                    <i class="fas fa-percent"></i> 
+                                    <strong>Discount:</strong> 
+                                    <span class="discount-badge">{{ source_product.discount_percentage }}% OFF</span>
+                                </span>
+                                <span class="import-preview-meta-item" style="background: #fef3c7; border-color: #fde68a;">
+                                    <i class="fas fa-fire"></i> 
+                                    <strong>Discounted Price:</strong> 
+                                    <span class="discounted-price-highlight">₹{{ source_product.discounted_price|floatformat:2 }}</span>
+                                </span>
+                            {% else %}
+                                <span class="import-preview-meta-item">
+                                    <i class="fas fa-tag"></i> 
+                                    <strong>Price:</strong> ₹{{ source_product.price }}
+                                </span>
+                            {% endif %}
                             <span class="import-preview-meta-item">
-                                <i class="fas fa-tag"></i> <strong>Base Price:</strong> ₹{{ source_product.price }}
-                            </span>
-                            <span class="import-preview-meta-item">
-                                <i class="fas fa-boxes"></i> <strong>Stock:</strong> {{ source_product.stock|default:"Unlimited" }}
+                                <i class="fas fa-boxes"></i> 
+                                <strong>Stock:</strong> {{ source_product.stock|default:"Unlimited" }}
                             </span>
                             {% if source_product.sku %}
                             <span class="import-preview-meta-item">
-                                <i class="fas fa-barcode"></i> <strong>SKU:</strong> {{ source_product.sku }}
+                                <i class="fas fa-barcode"></i> 
+                                <strong>SKU:</strong> {{ source_product.sku }}
                             </span>
                             {% endif %}
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Price Info Box - Shows margin applied on discounted price -->
+            <div class="price-info-box">
+                <div class="price-row">
+                    <span><i class="fas fa-info-circle"></i> <strong>How pricing works:</strong></span>
+                    <span></span>
+                </div>
+                {% if source_product.discount_percentage > 0 %}
+                <div class="price-row">
+                    <span>Original Wholeseller Price:</span>
+                    <span>₹{{ source_product.price|floatformat:2 }}</span>
+                </div>
+                <div class="price-row">
+                    <span>Wholeseller Discount ({{ source_product.discount_percentage }}%):</span>
+                    <span class="discounted-price-highlight">- ₹{% widthratio source_product.discount_percentage 1 source_product.price|floatformat:2 as discount_amount %} (₹{{ source_product.discounted_price|floatformat:2 }})</span>
+                </div>
+                <div class="price-row">
+                    <span><strong>Effective Purchase Price:</strong></span>
+                    <span><strong class="discounted-price-highlight">₹{{ source_product.discounted_price|floatformat:2 }}</strong></span>
+                </div>
+                {% else %}
+                <div class="price-row">
+                    <span>Wholeseller Price:</span>
+                    <span>₹{{ source_product.price|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+                <div class="price-row">
+                    <span><i class="fas fa-chart-line"></i> Your Margin (added on discounted price):</span>
+                    <span><strong id="marginDisplayInInfo">₹0</strong></span>
+                </div>
+                <div class="price-row" style="border-top: 2px solid #fde68a; margin-top: 8px; padding-top: 12px;">
+                    <span><strong>Your Selling Price to Customers:</strong></span>
+                    <span><strong id="sellingPriceDisplayInInfo" style="font-size: 1.2rem; color: var(--primary);">₹{{ source_product.get_effective_price|floatformat:2 }}</strong></span>
                 </div>
             </div>
 
@@ -901,7 +1000,7 @@
             <form method="post" id="importForm" novalidate>
                 {% csrf_token %}
 
-                <!-- Margin Calculator - REQUIRED FIELD -->
+                <!-- Margin Calculator -->
                 <div class="import-margin-section">
                     <label class="import-margin-label">
                         <i class="fas fa-chart-line"></i> Your Profit Margin 
@@ -921,20 +1020,46 @@
                         <span style="color: var(--gray-500); font-weight: 600;">INR</span>
                     </div>
                     <small class="import-margin-hint">
-                        <i class="fas fa-info-circle"></i> This is the amount you'll earn per product sold
+                        <i class="fas fa-info-circle"></i> 
+                        {% if source_product.discount_percentage > 0 %}
+                            This margin will be added to the <strong>discounted price (₹{{ source_product.discounted_price|floatformat:2 }})</strong>, not the original price.
+                        {% else %}
+                            This margin will be added to the wholeseller price.
+                        {% endif %}
                     </small>
                     <div id="marginError" class="error-message">
-                        <i class="fas fa-exclamation-triangle"></i>Margin must be greater than 0
+                        <i class="fas fa-exclamation-triangle"></i> Margin must be greater than 0
                     </div>
 
                     <!-- Price Summary -->
                     <div class="import-price-alert">
+                        {% if source_product.discount_percentage > 0 %}
+                        <div class="import-price-row">
+                            <span class="import-price-label">
+                                <i class="fas fa-tag"></i> Original Price:
+                            </span>
+                            <span class="import-price-value original-price-strikethrough">₹{{ source_product.price }}</span>
+                        </div>
+                        <div class="import-price-row">
+                            <span class="import-price-label">
+                                <i class="fas fa-percent"></i> Discount ({{ source_product.discount_percentage }}%):
+                            </span>
+                            <span class="import-price-value discounted-price-highlight">- ₹{{ source_product.price|floatformat:2|add:source_product.discounted_price|floatformat:2 }}</span>
+                        </div>
+                        <div class="import-price-row">
+                            <span class="import-price-label">
+                                <i class="fas fa-fire"></i> Discounted Price (Your Cost):
+                            </span>
+                            <span class="import-price-value discounted-price-highlight" id="effectivePrice">₹{{ source_product.discounted_price|floatformat:2 }}</span>
+                        </div>
+                        {% else %}
                         <div class="import-price-row">
                             <span class="import-price-label">
                                 <i class="fas fa-tag"></i> Source Price:
                             </span>
-                            <span class="import-price-value">₹{{ source_product.price }}</span>
+                            <span class="import-price-value" id="effectivePrice">₹{{ source_product.price }}</span>
                         </div>
+                        {% endif %}
                         <div class="import-price-row">
                             <span class="import-price-label">
                                 <i class="fas fa-chart-line"></i> Your Margin:
@@ -945,12 +1070,18 @@
                             <span class="import-price-label">
                                 <i class="fas fa-shopping-cart"></i> Your Selling Price:
                             </span>
-                            <span class="import-price-value" id="sellingPricePreview">₹{{ source_product.price }}</span>
+                            <span class="import-price-value" id="sellingPricePreview">
+                                {% if source_product.discount_percentage > 0 %}
+                                    ₹{{ source_product.discounted_price|floatformat:2 }}
+                                {% else %}
+                                    ₹{{ source_product.price }}
+                                {% endif %}
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Variants Section - WITH BLUE CORNERS -->
+                <!-- Variants Section -->
                 {% if source_product.variants.exists %}
                 <div class="import-variants-section">
                     <div class="import-variants-header">
@@ -977,11 +1108,30 @@
                                 <div class="import-variant-info">
                                     <div class="import-variant-name">{{ variant.variant_name }}</div>
                                     <div class="import-variant-prices">
-                                        <span class="import-variant-original">
-                                            <i class="fas fa-tag"></i> Original: ₹<span class="variant-price" data-price="{{ variant.price }}">{{ variant.price }}</span>
-                                        </span>
+                                        {% if variant.discount_percentage > 0 %}
+                                            <span class="import-variant-original">
+                                                <i class="fas fa-tag"></i> Original: 
+                                                <span class="original-price-strikethrough">₹{{ variant.price }}</span>
+                                            </span>
+                                            <span class="import-variant-original" style="color: #f59e0b;">
+                                                <i class="fas fa-fire"></i> Discounted: 
+                                                <strong>₹<span class="variant-discounted-price" data-price="{{ variant.discounted_price }}">{{ variant.discounted_price|floatformat:2 }}</span></strong>
+                                            </span>
+                                        {% else %}
+                                            <span class="import-variant-original">
+                                                <i class="fas fa-tag"></i> Price: 
+                                                ₹<span class="variant-price" data-price="{{ variant.price }}">{{ variant.price }}</span>
+                                            </span>
+                                        {% endif %}
                                         <span class="import-variant-your-price">
-                                            <i class="fas fa-arrow-right"></i> Your Price: ₹<span class="variant-selling-price">{{ variant.price }}</span>
+                                            <i class="fas fa-arrow-right"></i> Your Price: 
+                                            ₹<span class="variant-selling-price">
+                                                {% if variant.discount_percentage > 0 %}
+                                                    {{ variant.discounted_price|floatformat:2 }}
+                                                {% else %}
+                                                    {{ variant.price }}
+                                                {% endif %}
+                                            </span>
                                         </span>
                                     </div>
                                     <div class="import-variant-stock">
@@ -1014,31 +1164,36 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    
-    // Get DOM elements
     const marginInput = document.getElementById('margin_rupees');
     const submitBtn = document.getElementById('submitBtn');
     const importForm = document.getElementById('importForm');
     const marginError = document.getElementById('marginError');
-    const sourcePrice = parseFloat("{{ source_product.price }}");
     const marginPreview = document.getElementById('marginPreview');
     const sellingPricePreview = document.getElementById('sellingPricePreview');
+    const marginDisplayInInfo = document.getElementById('marginDisplayInInfo');
+    const sellingPriceDisplayInInfo = document.getElementById('sellingPriceDisplayInInfo');
     
-    // Get all variant elements
-    const variantPriceSpans = document.querySelectorAll('.variant-price');
+    // Get the effective source price (discounted if available)
+    {% if source_product.discount_percentage > 0 %}
+        const sourceEffectivePrice = parseFloat("{{ source_product.discounted_price }}");
+    else %}
+        const sourceEffectivePrice = parseFloat("{{ source_product.price }}");
+    {% endif %}
+    
+    // Store variant effective prices
+    const variantEffectivePrices = [];
+    {% for variant in source_product.variants.all %}
+        variantEffectivePrices.push(
+            parseFloat("{% if variant.discount_percentage > 0 %}{{ variant.discounted_price }}{% else %}{{ variant.price }}{% endif %}")
+        );
+    {% endfor %}
+    
     const variantSellingSpans = document.querySelectorAll('.variant-selling-price');
     
-    // Store original variant prices
-    const variantOriginalPrices = Array.from(variantPriceSpans).map(span => {
-        return parseFloat(span.getAttribute('data-price') || span.textContent);
-    });
-    
-    // Validate margin function
     function validateMargin(margin) {
         return !isNaN(margin) && margin > 0;
     }
     
-    // Show error function
     function showError(show) {
         if (show) {
             marginError.classList.add('show');
@@ -1049,11 +1204,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Update all prices function
     function updateAllPrices() {
         let margin = parseFloat(marginInput.value);
-        
-        // Validate margin
         const isValid = validateMargin(margin);
         
         if (!isValid) {
@@ -1063,17 +1215,20 @@ document.addEventListener('DOMContentLoaded', function() {
             showError(false);
         }
         
-        // Update product price
-        const productPrice = sourcePrice + margin;
+        // Update product price (margin added to effective price)
+        const productPrice = sourceEffectivePrice + margin;
         marginPreview.textContent = '₹' + margin.toFixed(2);
         sellingPricePreview.textContent = '₹' + productPrice.toFixed(2);
         
+        if (marginDisplayInInfo) marginDisplayInInfo.textContent = '₹' + margin.toFixed(2);
+        if (sellingPriceDisplayInInfo) sellingPriceDisplayInInfo.textContent = '₹' + productPrice.toFixed(2);
+        
         // Update variant prices
-        variantOriginalPrices.forEach((originalPrice, index) => {
-            if (!isNaN(originalPrice)) {
-                const variantPrice = originalPrice + margin;
+        variantEffectivePrices.forEach((effectivePrice, index) => {
+            if (!isNaN(effectivePrice)) {
+                const variantPrice = effectivePrice + margin;
                 if (variantSellingSpans[index]) {
-                    variantSellingSpans[index].textContent = '₹' + variantPrice.toFixed(2);
+                    variantSellingSpans[index].textContent = variantPrice.toFixed(2);
                 }
             }
         });
@@ -1081,7 +1236,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return isValid;
     }
     
-    // Handle margin input with real-time validation
     if (marginInput) {
         marginInput.addEventListener('input', function() {
             let value = this.value.trim();
@@ -1090,7 +1244,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (value === '' || value === '-') {
                 showError(true);
                 marginPreview.textContent = '₹0';
-                sellingPricePreview.textContent = '₹' + sourcePrice.toFixed(2);
+                sellingPricePreview.textContent = '₹' + sourceEffectivePrice.toFixed(2);
+                if (marginDisplayInInfo) marginDisplayInInfo.textContent = '₹0';
+                if (sellingPriceDisplayInInfo) sellingPriceDisplayInInfo.textContent = '₹' + sourceEffectivePrice.toFixed(2);
                 return;
             }
             
@@ -1113,15 +1269,12 @@ document.addEventListener('DOMContentLoaded', function() {
         marginInput.addEventListener('change', updateAllPrices);
     }
     
-    // Initial update
     updateAllPrices();
     
-    // Form validation and submission
     if (importForm) {
         importForm.addEventListener('submit', function(e) {
             let margin = parseFloat(marginInput.value);
             
-            // Validate margin is required
             if (!marginInput.value || parseFloat(marginInput.value) <= 0) {
                 e.preventDefault();
                 showError(true);
@@ -1130,23 +1283,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 return false;
             }
             
-            // Validate margin is a number and >= 0
             if (isNaN(margin) || margin < 0) {
                 e.preventDefault();
                 showError(true);
                 marginInput.focus();
-                alert('Please enter a valid margin amount (0 or greater).');
+                alert('Please enter a valid margin amount.');
                 return false;
             }
             
-            // Add loading state to button
             submitBtn.classList.add('loading');
             submitBtn.innerHTML = '<i class="fas fa-spinner"></i> Importing...';
             submitBtn.disabled = true;
             
-            // Show confirmation
-            const productPrice = sourcePrice + margin;
-            if (!confirm(`Confirm Import\n\nProduct: {{ source_product.name }}\nYour Margin: ₹${margin.toFixed(2)}\nYour Selling Price: ₹${productPrice.toFixed(2)}\n\nClick OK to import this product to your store.`)) {
+            const productPrice = sourceEffectivePrice + margin;
+            {% if source_product.discount_percentage > 0 %}
+            if (!confirm(`Confirm Import\n\nProduct: {{ source_product.name }}\nWholeseller Discount: {{ source_product.discount_percentage }}%\nYour Cost (Discounted Price): ₹${sourceEffectivePrice.toFixed(2)}\nYour Margin: ₹${margin.toFixed(2)}\nYour Selling Price: ₹${productPrice.toFixed(2)}\n\nClick OK to import this product to your store.`)) {
+            {% else %}
+            if (!confirm(`Confirm Import\n\nProduct: {{ source_product.name }}\nWholeseller Price: ₹${sourceEffectivePrice.toFixed(2)}\nYour Margin: ₹${margin.toFixed(2)}\nYour Selling Price: ₹${productPrice.toFixed(2)}\n\nClick OK to import this product to your store.`)) {
+            {% endif %}
                 e.preventDefault();
                 submitBtn.classList.remove('loading');
                 submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Import';
