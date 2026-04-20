@@ -326,10 +326,8 @@ class ResellerImportProductEditForm(forms.ModelForm):
         max_digits=10,
         decimal_places=2,
         min_value=0,
-<<<<<<< HEAD
         label="Margin (₹)*",
         widget=forms.NumberInput(attrs={'class': 'form-control'}),
-=======
         widget=forms.NumberInput(attrs={
             'class': 'form-control', 
             'step': '0.01',
@@ -344,7 +342,6 @@ class ResellerImportProductEditForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'form-control'}),
         label="Product Name",
         help_text="You can customize the product name for your store"
->>>>>>> 8d4272022875ad050dd428620418ac0ada6ced5e
     )
 
     description = forms.CharField(
