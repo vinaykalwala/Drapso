@@ -214,9 +214,22 @@ No variants available for this product
                 Cash on Delivery Available
             </div>
             
-            <div class="btn-row">
-                <button class="btn buy">Buy Now</button>
-            </div>
+           <div class="btn-row">
+
+<button class="btn buy"
+
+{% if is_preview %}
+disabled
+style="opacity:.6;cursor:not-allowed;"
+{% endif %}
+
+>
+
+Buy Now
+
+</button>
+
+</div>
         </div>
     </div>
 

@@ -406,7 +406,12 @@ Available Variants
 
 
 
-<a href="/product/{{ product.slug }}/" class="btn">
+<a href="/product/{{ product.slug }}/"
+   class="btn"
+
+   {% if is_preview %}
+   style="pointer-events:none;opacity:.6;cursor:not-allowed;"
+   {% endif %}>
 
 View Details
 
