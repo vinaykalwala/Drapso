@@ -642,6 +642,11 @@ def verify_change_password_otp(request):
     return render(request, 'accounts/verify_change_password_otp.html')
 
 from resellers.models import Store
+from django.contrib.auth import get_user_model
+User = get_user_model()
+# if you have KYC model import it
+# from wholesalers.models import KYC
+# from resellers.models import Plan
 
 @login_required
 def dashboard(request):
@@ -660,12 +665,26 @@ def dashboard(request):
     elif user.role == User.Role.ADMIN:
         profile_data = getattr(user, 'admin_profile', None)
 
+    # 🔥 ADD THIS (MAIN FIX)
+    total_users = User.objects.count()
+    total_stores = Store.objects.count()
+
+    # if you have models, use them
+    pending_kyc = 0
+    subscription_plans = 0
+
     context = {
         'user': user,
         'profile': profile_data,
         'role': user.get_role_display(),
         'is_superuser': user.is_superuser,
-        "store": store
+        "store": store,
+
+        # 🔥 ADD THESE
+        'total_users': total_users,
+        'pending_kyc': pending_kyc,
+        'total_stores': total_stores,
+        'subscription_plans': subscription_plans,
     }
 
     return render(request, 'accounts/dashboard.html', context)
