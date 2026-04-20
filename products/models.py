@@ -7,6 +7,32 @@ from django.utils import timezone
 import random
 import string
 
+# ============ SKU DEFAULT GENERATORS FOR MIGRATION ============
+
+def generate_default_wholeseller_sku():
+    """Generate a temporary unique SKU for migration"""
+    timestamp = str(int(timezone.now().timestamp()))[-6:]
+    random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+    return f"WP-TEMP-{timestamp}-{random_suffix}"
+
+def generate_default_wholeseller_variant_sku():
+    """Generate a temporary unique SKU for migration"""
+    timestamp = str(int(timezone.now().timestamp()))[-6:]
+    random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+    return f"WV-TEMP-{timestamp}-{random_suffix}"
+
+def generate_default_reseller_sku():
+    """Generate a temporary unique SKU for migration"""
+    timestamp = str(int(timezone.now().timestamp()))[-6:]
+    random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+    return f"RP-TEMP-{timestamp}-{random_suffix}"
+
+def generate_default_reseller_variant_sku():
+    """Generate a temporary unique SKU for migration"""
+    timestamp = str(int(timezone.now().timestamp()))[-6:]
+    random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+    return f"RV-TEMP-{timestamp}-{random_suffix}"
+
 # ============ CATEGORIES (Superuser only) ============
 
 class Category(models.Model):
@@ -92,6 +118,15 @@ class WholesellerProduct(models.Model):
     stock = models.IntegerField(default=0, validators=[MinValueValidator(0)], help_text="Independent stock for product")
     threshold_limit = models.IntegerField(default=5, validators=[MinValueValidator(0)], help_text="Alert when stock below this")
     
+    sku = models.CharField(
+        max_length=100, 
+        blank=True, 
+        
+        default=generate_default_wholeseller_sku,
+        help_text="Stock Keeping Unit - Auto-generated if left blank"
+    )
+    hsn_code = models.CharField(max_length=20, default='0000', help_text="HSN Code for GST classification")
+    
     main_image = models.ImageField(upload_to='wholeseller/products/main/')
     
     is_active = models.BooleanField(default=True)
@@ -120,9 +155,39 @@ class WholesellerProduct(models.Model):
             models.Index(fields=['stock', 'threshold_limit']),
             models.Index(fields=['wholeseller', 'is_active']),
             models.Index(fields=['category', 'is_active']),
+            models.Index(fields=['sku']),
         ]
     
+    def generate_sku(self):
+        """Generate unique SKU for wholeseller product"""
+        # Get the wholeseller's ID
+        wholeseller_prefix = str(self.wholeseller.id).zfill(3)
+        
+        # Get category code (first 3 letters of category name, uppercase)
+        category_code = self.category.name[:3].upper() if self.category else 'GEN'
+        
+        # Generate random suffix
+        random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        
+        # Combine to create SKU: WP-[wholeseller_id]-[category]-[random]
+        sku = f"WP-{wholeseller_prefix}-{category_code}-{random_suffix}"
+        
+        # Ensure uniqueness
+        while WholesellerProduct.objects.filter(sku=sku).exists():
+            random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            sku = f"WP-{wholeseller_prefix}-{category_code}-{random_suffix}"
+        
+        return sku
+    
     def save(self, *args, **kwargs):
+        # Generate proper SKU if it's a temporary one or empty
+        if not self.sku or (self.sku and 'TEMP' in self.sku):
+            self.sku = self.generate_sku()
+        
+        # Set default HSN code if not set
+        if not self.hsn_code or self.hsn_code == '0000':
+            self.hsn_code = '0000'
+        
         # Track stock changes before save
         if self.pk:
             old_instance = WholesellerProduct.objects.filter(pk=self.pk).first()
@@ -259,7 +324,13 @@ class WholesellerProductVariant(models.Model):
     stock = models.IntegerField(default=0, validators=[MinValueValidator(0)], help_text="Independent stock for variant")
     threshold_limit = models.IntegerField(default=5, validators=[MinValueValidator(0)])
     
-    sku = models.CharField(max_length=100, blank=True, unique=True)
+    sku = models.CharField(
+        max_length=100, 
+        blank=True, 
+       
+        default=generate_default_wholeseller_variant_sku
+    )
+    hsn_code = models.CharField(max_length=20, default='0000', help_text="HSN Code for GST classification")
     main_image = models.ImageField(upload_to='wholeseller/variants/main/', blank=True, null=True)
     
     order = models.IntegerField(default=0)
@@ -287,6 +358,33 @@ class WholesellerProductVariant(models.Model):
             models.Index(fields=['sku']),
         ]
     
+    def generate_variant_sku(self):
+        """Generate unique SKU for wholeseller variant"""
+        # Use parent product SKU as base
+        parent_sku = self.product.sku if self.product.sku else f"WP-{self.product.id}"
+        
+        # Create variant identifier
+        variant_parts = []
+        if self.size:
+            variant_parts.append(self.size.upper())
+        if self.color:
+            variant_parts.append(self.color.upper())
+        
+        variant_suffix = '-'.join(variant_parts) if variant_parts else 'VAR'
+        
+        # Generate random suffix
+        random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+        
+        # Combine to create SKU
+        sku = f"{parent_sku}-{variant_suffix}-{random_suffix}"
+        
+        # Ensure uniqueness
+        while WholesellerProductVariant.objects.filter(sku=sku).exists():
+            random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+            sku = f"{parent_sku}-{variant_suffix}-{random_suffix}"
+        
+        return sku
+    
     def save(self, *args, **kwargs):
         # Track stock changes
         if self.pk:
@@ -306,9 +404,16 @@ class WholesellerProductVariant(models.Model):
                 self.previous_price = old_price
                 self.price_updated_at = timezone.now()
         
-        if not self.sku:
-            random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-            self.sku = f"WV{self.product.id}{random_str}"
+        # Generate proper SKU if it's a temporary one or empty
+        if not self.sku or (self.sku and 'TEMP' in self.sku):
+            self.sku = self.generate_variant_sku()
+        
+        # Set default HSN code (inherit from parent if available)
+        if not self.hsn_code or self.hsn_code == '0000':
+            if self.product and self.product.hsn_code:
+                self.hsn_code = self.product.hsn_code
+            else:
+                self.hsn_code = '0000'
         
         if not self.variant_name:
             parts = []
@@ -456,6 +561,15 @@ class ResellerProduct(models.Model):
     
     source_type = models.CharField(max_length=20, choices=SOURCE_CHOICES, default='own')
     
+    sku = models.CharField(
+        max_length=100, 
+        blank=True, 
+        
+        default=generate_default_reseller_sku,
+        help_text="Stock Keeping Unit - Auto-generated if left blank"
+    )
+    hsn_code = models.CharField(max_length=20, default='0000', help_text="HSN Code for GST classification")
+    
     main_image = models.ImageField(upload_to='reseller/products/main/', blank=True, null=True)
     
     is_active = models.BooleanField(default=True)
@@ -488,7 +602,30 @@ class ResellerProduct(models.Model):
             models.Index(fields=['source_product', 'source_type']),
             models.Index(fields=['reseller', 'store', 'is_active']),
             models.Index(fields=['price_status']),
+            models.Index(fields=['sku']),
         ]
+    
+    def generate_reseller_sku(self):
+        """Generate unique SKU for reseller own product"""
+        # Get reseller ID or store prefix
+        reseller_prefix = str(self.reseller.id).zfill(3)
+        store_prefix = str(self.store.id).zfill(2)
+        
+        # Get category code
+        category_code = self.category.name[:3].upper() if self.category else 'GEN'
+        
+        # Generate random suffix
+        random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        
+        # Combine to create SKU: RP-[reseller_id]-[store_id]-[category]-[random]
+        sku = f"RP-{reseller_prefix}-{store_prefix}-{category_code}-{random_suffix}"
+        
+        # Ensure uniqueness
+        while ResellerProduct.objects.filter(sku=sku).exists():
+            random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            sku = f"RP-{reseller_prefix}-{store_prefix}-{category_code}-{random_suffix}"
+        
+        return sku
     
     def _update_stock_from_variants(self):
         """Update product stock based on its variants (for own products only)"""
@@ -516,17 +653,30 @@ class ResellerProduct(models.Model):
 
             # STOCK SYNC
             self.stock = self.source_product.stock
+            
+            # SYNC SKU AND HSN FROM SOURCE - ALWAYS use source SKU for imported products
+            if self.source_product.sku:
+                self.sku = self.source_product.sku  # Use wholeseller's SKU
+            if self.source_product.hsn_code:
+                self.hsn_code = self.source_product.hsn_code
 
-            # PRICE CHANGE TRACKING
+            # PRICE CHANGE TRACKING WITH TOLERANCE
             if not is_new:
-                if self.source_price != self.source_product.price:
+                from decimal import Decimal
+                
+                # Convert to Decimal for safe comparison with tolerance
+                old_source_price = Decimal(str(self.source_price))
+                new_source_price = Decimal(str(self.source_product.price))
+                
+                # Only trigger price change if difference is more than 1 paisa (0.01)
+                if abs(old_source_price - new_source_price) > Decimal('0.01'):
                     self.last_known_source_price = self.source_price
-
+                    
                     if self.source_product.price > self.source_price:
                         self.price_status = 'price_increased'
                     else:
                         self.price_status = 'price_decreased'
-
+                    
                     self.price_change_notified_at = timezone.now()
 
             # PRICE SYNC
@@ -566,6 +716,14 @@ class ResellerProduct(models.Model):
         else:
             # Own products should NOT have source linkage
             self.source_price = 0
+            
+            # Generate proper SKU only for own products (not imported)
+            if not self.sku or (self.sku and 'TEMP' in self.sku):
+                self.sku = self.generate_reseller_sku()
+            
+            # Set default HSN code if not set
+            if not self.hsn_code or self.hsn_code == '0000':
+                self.hsn_code = '0000'
 
             # Optional: enforce selling_price must exist
             if not self.selling_price:
@@ -617,7 +775,7 @@ class ResellerProduct(models.Model):
         brand_str = f"{self.brand} " if self.brand else ""
         status_mark = "⚠️ " if self.has_price_change_pending() else ""
         stock_status = " [Low Stock]" if self.is_low_stock() else ""
-        return f"{status_mark}{brand_str}{self.name} - ₹{self.selling_price}{stock_status}"
+        return f"{status_mark}{brand_str}{self.name} - ₹{self.selling_price}"
 
 
 class ResellerProductImage(models.Model):
@@ -645,7 +803,13 @@ class ResellerProductVariant(models.Model):
     stock = models.IntegerField(default=0, validators=[MinValueValidator(0)], help_text="Auto-synced for imported variants")
     threshold_limit = models.IntegerField(default=5, validators=[MinValueValidator(0)])
     
-    sku = models.CharField(max_length=100, blank=True)
+    sku = models.CharField(
+        max_length=100, 
+        blank=True, 
+        
+        default=generate_default_reseller_variant_sku
+    )
+    hsn_code = models.CharField(max_length=20, default='0000', help_text="HSN Code for GST classification")
     main_image = models.ImageField(upload_to='reseller/variants/main/', blank=True, null=True)
     
     order = models.IntegerField(default=0)
@@ -669,7 +833,35 @@ class ResellerProductVariant(models.Model):
         indexes = [
             models.Index(fields=['source_variant', 'stock']),
             models.Index(fields=['product', 'is_active']),
+            models.Index(fields=['sku']),
         ]
+    
+    def generate_reseller_variant_sku(self):
+        """Generate unique SKU for reseller variant"""
+        # Use parent product SKU as base
+        parent_sku = self.product.sku if self.product.sku else f"RP-{self.product.id}"
+        
+        # Create variant identifier
+        variant_parts = []
+        if self.size:
+            variant_parts.append(self.size.upper())
+        if self.color:
+            variant_parts.append(self.color.upper())
+        
+        variant_suffix = '-'.join(variant_parts) if variant_parts else 'VAR'
+        
+        # Generate random suffix
+        random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+        
+        # Combine to create SKU
+        sku = f"{parent_sku}-{variant_suffix}-{random_suffix}"
+        
+        # Ensure uniqueness
+        while ResellerProductVariant.objects.filter(sku=sku).exists():
+            random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+            sku = f"{parent_sku}-{variant_suffix}-{random_suffix}"
+        
+        return sku
     
     def save(self, *args, **kwargs):
 
@@ -689,6 +881,12 @@ class ResellerProductVariant(models.Model):
 
             # STOCK SYNC
             self.stock = self.source_variant.stock
+            
+            # SYNC SKU AND HSN FROM SOURCE VARIANT - ALWAYS use source variant SKU
+            if self.source_variant.sku:
+                self.sku = self.source_variant.sku  # Use wholeseller variant's SKU
+            if self.source_variant.hsn_code:
+                self.hsn_code = self.source_variant.hsn_code
 
             # PRICE SYNC
             self.source_price = self.source_variant.price
@@ -711,6 +909,17 @@ class ResellerProductVariant(models.Model):
             # Own variant must have selling price
             if not self.selling_price:
                 raise ValueError("Selling price is required for own variants")
+            
+            # Generate proper SKU only for own variants (not imported)
+            if not self.sku or (self.sku and 'TEMP' in self.sku):
+                self.sku = self.generate_reseller_variant_sku()
+            
+            # Set default HSN code (inherit from parent if available)
+            if not self.hsn_code or self.hsn_code == '0000':
+                if self.product and self.product.hsn_code:
+                    self.hsn_code = self.product.hsn_code
+                else:
+                    self.hsn_code = '0000'
 
         # ================= FINAL SAVE =================
         super().save(*args, **kwargs)
@@ -725,7 +934,7 @@ class ResellerProductVariant(models.Model):
     
     def __str__(self):
         stock_status = " [Low Stock]" if self.is_low_stock() else ""
-        return f"{self.product.name} - {self.variant_name} (₹{self.selling_price}){stock_status}"
+        return f"{self.product.name} - {self.variant_name} (₹{self.selling_price})"
 
 
 class ResellerVariantImage(models.Model):

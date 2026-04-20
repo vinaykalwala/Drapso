@@ -234,16 +234,26 @@ class ResellerImportProductEditForm(forms.ModelForm):
         label="Margin (₹)"
     )
 
+    description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 4
+        }),
+        label="Description"
+    )
+
     class Meta:
         model = ResellerProduct
-        fields = []   # 🔥 IMPORTANT: no model fields
+        fields = ['description']   # ✅ ADD THIS
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if self.instance:
             self.fields['margin_rupees'].initial = self.instance.margin_rupees
-            
+            self.fields['description'].initial = self.instance.description
+               
 class ResellerOwnProductForm(forms.ModelForm):
 
     class Meta:

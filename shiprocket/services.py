@@ -215,24 +215,68 @@ class ShiprocketService:
 
         return locations[0].get('name') if locations else None
 
-    def calculate_shipping_charge(self, pickup_postcode, delivery_postcode, weight, pickup_location):
+    def get_pickup_nickname(self, pincode):
         """
-        Calculate shipping with better error logging for 'No Courier' issues
+        Fetches registered pickup locations from Shiprocket 
+        and matches the nickname based on the pincode.
+        """
+        url = f"{self.base_url}/settings/company/pickup"
+        try:
+            response = requests.get(url, headers=self._get_headers(), timeout=30)
+            if response.status_code == 401:
+                self._authenticate()
+                response = requests.get(url, headers=self._get_headers(), timeout=30)
+                
+            data = response.json()
+            if response.status_code == 200:
+                # Shiprocket returns addresses in 'data' -> 'shipping_address'
+                shipping_addresses = data.get('data', {}).get('shipping_address', [])
+                for addr in shipping_addresses:
+                    if str(addr.get('pin_code')) == str(pincode):
+                        return addr.get('pickup_location') # This is the Nickname
+            
+            logger.warning(f"No Shiprocket nickname found for pincode {pincode}. Using 'Primary'.")
+            return "Primary" 
+        except Exception as e:
+            logger.error(f"Error resolving pickup nickname: {e}")
+            return "Primary"
+
+    def get_wallet_balance(self):
+        """Fetches the current Shiprocket wallet balance amount"""
+        url = f"{self.base_url}/settings/company/balance"
+        try:
+            response = requests.get(url, headers=self._get_headers(), timeout=30)
+            data = response.json()
+            if response.status_code == 200:
+                return float(data.get('data', {}).get('balance_amount', 0))
+            return 0.0
+        except Exception:
+            return 0.0
+
+    def calculate_shipping_charge(self, pickup_postcode, delivery_postcode, weight, pickup_location, length=10, breadth=10, height=10):
+        """
+        Calculate shipping using Billable Weight and Package Dimensions.
         """
         url = f"{self.base_url}/courier/serviceability"
         params = {
             "pickup_postcode": pickup_postcode,
             "delivery_postcode": delivery_postcode,
             "weight": weight,
+            "length": length,
+            "breadth": breadth,
+            "height": height,
             "cod": 0,
-            "pickup_location": pickup_location # This MUST match Shiprocket's 'nickname'
+            "pickup_location": pickup_location
         }
         
         try:
             response = requests.get(url, headers=self._get_headers(), params=params, timeout=30)
+            if response.status_code == 401:
+                self._authenticate()
+                response = requests.get(url, headers=self._get_headers(), params=params, timeout=30)
+                
             data = response.json()
-            
-            if response.status_code == 200 and data.get('status') != 404:
+            if response.status_code == 200 and data.get('status') == 200:
                 couriers = data.get('data', {}).get('available_courier_companies', [])
                 if couriers:
                     couriers.sort(key=lambda x: float(x.get('rate', 9999)))
@@ -240,154 +284,125 @@ class ShiprocketService:
                     return {
                         'shipping_charge': float(cheapest.get('rate')),
                         'delivery_time': cheapest.get('etd', '4-7 days'),
-                        'courier_name': cheapest.get('courier_name')
+                        'courier_name': cheapest.get('courier_name'),
+                        'courier_company_id': cheapest.get('courier_company_id'), 
+                        'estimated_weight': cheapest.get('weight')
                     }
             
-            # Log the specific reason for failure
-            logger.warning(f"Shiprocket Serviceability failure: {data.get('message', 'No couriers available')}")
+            error_msg = data.get('message', 'No couriers available for this route.')
+            logger.warning(f"Shiprocket Serviceability failure: {error_msg}")
             return None
-            
         except Exception as e:
-            logger.error(f"Serviceability API call failed: {e}")
+            logger.error(f"Serviceability API call failed: {str(e)}")
             return None
-              
+
     def create_order(self, order_data):
-        """Create an order in Shiprocket"""
         url = f"{self.base_url}/orders/create/adhoc"
         
-        # Get pickup location tag name dynamically if pincode is provided
-        pickup_location = order_data.get('pickup_location')
-        if pickup_location and str(pickup_location).isdigit() and len(str(pickup_location)) in [5, 6]:
-            location_name = self.get_pickup_location_by_pincode(pickup_location)
-            if location_name:
-                pickup_location = location_name
-                logger.info(f"Resolved pincode to pickup location: {pickup_location}")
-        
-        # Prepare order items
-        order_items = []
-        for item in order_data.get('items', []):
-            order_items.append({
-                "name": item.get('name', 'Product'),
-                "sku": item.get('sku', ''),
-                "units": int(item.get('units', 1)),
-                "selling_price": float(item.get('selling_price', 0)),
-                "discount": float(item.get('discount', 0)),
-                "tax": float(item.get('tax', 0)),
-                "hsn": int(item.get('hsn', 0))
-            })
-        
+        # Prepare items payload
+        order_items = [{
+            "name": item.get('name')[:40],
+            "sku": item.get('sku'),
+            "units": int(item.get('units', 1)),
+            "selling_price": float(item.get('selling_price', 0)),
+        } for item in order_data.get('items', [])]
+
         payload = {
-            "order_id": order_data.get('order_id'),
+            "order_id": str(order_data.get('order_id')),
             "order_date": order_data.get('order_date'),
-            "pickup_location": pickup_location,
+            "pickup_location": order_data.get('pickup_location'), 
             "billing_customer_name": order_data.get('customer_name'),
             "billing_last_name": "",
             "billing_address": order_data.get('address'),
-            "billing_address_2": order_data.get('address_line2', ''),
             "billing_city": order_data.get('city'),
             "billing_pincode": order_data.get('pincode'),
             "billing_state": order_data.get('state'),
-            "billing_country": order_data.get('country', 'India'),
+            "billing_country": "India",
             "billing_email": order_data.get('email'),
-            "billing_phone": order_data.get('phone'),
+            "billing_phone": str(order_data.get('phone'))[-10:], 
             "shipping_is_billing": True,
             "order_items": order_items,
             "payment_method": "Prepaid",
-            "sub_total": float(order_data.get('sub_total', 0)),
+            "sub_total": float(order_data.get('sub_total')),
             "shipping_charges": float(order_data.get('shipping_charges', 0)),
-            "total": float(order_data.get('total', 0)),
-            "weight": float(order_data.get('weight', 0.5))
+            "total": float(order_data.get('total')),
+            "weight": float(order_data.get('weight', 0.5)),
+            "length": float(order_data.get('length', 10)),
+            "breadth": float(order_data.get('breadth', 10)),
+            "height": float(order_data.get('height', 10)),
         }
-        
-        logger.info(f"Creating order: {order_data.get('order_id')} with pickup_location={pickup_location}")
-        
+
         try:
             response = requests.post(url, headers=self._get_headers(), json=payload, timeout=30)
-            
-            if response.status_code == 401:
-                logger.info("Token expired, re-authenticating...")
-                self._authenticate()
-                response = requests.post(url, headers=self._get_headers(), json=payload, timeout=30)
-            
-            if response.status_code == 200:
-                try:
-                    data = response.json()
-                    logger.info(f"Order created successfully: {data.get('order_id')}")
-                    
-                    return {
-                        'success': True,
-                        'shiprocket_order_id': data.get('order_id'),
-                        'shipment_id': data.get('shipment_id'),
-                        'awb_code': data.get('awb_code'),
-                        'courier_name': data.get('courier_name'),
-                        'tracking_url': data.get('label_url', '')
-                    }
-                except ValueError as e:
-                    logger.error(f"Invalid JSON response: {e}")
-                    return {'success': False, 'error': f'Invalid API response: {str(e)}'}
-            else:
-                error_text = response.text[:500]
-                logger.error(f"Order creation failed. Status: {response.status_code}")
-                return {'success': False, 'error': f'API returned status {response.status_code}: {error_text}'}
-            
+            data = response.json()
+            if response.status_code in [200, 201] and data.get('order_id'):
+                return {
+                    'success': True,
+                    'shiprocket_order_id': data.get('order_id'),
+                    'shipment_id': data.get('shipment_id')
+                }
+            return {'success': False, 'error': data.get('message'), 'details': data.get('errors')}
         except Exception as e:
-            logger.error(f"Order creation error: {str(e)}")
             return {'success': False, 'error': str(e)}
-    
-    def track_shipment(self, awb_code):
-        """Track shipment by AWB code"""
-        url = f"{self.base_url}/shipments/track"
-        
-        try:
-            response = requests.get(
-                url, 
-                headers=self._get_headers(), 
-                params={'awb_code': awb_code}, 
-                timeout=30
-            )
-            
-            if response.status_code == 401:
-                logger.info("Token expired, re-authenticating...")
-                self._authenticate()
-                response = requests.get(
-                    url, 
-                    headers=self._get_headers(), 
-                    params={'awb_code': awb_code}, 
-                    timeout=30
-                )
-            
-            response.raise_for_status()
-            data = response.json()
-            logger.info(f"Tracking successful for AWB: {awb_code}")
-            return data
-            
-        except Exception as e:
-            logger.error(f"Tracking failed for AWB {awb_code}: {str(e)}")
-            return None
-    
-    def generate_shipping_label(self, shipment_id):
-        """Generate shipping label for an order"""
-        url = f"{self.base_url}/orders/print/label"
-        
+
+    def assign_awb(self, shipment_id, courier_id=None):
+        url = f"{self.base_url}/courier/assign/awb"
         payload = {"shipment_id": shipment_id}
+        if courier_id:
+            payload["courier_id"] = int(courier_id)
+
+        try:
+            response = requests.post(url, headers=self._get_headers(), json=payload, timeout=30)
+            data = response.json()
+            
+            # Check for success status 1
+            if response.status_code == 200 and data.get('awb_assign_status') == 1:
+                res_data = data.get('response', {}).get('data', {})
+                return {
+                    'success': True,
+                    'awb_code': res_data.get('awb_code'),
+                    'courier_name': res_data.get('courier_name'),
+                    'actual_charge': res_data.get('rate')
+                }
+            
+            # Extract detailed error (e.g., Insufficient Credits)
+            error_reason = data.get('message', 'AWB Assignment Failed')
+            if 'response' in data and isinstance(data['response'], dict):
+                inner_data = data['response'].get('data', {})
+                if isinstance(inner_data, dict) and inner_data.get('message'):
+                    error_reason = inner_data.get('message')
+            
+            return {'success': False, 'error': error_reason}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+            
+    def generate_shipping_label(self, shipment_id):
+        """Generate shipping label and return the PDF URL"""
+        url = f"{self.base_url}/orders/print/label"
+        payload = {"shipment_id": [shipment_id]} # Must be a list
         
         try:
             response = requests.post(url, headers=self._get_headers(), json=payload, timeout=30)
-            
-            if response.status_code == 401:
-                logger.info("Token expired, re-authenticating...")
-                self._authenticate()
-                response = requests.post(url, headers=self._get_headers(), json=payload, timeout=30)
-            
-            response.raise_for_status()
             data = response.json()
-            logger.info(f"Label generated for shipment: {shipment_id}")
-            return data
-            
+            if response.status_code == 200 and 'label_url' in data:
+                return {'success': True, 'label_url': data.get('label_url')}
+            return {'success': False, 'error': 'Label URL not found in response'}
         except Exception as e:
-            logger.error(f"Label generation failed: {str(e)}")
-            return None
-    
+            return {'success': False, 'error': str(e)}
+
+    def request_pickup(self, shipment_id):
+        """Trigger the courier pickup request"""
+        url = f"{self.base_url}/courier/generate/pickup"
+        payload = {"shipment_id": [shipment_id]}
+        try:
+            response = requests.post(url, headers=self._get_headers(), json=payload, timeout=30)
+            data = response.json()
+            # Pickup API usually returns status in 'pickup_status'
+            return {'success': response.status_code == 200, 'data': data}
+        except Exception as e:
+            logger.error(f"Pickup request failed: {str(e)}")
+            return {'success': False, 'error': str(e)}
+
     def create_return_order(self, return_data):
         """Create a return shipment for reverse pickup"""
         url = f"{self.base_url}/returns/create"
