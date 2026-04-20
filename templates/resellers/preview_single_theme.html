@@ -871,34 +871,60 @@ A perfect combination of comfort, style and reliability.
 
 <div class="m-card">
 
+<div class="card-split">
+
+<div class="icon-side">
+<i class="fas fa-truck"></i>
+</div>
+
+<div class="text-side">
 <h4>Free Delivery</h4>
-
 <p>Shipping available for this product</p>
+</div>
+
+</div>
 
 </div>
 
 
 <div class="m-card">
 
+<div class="card-split">
+
+<div class="icon-side">
+<i class="fas fa-undo"></i>
+</div>
+
+<div class="text-side">
 <h4>3 Day Return</h4>
-
 <p>Return available within 3 days</p>
+</div>
+
+</div>
 
 </div>
 
 
 <div class="m-card">
 
+<div class="card-split">
+
+<div class="icon-side">
+<i class="fas fa-shield-alt"></i>
+</div>
+
+<div class="text-side">
 <h4>Secure Payment</h4>
-
 <p>Safe and trusted payment process</p>
-
 </div>
 
 </div>
 
 </div>
 
+</div>
+
+</div>
 <!-- FOOTER -->
 
 <div class="footer">
@@ -925,14 +951,13 @@ A perfect combination of comfort, style and reliability.
 
 <script>
 
-/* SAME JS */
+/* gallery image click */
 
 document.addEventListener("click",function(e){
 
 if(e.target.matches("#gallery img")){
 
 document.querySelectorAll("#gallery img")
-
 .forEach(i=>i.classList.remove("active"))
 
 e.target.classList.add("active")
@@ -944,22 +969,56 @@ document.getElementById("main").src=e.target.src
 })
 
 
+/* store original main product data */
+
+const originalData={
+
+img:"/static/images/shirt.webp",
+
+gallery:[
+"shirt.webp",
+"shirt1.webp",
+"shirt2.webp",
+"shirt3.webp"
+],
+
+price:"799",
+
+desc:"Premium quality cotton fabric shirt perfect for daily wear.",
+
+specs:`
+<div class="spec">Size: M</div>
+<div class="spec">Color: Pink</div>
+<div class="spec">Material: Cotton</div>
+<div class="spec">Gender: Unisex</div>
+<div class="spec">Weight: 0.3kg</div>
+<div class="spec">Length: 30cm</div>
+<div class="spec">Breadth: 20cm</div>
+<div class="spec">Height: 4cm</div>
+`
+
+}
+
+
+/* variant click */
+
 document.querySelectorAll(".variant").forEach(v=>{
 
 v.onclick=()=>{
 
-
 document.querySelectorAll(".variant")
-
 .forEach(x=>x.classList.remove("active"))
 
 v.classList.add("active")
 
 
-document.getElementById("main").src=
+/* change main image */
 
+document.getElementById("main").src=
 "/static/images/"+v.dataset.img
 
+
+/* change gallery */
 
 let gallery=JSON.parse(v.dataset.gallery)
 
@@ -968,11 +1027,8 @@ let html=""
 gallery.forEach((img,index)=>{
 
 html+=`
-
 <img src="/static/images/${img}"
-
 class="${index==0?'active':''}">
-
 `
 
 })
@@ -980,17 +1036,20 @@ class="${index==0?'active':''}">
 document.getElementById("gallery").innerHTML=html
 
 
+/* change price */
+
 document.getElementById("price").innerHTML=
-
 "₹"+v.dataset.price+
-
 " <span class='old'>₹999</span>"
 
 
-document.getElementById("desc").innerText=
+/* change description */
 
+document.getElementById("desc").innerText=
 v.dataset.desc
 
+
+/* change specs */
 
 document.getElementById("specs").innerHTML=`
 
@@ -1010,9 +1069,71 @@ document.getElementById("specs").innerHTML=`
 
 `
 
+
+/* show back button */
+
+document.getElementById("backBtn").style.display="inline-block"
+
 }
 
 })
+
+
+/* back to main product */
+
+document.getElementById("backBtn").onclick=function(){
+
+/* reset image */
+
+document.getElementById("main").src=originalData.img
+
+
+/* reset gallery */
+
+let html=""
+
+originalData.gallery.forEach((img,index)=>{
+
+html+=`
+<img src="/static/images/${img}"
+class="${index==0?'active':''}">
+`
+
+})
+
+document.getElementById("gallery").innerHTML=html
+
+
+/* reset price */
+
+document.getElementById("price").innerHTML=
+"₹"+originalData.price+
+" <span class='old'>₹999</span>"
+
+
+/* reset description */
+
+document.getElementById("desc").innerText=
+originalData.desc
+
+
+/* reset specs */
+
+document.getElementById("specs").innerHTML=
+originalData.specs
+
+
+/* remove active variant */
+
+document.querySelectorAll(".variant")
+.forEach(x=>x.classList.remove("active"))
+
+
+/* hide button */
+
+this.style.display="none"
+
+}
 
 </script>
 

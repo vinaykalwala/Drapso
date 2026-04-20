@@ -680,7 +680,108 @@ def preview_store(request, store_id):
         'is_preview': True,
     }
     return render(request, 'resellers/preview_store.html', context)
+@login_required
+@user_passes_test(is_reseller)
+def preview_store(request, store_id):
 
+    store = get_object_or_404(
+        Store,
+        id=store_id,
+        reseller=request.user
+    )
+
+    current_host = request.get_host()
+
+    if 'localhost' in current_host or '127.0.0.1' in current_host:
+        port = ':8000' if ':' not in current_host else f":{current_host.split(':')[1]}"
+        store_url = f"http://{store.subdomain}.localhost{port}"
+    else:
+        store_url = store.get_full_url(request)
+
+
+    all_products = store.products.filter(
+        is_active=True
+    ).prefetch_related(
+        'additional_images',
+        'variants__additional_images'
+    )
+
+
+    # 🔥 ensure theme exists
+    if store.theme and store.theme.theme_type == "single":
+
+        base_template = "includes/singletheme_base.html"
+        theme_type = "single"
+
+    else:
+
+        base_template = "includes/multitheme_base.html"
+        theme_type = "multi"
+
+
+    context = {
+
+        "store": store,
+        "store_url": store_url,
+
+        "products": all_products,
+
+        "theme_type": theme_type,
+        "base_template": base_template,
+
+        "is_preview": True,
+    }
+
+
+    return render(
+        request,
+        "resellers/preview_store.html",
+        context
+    )
+@login_required
+@user_passes_test(is_reseller)
+def preview_store(request, store_id):
+
+    store = get_object_or_404(
+        Store,
+        id=store_id,
+        reseller=request.user
+    )
+
+    products = store.products.filter(
+        is_active=True
+    ).select_related(
+        'category','subcategory'
+    ).prefetch_related(
+        'additional_images',
+        Prefetch(
+            'variants',
+            queryset=ResellerProductVariant.objects.filter(is_active=True)
+            .prefetch_related('additional_images')
+        )
+    )
+
+    context = {
+
+        "store": store,
+
+        "products": products,
+
+        "is_preview": True
+
+    }
+
+    # choose SAME template as live
+    if store.theme and store.theme.theme_type == "single":
+
+        template = "resellers/single_product_theme.html"
+
+    else:
+
+        template = "resellers/store_frontend.html"
+
+
+    return render(request, template, context)
 @login_required
 @user_passes_test(is_reseller)
 def copy_store_link(request, store_id):

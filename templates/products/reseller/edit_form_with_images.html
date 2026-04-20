@@ -1,630 +1,595 @@
+<!-- templates/products/reseller/edit_imported_product.html -->
 {% extends "dashboard_base.html" %}
 {% load static %}
 
-{% block title %}Edit Product - {{ product.name }}{% endblock %}
+{% block title %}Edit Imported Product - {{ product.name }}{% endblock %}
 
 {% block content %}
 
 <style>
-
-/* container */
-
-.ep-container{
-max-width:1000px;
-margin:auto;
-padding:28px;
+.ep-container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 28px;
 }
 
-/* card */
-
-.ep-card{
-background:white;
-border-radius:16px;
-box-shadow:0 6px 25px rgba(0,0,0,.05);
-border:1px solid #eef2f7;
-overflow:hidden;
+.ep-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 6px 25px rgba(0,0,0,.05);
+    border: 1px solid #eef2f7;
+    overflow: hidden;
 }
 
-/* header */
-
-.ep-header{
-padding:24px 28px;
-background:linear-gradient(135deg,#4f46e5,#7c3aed);
-color:white;
-font-size:18px;
-font-weight:600;
+.ep-header {
+    padding: 24px 28px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
 }
 
-/* body */
-
-.ep-body{
-padding:28px;
+.ep-body {
+    padding: 28px;
 }
 
-/* rows */
-
-.ep-row{
-display:flex;
-gap:18px;
-flex-wrap:wrap;
-margin-bottom:18px;
+.ep-row {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
 }
 
-/* fields */
-
-.ep-field{
-flex:1;
-min-width:240px;
+.ep-field {
+    flex: 1;
+    min-width: 240px;
 }
 
-.ep-label{
-font-size:12px;
-font-weight:700;
-color:#64748b;
-margin-bottom:5px;
-display:block;
+.ep-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 5px;
+    display: block;
 }
 
 .ep-field input,
 .ep-field select,
-.ep-field textarea{
-
-width:100%;
-padding:11px;
-border-radius:10px;
-border:1px solid #e2e8f0;
-background:#fcfcfd;
-font-size:14px;
-
+.ep-field textarea {
+    width: 100%;
+    padding: 11px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #fcfcfd;
+    font-size: 14px;
 }
 
-.ep-field input:focus{
-outline:none;
-border-color:#4f46e5;
-box-shadow:0 0 0 3px #eef2ff;
+.ep-price {
+    background: #ecfdf5;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    color: #065f46;
+    margin-bottom: 20px;
 }
 
-/* price box */
-
-.ep-price{
-
-background:#ecfdf5;
-padding:14px;
-border-radius:12px;
-font-weight:600;
-color:#065f46;
-margin-bottom:20px;
-
+.ep-section-title {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: #334155;
 }
 
-/* section */
-
-.ep-section-title{
-
-font-weight:700;
-font-size:14px;
-margin-bottom:10px;
-color:#334155;
-
+.ep-image-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 20px;
 }
 
-/* image section background */
-
-.ep-image-box{
-
-background:#f8fafc;
-border:1px solid #e2e8f0;
-border-radius:14px;
-padding:18px;
-margin-bottom:20px;
-
+.ep-main-image {
+    width: 200px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    background: white;
+    padding: 10px;
 }
 
-/* main image */
-
-.ep-main-image{
-
-width:200px;
-border-radius:14px;
-overflow:hidden;
-border:1px solid #e5e7eb;
-background:white;
-padding:10px;
-box-shadow:0 4px 14px rgba(0,0,0,.04);
-
+.ep-main-image img {
+    width: 100%;
+    border-radius: 10px;
 }
 
-.ep-main-image img{
-
-width:100%;
-border-radius:10px;
-
+.ep-gallery {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 12px;
 }
 
-/* gallery */
-
-.ep-gallery{
-display:flex;
-gap:12px;
-flex-wrap:wrap;
+.ep-thumb {
+    width: 95px;
+    height: 95px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    background: white;
+    padding: 6px;
+    position: relative;
 }
 
-/* thumb */
-
-.ep-thumb{
-
-width:95px;
-height:95px;
-border-radius:12px;
-overflow:hidden;
-border:1px solid #e5e7eb;
-background:white;
-padding:6px;
-transition:.2s;
-box-shadow:0 3px 10px rgba(0,0,0,.03);
-
+.ep-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
 }
 
-.ep-thumb img{
-
-width:100%;
-height:100%;
-object-fit:cover;
-border-radius:8px;
-
+.ep-thumb .delete-img {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #ef4444;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
 }
 
-.ep-thumb:hover{
-
-transform:translateY(-3px);
-box-shadow:0 8px 22px rgba(0,0,0,.08);
-
+.ep-variant {
+    border: 1px solid #eef2f7;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 14px;
+    background: #fafafa;
 }
 
-/* variants */
-
-.ep-variant{
-
-border:1px solid #eef2f7;
-border-radius:14px;
-padding:14px;
-margin-bottom:14px;
-background:#fafafa;
-
+.ep-variant-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
 }
 
-.ep-variant-top{
-
-display:flex;
-justify-content:space-between;
-margin-bottom:6px;
-
+.ep-variant-name {
+    font-weight: 600;
 }
 
-.ep-variant-name{
-
-font-weight:600;
-
+.ep-variant-price {
+    color: #4f46e5;
+    font-weight: 600;
 }
 
-.ep-variant-price{
-
-color:#4f46e5;
-font-weight:600;
-
+.ep-actions {
+    margin-top: 24px;
+    display: flex;
+    gap: 12px;
 }
 
-/* buttons */
-
-.ep-actions{
-
-margin-top:24px;
-display:flex;
-gap:12px;
-
+.ep-btn {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.ep-btn{
-
-padding:10px 18px;
-border-radius:10px;
-border:none;
-font-size:14px;
-cursor:pointer;
-
+.ep-save {
+    background: #4f46e5;
+    color: white;
 }
 
-.ep-save{
-
-background:#4f46e5;
-color:white;
-
+.ep-save:hover {
+    background: #4338ca;
 }
 
-.ep-save:hover{
-
-background:#4338ca;
-
+.ep-cancel {
+    background: #f1f5f9;
+    color: #334155;
 }
 
-.ep-cancel{
-
-background:#f1f5f9;
-
+.ep-cancel:hover {
+    background: #e2e8f0;
 }
 
-/* responsive */
-
-@media(max-width:600px){
-
-.ep-row{
-flex-direction:column;
+.ep-info-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
 }
 
-}
-@media(max-width:900px){
-
-.content{
-    margin-top: 40px;
-}
-
-}
-.ep-info-row{
-display:grid;
-grid-template-columns: repeat(3, 1fr);
-gap:16px;
-margin-bottom:20px;
+.ep-info-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 16px;
 }
 
-.ep-info-box{
-background:#f8fafc;
-border:1px solid #e2e8f0;
-border-radius:14px;
-padding:14px 16px;
+.ep-info-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-bottom: 6px;
 }
 
-.ep-info-title{
-font-size:11px;
-font-weight:700;
-color:#64748b;
-text-transform:uppercase;
-margin-bottom:4px;
-letter-spacing:.5px;
+.ep-info-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
 }
 
-.ep-info-value{
-font-size:15px;
-font-weight:600;
-color:#0f172a;
+.image-formset {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
 }
 
-/* mobile */
-@media(max-width:700px){
-.ep-info-row{
-grid-template-columns:1fr;
+.image-formset .form-group {
+    margin-bottom: 10px;
 }
+
+.help-text {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+.form-check {
+    margin-top: 8px;
+}
+
+.form-check-input {
+    margin-right: 6px;
+}
+
+.text-danger {
+    color: #dc2626;
+}
+
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 13px;
+}
+
+.btn-secondary {
+    background: #64748b;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background: #475569;
+}
+
+.mt-3 {
+    margin-top: 12px;
+}
+
+.mb-3 {
+    margin-bottom: 12px;
+}
+
+.mt-2 {
+    margin-top: 8px;
+}
+
+/* Formset delete checkbox styling */
+.delete-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.delete-checkbox input {
+    width: auto;
+}
+
+/* Dynamic form styles */
+.image-form {
+    transition: all 0.2s;
+}
+
+.add-image-btn, .add-variant-btn {
+    background: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.add-image-btn:hover, .add-variant-btn:hover {
+    background: #4338ca;
 }
 </style>
 
-
-
 <div class="content">
-
 <div class="ep-container">
+    <div class="ep-card">
+        <div class="ep-header">
+            <i class="fas fa-edit"></i> Edit Imported Product — {{ product.name }}
+        </div>
 
-<div class="ep-card">
+        <div class="ep-body">
+            <form method="POST" enctype="multipart/form-data" id="editForm">
+                {% csrf_token %}
 
-<div class="ep-header">
+                <!-- Product Information Row -->
+                <div class="ep-info-row">
+                    <div class="ep-info-box">
+                        <div class="ep-info-title">Source</div>
+                        <div class="ep-info-value">
+                            {{ product.source_product.name|truncatechars:30 }}
+                        </div>
+                    </div>
 
-Edit Product — {{ product.name }}
+                    <div class="ep-info-box">
+                        <div class="ep-info-title">Brand</div>
+                        <div class="ep-info-value">
+                            {{ product.brand|default:"N/A" }}
+                        </div>
+                    </div>
 
+                    <div class="ep-info-box">
+                        <div class="ep-info-title">Your Purchase Price</div>
+                        <div class="ep-info-value">
+                            ₹ {{ product.source_product.get_effective_price|floatformat:2 }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Name Field -->
+                <div class="ep-row">
+                    <div class="ep-field" style="flex:100%">
+                        <label class="ep-label">
+                            Product Name (Customizable for your store)
+                        </label>
+                        {{ form.name }}
+                        <div class="help-text">You can change the product name as it appears in your store</div>
+                    </div>
+                </div>
+
+                <!-- Margin Field -->
+                <div class="ep-row">
+                    <div class="ep-field">
+                        <label class="ep-label">Your Margin (₹)</label>
+                        {{ form.margin_rupees }}
+                        <div class="help-text">Your profit per product</div>
+                    </div>
+                </div>
+
+                <!-- Description Field -->
+                <div class="ep-row">
+                    <div class="ep-field" style="flex:100%">
+                        <label class="ep-label">Description (Customizable)</label>
+                        {{ form.description }}
+                        <div class="help-text">Customize the product description for your customers</div>
+                    </div>
+                </div>
+
+                <!-- Price Preview -->
+                <div class="ep-price">
+                    <strong>💰 Your Selling Price:</strong>
+                    ₹ <span id="previewPrice">{{ product.selling_price|floatformat:2 }}</span>
+                </div>
+
+                <!-- Product Main Image -->
+                <div class="ep-image-box">
+                    <div class="ep-section-title">
+                        <i class="fas fa-image"></i> Main Product Image
+                    </div>
+                    {% if product.main_image %}
+                        <div class="ep-main-image">
+                            <img src="{{ product.main_image.url }}" alt="{{ product.name }}">
+                        </div>
+                    {% endif %}
+                    <div class="help-text mt-2">Main image is inherited from wholeseller</div>
+                </div>
+
+                <!-- Product Gallery Images (Editable) -->
+                <div class="ep-image-box">
+                    <div class="ep-section-title">
+                        <i class="fas fa-images"></i> Gallery Images (Add/Delete)
+                    </div>
+                    
+                    {{ image_formset.management_form }}
+                    <div id="image-formset-container">
+                        {% for img_form in image_formset %}
+                            <div class="image-formset" id="image-form-{{ forloop.counter0 }}">
+                                {{ img_form.id }}
+                                <div class="form-group">
+                                    {% if img_form.instance.image %}
+                                        <div class="ep-gallery">
+                                            <div class="ep-thumb">
+                                                <img src="{{ img_form.instance.image.url }}" alt="Gallery image">
+                                                <div class="delete-img" onclick="markForDelete(this, '{{ img_form.DELETE.id_for_label }}')">×</div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    <label>Add/Change Image:</label>
+                                    {{ img_form.image }}
+                                    <div class="help-text">Alt text: {{ img_form.alt_text }}</div>
+                                    <div class="delete-checkbox">
+                                        {{ img_form.DELETE }} 
+                                        <label class="text-danger">Delete this image</label>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="add-image-btn" onclick="addImageForm()">
+                        <i class="fas fa-plus"></i> Add Another Image
+                    </button>
+                </div>
+
+                <!-- Variants Section -->
+                <div class="ep-section-title">
+                    <i class="fas fa-cubes"></i> Product Variants
+                </div>
+
+                {% for v in product.variants.all %}
+                    <div class="ep-variant">
+                        <div class="ep-variant-top">
+                            <div class="ep-variant-name">
+                                <i class="fas fa-cube"></i> {{ v.variant_name }}
+                            </div>
+                            <div class="ep-variant-price">
+                                Your Price: ₹ 
+                                <span class="variant-price" data-price="{{ v.source_variant.get_effective_price|default:v.source_price }}">
+                                    {{ v.selling_price|floatformat:2 }}
+                                </span>
+                            </div>
+                        </div>
+                        <div style="font-size:13px; color:#64748b; margin-bottom: 10px;">
+                            Your Cost: ₹ {{ v.source_variant.get_effective_price|default:v.source_price|floatformat:2 }}
+                        </div>
+                        
+                        <!-- Variant Images -->
+                        {% if v.main_image or v.additional_images.exists %}
+                            <div class="ep-section-title" style="margin-top: 10px;">Variant Images</div>
+                            <div class="ep-gallery">
+                                {% if v.main_image %}
+                                    <div class="ep-thumb">
+                                        <img src="{{ v.main_image.url }}" alt="Main variant image">
+                                    </div>
+                                {% endif %}
+                                {% for img in v.additional_images.all %}
+                                    <div class="ep-thumb">
+                                        <img src="{{ img.image.url }}" alt="Variant image">
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <!-- Form Actions -->
+                <div class="ep-actions">
+                    <button type="submit" class="ep-btn ep-save" id="submitBtn">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <a href="{% url 'products:reseller_product_list' store.id %}" class="ep-btn ep-cancel">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
-
-
-
-<div class="ep-body">
-
-<form method="POST" enctype="multipart/form-data">
-
-{% csrf_token %}
-
-
-
-{% if is_imported %}
-
-<div class="ep-info-row">
-
-<div class="ep-info-box">
-<div class="ep-info-title">Product</div>
-<div class="ep-info-value">
-{{ product.name }}
 </div>
-</div>
-
-
-<div class="ep-info-box">
-<div class="ep-info-title">Brand</div>
-<div class="ep-info-value">
-{{ product.brand }}
-</div>
-</div>
-
-
-<div class="ep-info-box">
-<div class="ep-info-title">Cost Price</div>
-<div class="ep-info-value">
-₹ {{ product.source_price }}
-</div>
-</div>
-
-</div>
-
-
-<div class="ep-row">
-
-<div class="ep-field">
-<label class="ep-label">Margin</label>
-
-{{ form.margin_rupees }}
-
-</div>
-<div class="ep-row">
-
-<div class="ep-field" style="flex:100%">
-<label class="ep-label">Description</label>
-
-{{ form.description }}
-
-</div>
-
-</div>
-
-</div>
-
-<div class="ep-price">
-
-Selling Price :
-
-₹
-
-<span id="previewPrice">
-
-{{ product.selling_price }}
-
-</span>
-
-</div>
-
-{% else %}
-
-
-
-<div class="ep-row">
-
-{% for field in form %}
-
-<div class="ep-field">
-
-<label class="ep-label">
-
-{{ field.label }}
-
-</label>
-
-{{ field }}
-
-</div>
-
-{% endfor %}
-
-</div>
-
-
-
-{% endif %}
-
-
-
-<!-- MAIN IMAGE -->
-
-<div class="ep-image-box">
-
-<div class="ep-section-title">
-
-Main Image
-
-</div>
-
-
-
-{% if product.main_image %}
-
-<div class="ep-main-image">
-
-<img src="{{ product.main_image.url }}">
-
-</div>
-
-{% endif %}
-
-</div>
-
-
-
-<!-- GALLERY -->
-
-<div class="ep-image-box">
-
-<div class="ep-section-title">
-
-Gallery Images
-
-</div>
-
-
-
-<div class="ep-gallery">
-
-{% for img in product.additional_images.all %}
-
-<div class="ep-thumb">
-
-<img src="{{ img.image.url }}">
-
-</div>
-
-{% endfor %}
-
-</div>
-
-</div>
-
-
-
-<!-- VARIANTS -->
-
-<div class="ep-section-title">
-
-Variants
-
-</div>
-
-
-
-{% for v in product.variants.all %}
-
-<div class="ep-variant">
-
-<div class="ep-variant-top">
-
-<div class="ep-variant-name">
-
-{{ v.variant_name }}
-
-</div>
-
-
-
-<div class="ep-variant-price">
-
-₹
-
-<span
-class="variant-price"
-data-price="{{ v.source_price }}">
-
-{{ v.selling_price }}
-
-</span>
-
-</div>
-
-</div>
-
-
-
-<div style="font-size:13px;color:#64748b;margin-bottom:8px">
-
-Cost Price :
-
-₹ {{ v.source_price }}
-
-</div>
-
-
-
-<div class="ep-gallery">
-
-{% if v.main_image %}
-
-<div class="ep-thumb">
-
-<img src="{{ v.main_image.url }}">
-
-</div>
-
-{% endif %}
-
-
-
-{% for img in v.additional_images.all %}
-
-<div class="ep-thumb">
-
-<img src="{{ img.image.url }}">
-
-</div>
-
-{% endfor %}
-
-</div>
-
-
-
-</div>
-
-{% endfor %}
-
-
-
-<div class="ep-actions">
-
-<button class="ep-btn ep-save">
-
-Save Changes
-
-</button>
-
-
-
-<a
-href="{% url 'products:reseller_product_list' store.id %}"
-class="ep-btn ep-cancel">
-
-Cancel
-
-</a>
-
-</div>
-
-
-
-</form>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-
 
 <script>
-
+// Get form elements
 const marginInput = document.getElementById('id_margin_rupees');
-const sourcePrice = {{ product.source_price|default:0 }};
+const sourcePrice = parseFloat("{{ product.source_product.get_effective_price|default:'0'|floatformat:2 }}");
 
+// Update price function
 function updatePrice() {
     if (!marginInput) return;
-
+    
     let margin = parseFloat(marginInput.value) || 0;
-    let final = sourcePrice + margin;
-
-    document.getElementById('previewPrice').innerText = final.toFixed(2);
-
+    let finalPrice = sourcePrice + margin;
+    
+    // Update main price preview
+    const previewSpan = document.getElementById('previewPrice');
+    if (previewSpan) {
+        previewSpan.innerText = finalPrice.toFixed(2);
+    }
+    
+    // Update variant prices
     document.querySelectorAll('.variant-price').forEach(el => {
-        let base = parseFloat(el.dataset.price);
-        el.innerText = (base + margin).toFixed(2);
+        let basePrice = parseFloat(el.dataset.price) || 0;
+        let variantFinal = basePrice + margin;
+        el.innerText = variantFinal.toFixed(2);
     });
 }
 
+// Live price update
 if (marginInput) {
     marginInput.addEventListener('input', updatePrice);
     updatePrice();
 }
 
+// Image formset management
+let imageFormCount = {{ image_formset.total_form_count }};
+const maxImageForms = 10;
+
+function addImageForm() {
+    if (imageFormCount >= maxImageForms) {
+        alert('Maximum {{ maxImageForms }} images allowed');
+        return;
+    }
+    
+    const container = document.getElementById('image-formset-container');
+    const newFormHtml = `
+        <div class="image-formset" id="image-form-${imageFormCount}">
+            <div class="form-group">
+                <label>New Image:</label>
+                <input type="file" name="images-${imageFormCount}-image" class="form-control" accept="image/*">
+                <input type="hidden" name="images-${imageFormCount}-id" id="id_images-${imageFormCount}-id">
+                <div class="help-text">Alt text: <input type="text" name="images-${imageFormCount}-alt_text" class="form-control" placeholder="Image description"></div>
+                <input type="hidden" name="images-${imageFormCount}-order" value="${imageFormCount}">
+                <div class="delete-checkbox">
+                    <input type="checkbox" name="images-${imageFormCount}-DELETE" id="id_images-${imageFormCount}-DELETE">
+                    <label class="text-danger">Delete this image</label>
+                </div>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', newFormHtml);
+    
+    // Update total forms count
+    document.getElementById('id_images-TOTAL_FORMS').value = ++imageFormCount;
+}
+
+// Mark image for deletion
+function markForDelete(element, deleteCheckboxId) {
+    if (confirm('Mark this image for deletion? It will be removed when you save.')) {
+        const deleteCheckbox = document.getElementById(deleteCheckboxId);
+        if (deleteCheckbox) {
+            deleteCheckbox.checked = true;
+            element.closest('.ep-thumb').style.opacity = '0.5';
+            element.closest('.ep-thumb').style.textDecoration = 'line-through';
+        }
+    }
+}
+
+// Form submission validation
+document.getElementById('editForm')?.addEventListener('submit', function(e) {
+    const margin = parseFloat(marginInput?.value || 0);
+    
+    if (isNaN(margin) || margin < 0) {
+        e.preventDefault();
+        alert('Please enter a valid margin amount (0 or greater).');
+        return false;
+    }
+    
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    }
+    
+    return true;
+});
 </script>
 
 {% endblock %}

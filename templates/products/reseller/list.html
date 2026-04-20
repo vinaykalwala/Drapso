@@ -728,6 +728,46 @@
             margin-top: 70px;
         }
      }
+     /* disabled button with strike-through */
+
+.btn-products[disabled],
+.btn-products.disabled-btn{
+
+    background:#e5e7eb !important;
+    color:#9ca3af !important;
+
+    cursor:not-allowed;
+    pointer-events:none;
+
+    opacity:0.7;
+
+    text-decoration: line-through;   /* cross line */
+}
+
+/* icon also faded */
+.btn-products[disabled] i{
+    color:#9ca3af;
+}
+.product-archived-badge{
+    position:absolute;
+    top:12px;
+    left:80px;
+
+    background:#ef4444;
+    color:white;
+
+    padding:4px 10px;
+    border-radius:20px;
+
+    font-size:0.7rem;
+    font-weight:600;
+
+    z-index:10;
+
+    display:flex;
+    align-items:center;
+    gap:4px;
+}
 </style>
 <div class="content">
 <div class="products-container">
@@ -738,31 +778,112 @@
             <h1><i class="fas fa-box"></i> Products - {{ store.store_name }}</h1>
             <div class="products-subtitle">Manage all your products from one place</div>
         </div>
-        <div class="products-actions">
-            <a href="{% url 'products:reseller_import_products' store.id %}" class="btn-products btn-products-primary">
-                <i class="fas fa-download"></i> Import
-            </a>
-            <a href="{% url 'products:reseller_product_full_create' store.id %}" class="btn-products btn-products-success">
-                <i class="fas fa-plus"></i> Add Product
-            </a>
-        </div>
+      <div class="products-actions">
+
+{% if can_add_more %}
+
+    <a href="{% url 'products:reseller_import_products' store.id %}"
+       class="btn-products btn-products-primary">
+        <i class="fas fa-download"></i> Import
+    </a>
+
+    <a href="{% url 'products:reseller_product_full_create' store.id %}"
+       class="btn-products btn-products-success">
+        <i class="fas fa-plus"></i> Add Product
+    </a>
+
+{% else %}
+
+    <button class="btn-products btn-products-primary" disabled
+        title="Limit reached">
+        <i class="fas fa-download"></i> Import
+    </button>
+
+    <button class="btn-products btn-products-success" disabled
+        title="Limit reached">
+        <i class="fas fa-plus"></i> Add Product
+    </button>
+
+{% endif %}
+
+</div>
+
     </div>
+    {% if messages %}
+<div id="alertBox" style="
+    margin-bottom:15px;
+    padding:12px 40px 12px 12px;
+    border-radius:8px;
+    background:#e2e5fe;
+    color:#1d21ff;
+    font-weight:600;
+    position:relative;
+">
+
+    {% for message in messages %}
+        {{ message }}
+    {% endfor %}
+
+    <!-- ❌ Close Button -->
+    <span onclick="document.getElementById('alertBox').style.display='none'"
+        style="
+            position:absolute;
+            right:12px;
+            top:8px;
+            cursor:pointer;
+            font-size:18px;
+            font-weight:bold;">
+        ×
+    </span>
+
+</div>
+{% endif %}
    <div class="top-controls">
 
     <!-- Usage Card -->
-    <div class="products-usage-card">
-        <div class="products-usage-info">
-            <div class="products-usage-stats">
-                <span class="products-usage-count">{{ current_count }}</span>
-                <span class="products-usage-total">/ {{ max_products }}</span>
-                            <div class="products-usage-text">{{ remaining_slots }} slots remaining</div>
+   <div class="products-usage-card">
+    <div class="products-usage-info">
 
-            </div>
-            <div class="products-usage-bar">
-                <div class="products-usage-fill" style="width: {% widthratio current_count max_products 100 %}%"></div>
+        <div class="products-usage-stats">
+
+            {% if max_products == 1 %}
+
+                <span class="products-usage-count">
+                    {% if current_count > 0 %}1{% else %}0{% endif %}
+                </span>
+
+                <span class="products-usage-total">/ 1</span>
+
+                <div class="products-usage-text">
+                    {% if current_count > 0 %}
+                        0 slots remaining
+                    {% else %}
+                        1 slot remaining
+                    {% endif %}
+                </div>
+
+            {% else %}
+
+                <span class="products-usage-count">{{ current_count }}</span>
+
+                <span class="products-usage-total">/ {{ max_products }}</span>
+
+                <div class="products-usage-text">
+                    {{ remaining_slots }} slots remaining
+                </div>
+
+            {% endif %}
+
+        </div>
+
+        <div class="products-usage-bar">
+            <div class="products-usage-fill"
+                 style="width: {% widthratio current_count max_products 100 %}%">
             </div>
         </div>
+
     </div>
+</div>
 
     <!-- Filter -->
     <div class="products-filter-section">
@@ -798,6 +919,11 @@
             <i class="fas fa-star"></i> OWN
         </div>
     {% endif %}
+    {% if not product.is_active %}
+<div class="product-archived-badge">
+    <i class="fas fa-box"></i> ARCHIVED
+</div>
+{% endif %}
             <!-- GALLERY SECTION -->
             <div class="product-gallery-section">
                 <!-- Main Image Container -->
