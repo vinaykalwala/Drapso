@@ -1,7 +1,7 @@
 # products/models.py
 from django.db import models
 from django.conf import settings
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
 from django.utils import timezone
 import random
@@ -115,13 +115,28 @@ class WholesellerProduct(models.Model):
     previous_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     price_updated_at = models.DateTimeField(null=True, blank=True)
     
+    # DISCOUNT FIELDS
+    discount_percentage = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Discount percentage (0-100)"
+    )
+    discounted_price = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Auto-calculated discounted price"
+    )
+    
     stock = models.IntegerField(default=0, validators=[MinValueValidator(0)], help_text="Independent stock for product")
     threshold_limit = models.IntegerField(default=5, validators=[MinValueValidator(0)], help_text="Alert when stock below this")
     
     sku = models.CharField(
         max_length=100, 
         blank=True, 
-        
         default=generate_default_wholeseller_sku,
         help_text="Stock Keeping Unit - Auto-generated if left blank"
     )
@@ -144,7 +159,6 @@ class WholesellerProduct(models.Model):
 
     is_replaceable = models.BooleanField(default=False)
     replacement_window_days = models.PositiveIntegerField(default=3)
-
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -160,26 +174,34 @@ class WholesellerProduct(models.Model):
     
     def generate_sku(self):
         """Generate unique SKU for wholeseller product"""
-        # Get the wholeseller's ID
         wholeseller_prefix = str(self.wholeseller.id).zfill(3)
-        
-        # Get category code (first 3 letters of category name, uppercase)
         category_code = self.category.name[:3].upper() if self.category else 'GEN'
-        
-        # Generate random suffix
         random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        
-        # Combine to create SKU: WP-[wholeseller_id]-[category]-[random]
         sku = f"WP-{wholeseller_prefix}-{category_code}-{random_suffix}"
         
-        # Ensure uniqueness
         while WholesellerProduct.objects.filter(sku=sku).exists():
             random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
             sku = f"WP-{wholeseller_prefix}-{category_code}-{random_suffix}"
         
         return sku
     
+    def calculate_discounted_price(self):
+        """Calculate discounted price based on discount percentage"""
+        if self.discount_percentage > 0:
+            discount_amount = (self.price * self.discount_percentage) / 100
+            return self.price - discount_amount
+        return self.price
+    
+    def get_effective_price(self):
+        """Get the effective price after discount"""
+        if self.discounted_price:
+            return self.discounted_price
+        return self.calculate_discounted_price()
+    
     def save(self, *args, **kwargs):
+        # Calculate discounted price
+        self.discounted_price = self.calculate_discounted_price()
+        
         # Generate proper SKU if it's a temporary one or empty
         if not self.sku or (self.sku and 'TEMP' in self.sku):
             self.sku = self.generate_sku()
@@ -194,10 +216,13 @@ class WholesellerProduct(models.Model):
             if old_instance:
                 self._stock_changed = old_instance.stock != self.stock
                 self._old_stock = old_instance.stock
+                self._discount_changed = old_instance.discount_percentage != self.discount_percentage
             else:
                 self._stock_changed = False
+                self._discount_changed = False
         else:
             self._stock_changed = False
+            self._discount_changed = False
         
         # Handle price change tracking
         if self.pk:
@@ -216,12 +241,12 @@ class WholesellerProduct(models.Model):
         
         super().save(*args, **kwargs)
         
-        # AFTER save - sync stock to all resellers if stock changed
-        if getattr(self, '_stock_changed', False):
-            self._sync_stock_to_resellers()
+        # AFTER save - sync to all resellers if stock or discount changed
+        if getattr(self, '_stock_changed', False) or getattr(self, '_discount_changed', False):
+            self._sync_to_resellers()
     
-    def _sync_stock_to_resellers(self):
-        """Automatically sync stock to all reseller imports"""
+    def _sync_to_resellers(self):
+        """Automatically sync stock and discount to all reseller imports"""
         affected_reseller_products = ResellerProduct.objects.filter(
             source_product=self,
             source_type='imported',
@@ -229,23 +254,59 @@ class WholesellerProduct(models.Model):
         ).select_related('reseller', 'store')
         
         # Bulk update for better performance
-        updated_count = affected_reseller_products.update(
-            stock=self.stock,
-            updated_at=timezone.now()
-        )
+        for reseller_product in affected_reseller_products:
+            update_fields = ['updated_at']
+            
+            if getattr(self, '_stock_changed', False):
+                reseller_product.stock = self.stock
+                update_fields.append('stock')
+            
+            if getattr(self, '_discount_changed', False):
+                reseller_product.discount_percentage = self.discount_percentage
+                reseller_product.discounted_price = self.discounted_price
+                
+                # Recalculate discounted price for reseller
+                if self.discount_percentage > 0:
+                    discount_amount = (reseller_product.selling_price * self.discount_percentage) / 100
+                    reseller_product.discounted_price = reseller_product.selling_price - discount_amount
+                
+                update_fields.extend(['discount_percentage', 'discounted_price'])
+            
+            reseller_product.save(update_fields=update_fields)
         
         # Also sync variants
         for reseller_product in affected_reseller_products:
             for variant in reseller_product.variants.filter(source_variant__isnull=False):
                 if variant.source_variant:
-                    variant.stock = variant.source_variant.stock
-                    variant.save(update_fields=['stock', 'updated_at'])
+                    variant_update_fields = ['updated_at']
+                    
+                    if getattr(self, '_stock_changed', False):
+                        variant.stock = variant.source_variant.stock
+                        variant_update_fields.append('stock')
+                    
+                    if getattr(self, '_discount_changed', False):
+                        variant.discount_percentage = variant.source_variant.discount_percentage
+                        
+                        # Recalculate discounted price
+                        if variant.discount_percentage > 0:
+                            discount_amount = (variant.selling_price * variant.discount_percentage) / 100
+                            variant.discounted_price = variant.selling_price - discount_amount
+                        else:
+                            variant.discounted_price = variant.selling_price
+                        
+                        variant_update_fields.extend(['discount_percentage', 'discounted_price'])
+                    
+                    variant.save(update_fields=variant_update_fields)
         
-        # Create notifications for critical stock changes
-        if self.stock == 0 and updated_count > 0:
-            self._create_stock_out_notifications(affected_reseller_products)
-        elif self.stock <= self.threshold_limit and getattr(self, '_old_stock', 0) > self.threshold_limit:
-            self._create_low_stock_notifications(affected_reseller_products)
+        # Create notifications for critical changes
+        if getattr(self, '_stock_changed', False):
+            if self.stock == 0 and affected_reseller_products.exists():
+                self._create_stock_out_notifications(affected_reseller_products)
+            elif self.stock <= self.threshold_limit and getattr(self, '_old_stock', 0) > self.threshold_limit:
+                self._create_low_stock_notifications(affected_reseller_products)
+        
+        if getattr(self, '_discount_changed', False) and self.discount_percentage > 0:
+            self._create_discount_notifications(affected_reseller_products)
     
     def _create_stock_out_notifications(self, reseller_products):
         """Create notifications for stock out"""
@@ -254,7 +315,7 @@ class WholesellerProduct(models.Model):
                 reseller=rp.reseller,
                 store=rp.store,
                 reseller_product=rp,
-                notification_type='product_price_decrease',
+                notification_type='stock_out',
                 old_price=self.previous_price or self.price,
                 new_price=self.price,
                 old_selling_price=rp.selling_price,
@@ -269,12 +330,27 @@ class WholesellerProduct(models.Model):
                 reseller=rp.reseller,
                 store=rp.store,
                 reseller_product=rp,
-                notification_type='product_price_decrease',
+                notification_type='low_stock',
                 old_price=self.previous_price or self.price,
                 new_price=self.price,
                 old_selling_price=rp.selling_price,
                 new_selling_price=rp.selling_price,
                 message=f"⚠️ '{self.name}' stock is low ({self.stock} units remaining). Consider updating your inventory."
+            )
+    
+    def _create_discount_notifications(self, reseller_products):
+        """Create notifications for new discounts"""
+        for rp in reseller_products:
+            PriceChangeNotification.objects.create(
+                reseller=rp.reseller,
+                store=rp.store,
+                reseller_product=rp,
+                notification_type='product_price_decrease',
+                old_price=self.previous_price or self.price,
+                new_price=self.price,
+                old_selling_price=rp.selling_price,
+                new_selling_price=rp.selling_price,
+                message=f"🎉 '{self.name}' now has {self.discount_percentage}% discount! Effective price: ₹{rp.discounted_price}"
             )
     
     def has_price_changed(self):
@@ -297,7 +373,8 @@ class WholesellerProduct(models.Model):
     def __str__(self):
         brand_str = f"{self.brand} " if self.brand else ""
         stock_status = " [Low Stock]" if self.is_low_stock() else ""
-        return f"{brand_str}{self.name} - ₹{self.price}{stock_status}"
+        discount_status = f" [{self.discount_percentage}% OFF]" if self.discount_percentage > 0 else ""
+        return f"{brand_str}{self.name} - ₹{self.price}{discount_status}{stock_status}"
 
 
 class WholesellerProductImage(models.Model):
@@ -321,13 +398,26 @@ class WholesellerProductVariant(models.Model):
     previous_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     price_updated_at = models.DateTimeField(null=True, blank=True)
     
+    # DISCOUNT FIELDS
+    discount_percentage = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
+    discounted_price = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True
+    )
+    
     stock = models.IntegerField(default=0, validators=[MinValueValidator(0)], help_text="Independent stock for variant")
     threshold_limit = models.IntegerField(default=5, validators=[MinValueValidator(0)])
     
     sku = models.CharField(
         max_length=100, 
         blank=True, 
-       
         default=generate_default_wholeseller_variant_sku
     )
     hsn_code = models.CharField(max_length=20, default='0000', help_text="HSN Code for GST classification")
@@ -340,7 +430,6 @@ class WholesellerProductVariant(models.Model):
     breadth = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     height = models.DecimalField(max_digits=6, decimal_places=2, default=0)
 
-    # ================= RETURNS =================
     is_returnable = models.BooleanField(default=False)
     return_window_days = models.PositiveIntegerField(default=3)
 
@@ -360,10 +449,8 @@ class WholesellerProductVariant(models.Model):
     
     def generate_variant_sku(self):
         """Generate unique SKU for wholeseller variant"""
-        # Use parent product SKU as base
         parent_sku = self.product.sku if self.product.sku else f"WP-{self.product.id}"
         
-        # Create variant identifier
         variant_parts = []
         if self.size:
             variant_parts.append(self.size.upper())
@@ -371,31 +458,45 @@ class WholesellerProductVariant(models.Model):
             variant_parts.append(self.color.upper())
         
         variant_suffix = '-'.join(variant_parts) if variant_parts else 'VAR'
-        
-        # Generate random suffix
         random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
-        
-        # Combine to create SKU
         sku = f"{parent_sku}-{variant_suffix}-{random_suffix}"
         
-        # Ensure uniqueness
         while WholesellerProductVariant.objects.filter(sku=sku).exists():
             random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
             sku = f"{parent_sku}-{variant_suffix}-{random_suffix}"
         
         return sku
     
+    def calculate_discounted_price(self):
+        """Calculate discounted price based on discount percentage"""
+        if self.discount_percentage > 0:
+            discount_amount = (self.price * self.discount_percentage) / 100
+            return self.price - discount_amount
+        return self.price
+    
+    def get_effective_price(self):
+        """Get the effective price after discount"""
+        if self.discounted_price:
+            return self.discounted_price
+        return self.calculate_discounted_price()
+    
     def save(self, *args, **kwargs):
-        # Track stock changes
+        # Calculate discounted price
+        self.discounted_price = self.calculate_discounted_price()
+        
+        # Track changes
         if self.pk:
             old_instance = WholesellerProductVariant.objects.filter(pk=self.pk).first()
             if old_instance:
                 self._stock_changed = old_instance.stock != self.stock
                 self._old_stock = old_instance.stock
+                self._discount_changed = old_instance.discount_percentage != self.discount_percentage
             else:
                 self._stock_changed = False
+                self._discount_changed = False
         else:
             self._stock_changed = False
+            self._discount_changed = False
         
         # Handle price change tracking
         if self.pk:
@@ -425,31 +526,41 @@ class WholesellerProductVariant(models.Model):
         
         super().save(*args, **kwargs)
         
-        # AFTER save - sync variant stock to all resellers if stock changed
-        if getattr(self, '_stock_changed', False):
-            self._sync_stock_to_resellers()
+        # AFTER save - sync variant to all resellers if stock or discount changed
+        if getattr(self, '_stock_changed', False) or getattr(self, '_discount_changed', False):
+            self._sync_to_resellers()
     
-    def _sync_stock_to_resellers(self):
-        """Automatically sync variant stock to all reseller imports"""
+    def _sync_to_resellers(self):
+        """Automatically sync variant stock and discount to all reseller imports"""
         affected_reseller_variants = ResellerProductVariant.objects.filter(
             source_variant=self,
             product__is_active=True,
             product__source_type='imported'
         ).select_related('product')
         
-        # Bulk update variant stocks
-        updated_count = affected_reseller_variants.update(
-            stock=self.stock,
-            updated_at=timezone.now()
-        )
-        
-        # Also update parent product stocks (sum of their variants for own products only)
         for reseller_variant in affected_reseller_variants:
-            if reseller_variant.product.source_type == 'own':
-                reseller_variant.product._update_stock_from_variants()
+            update_fields = ['updated_at']
+            
+            if getattr(self, '_stock_changed', False):
+                reseller_variant.stock = self.stock
+                update_fields.append('stock')
+            
+            if getattr(self, '_discount_changed', False):
+                reseller_variant.discount_percentage = self.discount_percentage
+                
+                # Recalculate discounted price
+                if self.discount_percentage > 0:
+                    discount_amount = (reseller_variant.selling_price * self.discount_percentage) / 100
+                    reseller_variant.discounted_price = reseller_variant.selling_price - discount_amount
+                else:
+                    reseller_variant.discounted_price = reseller_variant.selling_price
+                
+                update_fields.extend(['discount_percentage', 'discounted_price'])
+            
+            reseller_variant.save(update_fields=update_fields)
         
         # Create notifications for critical stock changes
-        if self.stock == 0 and updated_count > 0:
+        if getattr(self, '_stock_changed', False) and self.stock == 0 and affected_reseller_variants.exists():
             self._create_variant_stock_out_notifications(affected_reseller_variants)
     
     def _create_variant_stock_out_notifications(self, reseller_variants):
@@ -460,7 +571,7 @@ class WholesellerProductVariant(models.Model):
                 store=rv.product.store,
                 reseller_product=rv.product,
                 reseller_variant=rv,
-                notification_type='variant_price_decrease',
+                notification_type='stock_out',
                 old_price=self.previous_price or self.price,
                 new_price=self.price,
                 old_selling_price=rv.selling_price,
@@ -472,11 +583,12 @@ class WholesellerProductVariant(models.Model):
         return self.stock <= self.threshold_limit
     
     def get_display_price(self):
-        return self.price
+        return self.get_effective_price()
     
     def __str__(self):
         stock_status = " [Low Stock]" if self.is_low_stock() else ""
-        return f"{self.product.name} - {self.variant_name} (₹{self.price}){stock_status}"
+        discount_status = f" [{self.discount_percentage}% OFF]" if self.discount_percentage > 0 else ""
+        return f"{self.product.name} - {self.variant_name} (₹{self.price}){discount_status}{stock_status}"
 
 
 class WholesellerVariantImage(models.Model):
@@ -551,6 +663,20 @@ class ResellerProduct(models.Model):
     margin_rupees = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     
+    # DISCOUNT FIELDS
+    discount_percentage = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
+    discounted_price = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True
+    )
+    
     last_known_source_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     price_status = models.CharField(max_length=30, choices=PRICE_STATUS_CHOICES, default='up_to_date')
     price_change_notified_at = models.DateTimeField(null=True, blank=True)
@@ -564,7 +690,6 @@ class ResellerProduct(models.Model):
     sku = models.CharField(
         max_length=100, 
         blank=True, 
-        
         default=generate_default_reseller_sku,
         help_text="Stock Keeping Unit - Auto-generated if left blank"
     )
@@ -583,7 +708,6 @@ class ResellerProduct(models.Model):
 
     is_shippable = models.BooleanField(default=True)
 
-    # ================= RETURNS =================
     is_returnable = models.BooleanField(default=False)
     return_window_days = models.PositiveIntegerField(default=3)
 
@@ -607,25 +731,30 @@ class ResellerProduct(models.Model):
     
     def generate_reseller_sku(self):
         """Generate unique SKU for reseller own product"""
-        # Get reseller ID or store prefix
         reseller_prefix = str(self.reseller.id).zfill(3)
         store_prefix = str(self.store.id).zfill(2)
-        
-        # Get category code
         category_code = self.category.name[:3].upper() if self.category else 'GEN'
-        
-        # Generate random suffix
         random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        
-        # Combine to create SKU: RP-[reseller_id]-[store_id]-[category]-[random]
         sku = f"RP-{reseller_prefix}-{store_prefix}-{category_code}-{random_suffix}"
         
-        # Ensure uniqueness
         while ResellerProduct.objects.filter(sku=sku).exists():
             random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
             sku = f"RP-{reseller_prefix}-{store_prefix}-{category_code}-{random_suffix}"
         
         return sku
+    
+    def calculate_discounted_price(self):
+        """Calculate discounted price based on discount percentage"""
+        if self.discount_percentage > 0:
+            discount_amount = (self.selling_price * self.discount_percentage) / 100
+            return self.selling_price - discount_amount
+        return self.selling_price
+    
+    def get_effective_price(self):
+        """Get the effective price after discount"""
+        if self.discounted_price:
+            return self.discounted_price
+        return self.calculate_discounted_price()
     
     def _update_stock_from_variants(self):
         """Update product stock based on its variants (for own products only)"""
@@ -636,7 +765,6 @@ class ResellerProduct(models.Model):
                 self.save(update_fields=['stock', 'updated_at'])
     
     def save(self, *args, **kwargs):
-
         # ================= SLUG GENERATION =================
         if not self.slug:
             base_slug = slugify(self.name)
@@ -648,31 +776,32 @@ class ResellerProduct(models.Model):
 
         # ================= IMPORTED PRODUCT SYNC =================
         if self.source_type == 'imported' and self.source_product:
-
             is_new = self.pk is None
 
             # STOCK SYNC
             self.stock = self.source_product.stock
             
-            # SYNC SKU AND HSN FROM SOURCE - ALWAYS use source SKU for imported products
+            # SYNC SKU AND HSN FROM SOURCE
             if self.source_product.sku:
-                self.sku = self.source_product.sku  # Use wholeseller's SKU
+                self.sku = self.source_product.sku
             if self.source_product.hsn_code:
                 self.hsn_code = self.source_product.hsn_code
+            
+            # SYNC DISCOUNT FIELDS
+            self.discount_percentage = self.source_product.discount_percentage
+            self.discounted_price = self.source_product.discounted_price
 
             # PRICE CHANGE TRACKING WITH TOLERANCE
             if not is_new:
                 from decimal import Decimal
                 
-                # Convert to Decimal for safe comparison with tolerance
-                old_source_price = Decimal(str(self.source_price))
-                new_source_price = Decimal(str(self.source_product.price))
+                old_effective_price = self.get_effective_price()
+                new_effective_price = self.source_product.get_effective_price() + self.margin_rupees
                 
-                # Only trigger price change if difference is more than 1 paisa (0.01)
-                if abs(old_source_price - new_source_price) > Decimal('0.01'):
+                if abs(old_effective_price - new_effective_price) > Decimal('0.01'):
                     self.last_known_source_price = self.source_price
                     
-                    if self.source_product.price > self.source_price:
+                    if new_effective_price > old_effective_price:
                         self.price_status = 'price_increased'
                     else:
                         self.price_status = 'price_decreased'
@@ -682,8 +811,13 @@ class ResellerProduct(models.Model):
             # PRICE SYNC
             self.source_price = self.source_product.price
             self.selling_price = self.source_price + self.margin_rupees
+            
+            # RECALCULATE DISCOUNTED PRICE WITH RESELLER'S MARGIN
+            if self.discount_percentage > 0:
+                discount_amount = (self.selling_price * self.discount_percentage) / 100
+                self.discounted_price = self.selling_price - discount_amount
 
-            # ================= ATTRIBUTE SYNC =================
+            # ATTRIBUTE SYNC
             self.brand = self.source_product.brand
             self.model_name = self.source_product.model_name
             self.size = self.source_product.size
@@ -694,14 +828,14 @@ class ResellerProduct(models.Model):
             self.specification = self.source_product.specification
             self.threshold_limit = self.source_product.threshold_limit
 
-            # ================= SHIPPING SYNC =================
+            # SHIPPING SYNC
             self.weight = self.source_product.weight
             self.length = self.source_product.length
             self.breadth = self.source_product.breadth
             self.height = self.source_product.height
             self.is_shippable = self.source_product.is_shippable
 
-            # ================= RETURN POLICY SYNC =================
+            # RETURN POLICY SYNC
             self.is_returnable = self.source_product.is_returnable
             self.return_window_days = self.source_product.return_window_days
             self.is_replaceable = self.source_product.is_replaceable
@@ -717,17 +851,20 @@ class ResellerProduct(models.Model):
             # Own products should NOT have source linkage
             self.source_price = 0
             
-            # Generate proper SKU only for own products (not imported)
+            # Generate proper SKU only for own products
             if not self.sku or (self.sku and 'TEMP' in self.sku):
                 self.sku = self.generate_reseller_sku()
             
             # Set default HSN code if not set
             if not self.hsn_code or self.hsn_code == '0000':
                 self.hsn_code = '0000'
-
+            
             # Optional: enforce selling_price must exist
             if not self.selling_price:
                 raise ValueError("Selling price is required for own products")
+            
+            # Calculate discounted price for own products
+            self.discounted_price = self.calculate_discounted_price()
 
         # ================= FINAL SAVE =================
         super().save(*args, **kwargs)
@@ -769,13 +906,14 @@ class ResellerProduct(models.Model):
         return current_count < max_allowed
     
     def get_display_price(self):
-        return self.selling_price
+        return self.get_effective_price()
         
     def __str__(self):
         brand_str = f"{self.brand} " if self.brand else ""
         status_mark = "⚠️ " if self.has_price_change_pending() else ""
         stock_status = " [Low Stock]" if self.is_low_stock() else ""
-        return f"{status_mark}{brand_str}{self.name} - ₹{self.selling_price}"
+        discount_status = f" [{self.discount_percentage}% OFF]" if self.discount_percentage > 0 else ""
+        return f"{status_mark}{brand_str}{self.name} - ₹{self.get_effective_price()}{discount_status}{stock_status}"
 
 
 class ResellerProductImage(models.Model):
@@ -800,13 +938,26 @@ class ResellerProductVariant(models.Model):
     margin_rupees = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     
+    # DISCOUNT FIELDS
+    discount_percentage = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
+    discounted_price = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True
+    )
+    
     stock = models.IntegerField(default=0, validators=[MinValueValidator(0)], help_text="Auto-synced for imported variants")
     threshold_limit = models.IntegerField(default=5, validators=[MinValueValidator(0)])
     
     sku = models.CharField(
         max_length=100, 
         blank=True, 
-        
         default=generate_default_reseller_variant_sku
     )
     hsn_code = models.CharField(max_length=20, default='0000', help_text="HSN Code for GST classification")
@@ -819,7 +970,6 @@ class ResellerProductVariant(models.Model):
     breadth = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     height = models.DecimalField(max_digits=6, decimal_places=2, default=0)
 
-    # ================= RETURNS =================
     is_returnable = models.BooleanField(default=False)
     return_window_days = models.PositiveIntegerField(default=3)
 
@@ -838,10 +988,8 @@ class ResellerProductVariant(models.Model):
     
     def generate_reseller_variant_sku(self):
         """Generate unique SKU for reseller variant"""
-        # Use parent product SKU as base
         parent_sku = self.product.sku if self.product.sku else f"RP-{self.product.id}"
         
-        # Create variant identifier
         variant_parts = []
         if self.size:
             variant_parts.append(self.size.upper())
@@ -849,22 +997,29 @@ class ResellerProductVariant(models.Model):
             variant_parts.append(self.color.upper())
         
         variant_suffix = '-'.join(variant_parts) if variant_parts else 'VAR'
-        
-        # Generate random suffix
         random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
-        
-        # Combine to create SKU
         sku = f"{parent_sku}-{variant_suffix}-{random_suffix}"
         
-        # Ensure uniqueness
         while ResellerProductVariant.objects.filter(sku=sku).exists():
             random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
             sku = f"{parent_sku}-{variant_suffix}-{random_suffix}"
         
         return sku
     
+    def calculate_discounted_price(self):
+        """Calculate discounted price based on discount percentage"""
+        if self.discount_percentage > 0:
+            discount_amount = (self.selling_price * self.discount_percentage) / 100
+            return self.selling_price - discount_amount
+        return self.selling_price
+    
+    def get_effective_price(self):
+        """Get the effective price after discount"""
+        if self.discounted_price:
+            return self.discounted_price
+        return self.calculate_discounted_price()
+    
     def save(self, *args, **kwargs):
-
         # ================= VARIANT NAME =================
         if not self.variant_name:
             parts = []
@@ -876,29 +1031,38 @@ class ResellerProductVariant(models.Model):
 
         # ================= IMPORTED VARIANT =================
         if self.source_variant and self.product.source_type == 'imported':
-
             is_new = self.pk is None
 
             # STOCK SYNC
             self.stock = self.source_variant.stock
             
-            # SYNC SKU AND HSN FROM SOURCE VARIANT - ALWAYS use source variant SKU
+            # SYNC SKU AND HSN FROM SOURCE VARIANT
             if self.source_variant.sku:
-                self.sku = self.source_variant.sku  # Use wholeseller variant's SKU
+                self.sku = self.source_variant.sku
             if self.source_variant.hsn_code:
                 self.hsn_code = self.source_variant.hsn_code
+
+            # SYNC DISCOUNT FIELDS
+            self.discount_percentage = self.source_variant.discount_percentage
 
             # PRICE SYNC
             self.source_price = self.source_variant.price
             self.selling_price = self.source_price + self.margin_rupees
 
-            # ================= SHIPPING SYNC =================
+            # RECALCULATE DISCOUNTED PRICE
+            if self.discount_percentage > 0:
+                discount_amount = (self.selling_price * self.discount_percentage) / 100
+                self.discounted_price = self.selling_price - discount_amount
+            else:
+                self.discounted_price = self.selling_price
+
+            # SHIPPING SYNC
             self.weight = self.source_variant.weight
             self.length = self.source_variant.length
             self.breadth = self.source_variant.breadth
             self.height = self.source_variant.height
 
-            # ================= RETURN SYNC =================
+            # RETURN SYNC
             self.is_returnable = self.source_variant.is_returnable
             self.return_window_days = self.source_variant.return_window_days
             self.is_replaceable = self.source_variant.is_replaceable
@@ -910,7 +1074,7 @@ class ResellerProductVariant(models.Model):
             if not self.selling_price:
                 raise ValueError("Selling price is required for own variants")
             
-            # Generate proper SKU only for own variants (not imported)
+            # Generate proper SKU only for own variants
             if not self.sku or (self.sku and 'TEMP' in self.sku):
                 self.sku = self.generate_reseller_variant_sku()
             
@@ -920,12 +1084,14 @@ class ResellerProductVariant(models.Model):
                     self.hsn_code = self.product.hsn_code
                 else:
                     self.hsn_code = '0000'
+            
+            # Calculate discounted price for own variant
+            self.discounted_price = self.calculate_discounted_price()
 
         # ================= FINAL SAVE =================
         super().save(*args, **kwargs)
 
         # ================= POST SAVE STOCK UPDATE =================
-        # Only for own products
         if self.product.source_type == 'own':
             self.product._update_stock_from_variants()
         
@@ -934,7 +1100,8 @@ class ResellerProductVariant(models.Model):
     
     def __str__(self):
         stock_status = " [Low Stock]" if self.is_low_stock() else ""
-        return f"{self.product.name} - {self.variant_name} (₹{self.selling_price})"
+        discount_status = f" [{self.discount_percentage}% OFF]" if self.discount_percentage > 0 else ""
+        return f"{self.product.name} - {self.variant_name} (₹{self.get_effective_price()}){discount_status}{stock_status}"
 
 
 class ResellerVariantImage(models.Model):

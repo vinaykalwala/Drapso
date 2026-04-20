@@ -1,3 +1,4 @@
+# products/forms.py
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
@@ -52,7 +53,7 @@ class WholesellerProductForm(forms.ModelForm):
             'is_returnable', 'return_window_days',
             'is_replaceable', 'replacement_window_days',
 
-            'price', 'stock', 'threshold_limit',
+            'price', 'discount_percentage', 'stock', 'threshold_limit',
             'main_image', 'is_active', 'is_featured'
         ]
 
@@ -70,10 +71,10 @@ class WholesellerProductForm(forms.ModelForm):
             'gender': forms.Select(attrs={'class': 'form-control'}),
 
             # SHIPPING UI
-            'weight': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
-            'length': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
-            'breadth': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
-            'height': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'length': forms.NumberInput(attrs={'class': 'form-control'}),
+            'breadth': forms.NumberInput(attrs={'class': 'form-control'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control'}),
             'is_shippable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
 
             # RETURNS UI
@@ -83,6 +84,13 @@ class WholesellerProductForm(forms.ModelForm):
             'replacement_window_days': forms.NumberInput(attrs={'class': 'form-control'}),
 
             'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'discount_percentage': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'step': '0.01', 
+                'min': '0', 
+                'max': '100',
+                'id': 'discount_percentage'
+            }),
             'stock': forms.NumberInput(attrs={'class': 'form-control'}),
             'threshold_limit': forms.NumberInput(attrs={'class': 'form-control'}),
             'main_image': forms.FileInput(attrs={'class': 'form-control'}),
@@ -95,7 +103,7 @@ class WholesellerProductForm(forms.ModelForm):
 
         self.fields['category'].queryset = Category.objects.filter(is_active=True)
 
-        # 🔥 HANDLE POST DATA (MOST IMPORTANT FIX)
+        # HANDLE POST DATA
         if 'category' in self.data:
             try:
                 category_id = int(self.data.get('category'))
@@ -106,7 +114,7 @@ class WholesellerProductForm(forms.ModelForm):
             except (ValueError, TypeError):
                 self.fields['subcategory'].queryset = Subcategory.objects.none()
 
-        # 🔥 HANDLE EDIT CASE
+        # HANDLE EDIT CASE
         elif self.instance.pk and self.instance.category:
             self.fields['subcategory'].queryset = Subcategory.objects.filter(
                 category=self.instance.category,
@@ -116,36 +124,12 @@ class WholesellerProductForm(forms.ModelForm):
         else:
             self.fields['subcategory'].queryset = Subcategory.objects.none()
 
-    def clean_weight(self):
-        weight = self.cleaned_data.get('weight')
-        if weight is not None and weight <= 0:
-            raise ValidationError('Weight must be greater than zero.')
-        return weight
-
-    def clean_length(self):
-        length = self.cleaned_data.get('length')
-        if length is not None and length <= 0:
-            raise ValidationError('Length must be greater than zero.')
-        return length
-
-    def clean_breadth(self):
-        breadth = self.cleaned_data.get('breadth')
-        if breadth is not None and breadth <= 0:
-            raise ValidationError('Breadth must be greater than zero.')
-        return breadth
-
-    def clean_height(self):
-        height = self.cleaned_data.get('height')
-        if height is not None and height <= 0:
-            raise ValidationError('Height must be greater than zero.')
-        return height
-
 
 class WholesellerVariantForm(forms.ModelForm):
     class Meta:
         model = WholesellerProductVariant
         fields = [
-            'size', 'color', 'price', 'stock', 'threshold_limit',
+            'size', 'color', 'price', 'discount_percentage', 'stock', 'threshold_limit',
 
             # SHIPPING
             'weight', 'length', 'breadth', 'height',
@@ -161,14 +145,21 @@ class WholesellerVariantForm(forms.ModelForm):
             'size': forms.TextInput(attrs={'class': 'form-control'}),
             'color': forms.TextInput(attrs={'class': 'form-control'}),
             'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'discount_percentage': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'step': '0.01', 
+                'min': '0', 
+                'max': '100',
+                'id': 'discount_percentage'
+            }),
             'stock': forms.NumberInput(attrs={'class': 'form-control'}),
             'threshold_limit': forms.NumberInput(attrs={'class': 'form-control'}),
 
             # SHIPPING
-            'weight': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
-            'length': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
-            'breadth': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
-            'height': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'length': forms.NumberInput(attrs={'class': 'form-control'}),
+            'breadth': forms.NumberInput(attrs={'class': 'form-control'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control'}),
 
             # RETURNS
             'is_returnable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -180,30 +171,6 @@ class WholesellerVariantForm(forms.ModelForm):
             'order': forms.NumberInput(attrs={'class': 'form-control'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
-
-    def clean_weight(self):
-        weight = self.cleaned_data.get('weight')
-        if weight is not None and weight <= 0:
-            raise ValidationError('Weight must be greater than zero.')
-        return weight
-
-    def clean_length(self):
-        length = self.cleaned_data.get('length')
-        if length is not None and length <= 0:
-            raise ValidationError('Length must be greater than zero.')
-        return length
-
-    def clean_breadth(self):
-        breadth = self.cleaned_data.get('breadth')
-        if breadth is not None and breadth <= 0:
-            raise ValidationError('Breadth must be greater than zero.')
-        return breadth
-
-    def clean_height(self):
-        height = self.cleaned_data.get('height')
-        if height is not None and height <= 0:
-            raise ValidationError('Height must be greater than zero.')
-        return height
 
 
 class ResellerImportProductForm(forms.ModelForm):
@@ -222,10 +189,17 @@ class ResellerImportProductForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.wholeseller_product = kwargs.pop('wholeseller_product', None)
         super().__init__(*args, **kwargs)
+        
+        # Add discount information to the form if wholeseller product has discount
+        if self.wholeseller_product and self.wholeseller_product.discount_percentage > 0:
+            self.fields['margin_rupees'].help_text = (
+                f"⚠️ This product has {self.wholeseller_product.discount_percentage}% discount! "
+                f"Original price: ₹{self.wholeseller_product.price} → "
+                f"Discounted: ₹{self.wholeseller_product.discounted_price}"
+            )
 
 
 class ResellerImportProductEditForm(forms.ModelForm):
-
     margin_rupees = forms.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -245,7 +219,7 @@ class ResellerImportProductEditForm(forms.ModelForm):
 
     class Meta:
         model = ResellerProduct
-        fields = ['description']   # ✅ ADD THIS
+        fields = ['description']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -255,7 +229,6 @@ class ResellerImportProductEditForm(forms.ModelForm):
             self.fields['description'].initial = self.instance.description
                
 class ResellerOwnProductForm(forms.ModelForm):
-
     class Meta:
         model = ResellerProduct
         fields = [
@@ -270,7 +243,7 @@ class ResellerOwnProductForm(forms.ModelForm):
             'is_returnable', 'return_window_days',
             'is_replaceable', 'replacement_window_days',
 
-            'selling_price', 'stock', 'threshold_limit',
+            'selling_price', 'discount_percentage', 'stock', 'threshold_limit',
             'main_image', 'is_active', 'is_featured', 'is_published'
         ]
 
@@ -285,14 +258,13 @@ class ResellerOwnProductForm(forms.ModelForm):
             'size': forms.TextInput(attrs={'class': 'form-control'}),
             'color': forms.TextInput(attrs={'class': 'form-control'}),
             'material': forms.TextInput(attrs={'class': 'form-control'}),
-
             'gender': forms.Select(attrs={'class': 'form-control'}),
 
             # SHIPPING
-            'weight': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'length': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'breadth': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'height': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'length': forms.NumberInput(attrs={'class': 'form-control'}),
+            'breadth': forms.NumberInput(attrs={'class': 'form-control'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control'}),
             'is_shippable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
 
             # RETURNS
@@ -301,7 +273,14 @@ class ResellerOwnProductForm(forms.ModelForm):
             'is_replaceable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'replacement_window_days': forms.NumberInput(attrs={'class': 'form-control'}),
 
-            'selling_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'selling_price': forms.NumberInput(attrs={'class': 'form-control'}),
+            'discount_percentage': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'step': '0.01', 
+                'min': '0', 
+                'max': '100',
+                'id': 'discount_percentage'
+            }),
             'stock': forms.NumberInput(attrs={'class': 'form-control'}),
             'threshold_limit': forms.NumberInput(attrs={'class': 'form-control'}),
             'main_image': forms.FileInput(attrs={'class': 'form-control'}),
@@ -315,17 +294,11 @@ class ResellerOwnProductForm(forms.ModelForm):
 
         self.fields['category'].queryset = Category.objects.filter(is_active=True)
 
-        # ✅ Make gender optional + placeholder
+        # Make gender optional + placeholder
         self.fields['gender'].required = False
         self.fields['gender'].choices = [('', 'Select Gender')] + list(self.fields['gender'].choices)
 
-        # Make shipping fields optional (allow NULL/empty)
-        self.fields['weight'].required = False
-        self.fields['length'].required = False
-        self.fields['breadth'].required = False
-        self.fields['height'].required = False
-
-        # 🔥 Subcategory logic (keep this)
+        # Subcategory logic
         if self.data.get('category'):
             try:
                 category_id = int(self.data.get('category'))
@@ -344,43 +317,12 @@ class ResellerOwnProductForm(forms.ModelForm):
         else:
             self.fields['subcategory'].queryset = Subcategory.objects.none()
 
-    def clean_weight(self):
-        weight = self.cleaned_data.get('weight')
-        # Only validate if a value was provided (not None)
-        if weight is not None and weight <= 0:
-            raise ValidationError('Please enter a valid weight greater than zero, or leave empty.')
-        return weight
-
-    def clean_length(self):
-        length = self.cleaned_data.get('length')
-        if length is not None and length <= 0:
-            raise ValidationError('Please enter a valid length greater than zero, or leave empty.')
-        return length
-
-    def clean_breadth(self):
-        breadth = self.cleaned_data.get('breadth')
-        if breadth is not None and breadth <= 0:
-            raise ValidationError('Please enter a valid breadth greater than zero, or leave empty.')
-        return breadth
-
-    def clean_height(self):
-        height = self.cleaned_data.get('height')
-        if height is not None and height <= 0:
-            raise ValidationError('Please enter a valid height greater than zero, or leave empty.')
-        return height
-
-    def clean_selling_price(self):
-        selling_price = self.cleaned_data.get('selling_price')
-        if selling_price is None or selling_price <= 0:
-            raise ValidationError('Please enter a valid selling price greater than zero.')
-        return selling_price
-
 
 class ResellerVariantForm(forms.ModelForm):
     class Meta:
         model = ResellerProductVariant
         fields = [
-            'size', 'color', 'selling_price', 'stock', 'threshold_limit',
+            'size', 'color', 'selling_price', 'discount_percentage', 'stock', 'threshold_limit',
 
             # SHIPPING
             'weight', 'length', 'breadth', 'height',
@@ -396,14 +338,21 @@ class ResellerVariantForm(forms.ModelForm):
             'size': forms.TextInput(attrs={'class': 'form-control'}),
             'color': forms.TextInput(attrs={'class': 'form-control'}),
             'selling_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'discount_percentage': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'step': '0.01', 
+                'min': '0', 
+                'max': '100',
+                'id': 'discount_percentage'
+            }),
             'stock': forms.NumberInput(attrs={'class': 'form-control'}),
             'threshold_limit': forms.NumberInput(attrs={'class': 'form-control'}),
 
             # SHIPPING
-            'weight': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'length': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'breadth': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'height': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'length': forms.NumberInput(attrs={'class': 'form-control'}),
+            'breadth': forms.NumberInput(attrs={'class': 'form-control'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control'}),
 
             # RETURNS
             'is_returnable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -416,61 +365,17 @@ class ResellerVariantForm(forms.ModelForm):
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Make shipping fields optional (allow NULL/empty)
-        self.fields['weight'].required = False
-        self.fields['length'].required = False
-        self.fields['breadth'].required = False
-        self.fields['height'].required = False
 
-    def clean_weight(self):
-        weight = self.cleaned_data.get('weight')
-        # Only validate if a value was provided (not None)
-        if weight is not None and weight <= 0:
-            raise ValidationError('Please enter a valid weight greater than zero, or leave empty.')
-        return weight
-
-    def clean_length(self):
-        length = self.cleaned_data.get('length')
-        if length is not None and length <= 0:
-            raise ValidationError('Please enter a valid length greater than zero, or leave empty.')
-        return length
-
-    def clean_breadth(self):
-        breadth = self.cleaned_data.get('breadth')
-        if breadth is not None and breadth <= 0:
-            raise ValidationError('Please enter a valid breadth greater than zero, or leave empty.')
-        return breadth
-
-    def clean_height(self):
-        height = self.cleaned_data.get('height')
-        if height is not None and height <= 0:
-            raise ValidationError('Please enter a valid height greater than zero, or leave empty.')
-        return height
-
-    def clean_selling_price(self):
-        selling_price = self.cleaned_data.get('selling_price')
-        if selling_price is None or selling_price <= 0:
-            raise ValidationError('Please enter a valid selling price greater than zero.')
-        return selling_price
-
-    def clean_stock(self):
-        stock = self.cleaned_data.get('stock')
-        if stock is None or stock < 0:
-            raise ValidationError('Stock cannot be negative.')
-        return stock
 # ============ INLINE FORMSETS FOR MULTIPLE IMAGES ============
 
 WholesellerProductImageFormSet = inlineformset_factory(
     WholesellerProduct,
     WholesellerProductImage,
     fields=('image', 'alt_text', 'order'),
-    extra=0,   # IMPORTANT
+    extra=0,
     can_delete=True
 )
 
-# Wholeseller Variant Images Formset
 WholesellerVariantImageFormSet = inlineformset_factory(
     WholesellerProductVariant,
     WholesellerVariantImage,
@@ -498,7 +403,6 @@ ResellerProductImageFormSet = inlineformset_factory(
     }
 )
 
-# Reseller Variant Images Formset
 ResellerVariantImageFormSet = inlineformset_factory(
     ResellerProductVariant,
     ResellerVariantImage,
@@ -513,20 +417,10 @@ ResellerVariantImageFormSet = inlineformset_factory(
     }
 )
 
-# Product Images
-ResellerProductImageFormSet = inlineformset_factory(
-    ResellerProduct,
-    ResellerProductImage,
-    fields=('image', 'alt_text', 'order'),
-    extra=0,   # 👈 IMPORTANT: start empty
-    can_delete=True
-)
-
-# Variants
 ResellerVariantFormSet = inlineformset_factory(
     ResellerProduct,
     ResellerProductVariant,
     form=ResellerVariantForm,
-    extra=0,   # 👈 start empty
+    extra=0,
     can_delete=True
 )
