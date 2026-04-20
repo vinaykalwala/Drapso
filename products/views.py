@@ -691,222 +691,92 @@ def reseller_product_toggle_publish(request, store_id, product_id):
 @login_required
 @user_passes_test(is_reseller)
 def reseller_product_edit(request, store_id, product_id):
-
-    store = get_object_or_404(
-        Store,
-        id=store_id,
-        reseller=request.user
-    )
-
-    product = get_object_or_404(
-        ResellerProduct,
-        id=product_id,
-        store=store
-    )
-
+    store = get_object_or_404(Store, id=store_id, reseller=request.user)
+    product = get_object_or_404(ResellerProduct, id=product_id, store=store)
 
     # ================= IMPORTED PRODUCT =================
-
     if product.source_type == 'imported':
-
         if request.method == 'POST':
+            form = ResellerImportProductEditForm(request.POST, request.FILES, instance=product)
+            image_formset = ResellerProductImageFormSet(request.POST, request.FILES, instance=product, prefix='images')
 
-            form = ResellerImportProductEditForm(
-                request.POST,
-                instance=product
-            )
-
-            if form.is_valid():
-
+            if form.is_valid() and image_formset.is_valid():
                 product = form.save(commit=False)
-
                 margin = form.cleaned_data['margin_rupees'] or 0
-
                 product.margin_rupees = margin
 
-
                 # ===== GET WHOLESELLER EFFECTIVE PRICE =====
-
-                source_effective_price = (
-                    product.source_product.get_effective_price()
-                )
-
+                source_effective_price = product.source_product.get_effective_price()
 
                 # ===== SELLING PRICE =====
-
-                product.selling_price = (
-                    source_effective_price + margin
-                )
-
+                product.selling_price = source_effective_price + margin
 
                 # ===== APPLY RESELLER DISCOUNT =====
-
                 if product.discount_percentage > 0:
-
-                    discount_amount = (
-                        product.selling_price *
-                        product.discount_percentage
-                    ) / 100
-
-                    product.discounted_price = (
-                        product.selling_price -
-                        discount_amount
-                    )
-
+                    discount_amount = (product.selling_price * product.discount_percentage) / 100
+                    product.discounted_price = product.selling_price - discount_amount
                 else:
-
-                    product.discounted_price = (
-                        product.selling_price
-                    )
-
+                    product.discounted_price = product.selling_price
 
                 product.save()
-
+                image_formset.save()
 
                 # ================= VARIANTS =================
-
                 for v in product.variants.all():
-
                     # variant effective price
                     if v.source_variant:
-
-                        variant_effective_price = (
-                            v.source_variant.get_effective_price()
-                        )
-
+                        variant_effective_price = v.source_variant.get_effective_price()
                     else:
-
-                        variant_effective_price = (
-                            v.source_price
-                        )
-
+                        variant_effective_price = v.source_price
 
                     v.margin_rupees = margin
-
-
-                    # selling price
-                    v.selling_price = (
-                        variant_effective_price + margin
-                    )
-
+                    v.selling_price = variant_effective_price + margin
 
                     # discounted price
                     if v.discount_percentage > 0:
-
-                        discount_amount = (
-                            v.selling_price *
-                            v.discount_percentage
-                        ) / 100
-
-                        v.discounted_price = (
-                            v.selling_price -
-                            discount_amount
-                        )
-
+                        discount_amount = (v.selling_price * v.discount_percentage) / 100
+                        v.discounted_price = v.selling_price - discount_amount
                     else:
-
-                        v.discounted_price = (
-                            v.selling_price
-                        )
-
+                        v.discounted_price = v.selling_price
 
                     v.save()
 
-
-                messages.success(
-                    request,
-                    "✅ Margin applied on discounted price"
-                )
-
-
-                return redirect(
-                    'products:reseller_product_list',
-                    store_id=store.id
-                )
-
-
+                messages.success(request, "✅ Product updated successfully!")
+                return redirect('products:reseller_product_list', store_id=store.id)
         else:
+            form = ResellerImportProductEditForm(instance=product)
+            image_formset = ResellerProductImageFormSet(instance=product, prefix='images')
 
-            form = ResellerImportProductEditForm(
-                instance=product
-            )
-
-
-        return render(
-
-            request,
-
-            'products/reseller/edit_form_with_images.html',
-
-            {
-                'form': form,
-                'product': product,
-                'store': store,
-                'is_imported': True,
-            }
-        )
-
-
-    # ================= OWN PRODUCT =================
-
-    if request.method == 'POST':
-
-        form = ResellerOwnProductForm(
-            request.POST,
-            request.FILES,
-            instance=product
-        )
-
-        image_formset = ResellerProductImageFormSet(
-            request.POST,
-            request.FILES,
-            instance=product
-        )
-
-
-        if form.is_valid() and image_formset.is_valid():
-
-            product = form.save()
-
-            image_formset.save()
-
-            messages.success(
-                request,
-                f'✅ Product "{product.name}" updated!'
-            )
-
-
-            return redirect(
-                'products:reseller_product_list',
-                store_id=store.id
-            )
-
-
-    else:
-
-        form = ResellerOwnProductForm(
-            instance=product
-        )
-
-        image_formset = ResellerProductImageFormSet(
-            instance=product
-        )
-
-
-    return render(
-
-        request,
-
-        'products/reseller/edit_form_with_images.html',
-
-        {
+        return render(request, 'products/reseller/edit_form_with_images.html', {
             'form': form,
             'image_formset': image_formset,
             'product': product,
             'store': store,
-            'is_imported': False,
-        }
-    )
+            'is_imported': True,
+        })
+
+    # ================= OWN PRODUCT =================
+    if request.method == 'POST':
+        form = ResellerOwnProductForm(request.POST, request.FILES, instance=product)
+        image_formset = ResellerProductImageFormSet(request.POST, request.FILES, instance=product, prefix='images')
+
+        if form.is_valid() and image_formset.is_valid():
+            product = form.save()
+            image_formset.save()
+            messages.success(request, f'✅ Product "{product.name}" updated!')
+            return redirect('products:reseller_product_list', store_id=store.id)
+    else:
+        form = ResellerOwnProductForm(instance=product)
+        image_formset = ResellerProductImageFormSet(instance=product, prefix='images')
+
+    return render(request, 'products/reseller/edit_form_with_images.html', {
+        'form': form,
+        'image_formset': image_formset,
+        'product': product,
+        'store': store,
+        'is_imported': False,
+    })
+    
 @login_required
 @user_passes_test(is_reseller)
 def reseller_product_delete(request, store_id, product_id):

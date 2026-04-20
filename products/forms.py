@@ -199,35 +199,53 @@ class ResellerImportProductForm(forms.ModelForm):
             )
 
 
+# products/forms.py
+
 class ResellerImportProductEditForm(forms.ModelForm):
     margin_rupees = forms.DecimalField(
         max_digits=10,
         decimal_places=2,
         min_value=0,
-        widget=forms.NumberInput(attrs={'class': 'form-control'}),
-        label="Margin (₹)"
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control', 
+            'step': '0.01',
+            'id': 'id_margin_rupees'
+        }),
+        label="Your Margin (₹)",
+        help_text="Your profit margin per product"
+    )
+
+    name = forms.CharField(
+        max_length=200,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        label="Product Name",
+        help_text="You can customize the product name for your store"
     )
 
     description = forms.CharField(
         required=False,
         widget=forms.Textarea(attrs={
             'class': 'form-control',
-            'rows': 4
+            'rows': 4,
+            'id': 'id_description'
         }),
-        label="Description"
+        label="Description",
+        help_text="Customize the product description"
     )
 
     class Meta:
         model = ResellerProduct
-        fields = ['description']
+        fields = ['name', 'description']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if self.instance:
             self.fields['margin_rupees'].initial = self.instance.margin_rupees
+            self.fields['name'].initial = self.instance.name
             self.fields['description'].initial = self.instance.description
-               
+            
+                          
 class ResellerOwnProductForm(forms.ModelForm):
     class Meta:
         model = ResellerProduct
