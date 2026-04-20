@@ -881,8 +881,11 @@
                 </div>
                 <div class="price-row">
                     <span>Wholeseller Discount ({{ source_product.discount_percentage }}%):</span>
-                    <span class="discounted-price-highlight">- ₹{% widthratio source_product.discount_percentage 1 source_product.price|floatformat:2 as discount_amount %} (₹{{ source_product.discounted_price|floatformat:2 }})</span>
-                </div>
+<span class="discounted-price-highlight">
+{% widthratio source_product.price source_product.discount_percentage 100 as discount_amount %}
+- ₹{{ discount_amount|floatformat:2 }}
+(₹{{ source_product.discounted_price|floatformat:2 }})
+</span>                </div>
                 <div class="price-row">
                     <span><strong>Your Purchase Price:</strong></span>
                     <span><strong class="discounted-price-highlight">₹{{ source_product.discounted_price|floatformat:2 }}</strong></span>

@@ -7,15 +7,11 @@
 
 <style>
 
-/* container */
-
 .ep-container{
 max-width:1000px;
 margin:auto;
 padding:28px;
 }
-
-/* card */
 
 .ep-card{
 background:white;
@@ -25,8 +21,6 @@ border:1px solid #eef2f7;
 overflow:hidden;
 }
 
-/* header */
-
 .ep-header{
 padding:24px 28px;
 background:linear-gradient(135deg,#4f46e5,#7c3aed);
@@ -35,13 +29,9 @@ font-size:18px;
 font-weight:600;
 }
 
-/* body */
-
 .ep-body{
 padding:28px;
 }
-
-/* rows */
 
 .ep-row{
 display:flex;
@@ -49,8 +39,6 @@ gap:18px;
 flex-wrap:wrap;
 margin-bottom:18px;
 }
-
-/* fields */
 
 .ep-field{
 flex:1;
@@ -78,14 +66,6 @@ font-size:14px;
 
 }
 
-.ep-field input:focus{
-outline:none;
-border-color:#4f46e5;
-box-shadow:0 0 0 3px #eef2ff;
-}
-
-/* price box */
-
 .ep-price{
 
 background:#ecfdf5;
@@ -97,8 +77,6 @@ margin-bottom:20px;
 
 }
 
-/* section */
-
 .ep-section-title{
 
 font-weight:700;
@@ -107,8 +85,6 @@ margin-bottom:10px;
 color:#334155;
 
 }
-
-/* image section background */
 
 .ep-image-box{
 
@@ -120,8 +96,6 @@ margin-bottom:20px;
 
 }
 
-/* main image */
-
 .ep-main-image{
 
 width:200px;
@@ -130,7 +104,6 @@ overflow:hidden;
 border:1px solid #e5e7eb;
 background:white;
 padding:10px;
-box-shadow:0 4px 14px rgba(0,0,0,.04);
 
 }
 
@@ -141,15 +114,11 @@ border-radius:10px;
 
 }
 
-/* gallery */
-
 .ep-gallery{
 display:flex;
 gap:12px;
 flex-wrap:wrap;
 }
-
-/* thumb */
 
 .ep-thumb{
 
@@ -160,8 +129,6 @@ overflow:hidden;
 border:1px solid #e5e7eb;
 background:white;
 padding:6px;
-transition:.2s;
-box-shadow:0 3px 10px rgba(0,0,0,.03);
 
 }
 
@@ -173,15 +140,6 @@ object-fit:cover;
 border-radius:8px;
 
 }
-
-.ep-thumb:hover{
-
-transform:translateY(-3px);
-box-shadow:0 8px 22px rgba(0,0,0,.08);
-
-}
-
-/* variants */
 
 .ep-variant{
 
@@ -214,8 +172,6 @@ font-weight:600;
 
 }
 
-/* buttons */
-
 .ep-actions{
 
 margin-top:24px;
@@ -241,69 +197,47 @@ color:white;
 
 }
 
-.ep-save:hover{
-
-background:#4338ca;
-
-}
-
 .ep-cancel{
 
 background:#f1f5f9;
 
 }
 
-/* responsive */
-
-@media(max-width:600px){
-
-.ep-row{
-flex-direction:column;
-}
-
-}
-@media(max-width:900px){
-
-.content{
-    margin-top: 40px;
-}
-
-}
 .ep-info-row{
+
 display:grid;
-grid-template-columns: repeat(3, 1fr);
+grid-template-columns:repeat(3,1fr);
 gap:16px;
 margin-bottom:20px;
+
 }
 
 .ep-info-box{
+
 background:#f8fafc;
 border:1px solid #e2e8f0;
 border-radius:14px;
 padding:14px 16px;
+
 }
 
 .ep-info-title{
+
 font-size:11px;
 font-weight:700;
 color:#64748b;
 text-transform:uppercase;
-margin-bottom:4px;
-letter-spacing:.5px;
+
 }
 
 .ep-info-value{
+
 font-size:15px;
 font-weight:600;
 color:#0f172a;
+
 }
 
-/* mobile */
-@media(max-width:700px){
-.ep-info-row{
-grid-template-columns:1fr;
-}
-}
 </style>
 
 
@@ -335,42 +269,67 @@ Edit Product — {{ product.name }}
 <div class="ep-info-row">
 
 <div class="ep-info-box">
+
 <div class="ep-info-title">Product</div>
+
 <div class="ep-info-value">
+
 {{ product.name }}
+
 </div>
+
 </div>
+
 
 
 <div class="ep-info-box">
+
 <div class="ep-info-title">Brand</div>
+
 <div class="ep-info-value">
+
 {{ product.brand }}
+
 </div>
+
 </div>
+
 
 
 <div class="ep-info-box">
+
 <div class="ep-info-title">Cost Price</div>
+
 <div class="ep-info-value">
-₹ {{ product.source_price }}
-</div>
+
+₹ {{ product.source_product.get_effective_price }}
+
 </div>
 
 </div>
+
+</div>
+
 
 
 <div class="ep-row">
 
 <div class="ep-field">
+
 <label class="ep-label">Margin</label>
 
 {{ form.margin_rupees }}
 
 </div>
+
+</div>
+
+
+
 <div class="ep-row">
 
 <div class="ep-field" style="flex:100%">
+
 <label class="ep-label">Description</label>
 
 {{ form.description }}
@@ -379,7 +338,7 @@ Edit Product — {{ product.name }}
 
 </div>
 
-</div>
+
 
 <div class="ep-price">
 
@@ -389,11 +348,15 @@ Selling Price :
 
 <span id="previewPrice">
 
-{{ product.selling_price }}
+{{ product.selling_price|floatformat:2 }}
 
 </span>
 
 </div>
+
+
+
+
 
 {% else %}
 
@@ -425,8 +388,6 @@ Selling Price :
 
 
 
-<!-- MAIN IMAGE -->
-
 <div class="ep-image-box">
 
 <div class="ep-section-title">
@@ -450,8 +411,6 @@ Main Image
 </div>
 
 
-
-<!-- GALLERY -->
 
 <div class="ep-image-box">
 
@@ -481,8 +440,6 @@ Gallery Images
 
 
 
-<!-- VARIANTS -->
-
 <div class="ep-section-title">
 
 Variants
@@ -510,10 +467,14 @@ Variants
 ₹
 
 <span
-class="variant-price"
-data-price="{{ v.source_price }}">
 
-{{ v.selling_price }}
+class="variant-price"
+
+data-price="{{ v.source_variant.get_effective_price|default:v.source_price }}"
+
+>
+
+{{ v.selling_price|floatformat:2 }}
 
 </span>
 
@@ -523,11 +484,11 @@ data-price="{{ v.source_price }}">
 
 
 
-<div style="font-size:13px;color:#64748b;margin-bottom:8px">
+<div style="font-size:13px;color:#64748b">
 
 Cost Price :
 
-₹ {{ v.source_price }}
+₹ {{ v.source_variant.get_effective_price|default:v.source_price }}
 
 </div>
 
@@ -578,8 +539,12 @@ Save Changes
 
 
 <a
+
 href="{% url 'products:reseller_product_list' store.id %}"
-class="ep-btn ep-cancel">
+
+class="ep-btn ep-cancel"
+
+>
 
 Cancel
 
@@ -603,28 +568,86 @@ Cancel
 
 <script>
 
-const marginInput = document.getElementById('id_margin_rupees');
-const sourcePrice = {{ product.source_price|default:0 }};
+/* margin input */
 
-function updatePrice() {
-    if (!marginInput) return;
+const marginInput =
+document.getElementById(
+'id_margin_rupees'
+);
 
-    let margin = parseFloat(marginInput.value) || 0;
-    let final = sourcePrice + margin;
 
-    document.getElementById('previewPrice').innerText = final.toFixed(2);
+/* effective price from wholeseller */
 
-    document.querySelectorAll('.variant-price').forEach(el => {
-        let base = parseFloat(el.dataset.price);
-        el.innerText = (base + margin).toFixed(2);
-    });
+const sourcePrice =
+
+{{ product.source_product.get_effective_price|default:"0"|floatformat:2 }};
+
+
+/* update price */
+
+function updatePrice(){
+
+if(!marginInput) return;
+
+let margin =
+parseFloat(
+marginInput.value
+)||0;
+
+
+/* main price */
+
+let final =
+sourcePrice +
+margin;
+
+
+document.getElementById(
+'previewPrice'
+).innerText =
+final.toFixed(2);
+
+
+/* variants */
+
+document.querySelectorAll(
+'.variant-price'
+)
+
+.forEach(el=>{
+
+let base =
+parseFloat(
+el.dataset.price
+)||0;
+
+let variantFinal =
+base +
+margin;
+
+el.innerText =
+variantFinal.toFixed(2);
+
+});
+
 }
 
-if (marginInput) {
-    marginInput.addEventListener('input', updatePrice);
-    updatePrice();
+
+/* live */
+
+if(marginInput){
+
+marginInput.addEventListener(
+'input',
+updatePrice
+);
+
+updatePrice();
+
 }
 
 </script>
+
+
 
 {% endblock %}

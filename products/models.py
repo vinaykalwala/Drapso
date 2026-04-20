@@ -6,6 +6,9 @@ from django.utils.text import slugify
 from django.utils import timezone
 import random
 import string
+from decimal import Decimal
+from django.utils.text import slugify
+from django.utils import timezone
 
 # ============ SKU DEFAULT GENERATORS FOR MIGRATION ============
 
@@ -778,115 +781,167 @@ class ResellerProduct(models.Model):
                 self.save(update_fields=['stock', 'updated_at'])
     
     def save(self, *args, **kwargs):
-        # ================= SLUG GENERATION =================
-        if not self.slug:
-            base_slug = slugify(self.name)
-            self.slug = base_slug
-            counter = 1
-            while ResellerProduct.objects.filter(store=self.store, slug=self.slug).exists():
-                self.slug = f"{base_slug}-{counter}"
-                counter += 1
 
-        # ================= IMPORTED PRODUCT SYNC =================
-        if self.source_type == 'imported' and self.source_product:
-            is_new = self.pk is None
+    # ================= SLUG =================
+            if not self.slug:
+                base_slug = slugify(self.name)
+                self.slug = base_slug
+                counter = 1
 
-            # STOCK SYNC
-            self.stock = self.source_product.stock
-            
-            # SYNC SKU AND HSN FROM SOURCE
-            if self.source_product.sku:
-                self.sku = self.source_product.sku
-            if self.source_product.hsn_code:
-                self.hsn_code = self.source_product.hsn_code
-            
-            # SYNC DISCOUNT FIELDS
-            self.discount_percentage = self.source_product.discount_percentage
-            
-            # IMPORTANT: Get effective price (after discount) from source
-            source_effective_price = self.source_product.get_effective_price()
+                while ResellerProduct.objects.filter(
+                    store=self.store,
+                    slug=self.slug
+                ).exists():
 
-            # PRICE CHANGE TRACKING WITH TOLERANCE
-            if not is_new:
-                from decimal import Decimal
-                
-                old_effective_price = self.get_effective_price()
-                new_effective_price = source_effective_price + self.margin_rupees
-                
-                if abs(old_effective_price - new_effective_price) > Decimal('0.01'):
-                    self.last_known_source_price = self.source_price
-                    
-                    if new_effective_price > old_effective_price:
-                        self.price_status = 'price_increased'
-                    else:
-                        self.price_status = 'price_decreased'
-                    
-                    self.price_change_notified_at = timezone.now()
+                    self.slug = f"{base_slug}-{counter}"
+                    counter += 1
 
-            # PRICE SYNC - Store original price for reference
-            self.source_price = self.source_product.price
-            # Selling price = effective price (after discount) + margin
-            self.selling_price = source_effective_price + self.margin_rupees
-            
-            # RECALCULATE DISCOUNTED PRICE WITH RESELLER'S MARGIN
-            if self.discount_percentage > 0:
-                discount_amount = (self.selling_price * self.discount_percentage) / 100
-                self.discounted_price = self.selling_price - discount_amount
+
+            # ================= IMPORTED PRODUCT =================
+            if self.source_type == 'imported' and self.source_product:
+
+                is_new = self.pk is None
+
+                # STOCK SYNC
+                self.stock = self.source_product.stock
+
+                # SKU + HSN SYNC
+                if self.source_product.sku:
+                    self.sku = self.source_product.sku
+
+                if self.source_product.hsn_code:
+                    self.hsn_code = self.source_product.hsn_code
+
+
+                # SOURCE EFFECTIVE PRICE (after discount)
+                source_effective_price = self.source_product.get_effective_price()
+
+                # ================= PRICE CHANGE CHECK =================
+                # ONLY check wholeseller change (NOT margin change)
+
+                if not is_new:
+
+                    old_source_price = self.last_known_source_price
+                    new_source_price = source_effective_price
+
+                    if old_source_price is not None:
+
+                        difference = abs(
+                            Decimal(new_source_price) -
+                            Decimal(old_source_price)
+                        )
+
+                        if difference > Decimal('0.01'):
+
+                            if new_source_price > old_source_price:
+                                self.price_status = 'price_increased'
+                            else:
+                                self.price_status = 'price_decreased'
+
+                            self.price_change_notified_at = timezone.now()
+
+
+                # ================= PRICE SYNC =================
+
+                self.source_price = self.source_product.price
+
+                # selling price = discounted source price + margin
+                self.selling_price = (
+                    source_effective_price +
+                    Decimal(self.margin_rupees or 0)
+                )
+
+
+                # ================= DISCOUNT CALC =================
+
+                self.discount_percentage = self.source_product.discount_percentage
+
+                if self.discount_percentage > 0:
+
+                    discount_amount = (
+                        self.selling_price *
+                        Decimal(self.discount_percentage) / 100
+                    )
+
+                    self.discounted_price = (
+                        self.selling_price - discount_amount
+                    )
+
+                else:
+
+                    self.discounted_price = self.selling_price
+
+
+                # ================= ATTRIBUTE SYNC =================
+
+                self.brand = self.source_product.brand
+                self.model_name = self.source_product.model_name
+                self.size = self.source_product.size
+                self.color = self.source_product.color
+                self.material = self.source_product.material
+                self.gender = self.source_product.gender
+                self.attributes = self.source_product.attributes
+                self.specification = self.source_product.specification
+
+                self.threshold_limit = self.source_product.threshold_limit
+
+
+                # ================= SHIPPING SYNC =================
+
+                self.weight = self.source_product.weight
+                self.length = self.source_product.length
+                self.breadth = self.source_product.breadth
+                self.height = self.source_product.height
+
+                self.is_shippable = self.source_product.is_shippable
+
+
+                # ================= RETURN POLICY =================
+
+                self.is_returnable = self.source_product.is_returnable
+                self.return_window_days = self.source_product.return_window_days
+
+                self.is_replaceable = self.source_product.is_replaceable
+                self.replacement_window_days = self.source_product.replacement_window_days
+
+
+                # ================= INITIAL STATE =================
+
+                if is_new:
+
+                    self.price_status = 'up_to_date'
+
+                    self.last_known_source_price = source_effective_price
+
+
+            # ================= OWN PRODUCT =================
+
             else:
-                self.discounted_price = self.selling_price
 
-            # ATTRIBUTE SYNC
-            self.brand = self.source_product.brand
-            self.model_name = self.source_product.model_name
-            self.size = self.source_product.size
-            self.color = self.source_product.color
-            self.material = self.source_product.material
-            self.gender = self.source_product.gender
-            self.attributes = self.source_product.attributes
-            self.specification = self.source_product.specification
-            self.threshold_limit = self.source_product.threshold_limit
+                self.source_price = 0
 
-            # SHIPPING SYNC
-            self.weight = self.source_product.weight
-            self.length = self.source_product.length
-            self.breadth = self.source_product.breadth
-            self.height = self.source_product.height
-            self.is_shippable = self.source_product.is_shippable
+                if not self.sku or 'TEMP' in str(self.sku):
 
-            # RETURN POLICY SYNC
-            self.is_returnable = self.source_product.is_returnable
-            self.return_window_days = self.source_product.return_window_days
-            self.is_replaceable = self.source_product.is_replaceable
-            self.replacement_window_days = self.source_product.replacement_window_days
+                    self.sku = self.generate_reseller_sku()
 
-            # INITIAL STATE
-            if is_new:
-                self.price_status = 'up_to_date'
-                self.last_known_source_price = self.source_price
+                if not self.hsn_code:
 
-        # ================= OWN PRODUCT LOGIC =================
-        else:
-            # Own products should NOT have source linkage
-            self.source_price = 0
-            
-            # Generate proper SKU only for own products
-            if not self.sku or (self.sku and 'TEMP' in self.sku):
-                self.sku = self.generate_reseller_sku()
-            
-            # Set default HSN code if not set
-            if not self.hsn_code or self.hsn_code == '0000':
-                self.hsn_code = '0000'
-            
-            # Optional: enforce selling_price must exist
-            if not self.selling_price:
-                raise ValueError("Selling price is required for own products")
-            
-            # Calculate discounted price for own products
-            self.discounted_price = self.calculate_discounted_price()
+                    self.hsn_code = '0000'
 
-        # ================= FINAL SAVE =================
-        super().save(*args, **kwargs)
-    
+
+                if not self.selling_price:
+
+                    raise ValueError("Selling price required")
+
+
+                # calculate discount
+                self.discounted_price = self.calculate_discounted_price()
+
+
+            # ================= SAVE =================
+
+            super().save(*args, **kwargs)
+
     def has_price_change_pending(self):
         return self.price_status in ['price_increased', 'price_decreased']
     
