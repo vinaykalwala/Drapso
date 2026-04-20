@@ -757,29 +757,38 @@ def reseller_product_edit(request, store_id, product_id):
     store = get_object_or_404(Store, id=store_id, reseller=request.user)
     product = get_object_or_404(ResellerProduct, id=product_id, store=store)
 
-    # 🔴 IMPORTED PRODUCT (ONLY MARGIN EDIT)
+    # 🔴 IMPORTED PRODUCT (MARGIN + DESCRIPTION EDIT)
     if product.source_type == 'imported':
 
         if request.method == 'POST':
 
-            form = ResellerImportProductEditForm(request.POST)
+            # ✅ IMPORTANT: pass instance
+            form = ResellerImportProductEditForm(
+                request.POST,
+                instance=product
+            )
 
             if form.is_valid():
 
+                # ✅ get object without saving yet
+                product = form.save(commit=False)
+
                 margin = form.cleaned_data['margin_rupees']
 
-                # 🔥 UPDATE PRODUCT
+                # 🔥 update pricing
                 product.margin_rupees = margin
                 product.selling_price = product.source_price + margin
+
+                # 🔥 save BOTH margin + description
                 product.save()
 
-                # 🔥 UPDATE VARIANTS
+                # 🔥 update variants
                 for v in product.variants.all():
                     v.margin_rupees = margin
                     v.selling_price = v.source_price + margin
                     v.save()
 
-                messages.success(request, "✅ Margin updated successfully!")
+                messages.success(request, "✅ Product updated successfully!")
                 return redirect('products:reseller_product_list', store_id=store.id)
 
         else:
