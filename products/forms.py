@@ -327,13 +327,11 @@ class ResellerImportProductEditForm(forms.ModelForm):
         decimal_places=2,
         min_value=0,
         label="Margin (₹)*",
-        widget=forms.NumberInput(attrs={'class': 'form-control'}),
         widget=forms.NumberInput(attrs={
             'class': 'form-control', 
             'step': '0.01',
             'id': 'id_margin_rupees'
         }),
-        label="Your Margin (₹)",
         help_text="Your profit margin per product"
     )
 
