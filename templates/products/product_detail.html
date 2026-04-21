@@ -863,6 +863,24 @@
 }
 
 }
+.pd-original-price-strike {
+    font-size: 16px;
+    color: #94a3b8;
+    text-decoration: line-through;
+    font-weight: normal;
+}
+
+.pd-discount-badge {
+    display: inline-block;
+    background: #ef4444;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 8px;
+    vertical-align: middle;
+}
 </style>
 
 <div class="content">
@@ -934,41 +952,47 @@
             </div>
         </div>
         
-     <!-- Price Card -->
+  <!-- Price Card -->
 <div class="pd-price-card">
 
     <!-- MAIN PRICE -->
     <div class="pd-price-label">
-
         {% if product.source_type == "imported" %}
             Selling Price
-
         {% elif product.source_type == "own" %}
             Price
-
         {% else %}
             Price
-
         {% endif %}
-
     </div>
-
 
     <div class="pd-price-amount">
-
         {% if product.source_type == "imported" %}
-            ₹{{ product.selling_price }}
-
+            {% if product.discount_percentage > 0 %}
+                <span class="product-selling-price">₹{{ product.selling_price|floatformat:2 }}</span>
+                <span class="pd-original-price-strike">₹{{ product.source_product.price|add:product.margin_rupees|floatformat:2 }}</span>
+                <!-- <span class="pd-discount-badge">{{ product.discount_percentage|floatformat:0 }}% OFF</span> -->
+            {% else %}
+                <span class="product-selling-price">₹{{ product.selling_price|floatformat:2 }}</span>
+            {% endif %}
         {% elif product.source_type == "own" %}
-            ₹{{ product.selling_price }}
-
+            {% if product.discount_percentage > 0 %}
+                <span class="product-selling-price">₹{{ product.discounted_price|floatformat:2 }}</span>
+                <span class="pd-original-price-strike">₹{{ product.selling_price|floatformat:2 }}</span>
+                <!-- <span class="pd-discount-badge">{{ product.discount_percentage|floatformat:0 }}% OFF</span> -->
+            {% else %}
+                <span class="product-selling-price">₹{{ product.selling_price|floatformat:2 }}</span>
+            {% endif %}
         {% else %}
-            ₹{{ product.price }}
-
+            {% if product.discount_percentage > 0 %}
+                <span class="product-selling-price">₹{{ product.discounted_price|floatformat:2 }}</span>
+                <span class="pd-original-price-strike">₹{{ product.price|floatformat:2 }}</span>
+                <!-- <span class="pd-discount-badge">{{ product.discount_percentage|floatformat:0 }}% OFF</span> -->
+            {% else %}
+                <span class="product-selling-price">₹{{ product.price|floatformat:2 }}</span>
+            {% endif %}
         {% endif %}
-
     </div>
-
 
     <!-- BREAKDOWN -->
     <div class="pd-price-breakdown">
@@ -979,43 +1003,36 @@
             <span class="pd-price-item-label">
                 Source Price
             </span>
-
-            <span class="pd-price-item-value">
-                ₹{{ product.source_price }}
-            </span>
+              <span class="pd-price-item-value">
+            ₹{{ product.source_product.discounted_price|floatformat:2 }}
+        </span>
         </div>
-
 
         <div class="pd-price-item">
             <span class="pd-price-item-label">
                 Margin
             </span>
-
             <span class="pd-price-item-value">
-                +₹{{ product.margin_rupees }}
+                +₹{{ product.margin_rupees|floatformat:2 }}
             </span>
         </div>
+
+      
 
         {% endif %}
 
-
         <!-- STOCK -->
         <div class="pd-price-item">
-
             <span class="pd-price-item-label">
                 Stock
             </span>
-
             <span class="pd-price-item-value">
                 {{ product.stock }} Units
             </span>
-
         </div>
 
     </div>
-
-</div>  
-        <!-- Basic Information Section with Box Styling -->
+</div>        <!-- Basic Information Section with Box Styling -->
         <div class="pd-detail-section">
             <div class="pd-section-title">
                 <i class="fas fa-info-circle"></i>
@@ -1303,37 +1320,103 @@
     </div>
 
 
-   <div class="pd-variant-detail-row">
+ <div class="pd-variant-detail-row">
 
     <span class="pd-variant-detail-label">
         <i class="fas fa-tag"></i>
 
         {% if product.source_type == "imported" %}
             Source Price
-
-        {% elif product.source_type == "own" %}
-            Price
-
         {% else %}
             Price
-
         {% endif %}
+
     </span>
 
 
     <span class="pd-variant-detail-value">
 
-        {% if product.source_type == "imported" %}
+       {% if product.source_type == "imported" %}
 
-            ₹{{ variant.source_price }}
+    {% if variant.discount_percentage > 0 %}
+
+        <!-- wholeseller discounted price (before margin) -->
+
+        ₹{{ variant.source_variant.discounted_price|floatformat:2 }}
+
+        <span style="
+            text-decoration: line-through;
+            color:#94a3b8;
+            font-size:0.75rem;
+            margin-left:6px;
+        ">
+
+            ₹{{ variant.source_price|floatformat:2 }}
+
+        </span>
+
+       
+
+    {% else %}
+
+        ₹{{ variant.source_variant.discounted_price|floatformat:2 }}
+
+    {% endif %}
+
+
+
 
         {% elif product.source_type == "own" %}
 
-            ₹{{ variant.selling_price }}
+            <!-- OWN PRODUCT -->
+
+            {% if variant.discount_percentage > 0 %}
+
+                ₹{{ variant.discounted_price|floatformat:2 }}
+
+                <span style="
+                    text-decoration: line-through;
+                    color:#94a3b8;
+                    font-size:0.75rem;
+                    margin-left:6px;
+                ">
+                    ₹{{ variant.selling_price|floatformat:2 }}
+                </span>
+
+               
+
+            {% else %}
+
+                ₹{{ variant.selling_price|floatformat:2 }}
+
+            {% endif %}
+
+
 
         {% else %}
 
-            ₹{{ variant.price }}
+            <!-- WHOLESELLER PRODUCT -->
+
+            {% if variant.discount_percentage > 0 %}
+
+                ₹{{ variant.discounted_price|floatformat:2 }}
+
+                <span style="
+                    text-decoration: line-through;
+                    color:#94a3b8;
+                    font-size:0.75rem;
+                    margin-left:6px;
+                ">
+                    ₹{{ variant.price|floatformat:2 }}
+                </span>
+
+               
+
+            {% else %}
+
+                ₹{{ variant.price|floatformat:2 }}
+
+            {% endif %}
 
         {% endif %}
 
@@ -1392,31 +1475,47 @@
 
 
                 <!-- Variant Price -->
-                <div class="pd-variant-price-section">
-                    {% if product.source_type == "imported" %}
-                    <div class="pd-variant-price-row">
+               <div class="pd-variant-price-section">
 
-                        <span class="pd-variant-price-label">
-                            Selling Price
-                        </span>
+{% if product.source_type == "imported" %}
 
-                        <span class="pd-variant-price-value">
-                            ₹{{ variant.selling_price }}
-                        </span>
+<div class="pd-variant-price-row">
 
-                    </div>
-                      {% endif %}
+    <span class="pd-variant-price-label">
+        Selling Price
+    </span>
 
+    <span class="pd-variant-price-value">
 
-                  {% if product.source_type == "imported" %}
+        ₹{{ variant.selling_price|floatformat:2 }}
+
+        <span style="
+            text-decoration: line-through;
+            color:#94a3b8;
+            font-size:0.75rem;
+            margin-left:6px;
+        ">
+
+            ₹{{ variant.source_price|add:variant.margin_rupees|floatformat:2 }}
+
+        </span>
+
+    </span>
+
+</div>
+
 
 <div class="pd-variant-margin">
+
     <i class="fas fa-chart-line"></i>
-    Margin: +₹{{ variant.margin_rupees }}
+
+    Margin: +₹{{ variant.margin_rupees|floatformat:2 }}
+
 </div>
 
 {% endif %}
-                </div>
+
+</div>
 
 
 

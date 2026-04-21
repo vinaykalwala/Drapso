@@ -266,21 +266,55 @@
         font-weight: 600;
         z-index: 10;
     }
-    .product-own-badge{
-    position:absolute;
-    top:12px;
-    left:12px;
-    background:#10b981;
-    color:white;
-    padding:4px 10px;
-    border-radius:20px;
-    font-size:0.7rem;
-    font-weight:600;
-    z-index:10;
-    display:flex;
-    align-items:center;
-    gap:4px;
-}
+    
+    /* Discount Badge */
+    .product-discount-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: #ef4444;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .product-own-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: #10b981;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .product-archived-badge {
+        position: absolute;
+        top: 12px;
+        left: 80px;
+        background: #ef4444;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
 
     /* Image Gallery Section - REDUCED SIZE */
     .product-gallery-section {
@@ -439,7 +473,7 @@
     .product-variants-section {
         padding: 12px 16px;
         background: var(--gray-50);
-        border-top: 1px solid var(--gray-200);
+        border-bottom: 1px solid var(--gray-200);
     }
 
     .product-variants-title {
@@ -520,58 +554,61 @@
         color: var(--primary);
         font-weight: 600;
     }
+    
+    .product-variant-original-price {
+        font-size: 0.55rem;
+        color: #94a3b8;
+        text-decoration: line-through;
+        margin-top: 2px;
+    }
+
     /* top row */
-.top-controls{
-    display:flex;
-    gap:20px;
-    align-items:center;
-    margin-bottom:25px;
-}
-
-/* usage card width */
-.products-usage-card{
-    flex:0 0 340px;
-    margin-bottom:0;
-}
-
-/* filter takes remaining space */
-.products-filter-section{
-    flex:1;
-    margin-bottom:0;
-}
-
-/* filter fields in one row */
-.products-filter-form{
-    display:flex;
-    gap:12px;
-    align-items:end;
-}
-
-/* responsive */
-@media(max-width:992px){
-
     .top-controls{
-        flex-direction:column;
-        align-items:stretch;
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        margin-bottom: 25px;
     }
 
+    /* usage card width */
     .products-usage-card{
-        width:100%;
+        flex: 0 0 340px;
+        margin-bottom: 0;
     }
 
+    /* filter takes remaining space */
+    .products-filter-section{
+        flex: 1;
+        margin-bottom: 0;
+    }
+
+    /* filter fields in one row */
     .products-filter-form{
-        flex-wrap:wrap;
+        display: flex;
+        gap: 12px;
+        align-items: end;
     }
 
-    .products-filter-group{
-        flex:1 1 45%;
+    /* responsive */
+    @media(max-width:992px){
+        .top-controls{
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .products-usage-card{
+            width: 100%;
+        }
+        .products-filter-form{
+            flex-wrap: wrap;
+        }
+        .products-filter-group{
+            flex: 1 1 45%;
+        }
+        .products-filter-btn{
+            width: 100%;
+        }
     }
-
-    .products-filter-btn{
-        width:100%;
-    }
-
-}
+    
     /* No Variants Placeholder */
     .no-variants-placeholder {
         text-align: center;
@@ -625,6 +662,25 @@
         font-size: 1.2rem;
         font-weight: 800;
         color: var(--primary);
+        display: inline-block;
+    }
+    
+    .product-original-price {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        text-decoration: line-through;
+        font-weight: normal;
+    }
+    
+    .product-discount-percent {
+        background: #ef4444;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        margin-left: 8px;
+        display: inline-block;
     }
 
     .product-cost-info {
@@ -723,51 +779,27 @@
         .product-btn { width: 100%; }
         .product-main-image-container { height: 180px; }
     }
-     @media (max-width: 900px) {
+    
+    @media (max-width: 900px) {
         .content{
             margin-top: 70px;
         }
-     }
-     /* disabled button with strike-through */
+    }
+    
+    /* disabled button with strike-through */
+    .btn-products[disabled],
+    .btn-products.disabled-btn{
+        background: #e5e7eb !important;
+        color: #9ca3af !important;
+        cursor: not-allowed;
+        pointer-events: none;
+        opacity: 0.7;
+        text-decoration: line-through;
+    }
 
-.btn-products[disabled],
-.btn-products.disabled-btn{
-
-    background:#e5e7eb !important;
-    color:#9ca3af !important;
-
-    cursor:not-allowed;
-    pointer-events:none;
-
-    opacity:0.7;
-
-    text-decoration: line-through;   /* cross line */
-}
-
-/* icon also faded */
-.btn-products[disabled] i{
-    color:#9ca3af;
-}
-.product-archived-badge{
-    position:absolute;
-    top:12px;
-    left:80px;
-
-    background:#ef4444;
-    color:white;
-
-    padding:4px 10px;
-    border-radius:20px;
-
-    font-size:0.7rem;
-    font-weight:600;
-
-    z-index:10;
-
-    display:flex;
-    align-items:center;
-    gap:4px;
-}
+    .btn-products[disabled] i{
+        color: #9ca3af;
+    }
 </style>
 <div class="content">
 <div class="products-container">
@@ -778,133 +810,78 @@
             <h1><i class="fas fa-box"></i> Products - {{ store.store_name }}</h1>
             <div class="products-subtitle">Manage all your products from one place</div>
         </div>
-      <div class="products-actions">
-
-{% if can_add_more %}
-
-    <a href="{% url 'products:reseller_import_products' store.id %}"
-       class="btn-products btn-products-primary">
-        <i class="fas fa-download"></i> Import
-    </a>
-
-    <a href="{% url 'products:reseller_product_full_create' store.id %}"
-       class="btn-products btn-products-success">
-        <i class="fas fa-plus"></i> Add Product
-    </a>
-
-{% else %}
-
-    <button class="btn-products btn-products-primary" disabled
-        title="Limit reached">
-        <i class="fas fa-download"></i> Import
-    </button>
-
-    <button class="btn-products btn-products-success" disabled
-        title="Limit reached">
-        <i class="fas fa-plus"></i> Add Product
-    </button>
-
-{% endif %}
-
-</div>
-
+        <div class="products-actions">
+            {% if can_add_more %}
+                <a href="{% url 'products:reseller_import_products' store.id %}" class="btn-products btn-products-primary">
+                    <i class="fas fa-download"></i> Import
+                </a>
+                <a href="{% url 'products:reseller_product_full_create' store.id %}" class="btn-products btn-products-success">
+                    <i class="fas fa-plus"></i> Add Product
+                </a>
+            {% else %}
+                <button class="btn-products btn-products-primary" disabled title="Limit reached">
+                    <i class="fas fa-download"></i> Import
+                </button>
+                <button class="btn-products btn-products-success" disabled title="Limit reached">
+                    <i class="fas fa-plus"></i> Add Product
+                </button>
+            {% endif %}
+        </div>
     </div>
+    
     {% if messages %}
-<div id="alertBox" style="
-    margin-bottom:15px;
-    padding:12px 40px 12px 12px;
-    border-radius:8px;
-    background:#e2e5fe;
-    color:#1d21ff;
-    font-weight:600;
-    position:relative;
-">
-
-    {% for message in messages %}
-        {{ message }}
-    {% endfor %}
-
-    <!-- ❌ Close Button -->
-    <span onclick="document.getElementById('alertBox').style.display='none'"
-        style="
-            position:absolute;
-            right:12px;
-            top:8px;
-            cursor:pointer;
-            font-size:18px;
-            font-weight:bold;">
-        ×
-    </span>
-
-</div>
-{% endif %}
-   <div class="top-controls">
-
-    <!-- Usage Card -->
-   <div class="products-usage-card">
-    <div class="products-usage-info">
-
-        <div class="products-usage-stats">
-
-            {% if max_products == 1 %}
-
-                <span class="products-usage-count">
-                    {% if current_count > 0 %}1{% else %}0{% endif %}
-                </span>
-
-                <span class="products-usage-total">/ 1</span>
-
-                <div class="products-usage-text">
-                    {% if current_count > 0 %}
-                        0 slots remaining
+    <div id="alertBox" style="margin-bottom:15px; padding:12px 40px 12px 12px; border-radius:8px; background:#e2e5fe; color:#1d21ff; font-weight:600; position:relative;">
+        {% for message in messages %}
+            {{ message }}
+        {% endfor %}
+        <span onclick="document.getElementById('alertBox').style.display='none'" style="position:absolute; right:12px; top:8px; cursor:pointer; font-size:18px; font-weight:bold;">×</span>
+    </div>
+    {% endif %}
+    
+    <div class="top-controls">
+        <!-- Usage Card -->
+        <div class="products-usage-card">
+            <div class="products-usage-info">
+                <div class="products-usage-stats">
+                    {% if max_products == 1 %}
+                        <span class="products-usage-count">{% if current_count > 0 %}1{% else %}0{% endif %}</span>
+                        <span class="products-usage-total">/ 1</span>
+                        <div class="products-usage-text">
+                            {% if current_count > 0 %}0 slots remaining{% else %}1 slot remaining{% endif %}
+                        </div>
                     {% else %}
-                        1 slot remaining
+                        <span class="products-usage-count">{{ current_count }}</span>
+                        <span class="products-usage-total">/ {{ max_products }}</span>
+                        <div class="products-usage-text">{{ remaining_slots }} slots remaining</div>
                     {% endif %}
                 </div>
-
-            {% else %}
-
-                <span class="products-usage-count">{{ current_count }}</span>
-
-                <span class="products-usage-total">/ {{ max_products }}</span>
-
-                <div class="products-usage-text">
-                    {{ remaining_slots }} slots remaining
+                <div class="products-usage-bar">
+                    <div class="products-usage-fill" style="width: {% widthratio current_count max_products 100 %}%"></div>
                 </div>
-
-            {% endif %}
-
-        </div>
-
-        <div class="products-usage-bar">
-            <div class="products-usage-fill"
-                 style="width: {% widthratio current_count max_products 100 %}%">
             </div>
         </div>
 
+        <!-- Filter -->
+        <div class="products-filter-section">
+            <form method="get" class="products-filter-form">
+                <div class="products-filter-group">
+                    <label class="products-filter-label">Search</label>
+                    <input type="text" name="q" class="products-filter-input" placeholder="Search products..." value="{{ search }}">
+                </div>
+                <div class="products-filter-group">
+                    <label class="products-filter-label">Status</label>
+                    <select name="status" class="products-filter-select">
+                        <option value="">All</option>
+                        <option value="published" {% if status_filter == 'published' %}selected{% endif %}>Published</option>
+                        <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+                        <option value="pending_review" {% if status_filter == 'pending_review' %}selected{% endif %}>Needs Review</option>
+                    </select>
+                </div>
+                <button type="submit" class="products-filter-btn"><i class="fas fa-search"></i> Filter</button>
+            </form>
+        </div>
     </div>
-</div>
-
-    <!-- Filter -->
-    <div class="products-filter-section">
-        <form method="get" class="products-filter-form">
-            <div class="products-filter-group">
-                <label class="products-filter-label">Search</label>
-                <input type="text" name="q" class="products-filter-input" placeholder="Search products..." value="{{ search }}">
-            </div>
-            <div class="products-filter-group">
-                <label class="products-filter-label">Status</label>
-                <select name="status" class="products-filter-select">
-                    <option value="">All</option>
-                    <option value="published" {% if status_filter == 'published' %}selected{% endif %}>Published</option>
-                    <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
-                    <option value="pending_review" {% if status_filter == 'pending_review' %}selected{% endif %}>Needs Review</option>
-                </select>
-            </div>
-            <button type="submit" class="products-filter-btn"><i class="fas fa-search"></i> Filter</button>
-        </form>
-    </div>
-   </div>
+    
     <!-- Products Grid -->
     <div class="products-grid">
         
@@ -914,16 +891,21 @@
             {% if product.has_price_change_pending %}
                 <div class="product-price-badge"><i class="fas fa-exclamation-circle"></i> Price Change Pending</div>
             {% endif %}
-                {% if product.source_type != 'imported' %}
-        <div class="product-own-badge">
-            <i class="fas fa-star"></i> OWN
-        </div>
-    {% endif %}
-    {% if not product.is_active %}
-<div class="product-archived-badge">
-    <i class="fas fa-box"></i> ARCHIVED
-</div>
-{% endif %}
+            
+           
+            
+            {% if product.source_type != 'imported' %}
+                <div class="product-own-badge">
+                    <i class="fas fa-star"></i> OWN
+                </div>
+            {% endif %}
+            
+            {% if not product.is_active %}
+                <div class="product-archived-badge">
+                    <i class="fas fa-box"></i> ARCHIVED
+                </div>
+            {% endif %}
+            
             <!-- GALLERY SECTION -->
             <div class="product-gallery-section">
                 <!-- Main Image Container -->
@@ -967,53 +949,77 @@
             </div>
 
             <!-- VARIANTS SECTION -->
-            <div class="product-variants-section">
-                <div class="product-variants-title">
-                    <i class="fas fa-layer-group"></i> Variants
+            <!-- VARIANTS SECTION -->
+<div class="product-variants-section">
+    <div class="product-variants-title">
+        <i class="fas fa-layer-group"></i> Variants ({{ product.variants.count }})
+    </div>
+    
+    {% if product.variants.exists %}
+    <div class="product-variants-list" id="variants-{{ product.id }}">
+        {% for variant in product.variants.all %}
+        <div class="product-variant-item"
+            data-variant-id="{{ variant.id }}"
+            data-variant-name="{{ variant.variant_name }}"
+            data-source-type="{{ product.source_type }}"
+            
+            {% if product.source_type == 'imported' %}
+                {# For imported variants #}
+                data-variant-selling-price="{{ variant.selling_price|floatformat:2 }}"
+                data-variant-original-price="{% if variant.discount_percentage > 0 %}{{ variant.source_price|add:variant.margin_rupees|floatformat:2 }}{% else %}{% endif %}"
+                data-variant-source-price="{{ variant.source_price }}"
+                data-variant-margin="{{ variant.margin_rupees }}"
+            {% else %}
+                {# For own variants #}
+                data-variant-selling-price="{{ variant.discounted_price|floatformat:2|default:variant.selling_price }}"
+                data-variant-original-price="{% if variant.discount_percentage > 0 %}{{ variant.selling_price }}{% else %}{% endif %}"
+                data-variant-source-price="{{ variant.source_price }}"
+                data-variant-margin="{{ variant.margin_rupees }}"
+            {% endif %}
+            
+            data-variant-discount="{{ variant.discount_percentage|default:0 }}"
+            data-main-image="{% if variant.main_image %}{{ variant.main_image.url }}{% endif %}"
+            data-gallery-images='[
+                {% for img in variant.additional_images.all %}
+                "{{ img.image.url }}"{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]'
+            onclick="showVariantDetails('{{ product.id }}', this)">
+            
+            {% if variant.main_image %}
+                <img src="{{ variant.main_image.url }}" class="product-variant-thumb" alt="{{ variant.variant_name }}">
+            {% else %}
+                <div class="product-variant-thumb" style="background: var(--gray-200); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-image" style="color: var(--gray-400); font-size: 1.5rem;"></i>
                 </div>
-                
-                {% if product.variants.exists %}
-                <div class="product-variants-list" id="variants-{{ product.id }}">
-                    {% for variant in product.variants.all %}
-                    <div class="product-variant-item"
-
-data-variant-id="{{ variant.id }}"
-data-variant-name="{{ variant.variant_name }}"
-data-variant-selling-price="{{ variant.selling_price }}"
-data-variant-source-price="{{ variant.source_price }}"
-data-variant-margin="{{ variant.margin_rupees }}"
-
-data-main-image="{% if variant.main_image %}{{ variant.main_image.url }}{% endif %}"
-
-data-gallery-images='[
-{% for img in variant.additional_images.all %}
-"{{ img.image.url }}"{% if not forloop.last %},{% endif %}
-{% endfor %}
-]'
-
-onclick="showVariantDetails('{{ product.id }}', this)"
->
-                        
-                        {% if variant.main_image %}
-                            <img src="{{ variant.main_image.url }}" class="product-variant-thumb" alt="{{ variant.variant_name }}">
-                        {% else %}
-                            <div class="product-variant-thumb" style="background: var(--gray-200); display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-image" style="color: var(--gray-400); font-size: 1.5rem;"></i>
-                            </div>
-                        {% endif %}
-                        <div class="product-variant-name">{{ variant.variant_name|truncatechars:12 }}</div>
-                        <div class="product-variant-price">₹{{ variant.selling_price }}</div>
-                    </div>
-                    {% endfor %}
-                </div>
+            {% endif %}
+            <div class="product-variant-name">{{ variant.variant_name|truncatechars:12 }}</div>
+            
+            {# Show discounted price and original price with strikethrough #}
+            {% if variant.discount_percentage > 0 %}
+                {% if product.source_type == 'imported' %}
+                    {# Imported variant with discount - selling price + original price (source_price + margin) #}
+                    <div class="product-variant-price">₹{{ variant.selling_price|floatformat:2 }}</div>
+                    <div class="product-variant-original-price">₹{{ variant.source_price|add:variant.margin_rupees|floatformat:2 }}</div>
                 {% else %}
-                <!-- No Variants Placeholder -->
-                <div class="no-variants-placeholder">
-                    <i class="fas fa-box-open"></i>
-                    <p>No variants available for this product</p>
-                </div>
+                    {# Own variant with discount - discounted price + original selling price #}
+                    <div class="product-variant-price">₹{{ variant.discounted_price|floatformat:2 }}</div>
+                    <div class="product-variant-original-price">₹{{ variant.selling_price|floatformat:2 }}</div>
                 {% endif %}
-            </div>
+            {% else %}
+                {# No discount - show only selling price #}
+                <div class="product-variant-price">₹{{ variant.selling_price|floatformat:2 }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-variants-placeholder">
+        <i class="fas fa-box-open"></i>
+        <p>No variants available for this product</p>
+    </div>
+    {% endif %}
+</div>
 
             <!-- Product Info -->
             <div class="product-card-body">
@@ -1021,8 +1027,36 @@ onclick="showVariantDetails('{{ product.id }}', this)"
                 <div class="product-brand"><i class="fas fa-building"></i> {{ product.brand|default:"No Brand" }}</div>
                 
                 <div class="product-price-section" id="priceSection-{{ product.id }}">
-                    <div class="product-selling-price">₹{{ product.selling_price }}</div>
-                    <div class="product-cost-info">Cost: ₹{{ product.source_price }} | Margin: ₹{{ product.margin_rupees }}</div>
+                    <div>
+                        {% if product.discount_percentage > 0 %}
+                            {% if product.source_type == 'imported' %}
+                                <span class="product-selling-price">₹{{ product.selling_price|floatformat:2 }}</span>
+                                <span class="product-original-price">₹{{ product.source_product.price|add:product.margin_rupees|floatformat:2 }}</span>
+                            {% else %}
+                                <span class="product-selling-price">₹{{ product.discounted_price|floatformat:2 }}</span>
+                                <span class="product-original-price">₹{{ product.selling_price|floatformat:2 }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="product-selling-price">₹{{ product.selling_price|floatformat:2 }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="product-cost-info">
+
+{% if product.source_type == 'imported' %}
+
+Cost: ₹{{ product.source_product.discounted_price|default:product.source_price|floatformat:2 }}
+
+| Margin: ₹{{ product.margin_rupees|floatformat:2 }}
+
+{% else %}
+
+Cost: ₹{{ product.source_price|floatformat:2 }}
+
+| Margin: ₹{{ product.margin_rupees|floatformat:2 }}
+
+{% endif %}
+
+</div>
                 </div>
             </div>
 
@@ -1035,23 +1069,19 @@ onclick="showVariantDetails('{{ product.id }}', this)"
                    class="product-btn product-btn-edit">
                     <i class="fas fa-edit"></i> Edit
                 </a>
-                <!-- Publish/Unpublish using direct URL with confirm -->
-               <a href="{% url 'products:reseller_product_toggle_publish' store.id product.id %}"
-   class="product-btn {% if product.is_published %}product-btn-unpublish{% else %}product-btn-publish{% endif %}"
-   onclick="return confirm('{% if product.is_published %}Unpublish{% else %}Publish{% endif %} {{ product.name }}?')">
-
-    {% if product.is_published %}
-        <i class="fas fa-eye-slash"></i> Unpublish
-    {% else %}
-        <i class="fas fa-check-circle"></i> Publish
-    {% endif %}
-
-</a>
-                <!-- Delete using direct URL with confirm -->
+                <a href="{% url 'products:reseller_product_toggle_publish' store.id product.id %}"
+                   class="product-btn {% if product.is_published %}product-btn-unpublish{% else %}product-btn-publish{% endif %}"
+                   onclick="return confirm('{% if product.is_published %}Unpublish{% else %}Publish{% endif %} {{ product.name }}?')">
+                    {% if product.is_published %}
+                        <i class="fas fa-eye-slash"></i> Unpublish
+                    {% else %}
+                        <i class="fas fa-check-circle"></i> Publish
+                    {% endif %}
+                </a>
                 <a href="{% url 'products:reseller_product_delete' store.id product.id %}" 
                    class="product-btn product-btn-delete"
                    onclick="return confirm('Are you sure you want to delete "{{ product.name }}"? This action cannot be undone!')">
-                    <i class="fas fa-trash"></i> 
+                    <i class="fas fa-trash"></i>
                 </a>
             </div>
         </div>
@@ -1072,6 +1102,7 @@ onclick="showVariantDetails('{{ product.id }}', this)"
     <img id="lightboxImage" src="" alt="">
 </div>
 </div>
+
 <script>
     // Store for original thumbnails and price section
     const originalThumbnails = {};
@@ -1113,17 +1144,18 @@ onclick="showVariantDetails('{{ product.id }}', this)"
         }
     }
     
-    // Show Variant Details (Images + Price) - NO TOAST MESSAGES
+    // Show Variant Details (Images + Price) - WITH DISCOUNT SUPPORT
     function showVariantDetails(productId, variantElement) {
-        const variantName = variantElement.dataset.variantName;
         const variantSellingPrice = variantElement.dataset.variantSellingPrice;
+        const variantOriginalPrice = variantElement.dataset.variantOriginalPrice;
+        const variantDiscount = parseFloat(variantElement.dataset.variantDiscount) || 0;
         const variantSourcePrice = variantElement.dataset.variantSourcePrice;
         const variantMargin = variantElement.dataset.variantMargin;
         const variantMainImage = variantElement.dataset.mainImage;
+        const sourceType = variantElement.dataset.sourceType;
         let variantGalleryImages = [];
         
         try {
-            // Parse gallery images JSON
             const galleryStr = variantElement.dataset.galleryImages;
             if (galleryStr && galleryStr !== '[]') {
                 variantGalleryImages = JSON.parse(galleryStr.replace(/&quot;/g, '"'));
@@ -1176,13 +1208,58 @@ onclick="showVariantDetails('{{ product.id }}', this)"
             });
         }
         
-        // Update price section with variant pricing
-        if (priceSection) {
+        // Update price section with variant pricing (with discount if applicable)
+if (priceSection) {
+    if (variantDiscount > 0) {
+        if (sourceType === 'imported') {
+            // For imported variants: original price = source_price + margin
+            const mrpPrice = parseFloat(variantSourcePrice) + parseFloat(variantMargin);
+            // Wholesaler discounted price (what you actually pay)
+            const wholesalerDiscountedPrice = parseFloat(variantSourcePrice) * (1 - variantDiscount / 100);
             priceSection.innerHTML = `
-                <div class="product-selling-price">₹${variantSellingPrice}</div>
-                <div class="product-cost-info">Cost: ₹${variantSourcePrice} | Margin: ₹${variantMargin}</div>
+                <div>
+                    <span class="product-selling-price">₹${variantSellingPrice}</span>
+                    <span class="product-original-price">₹${mrpPrice.toFixed(2)}</span>
+                </div>
+                <div class="product-cost-info">
+                    Cost: ₹${wholesalerDiscountedPrice.toFixed(2)} | Margin: ₹${variantMargin}
+                </div>
+            `;
+        } else {
+            // For own variants: original price is the selling price before discount
+            priceSection.innerHTML = `
+                <div>
+                    <span class="product-selling-price">₹${variantSellingPrice}</span>
+                    <span class="product-original-price">₹${variantOriginalPrice}</span>
+                    <span class="product-discount-percent">${Math.round(variantDiscount)}% OFF</span>
+                </div>
+                <div class="product-cost-info">
+                    Cost: ₹${variantSourcePrice} | Margin: ₹${variantMargin}
+                </div>
             `;
         }
+    } else {
+        if (sourceType === 'imported') {
+            priceSection.innerHTML = `
+                <div>
+                    <span class="product-selling-price">₹${variantSellingPrice}</span>
+                </div>
+                <div class="product-cost-info">
+                    Cost: ₹${variantSourcePrice} |  Margin: ₹${variantMargin}
+                </div>
+            `;
+        } else {
+            priceSection.innerHTML = `
+                <div>
+                    <span class="product-selling-price">₹${variantSellingPrice}</span>
+                </div>
+                <div class="product-cost-info">
+                    Cost: ₹${variantSourcePrice} | Margin: ₹${variantMargin}
+                </div>
+            `;
+        }
+    }
+}
         
         // Update active state on variants
         const variants = document.querySelectorAll(`#variants-${productId} .product-variant-item`);
@@ -1196,8 +1273,6 @@ onclick="showVariantDetails('{{ product.id }}', this)"
         if (backBtn) {
             backBtn.style.display = 'inline-flex';
         }
-        
-        // NO TOAST MESSAGE - removed the showToast call
     }
     
     // Reset to Main Product Images and Price
@@ -1249,8 +1324,6 @@ onclick="showVariantDetails('{{ product.id }}', this)"
         if (backBtn) {
             backBtn.style.display = 'none';
         }
-        
-        // NO TOAST MESSAGE - removed the showToast call
     }
     
     // Get current main image for lightbox
