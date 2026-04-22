@@ -35,9 +35,10 @@ urlpatterns = [
     path('admin/refund/<int:refund_id>/process/', views.process_refund, name='process_refund'),
     path('admin/order/<str:order_id>/manual-refund/', views.create_manual_refund, name='create_manual_refund'),
     
-    # Cancellation
+     path('track/', views.send_tracking_otp, name='send_tracking_otp'),
+    path('verify-otp/', views.verify_tracking_otp, name='verify_tracking_otp'),
     path('cancel/<str:order_id>/', views.cancel_order, name='cancel_order'),
-    
+
     # Wholeseller Orders
     path('wholeseller/orders/', views.wholeseller_orders, name='wholeseller_orders'),
     path('wholeseller/order/<int:order_id>/', views.wholeseller_order_detail, name='wholeseller_order_detail'),
@@ -47,8 +48,10 @@ urlpatterns = [
     path('webhook/health/', webhook_views.webhook_health, name='webhook_health'),
     path('admin/sync-order/<str:order_id>/', webhook_views.sync_order_status, name='sync_order_status'),
     path('order/<int:order_id>/download/<str:doc_type>/', views.download_order_document, name='download_doc'),
-    path('resellerorderdashboard/', views.reseller_dashboard, name='reseller_order_dashboard'),
-    path('wholesellerorderdashboard/', views.wholeseller_dashboard, name='wholeseller_order_dashboard'),
-    path('adminorderdashboard/', views.admin_order_panel, name='admin_order_dashboard'),
+    path('shiprocket/orders/', fetch_all_shiprocket_orders),
+    path('shiprocket/order/<int:order_id>/', fetch_single_shiprocket_order),
+    path('shiprocket/shipment/<int:shipment_id>/', fetch_shipment_details),
+    path('ordersdashboard/', views.role_based_orders, name='orders_dashboard'),
+    path('detail/<int:order_id>/', views.shiprocket_order_detail, name='shiprocket_order_detail'),
 
 ]

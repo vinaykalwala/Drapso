@@ -1,0 +1,100 @@
+<h2>📦 Your Orders</h2>
+
+<p>Email: {{ email }}</p>
+
+<table border="1" width="100%" cellpadding="10">
+<tr>
+    <th>Order ID</th>
+    <th>Product</th>
+    <th>Total</th>
+    <th>Status</th>
+    <th>Shipping Status</th>
+    <th>AWB</th>
+    <th>Courier</th>
+    <th>Tracking</th>
+    <th>Refund</th>
+    <th>Action</th>
+</tr>
+
+{% for order in orders %}
+<tr>
+    <td>{{ order.local.order_id }}</td>
+    <td>{{ order.local.product.name }}</td>
+    <td>₹{{ order.local.total_amount }}</td>
+
+    <!-- Local Status -->
+    <td>{{ order.local.order_status|default:"N/A" }}</td>
+
+    <!-- Shiprocket Status -->
+    <td>{{ order.shiprocket.status|default:"N/A" }}</td>
+
+    <!-- AWB -->
+    <td>{{ order.shiprocket.awb|default:"-" }}</td>
+
+    <!-- Courier -->
+    <td>{{ order.shiprocket.courier|default:"-" }}</td>
+
+    <!-- Tracking -->
+    <td>
+        {% if order.shiprocket.awb %}
+            <a href="https://shiprocket.co/tracking/{{ order.shiprocket.awb }}" target="_blank">
+                Track
+            </a>
+        {% else %}
+            -
+        {% endif %}
+    </td>
+
+    <!-- ========================= -->
+    <!-- REFUND DETAILS -->
+    <!-- ========================= -->
+    <td>
+        {% with refund=order.local.refunds.first %}
+            {% if refund %}
+                
+                <b>Status:</b> {{ refund.get_status_display }} <br>
+
+                <b>Amount:</b> ₹{{ refund.refund_amount }} <br>
+
+                {% if refund.transaction_id %}
+                    <b>Txn ID:</b> {{ refund.transaction_id }} <br>
+                {% endif %}
+
+                {% if refund.admin_notes %}
+                    <b>Notes:</b> {{ refund.admin_notes }} <br>
+                {% endif %}
+
+                {% if refund.transfer_proof %}
+                    <a href="{{ refund.transfer_proof.url }}" target="_blank">
+                        View Proof
+                    </a>
+                {% endif %}
+
+            {% else %}
+                -
+            {% endif %}
+        {% endwith %}
+    </td>
+
+    <!-- ========================= -->
+    <!-- ACTION -->
+    <!-- ========================= -->
+    <td>
+        {% if order.local.can_cancel %}
+            <a href="{% url 'orders:cancel_order' order.local.order_id %}">
+                Cancel
+            </a>
+        {% else %}
+            Not Allowed
+        {% endif %}
+    </td>
+
+</tr>
+
+{% empty %}
+<tr>
+    <td colspan="10">No orders found</td>
+</tr>
+{% endfor %}
+
+</table>

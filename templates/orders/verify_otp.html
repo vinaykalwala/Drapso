@@ -1,0 +1,9 @@
+<form method="post" action="{% url 'orders:verify_tracking_otp' %}">
+    {% csrf_token %}
+    
+    <input type="hidden" name="email" value="{{ email }}">
+    
+    <input type="text" name="otp" placeholder="Enter OTP" required>
+    
+    <button type="submit">Verify</button>
+</form>

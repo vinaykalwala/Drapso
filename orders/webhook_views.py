@@ -1,5 +1,3 @@
-# orders/webhook_views.py
-
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse, HttpResponse
@@ -12,18 +10,18 @@ import hashlib
 import logging
 
 from .models import Order, ReturnRequest
+from shiprocket.services import ShiprocketService
 
 logger = logging.getLogger(__name__)
 
 
 # ===============================
-# 🔥 STATUS MAPPING (CORE LOGIC)
+# 🔥 STATUS MAPPING
 # ===============================
 def map_shiprocket_status(status):
     status = (status or '').lower().strip()
 
     mapping = {
-        # Forward flow
         'pickup scheduled': 'shipped',
         'picked up': 'shipped',
         'manifest generated': 'shipped',
@@ -32,12 +30,10 @@ def map_shiprocket_status(status):
         'out for delivery': 'out_for_delivery',
         'delivered': 'delivered',
 
-        # Returns / RTO
         'rto initiated': 'return_requested',
         'rto in transit': 'return_requested',
         'rto delivered': 'cancelled',
 
-        # Failures
         'lost': 'cancelled',
         'damaged': 'cancelled',
         'cancelled': 'cancelled',
@@ -47,7 +43,7 @@ def map_shiprocket_status(status):
 
 
 # ===============================
-# 🔥 MAIN WEBHOOK ENTRY
+# 🔥 MAIN WEBHOOK
 # ===============================
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -55,7 +51,7 @@ def shiprocket_webhook(request):
     payload = request.body
     signature = request.headers.get('X-Shiprocket-Signature')
 
-    # --- Signature verification (optional but recommended) ---
+    # 🔐 Signature verification
     if signature and hasattr(settings, 'SHIPROCKET_WEBHOOK_SECRET'):
         expected = hmac.new(
             settings.SHIPROCKET_WEBHOOK_SECRET.encode(),
@@ -71,7 +67,6 @@ def shiprocket_webhook(request):
         data = json.loads(payload)
         logger.info(f"📦 Shiprocket webhook: {data}")
 
-        # Route based on type
         if 'new_shipping_charge' in data:
             return handle_weight_webhook(data)
 
@@ -82,11 +77,11 @@ def shiprocket_webhook(request):
 
     except Exception as e:
         logger.exception("Webhook failed")
-        return HttpResponse(status=200)  # prevent retries
+        return HttpResponse(status=200)  # prevent retry
 
 
 # ===============================
-# 🔥 DELIVERY / TRACKING HANDLER
+# 🔥 DELIVERY HANDLER (UPDATED)
 # ===============================
 def handle_delivery_webhook(data):
     order_ref = data.get('order_id') or data.get('shipment_id')
@@ -109,13 +104,14 @@ def handle_delivery_webhook(data):
 
     print(f"\n📦 WEBHOOK STATUS: {current_status} | AWB: {awb_code}")
 
-    # Always update tracking info
+    # ============================
+    # UPDATE TRACKING INFO
+    # ============================
     order.last_shiprocket_status = current_status
     order.last_shiprocket_status_code = status_code
     order.awb_code = awb_code
     order.webhook_received_at = timezone.now()
 
-    # 🔥 Map to internal status
     mapped_status = map_shiprocket_status(current_status)
 
     if mapped_status:
@@ -125,9 +121,38 @@ def handle_delivery_webhook(data):
             'location': data.get('location')
         })
 
-        # Special handling
+        # ============================
+        # 🔥 DELIVERY LOGIC (UPDATED)
+        # ============================
         if mapped_status == 'delivered' and not order.delivered_at:
             order.delivered_at = timezone.now()
+
+            # 🔥 FETCH FINAL SHIPPING COST
+            try:
+                shiprocket = ShiprocketService()
+                shipment_result = shiprocket.get_order_by_shipment_id(order.shipment_id)
+
+                if shipment_result.get("success"):
+                    shipment = shipment_result.get("shipment", {})
+
+                    awb_data = shipment.get("awb_data", {})
+                    charges = awb_data.get("charges", {})
+
+                    freight = charges.get("freight_charges")
+
+                    if freight:
+                        order.actual_shipping_cost = float(freight)
+                        logger.info(f"💰 Final cost from shipment: {freight}")
+
+                    else:
+                        # 🔥 FALLBACK → RECALCULATE
+                        recalculated = recalculate_shipping_cost(order)
+                        if recalculated:
+                            order.actual_shipping_cost = recalculated
+                            logger.info(f"♻️ Recalculated cost: {recalculated}")
+
+            except Exception as e:
+                logger.error(f"Cost fetch failed: {e}")
 
             # Email (optional)
             try:
@@ -149,7 +174,7 @@ def handle_delivery_webhook(data):
 
 
 # ===============================
-# 🔥 WEIGHT UPDATE HANDLER
+# 🔥 WEIGHT WEBHOOK (ALREADY GOOD)
 # ===============================
 def handle_weight_webhook(data):
     order_ref = data.get('order_id')
@@ -196,55 +221,99 @@ def handle_return_webhook(data):
     return_request.save()
     return JsonResponse({'status': 'success'})
 
-from django.http import JsonResponse
-from django.utils import timezone
 
+# ===============================
+# 🔥 FALLBACK COST CALCULATION
+# ===============================
+def recalculate_shipping_cost(order):
+    try:
+        shiprocket = ShiprocketService()
+
+        result = shiprocket.get_order_by_shipment_id(order.shipment_id)
+
+        if not result.get("success"):
+            return None
+
+        shipment = result.get("shipment", {})
+
+        weight = shipment.get("applied_weight") or shipment.get("weight")
+        courier_name = shipment.get("courier_name")
+
+        rate_result = shiprocket.get_shipping_rate(
+            order.pickup_pincode,
+            order.delivery_pincode,
+            weight
+        )
+
+        if not rate_result.get("success"):
+            return None
+
+        for courier in rate_result["data"]:
+            if courier["courier_name"] == courier_name:
+                return float(courier["rate"])
+
+    except Exception as e:
+        logger.error(f"Recalculation failed: {e}")
+
+    return None
+
+
+# ===============================
+# 🔥 HEALTH CHECK
+# ===============================
 def webhook_health(request):
     return JsonResponse({
         'status': 'ok',
         'timestamp': timezone.now().isoformat()
     })
 
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
 
-from shiprocket.services import ShiprocketService
-from .models import Order
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
 def sync_order_status(request, order_id):
     """
-    Manual sync endpoint (backup if webhook fails)
+    Manual sync for an order (fallback if webhook missed)
     """
-    order = get_object_or_404(Order, order_id=order_id)
-
-    if not order.awb_code:
-        return JsonResponse({'error': 'No AWB found'}, status=400)
+    from django.shortcuts import redirect, get_object_or_404
+    from django.contrib import messages
 
     shiprocket = ShiprocketService()
 
-    tracking = shiprocket.track_shipment(order.awb_code)
+    order = get_object_or_404(Order, order_id=order_id)
 
-    print("\n🔁 MANUAL SYNC RESPONSE:")
-    print(tracking)
+    try:
+        result = shiprocket.get_order_by_shiprocket_id(order.shiprocket_order_id)
 
-    if not tracking or not tracking.get('data'):
-        return JsonResponse({'error': 'Tracking failed'}, status=500)
+        if not result.get("success"):
+            messages.error(request, "Failed to sync order")
+            return redirect(request.META.get('HTTP_REFERER', '/'))
 
-    data = tracking.get('data', {})
+        sr_order = result.get("order", {})
 
-    mock_webhook_data = {
-        'order_id': order.order_id,
-        'status': data.get('current_status'),
-        'awb_code': order.awb_code,
-        'location': data.get('location'),
-    }
+        status = sr_order.get("status")
+        shipments = sr_order.get("shipments")
 
-    # Reuse same handler (important)
-    handle_delivery_webhook(mock_webhook_data)
+        # Normalize shipment
+        if isinstance(shipments, list):
+            shipment = shipments[0] if shipments else {}
+        else:
+            shipment = shipments or {}
 
-    return JsonResponse({'status': 'synced'})
+        # Update fields
+        order.last_shiprocket_status = status
+        order.awb_code = shipment.get("awb") or order.awb_code
+
+        # Try to fetch cost
+        awb_data = shipment.get("awb_data", {})
+        charges = awb_data.get("charges", {})
+        freight = charges.get("freight_charges")
+
+        if freight:
+            order.actual_shipping_cost = float(freight)
+
+        order.save()
+
+        messages.success(request, "Order synced successfully")
+
+    except Exception as e:
+        messages.error(request, f"Sync failed: {str(e)}")
+
+    return redirect(request.META.get('HTTP_REFERER', '/'))

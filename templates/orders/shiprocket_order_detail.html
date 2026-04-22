@@ -1,0 +1,157 @@
+
+
+{% block content %}
+
+<div class="card">
+
+    <h2>📦 Order Details</h2>
+
+    <!-- ========================= -->
+    <!-- LOCAL ORDER -->
+    <!-- ========================= -->
+    <h3>🧾 Local Order</h3>
+    <p><b>Order ID:</b> {{ local.id }}</p>
+    <p><b>Customer:</b> {{ local.customer_name }}</p>
+    <p><b>Total:</b> ₹{{ local.total_amount }}</p>
+    <p><b>Delivery Charges:</b>₹{{ local.actual_shipping_cost }}</p>
+    <p>
+    <b>Tracking Url:</b>
+    <a href="{{ local.tracking_url }}" target="_blank">
+        {{ local.tracking_url }}
+    </a>
+</p>
+    <hr>
+
+    <!-- ========================= -->
+    <!-- STATUS -->
+    <!-- ========================= -->
+    <h3>📊 Status</h3>
+    <p><b>Status:</b> {{ order.status }}</p>
+    <p><b>Created:</b> {{ order.created_at }}</p>
+    <p><b>Channel Created:</b> {{ order.channel_created_at }}</p>
+
+    <hr>
+
+    <!-- ========================= -->
+    <!-- CHANNEL -->
+    <!-- ========================= -->
+    <h3>🏷️ Channel</h3>
+    <p><b>Name:</b> {{ order.channel_name }}</p>
+    <p><b>Code:</b> {{ order.base_channel_code }}</p>
+
+    <hr>
+
+    <!-- ========================= -->
+    <!-- CUSTOMER -->
+    <!-- ========================= -->
+    <h3>👤 Customer</h3>
+    <p>{{ order.customer_name }}</p>
+    <p>{{ order.customer_email }}</p>
+    <p>{{ order.customer_phone }}</p>
+
+    <hr>
+
+    <!-- ========================= -->
+    <!-- ADDRESS -->
+    <!-- ========================= -->
+    <h3>📍 Address</h3>
+    <p>{{ order.customer_address }}</p>
+    <p>{{ order.customer_city }}, {{ order.customer_state }}</p>
+    <p>{{ order.customer_pincode }}</p>
+
+    <hr>
+
+    <!-- ========================= -->
+    <!-- PAYMENT -->
+    <!-- ========================= -->
+    <h3>💳 Payment</h3>
+    <p><b>Method:</b> {{ order.payment_method }}</p>
+    <p><b>Total:</b> ₹{{ order.total }}</p>
+    <p><b>Tax:</b> ₹{{ order.tax }}</p>
+
+    <hr>
+
+    <!-- ========================= -->
+    <!-- SHIPPING -->
+    <!-- ========================= -->
+    <h3>🚚 Shipping</h3>
+    <p><b>SLA:</b> {{ order.sla }}</p>
+    <p><b>Method:</b> {{ order.shipping_method }}</p>
+    <p><b>Pickup Location:</b> {{ order.pickup_location }}</p>
+    <p><b>Pickup ID:</b> {{ order.pickup_id }}</p>
+
+    <hr>
+
+    <!-- ========================= -->
+    <!-- SHIPMENT (FIXED) -->
+    <!-- ========================= -->
+    <h3>📦 Shipment Details</h3>
+
+    {% with s=order.shipments %}
+        <p><b>Courier:</b> {{ s.courier }}</p>
+        <p><b>AWB:</b> {{ s.awb }}</p>
+        <p><b>Pickup Scheduled:</b> {{ s.pickup_scheduled_date }}</p>
+        <p><b>ETD:</b> {{ s.etd }}</p>
+
+        <p><b>Weight:</b> {{ s.weight }}</p>
+        <p><b>Dimensions:</b> {{ s.dimensions }}</p>
+        <p><b>Volumetric:</b> {{ s.volumetric_weight }}</p>
+    {% endwith %}
+
+    <hr>
+
+    <!-- ========================= -->
+    <!-- PRODUCTS -->
+    <!-- ========================= -->
+    <h3>📦 Products</h3>
+
+    <table border="1" width="100%" cellpadding="10">
+        <tr>
+            <th>Name</th>
+            <th>SKU</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Total</th>
+        </tr>
+
+        {% for item in order.products %}
+        <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.channel_sku }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>₹{{ item.price }}</td>
+            <td>₹{{ item.net_total }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <hr>
+
+    <!-- ========================= -->
+    <!-- EXTRA INFO -->
+    <!-- ========================= -->
+    <h3>🧾 Notes</h3>
+    <p>{{ order.comment }}</p>
+
+    <hr>
+
+    <!-- ========================= -->
+    <!-- PACKAGE / AWB DATA -->
+    <!-- ========================= -->
+    <h3>⚖️ Package Info</h3>
+
+    <p><b>Applied Weight:</b> {{ order.awb_data.applied_weight }}</p>
+    <p><b>Freight:</b> {{ order.awb_data.charges.freight_charges }}</p>
+
+    <hr>
+
+    <!-- ========================= -->
+    <!-- FLAGS -->
+    <!-- ========================= -->
+    <h3>⚙️ Flags</h3>
+    <p>Allow Return: {{ order.allow_return }}</p>
+    <p>Incomplete: {{ order.is_incomplete }}</p>
+
+</div>
+
+{% endblock %}

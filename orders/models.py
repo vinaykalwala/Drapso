@@ -177,7 +177,7 @@ class Order(models.Model):
 
     # Helper Logic Methods
     def can_cancel(self):
-        return self.order_status in ['pending', 'paid', 'approved'] and not self.shipped_at
+        return self.order_status in ['pending', 'paid'] and not self.shipped_at
 
     def can_request_return(self):
         if self.order_status != 'delivered' or not self.delivered_at:

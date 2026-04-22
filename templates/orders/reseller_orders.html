@@ -1,0 +1,104 @@
+
+
+{% block content %}
+
+<div class="card">
+
+    <h3>📦 My Store Orders</h3>
+
+    <table width="100%" border="1" cellpadding="10">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Product</th>
+                <th>Customer</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>AWB</th>
+                <th>Courier</th>
+                <th>Pickup Date</th>
+                <th>Tracking</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for order in orders %}
+        <tr>
+
+            <!-- ========================= -->
+            <!-- LOCAL DATA -->
+            <!-- ========================= -->
+            <td>{{ order.local.id }}</td>
+            <td>{{ order.local.product.name }}</td>
+            <td>{{ order.local.customer_name }}</td>
+            <td>₹{{ order.local.total_amount }}</td>
+
+            <!-- ========================= -->
+            <!-- STATUS -->
+            <!-- ========================= -->
+            <td>
+                <span class="badge 
+                    {% if order.shiprocket.status == 'DELIVERED' %}success
+                    {% elif order.shiprocket.status == 'CANCELED' %}danger
+                    {% elif order.shiprocket.status == 'IN TRANSIT' %}info
+                    {% else %}warning
+                    {% endif %}
+                ">
+                    {{ order.shiprocket.status|default:"N/A" }}
+                </span>
+            </td>
+
+            <!-- ========================= -->
+            <!-- SHIPMENT DATA (FIXED) -->
+            <!-- ========================= -->
+            <td>
+                {{ order.shiprocket.shipment.awb|default:"Not Assigned" }}
+            </td>
+
+            <td>
+                {{ order.shiprocket.shipment.courier|default:"-" }}
+            </td>
+
+            <td>
+                {{ order.shiprocket.shipment.pickup_scheduled_date|default:"-" }}
+            </td>
+
+            <!-- ========================= -->
+            <!-- TRACKING -->
+            <!-- ========================= -->
+            <td>
+                {% if order.shiprocket.shipment.awb %}
+                    <a href="https://shiprocket.co/tracking/{{ order.shiprocket.shipment.awb }}" target="_blank" class="btn">
+                        Track
+                    </a>
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            <!-- ========================= -->
+            <!-- ACTION -->
+            <!-- ========================= -->
+            <td>
+                <a href="{% url 'orders:shiprocket_order_detail' order.local.id %}" class="btn">
+                    View
+                </a>
+            </td>
+
+        </tr>
+
+        {% empty %}
+        <tr>
+            <td colspan="10" style="text-align:center;">
+                No orders found
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

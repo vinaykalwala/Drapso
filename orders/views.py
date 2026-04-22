@@ -1439,29 +1439,136 @@ def create_manual_refund(request, order_id):
     }
     return render(request, 'orders/admin/create_manual_refund.html', context)
 
+import random
+from django.core.cache import cache
+from django.core.mail import send_mail
+from django.shortcuts import render
+from django.conf import settings
+
+def send_tracking_otp(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
+
+        otp = random.randint(100000, 999999)
+        cache.set(f"otp_{email}", otp, timeout=300)
+
+        send_mail(
+            subject="Your Order Access OTP",
+            message=f"Your OTP is {otp}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+        )
+
+        return render(request, "orders/verify_otp.html", {"email": email})
+
+    return render(request, "orders/enter_email.html")
+
+from django.shortcuts import redirect
+from django.contrib import messages
+from .models import Order
+from shiprocket.services import ShiprocketService
+
+def verify_tracking_otp(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
+        entered_otp = request.POST.get("otp")
+
+        stored_otp = cache.get(f"otp_{email}")
+
+        if not stored_otp or str(stored_otp) != entered_otp:
+            messages.error(request, "Invalid OTP")
+            return render(request, "orders/verify_otp.html", {"email": email})
+
+        # ✅ OTP VERIFIED → FETCH ALL ORDERS
+        orders = Order.objects.filter(customer_email=email).order_by('-created_at')
+
+        shiprocket = ShiprocketService()
+        order_data = []
+
+        for order in orders:
+            sr_data = {}
+
+            if order.shiprocket_order_id:
+                try:
+                    result = shiprocket.get_order_by_shiprocket_id(order.shiprocket_order_id)
+
+                    if result.get("success"):
+                        sr_order = result.get("order", {})
+
+                        shipments = sr_order.get("shipments")
+
+                        # 🔥 Normalize
+                        if isinstance(shipments, list):
+                            shipment = shipments[0] if shipments else {}
+                        else:
+                            shipment = shipments or {}
+
+                        sr_data = {
+                            "status": sr_order.get("status"),
+                            "awb": shipment.get("awb"),
+                            "courier": shipment.get("courier"),
+                        }
+
+                except Exception:
+                    pass
+
+            order_data.append({
+                "local": order,
+                "shiprocket": sr_data
+            })
+
+        return render(request, "orders/customer_orders.html", {
+            "orders": order_data,
+            "email": email
+        })
+
+    return redirect("send_tracking_otp")
 
 # ============ CANCELLATION ============
 
+
 def cancel_order(request, order_id):
-    """Customer cancels order before shipping"""
+    """Customer cancels order before shipping (based on model logic)"""
+
     order = get_object_or_404(Order, order_id=order_id)
-    
+
+    # ============================
+    # 🚨 PRIMARY CHECK (MODEL LOGIC)
+    # ============================
     if not order.can_cancel():
-        messages.error(request, 'Order cannot be cancelled. It may have already been shipped.')
-        return redirect('orders:track_order', order_id=order_id)
-    
+        messages.error(request, "Order cannot be cancelled. It may have already been shipped.")
+        return redirect('send_tracking_otp')
+
+    # ============================
+    # 🚨 EXTRA SAFETY (SHIPROCKET)
+    # ============================
+    if order.last_shiprocket_status:
+        sr_status = order.last_shiprocket_status.lower()
+
+        if sr_status not in ['new', 'created']:
+            messages.error(request, "Order already processed/shipped. Cannot cancel.")
+            return redirect('orders:send_tracking_otp')
+
+    # ============================
+    # POST → PROCESS CANCEL
+    # ============================
     if request.method == 'POST':
+
         account_holder_name = request.POST.get('account_holder_name')
         account_number = request.POST.get('account_number')
         confirm_account_number = request.POST.get('confirm_account_number')
         ifsc_code = request.POST.get('ifsc_code')
         bank_name = request.POST.get('bank_name')
         upi_id = request.POST.get('upi_id')
-        
-        if account_number != confirm_account_number:
-            messages.error(request, 'Account numbers do not match.')
+
+        # 🔍 Validate account number
+        if account_number and account_number != confirm_account_number:
+            messages.error(request, "Account numbers do not match.")
             return redirect('orders:cancel_order', order_id=order_id)
-        
+
+        # ============================
+        # CREATE REFUND
+        # ============================
         refund = Refund.objects.create(
             order=order,
             refund_type='cancellation',
@@ -1473,43 +1580,60 @@ def cancel_order(request, order_id):
             upi_id=upi_id,
             status='pending'
         )
-        
-        order.order_status = 'cancelled'
-        order.add_status_history('cancelled', {'refund_id': refund.id})
-        order.save()
-        
-        # Notify reseller
-        send_mail(
-            subject=f'Order Cancelled - {order.order_id}',
-            message=f"""
+
+        # ============================
+        # UPDATE ORDER STATUS
+        # ============================
+        order.add_status_history('cancelled', {
+            'refund_id': refund.id,
+            'source': 'customer'
+        })
+
+        # No need to manually set order_status → handled inside add_status_history
+
+        # ============================
+        # NOTIFY RESELLER
+        # ============================
+        try:
+            send_mail(
+                subject=f'Order Cancelled - {order.order_id}',
+                message=f"""
 Dear {order.reseller.first_name},
 
 Order {order.order_id} has been CANCELLED by the customer.
 
-📦 Order Details:
-• Product: {order.product.name}
-• Quantity: {order.quantity}
-• Refund Amount: ₹{order.total_amount}
+📦 Product: {order.product.name if order.product else 'N/A'}
+🔢 Quantity: {order.quantity}
+💰 Refund Amount: ₹{order.total_amount}
 
 Please do not ship this order.
 
 Regards,
 Drapso Team
-            """,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[order.reseller.email],
-            fail_silently=False,
+                """,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[order.reseller.email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass
+
+        # ============================
+        # SUCCESS MESSAGE
+        # ============================
+        messages.success(
+            request,
+            f"Order {order.order_id} cancelled successfully. Refund will be processed in 5–7 days."
         )
-        
-        messages.success(request, f'Order {order.order_id} has been cancelled. Your refund will be processed within 5-7 business days.')
-        return redirect('orders:track_order', order_id=order_id)
-    
-    context = {
-        'order': order,
-    }
-    return render(request, 'orders/cancel_order.html', context)
 
+        return redirect('send_tracking_otp')
 
+    # ============================
+    # GET → SHOW PAGE
+    # ============================
+    return render(request, 'orders/cancel_order.html', {
+        'order': order
+    })
 # ============ WHOLESELLER ORDER VIEWS ============
 
 @login_required
@@ -1563,35 +1687,158 @@ def refresh_orders_from_shiprocket(user_orders):
                 order_status=sr_status
             )
 
+
+def fetch_all_shiprocket_orders(request):
+    shiprocket = ShiprocketService()
+    result = shiprocket.get_all_orders()
+
+    if result["success"]:
+        return JsonResponse(result)
+
+    return JsonResponse({"error": result["error"]}, status=400)
+
+
+def fetch_single_shiprocket_order(request, order_id):
+    shiprocket = ShiprocketService()
+    result = shiprocket.get_order_by_shiprocket_id(order_id)
+
+    if result["success"]:
+        return JsonResponse(result["order"])
+
+    return JsonResponse({"error": result["error"]}, status=400)
+
+
+def fetch_shipment_details(request, shipment_id):
+    shiprocket = ShiprocketService()
+    result = shiprocket.get_order_by_shipment_id(shipment_id)
+
+    if result["success"]:
+        return JsonResponse(result["shipment"])
+
+    return JsonResponse({"error": result["error"]}, status=400)
+
+from django.core.cache import cache
 @login_required
-def reseller_dashboard(request):
-    orders = Order.objects.filter(store__reseller=request.user).order_by('-created_at')
-    # Auto-sync before displaying
-    refresh_orders_from_shiprocket(orders)
-    
-    return render(request, 'dashboard/reseller.html', {
-        'pending_orders': orders.filter(order_status='paid'),
-        'in_transit': orders.filter(order_status__in=['approved', 'shipped']),
-        'completed': orders.filter(order_status='delivered')
+def role_based_orders(request):
+    user = request.user
+    shiprocket = ShiprocketService()
+
+    # ============================
+    # 🔥 CACHE (optional but recommended)
+    # ============================
+    shiprocket_orders = cache.get("shiprocket_orders")
+
+    if not shiprocket_orders:
+        result = shiprocket.get_all_orders()
+
+        if not result.get("success"):
+            return render(request, 'orders/error.html', {
+                "error": result.get("error")
+            })
+
+        shiprocket_orders = result.get("orders", [])
+        cache.set("shiprocket_orders", shiprocket_orders, timeout=300)
+
+    filtered_orders = []
+
+    # ============================
+    # 🔥 MAP + NORMALIZE DATA
+    # ============================
+    for sr_order in shiprocket_orders:
+        channel_order_id = sr_order.get("channel_order_id")
+
+        if not channel_order_id:
+            continue
+
+        try:
+            local_order = Order.objects.select_related(
+                'store', 'reseller', 'wholeseller'
+            ).get(order_id=channel_order_id)
+        except Order.DoesNotExist:
+            continue
+
+        # 🔥 NORMALIZE shipment
+        shipments = sr_order.get("shipments")
+
+        if isinstance(shipments, list):
+            sr_order["shipment"] = shipments[0] if shipments else {}
+        elif isinstance(shipments, dict):
+            sr_order["shipment"] = shipments
+        else:
+            sr_order["shipment"] = {}
+
+        # ============================
+        # ROLE FILTER
+        # ============================
+        if user.is_superuser:
+            filtered_orders.append({
+                "local": local_order,
+                "shiprocket": sr_order
+            })
+
+        elif user.role == "reseller" and local_order.reseller == user:
+            filtered_orders.append({
+                "local": local_order,
+                "shiprocket": sr_order
+            })
+
+        elif user.role == "wholeseller" and local_order.wholeseller == user:
+            filtered_orders.append({
+                "local": local_order,
+                "shiprocket": sr_order
+            })
+
+    # ============================
+    # TEMPLATE SELECT
+    # ============================
+    if user.is_superuser:
+        template = "orders/admin_orders.html"
+        title = "Admin Orders"
+
+    elif user.role == "reseller":
+        template = "orders/reseller_orders.html"
+        title = "My Orders"
+
+    elif user.role == "wholeseller":
+        template = "orders/wholeseller_orders.html"
+        title = "Wholeseller Orders"
+
+    else:
+        return redirect('dashboard')
+
+    return render(request, template, {
+        "orders": filtered_orders,
+        "title": title
     })
 
 @login_required
-def wholeseller_dashboard(request):
-    # Only show orders assigned to this wholesaler that are ready to pack
-    orders = Order.objects.filter(wholeseller=request.user).order_by('-created_at')
-    refresh_orders_from_shiprocket(orders)
+def shiprocket_order_detail(request, order_id):
+    shiprocket = ShiprocketService()
 
-    return render(request, 'dashboard/wholeseller.html', {
-        'ready_to_ship': orders.filter(order_status='approved'),
-        'shipped_orders': orders.filter(order_status='shipped'),
-    })
+    local_order = get_object_or_404(Order, id=order_id)
 
-@staff_member_required
-def admin_order_panel(request):
-    all_orders = Order.objects.all().select_related('store', 'wholeseller')
-    
-    return render(request, 'dashboard/admin_orders.html', {
-        'total_revenue': sum(o.total_amount for o in all_orders),
-        'shipping_losses': all_orders.filter(actual_shipping_cost__gt=F('shipping_charge')),
-        'all_orders': all_orders
+    result = shiprocket.get_order_by_shiprocket_id(
+        local_order.shiprocket_order_id
+    )
+
+    if not result.get("success"):
+        return render(request, 'orders/error.html', {
+            "error": result.get("error")
+        })
+
+    order_data = result.get("order", {})
+
+    # 🔥 Normalize shipment here also
+    shipments = order_data.get("shipments")
+
+    if isinstance(shipments, list):
+        order_data["shipment"] = shipments[0] if shipments else {}
+    elif isinstance(shipments, dict):
+        order_data["shipment"] = shipments
+    else:
+        order_data["shipment"] = {}
+
+    return render(request, 'orders/shiprocket_order_detail.html', {
+        "local": local_order,
+        "order": order_data
     })
