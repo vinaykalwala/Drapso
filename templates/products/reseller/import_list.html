@@ -141,6 +141,20 @@ background-position:center;        border-radius: 24px;
         z-index: 10;
     }
 
+    /* Discount Badge */
+    .discount-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: #ef4444;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        z-index: 10;
+    }
+
     /* Image Section */
     .image-section {
         padding: 20px;
@@ -370,6 +384,13 @@ background-position:center;        border-radius: 24px;
         margin-top: 4px;
     }
 
+    .variant-original-price {
+        font-size: 8px;
+        color: #94a3b8;
+        text-decoration: line-through;
+        margin-top: 2px;
+    }
+
     /* No Variants */
     .no-variants {
         text-align: center;
@@ -414,6 +435,25 @@ background-position:center;        border-radius: 24px;
         color: var(--primary);
     }
 
+    .original-price-strike {
+        font-size: 13px;
+        color: #94a3b8;
+        text-decoration: line-through;
+        margin-left: 8px;
+        font-weight: normal;
+    }
+
+    .discount-percent-badge {
+        background: #ef4444;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-left: 8px;
+        display: inline-block;
+    }
+
     .stock-info {
         font-size: 11px;
         color: var(--gray-600);
@@ -454,15 +494,13 @@ background-position:center;        border-radius: 24px;
     }
 
     /* Empty State */
-    /* Empty State */
 .empty-state {
     text-align: center;
     padding: 80px 20px;
     background: white;
     border-radius: 28px;
     border: 2px dashed var(--gray-300);
-
-    grid-column: 1 / -1; /* FULL WIDTH */
+    grid-column: 1 / -1;
     width: 100%;
 }
 
@@ -573,6 +611,12 @@ background-position:center;        border-radius: 24px;
                 </div>
             {% endif %}
 
+            {% if product.discount_percentage > 0 %}
+                <div class="discount-badge">
+                    <i class="fas fa-tag"></i> {{ product.discount_percentage|floatformat:0 }}% OFF
+                </div>
+            {% endif %}
+
             <!-- IMAGE SECTION -->
             <div class="image-section">
                 <div class="main-image-container">
@@ -627,12 +671,14 @@ background-position:center;        border-radius: 24px;
                     <div class="variant-card" 
                          data-variant-id="{{ variant.id }}"
                          data-variant-name="{{ variant.variant_name }}"
-                         data-variant-price="{{ variant.price }}"
+                         data-variant-price="{{ variant.discounted_price|floatformat:2|default:variant.price }}"
+                         data-variant-original-price="{{ variant.price }}"
+                         data-variant-discount="{{ variant.discount_percentage|default:0 }}"
                          data-variant-stock="{{ variant.stock }}"
                          data-main-image="{% if variant.main_image %}{{ variant.main_image.url }}{% endif %}"
                          data-gallery='[
                             {% if variant.main_image %}"{{ variant.main_image.url }}"{% endif %}
-                            {% for img in variant.additional_images.all %},"{{ img.image.url }}"{% endfor %}
+                            {% for img in variant.additional_images.all %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}
                          ]'
                          onclick="showVariant('{{ product.id }}', this)">
                         
@@ -644,7 +690,12 @@ background-position:center;        border-radius: 24px;
                             </div>
                         {% endif %}
                         <div class="variant-name">{{ variant.variant_name|truncatechars:10 }}</div>
-                        <div class="variant-price">₹{{ variant.price }}</div>
+                        {% if variant.discount_percentage > 0 %}
+                            <div class="variant-price">₹{{ variant.discounted_price|floatformat:2 }}</div>
+                            <div class="variant-original-price">₹{{ variant.price }}</div>
+                        {% else %}
+                            <div class="variant-price">₹{{ variant.price }}</div>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
@@ -663,7 +714,12 @@ background-position:center;        border-radius: 24px;
                     <i class="fas fa-building"></i> {{ product.brand|default:"No Brand" }}
                 </div>
                 <div class="price-stock-box" id="priceStock-{{ product.id }}">
-                    <div class="price-amount">₹{{ product.price }}</div>
+                    <div>
+                        <span class="price-amount">₹{{ product.discounted_price|floatformat:2|default:product.price }}</span>
+                        {% if product.discount_percentage > 0 %}
+                            <span class="original-price-strike">₹{{ product.price }}</span>
+                        {% endif %}
+                    </div>
                     <div class="stock-info">
                         <i class="fas fa-box"></i> Stock: {{ product.stock }} units
                     </div>
@@ -758,6 +814,12 @@ function showVariant(productId, variantElement) {
 
     const variantPrice =
         variantElement.dataset.variantPrice;
+
+    const variantOriginalPrice =
+        variantElement.dataset.variantOriginalPrice;
+
+    const variantDiscount =
+        variantElement.dataset.variantDiscount;
 
     const variantStock =
         variantElement.dataset.variantStock;
@@ -889,19 +951,40 @@ function showVariant(productId, variantElement) {
 
 
 
-    // update price + stock
+    // update price + stock with discount display
     if (priceStockBox) {
 
-        priceStockBox.innerHTML = `
-            <div class="price-amount">
-                ₹${variantPrice}
-            </div>
-
-            <div class="stock-info">
-                <i class="fas fa-box"></i>
-                Stock: ${variantStock} units
-            </div>
-        `;
+        if (variantDiscount > 0) {
+            priceStockBox.innerHTML = `
+                <div>
+                    <span class="price-amount">
+                        ₹${variantPrice}
+                    </span>
+                    <span class="original-price-strike">
+                        ₹${variantOriginalPrice}
+                    </span>
+                    <span class="discount-percent-badge">
+                        ${Math.round(variantDiscount)}% OFF
+                    </span>
+                </div>
+                <div class="stock-info">
+                    <i class="fas fa-box"></i>
+                    Stock: ${variantStock} units
+                </div>
+            `;
+        } else {
+            priceStockBox.innerHTML = `
+                <div>
+                    <span class="price-amount">
+                        ₹${variantPrice}
+                    </span>
+                </div>
+                <div class="stock-info">
+                    <i class="fas fa-box"></i>
+                    Stock: ${variantStock} units
+                </div>
+            `;
+        }
     }
 
 

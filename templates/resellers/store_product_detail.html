@@ -1,54 +1,113 @@
+{% extends "includes/multitheme_base.html" %}
+
 {% load static %}
 {% block content %}
 
 <style>
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');
+
     :root {
         --primary: #16a34a;
+        --primary-dark: #15803d;
+        --primary-light: #f0fdf4;
         --border: #e5e7eb;
         --bg: #f8fafc;
         --text: #111827;
-        --muted: #6b7280;
+        --text-light: #6b7280;
         --danger: #ef4444;
+        --warning: #f59e0b;
+        --success: #10b981;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
     }
 
     /* PAGE CONTAINER */
     .product-detail-container {
-        max-width: 1280px;
+        max-width: 1400px;
         margin: 0 auto;
-        padding: 40px 20px;
+        padding: 40px 24px;
         background: var(--bg);
         min-height: calc(100vh - 200px);
     }
 
-    /* MAIN PRODUCT GRID */
+    /* MAIN PRODUCT GRID - EQUAL HEIGHT */
     .product-detail-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 50px;
+        gap: 48px;
         background: white;
-        border-radius: 20px;
+        border-radius: 24px;
         padding: 40px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         margin-bottom: 60px;
+        align-items: start;
     }
 
-    @media (max-width: 768px) {
+    /* LEFT COLUMN - STICKY (doesn't scroll) */
+    .product-gallery {
+        position: sticky;
+        top: 20px;
+        align-self: start;
+    }
+
+    /* RIGHT COLUMN - SCROLLABLE (full height scroll) */
+    .product-info {
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+    /* Custom scrollbar for right column */
+    .product-info::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .product-info::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .product-info::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 10px;
+    }
+
+    @media (max-width: 968px) {
         .product-detail-grid {
             grid-template-columns: 1fr;
-            gap: 30px;
-            padding: 20px;
+            gap: 32px;
+            padding: 24px;
+        }
+        
+        /* On mobile, remove sticky so both scroll normally */
+        .product-gallery {
+            position: relative;
+            top: 0;
+        }
+        
+        .product-info {
+            max-height: none;
+            overflow-y: visible;
+            padding-right: 0;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .product-detail-container {
+            padding: 20px 16px;
+        }
+        .product-detail-grid {
+            padding: 16px;
         }
     }
 
     /* ========== LEFT COLUMN - IMAGES ========== */
-    .product-gallery {
-        position: sticky;
-        top: 20px;
-    }
-
     .main-image-container {
         background: #f9fafb;
-        border-radius: 16px;
+        border-radius: 20px;
         overflow: hidden;
         margin-bottom: 20px;
         cursor: pointer;
@@ -57,6 +116,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        border: 1px solid var(--border);
     }
 
     .main-image {
@@ -78,19 +138,79 @@
         color: white;
         padding: 8px 12px;
         border-radius: 8px;
-        font-size: 14px;
+        font-size: 13px;
         display: flex;
         align-items: center;
         gap: 6px;
         pointer-events: none;
     }
 
-    /* Thumbnail Gallery */
-    .thumbnail-gallery {
-        display: flex;
-        gap: 12px;
-        overflow-x: auto;
-        padding-bottom: 8px;
+    .zoom-icon i {
+        font-size: 12px;
+    }
+
+   .thumbnail-gallery{
+
+display:flex;
+gap:10px;
+
+overflow-x:auto;
+overflow-y:hidden;
+
+padding-bottom:8px;
+
+scroll-behavior:smooth;
+
+-webkit-overflow-scrolling:touch;
+
+}
+
+/* scrollbar style */
+
+.thumbnail-gallery::-webkit-scrollbar{
+
+height:6px;
+
+}
+
+.thumbnail-gallery::-webkit-scrollbar-thumb{
+
+background:#16a34a;
+border-radius:10px;
+
+}
+
+/* thumbnails never shrink */
+
+.thumbnail{
+
+flex:0 0 auto;
+
+width:75px;
+height:75px;
+
+cursor:pointer;
+
+}
+.product-gallery{
+
+width:100%;
+overflow:hidden;
+
+}
+
+    .thumbnail-gallery::-webkit-scrollbar {
+        height: 5px;
+    }
+
+    .thumbnail-gallery::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .thumbnail-gallery::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 10px;
     }
 
     .thumbnail {
@@ -98,7 +218,7 @@
         height: 80px;
         flex-shrink: 0;
         border: 2px solid transparent;
-        border-radius: 8px;
+        border-radius: 12px;
         cursor: pointer;
         transition: all 0.2s;
         background: #f9fafb;
@@ -119,25 +239,34 @@
         border-color: var(--primary);
     }
 
-    /* ========== RIGHT COLUMN - DETAILS ========== */
+    /* ========== RIGHT COLUMN - DETAILS (SCROLLABLE) ========== */
     .product-info {
         display: flex;
         flex-direction: column;
+        gap: 20px;
     }
 
     .product-name {
         font-size: 28px;
         font-weight: 700;
         color: var(--text);
-        margin-bottom: 12px;
         line-height: 1.3;
+        margin: 0;
     }
 
     .product-price {
         font-size: 32px;
         font-weight: 700;
         color: var(--primary);
-        margin-bottom: 16px;
+        margin: 0;
+    }
+    
+    .old-price {
+        text-decoration: line-through;
+        color: #999;
+        margin-left: 10px;
+        font-size: 20px;
+        font-weight: normal;
     }
 
     /* Stock Status */
@@ -145,12 +274,15 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 14px;
+        padding: 6px 14px;
+        border-radius: 30px;
+        font-size: 13px;
         font-weight: 600;
-        margin-bottom: 24px;
         width: fit-content;
+    }
+
+    .stock-status i {
+        font-size: 12px;
     }
 
     .in-stock {
@@ -170,29 +302,37 @@
 
     /* Description */
     .product-description {
-        color: var(--muted);
+        color: var(--text-light);
         line-height: 1.7;
-        margin-bottom: 24px;
-        padding-bottom: 24px;
+        font-size: 14px;
+        padding-bottom: 16px;
         border-bottom: 1px solid var(--border);
     }
 
     /* Specifications */
     .specifications {
-        margin-bottom: 24px;
+        margin: 0;
     }
 
     .specifications h4 {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 600;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
         color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .specifications h4 i {
+        color: var(--primary);
+        font-size: 16px;
     }
 
     .spec-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        gap: 10px;
     }
 
     .spec-item {
@@ -204,50 +344,88 @@
 
     .spec-label {
         font-weight: 500;
-        color: var(--muted);
-        font-size: 14px;
+        color: var(--text-light);
+        font-size: 13px;
+    }
+
+    .spec-label i {
+        margin-right: 6px;
+        font-size: 11px;
+        color: var(--primary);
     }
 
     .spec-value {
         color: var(--text);
         font-weight: 500;
-        font-size: 14px;
+        font-size: 13px;
     }
 
-    /* Variants */
+    /* Variants Section - HORIZONTAL SCROLL */
     .variants-section {
-        margin-bottom: 24px;
+        margin: 0;
     }
 
     .variants-section h4 {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 600;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
         color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .variants-section h4 i {
+        color: var(--primary);
+        font-size: 16px;
+    }
+
+    .variant-scroll-container {
+        overflow-x: auto;
+        overflow-y: hidden;
+        margin: 0 -5px;
+        padding: 0 5px 12px 5px;
+        scrollbar-width: thin;
+        scroll-behavior: smooth;
+    }
+
+    .variant-scroll-container::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .variant-scroll-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .variant-scroll-container::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 10px;
     }
 
     .variant-list {
         display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
+        gap: 14px;
+        min-width: min-content;
     }
 
     .variant-item {
         border: 1px solid var(--border);
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 12px;
-        min-width: 120px;
+        min-width: 110px;
         text-align: center;
         cursor: pointer;
         transition: all 0.2s;
         background: white;
         position: relative;
+        flex-shrink: 0;
     }
 
     .variant-item.selected {
         border-color: var(--primary);
-        background: #f0fdf4;
-        box-shadow: 0 2px 8px rgba(22, 163, 74, 0.1);
+        background: var(--primary-light);
+        box-shadow: 0 2px 10px rgba(22, 163, 74, 0.15);
     }
 
     .variant-item.disabled {
@@ -257,13 +435,13 @@
 
     .variant-item:hover:not(.disabled) {
         border-color: var(--primary);
-        transform: translateY(-2px);
+        transform: translateY(-3px);
     }
 
     .variant-image {
         width: 60px;
         height: 60px;
-        margin: 0 auto 8px;
+        margin: 0 auto 10px;
     }
 
     .variant-image img {
@@ -273,30 +451,35 @@
     }
 
     .variant-name {
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 600;
         color: var(--text);
-        margin-bottom: 4px;
+        margin-bottom: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .variant-price {
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 700;
         color: var(--primary);
     }
 
-    .variant-stock {
-        font-size: 11px;
-        margin-top: 4px;
+    .variant-old-price {
+        font-size: 10px;
+        color: #999;
+        text-decoration: line-through;
+        margin-top: 2px;
     }
 
     .out-of-stock-badge {
         position: absolute;
-        top: 4px;
-        right: 4px;
+        top: 6px;
+        right: 6px;
         background: var(--danger);
         color: white;
-        font-size: 10px;
+        font-size: 9px;
         padding: 2px 6px;
         border-radius: 10px;
     }
@@ -304,8 +487,8 @@
     /* Default Variant Badge */
     .default-badge {
         position: absolute;
-        bottom: 4px;
-        left: 4px;
+        bottom: 6px;
+        left: 6px;
         background: var(--primary);
         color: white;
         font-size: 9px;
@@ -315,11 +498,10 @@
 
     /* Selected Variant Info */
     .selected-variant-info {
-        background: #f0fdf4;
+        background: var(--primary-light);
         border: 1px solid #bbf7d0;
-        border-radius: 12px;
-        padding: 12px;
-        margin-bottom: 20px;
+        border-radius: 14px;
+        padding: 14px;
         display: none;
     }
 
@@ -328,25 +510,76 @@
     }
 
     .selected-variant-title {
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 600;
         color: #166534;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .selected-variant-title i {
+        font-size: 12px;
     }
 
     .selected-variant-detail {
         font-size: 13px;
-        color: var(--muted);
+        color: var(--text-light);
     }
 
-    /* Loading State */
-    .btn-loading {
-        opacity: 0.7;
-        cursor: wait !important;
+    /* Shipping Info Card */
+    .shipping-info {
+        background: #f8fafc;
+        border-radius: 14px;
+        padding: 14px;
+        border: 1px solid var(--border);
     }
 
-    .btn-loading::before {
-        content: "⏳ ";
+    .shipping-info h4 {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .shipping-info h4 i {
+        color: var(--primary);
+        font-size: 14px;
+    }
+
+    .shipping-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-right: 8px;
+        margin-bottom: 5px;
+    }
+
+    .shipping-badge i {
+        font-size: 11px;
+    }
+
+    .shipping-badge.shippable {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .shipping-badge.not-shippable {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .shipping-badge.returnable {
+        background: #dbeafe;
+        color: #1e40af;
     }
 
     /* CTA Buttons */
@@ -360,20 +593,27 @@
         flex: 1;
         background: var(--primary);
         color: white;
-        padding: 14px 24px;
+        padding: 15px 24px;
         border: none;
-        border-radius: 12px;
+        border-radius: 14px;
         font-weight: 600;
-        font-size: 16px;
+        font-size: 15px;
         cursor: pointer;
         transition: all 0.2s;
         text-decoration: none;
         text-align: center;
-        display: inline-block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-buy-now i {
+        font-size: 14px;
     }
 
     .btn-buy-now:hover:not(:disabled) {
-        background: #15803d;
+        background: var(--primary-dark);
         transform: translateY(-2px);
         text-decoration: none;
         color: white;
@@ -382,26 +622,6 @@
     .btn-buy-now:disabled {
         background: #9ca3af;
         cursor: not-allowed;
-    }
-
-    .btn-contact {
-        padding: 14px 24px;
-        border: 1px solid var(--border);
-        background: white;
-        border-radius: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-        text-decoration: none;
-        text-align: center;
-        display: inline-block;
-        color: var(--text);
-    }
-
-    .btn-contact:hover {
-        border-color: var(--primary);
-        color: var(--primary);
-        text-decoration: none;
     }
 
     /* ========== RELATED PRODUCTS ========== */
@@ -414,17 +634,25 @@
         font-weight: 700;
         margin-bottom: 24px;
         color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .related-products h3 i {
+        color: var(--primary);
+        font-size: 24px;
     }
 
     .related-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 24px;
     }
 
     .related-card {
         background: white;
-        border-radius: 12px;
+        border-radius: 16px;
         overflow: hidden;
         text-decoration: none;
         color: inherit;
@@ -433,18 +661,19 @@
     }
 
     .related-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         text-decoration: none;
         color: inherit;
     }
 
     .related-image {
-        height: 180px;
+        height: 160px;
         background: #f9fafb;
         display: flex;
         align-items: center;
         justify-content: center;
+        padding: 15px;
     }
 
     .related-image img {
@@ -458,16 +687,24 @@
     }
 
     .related-name {
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 600;
         margin-bottom: 6px;
         line-height: 1.4;
     }
 
     .related-price {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 700;
         color: var(--primary);
+    }
+    
+    .related-old-price {
+        font-size: 11px;
+        color: #999;
+        text-decoration: line-through;
+        margin-left: 5px;
+        font-weight: normal;
     }
 
     /* ========== LIGHTBOX MODAL ========== */
@@ -511,11 +748,14 @@
         transform: translateY(-50%);
         background: rgba(255,255,255,0.2);
         color: white;
-        padding: 16px;
+        padding: 15px;
         cursor: pointer;
-        font-size: 24px;
+        font-size: 20px;
         border-radius: 50%;
         transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .lightbox-prev:hover,
@@ -531,38 +771,6 @@
         right: 20px;
     }
 
-    /* Store Header */
-    .store-header {
-        text-align: center;
-        margin-bottom: 30px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .store-name {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--text);
-        margin-bottom: 8px;
-    }
-
-    .store-description {
-        color: var(--muted);
-        font-size: 14px;
-    }
-
-    .back-to-store {
-        display: inline-block;
-        margin-top: 12px;
-        color: var(--primary);
-        text-decoration: none;
-        font-size: 14px;
-    }
-
-    .back-to-store:hover {
-        text-decoration: underline;
-    }
-
     /* Notification Toast */
     .notification-toast {
         position: fixed;
@@ -571,9 +779,16 @@
         background: #333;
         color: white;
         padding: 12px 24px;
-        border-radius: 8px;
+        border-radius: 10px;
         z-index: 2000;
         animation: slideIn 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .notification-toast i {
+        font-size: 16px;
     }
 
     @keyframes slideIn {
@@ -586,28 +801,428 @@
             opacity: 1;
         }
     }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .product-name {
+            font-size: 22px;
+        }
+        .product-price {
+            font-size: 26px;
+        }
+        .old-price {
+            font-size: 18px;
+        }
+        .variant-item {
+            min-width: 95px;
+            padding: 10px;
+        }
+        .variant-image {
+            width: 50px;
+            height: 50px;
+        }
+        .related-grid {
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .cta-buttons {
+            flex-direction: column;
+        }
+        .spec-grid {
+            grid-template-columns: 1fr;
+        }
+        .shipping-badge {
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+    }
+    /* ===============================
+RESPONSIVE FIX
+=============================== */
+
+/* laptop */
+@media (max-width:1200px){
+
+.product-detail-container{
+padding:30px 20px;
+}
+
+.product-detail-grid{
+gap:30px;
+padding:30px;
+}
+
+.product-name{
+font-size:24px;
+}
+
+.product-price{
+font-size:28px;
+}
+
+.variant-item{
+min-width:105px;
+}
+
+}
+
+
+/* tablet */
+@media (max-width:992px){
+
+.product-detail-grid{
+grid-template-columns:1fr;
+gap:25px;
+padding:25px;
+}
+
+.product-gallery{
+position:relative;
+top:auto;
+}
+
+.product-info{
+overflow:visible;
+max-height:none;
+padding-right:0;
+}
+
+.main-image-container{
+max-height:420px;
+}
+
+.thumbnail{
+width:70px;
+height:70px;
+}
+
+.variant-list{
+gap:12px;
+}
+
+.variant-item{
+min-width:95px;
+padding:10px;
+}
+
+.variant-image{
+width:50px;
+height:50px;
+}
+
+.spec-grid{
+grid-template-columns:1fr 1fr;
+}
+
+}
+
+
+/* mobile */
+@media (max-width:768px){
+
+.product-detail-container{
+padding:20px 14px;
+}
+
+.product-detail-grid{
+padding:18px;
+border-radius:16px;
+}
+
+.product-name{
+font-size:20px;
+line-height:1.4;
+}
+
+.product-price{
+font-size:24px;
+}
+
+.product-description{
+font-size:13px;
+}
+
+.thumbnail{
+width:60px;
+height:60px;
+}
+
+.variant-scroll-container{
+padding-bottom:8px;
+}
+
+.variant-item{
+min-width:85px;
+padding:8px;
+border-radius:10px;
+}
+
+.variant-name{
+font-size:11px;
+}
+
+.variant-price{
+font-size:12px;
+}
+
+.variant-image{
+width:42px;
+height:42px;
+}
+
+.spec-grid{
+grid-template-columns:1fr;
+}
+
+.shipping-info{
+padding:12px;
+}
+
+.cta-buttons{
+flex-direction:column;
+gap:10px;
+}
+
+.btn-buy-now{
+font-size:14px;
+padding:13px;
+}
+
+.related-grid{
+grid-template-columns:repeat(2,1fr);
+gap:12px;
+}
+
+}
+
+
+/* small mobile */
+@media (max-width:480px){
+
+.product-detail-container{
+padding:16px 10px;
+}
+
+.product-detail-grid{
+padding:14px;
+gap:18px;
+}
+
+.main-image-container{
+border-radius:14px;
+}
+
+.thumbnail-gallery{
+gap:8px;
+}
+
+.thumbnail{
+width:55px;
+height:55px;
+}
+
+.variant-item{
+min-width:75px;
+padding:7px;
+}
+
+.variant-image{
+width:38px;
+height:38px;
+}
+
+.variant-name{
+font-size:10px;
+}
+
+.product-name{
+font-size:18px;
+}
+
+.product-price{
+font-size:22px;
+}
+
+.related-grid{
+grid-template-columns:1fr 1fr;
+}
+
+}
+
+
+/* extra small */
+@media (max-width:360px){
+
+.variant-item{
+min-width:70px;
+}
+
+.product-name{
+font-size:17px;
+}
+
+.product-price{
+font-size:20px;
+}
+
+}
+/* ===============================
+FIX FOR MOBILE < 700px
+=============================== */
+
+@media (max-width:700px){
+
+.product-detail-container{
+padding:16px 12px;
+}
+
+/* make layout single column */
+.product-detail-grid{
+grid-template-columns:1fr;
+padding:16px;
+gap:18px;
+border-radius:14px;
+}
+
+/* remove sticky issue */
+.product-gallery{
+position:relative;
+top:auto;
+}
+
+/* prevent image overflow */
+.main-image-container{
+width:100%;
+max-width:100%;
+aspect-ratio:1/1;
+border-radius:14px;
+}
+
+/* image fit properly */
+.main-image{
+width:100%;
+height:100%;
+object-fit:contain;
+}
+
+/* thumbnails horizontal scroll */
+.thumbnail-gallery{
+display:flex;
+overflow-x:auto;
+overflow-y:hidden;
+gap:8px;
+padding-bottom:6px;
+scrollbar-width:thin;
+}
+
+/* thumbnail size mobile */
+.thumbnail{
+min-width:60px;
+width:60px;
+height:60px;
+flex-shrink:0;
+}
+
+/* fix right column scroll issue */
+.product-info{
+overflow:visible;
+max-height:none;
+padding-right:0;
+}
+
+/* title */
+.product-name{
+font-size:20px;
+line-height:1.4;
+}
+
+/* price */
+.product-price{
+font-size:24px;
+}
+
+/* specs single column */
+.spec-grid{
+grid-template-columns:1fr;
+gap:6px;
+}
+
+/* variant horizontal scroll */
+.variant-scroll-container{
+overflow-x:auto;
+overflow-y:hidden;
+padding-bottom:6px;
+}
+
+.variant-list{
+display:flex;
+gap:10px;
+min-width:max-content;
+}
+
+/* smaller variant cards */
+.variant-item{
+min-width:85px;
+padding:8px;
+border-radius:10px;
+}
+
+/* variant image size */
+.variant-image{
+width:45px;
+height:45px;
+}
+
+/* text smaller */
+.variant-name{
+font-size:11px;
+}
+
+/* buttons full width */
+.cta-buttons{
+flex-direction:column;
+gap:10px;
+}
+
+.btn-buy-now{
+width:100%;
+font-size:14px;
+padding:13px;
+}
+
+/* related products grid */
+.related-grid{
+grid-template-columns:1fr 1fr;
+gap:12px;
+}
+
+/* prevent container overflow */
+.product-detail-container,
+.product-detail-grid,
+.product-info{
+max-width:100%;
+overflow-x:hidden;
+}
+
+}
 </style>
 
 <div class="product-detail-container">
     
-    <!-- Store Header -->
-    <div class="store-header">
-        <h1 class="store-name">{{ store.store_name }}</h1>
-        {% if store.store_description %}
-        <p class="store-description">{{ store.store_description }}</p>
-        {% endif %}
-        <a href="/" class="back-to-store">← Back to Store</a>
-    </div>
-
     <!-- Main Product Section -->
     <div class="product-detail-grid">
         
-        <!-- LEFT: Image Gallery -->
+        <!-- LEFT: Image Gallery - STICKY (doesn't scroll) -->
         <div class="product-gallery">
             <div class="main-image-container" onclick="openLightbox()">
-                <img id="mainImage" class="main-image" src="{{ product.main_image.url }}" alt="{{ product.name }}">
+                <img id="mainImage" class="main-image" 
+                     src="{% if product.main_image %}{{ product.main_image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}" 
+                     alt="{{ product.name }}">
                 <div class="zoom-icon">
-                    🔍 Zoom
+                    <i class="fas fa-search-plus"></i> Zoom
                 </div>
             </div>
             
@@ -616,34 +1231,62 @@
             </div>
         </div>
         
-        <!-- RIGHT: Product Details -->
+        <!-- RIGHT: Product Details - SCROLLABLE -->
         <div class="product-info">
             <h1 class="product-name" id="productName">{{ product.name }}</h1>
             
-            <div class="product-price">
-                ₹<span id="displayPrice">{{ product.selling_price|floatformat:2 }}</span>
+            <!-- PRICE SECTION WITH DISCOUNT LOGIC -->
+            <div class="product-price" id="priceDisplay">
+                {% if product.source_type == "imported" %}
+                    ₹{{ product.selling_price|floatformat:2 }}
+                    {% if product.discount_percentage > 0 %}
+                        <span class="old-price">
+                            ₹{{ product.source_product.price|add:product.margin_rupees|floatformat:2 }}
+                        </span>
+                    {% endif %}
+                {% elif product.source_type == "own" %}
+                    {% if product.discount_percentage > 0 %}
+                        ₹{{ product.discounted_price|floatformat:2 }}
+                        <span class="old-price">
+                            ₹{{ product.selling_price|floatformat:2 }}
+                        </span>
+                    {% else %}
+                        ₹{{ product.selling_price|floatformat:2 }}
+                    {% endif %}
+                {% else %}
+                    {% if product.discount_percentage > 0 %}
+                        ₹{{ product.discounted_price|floatformat:2 }}
+                        <span class="old-price">
+                            ₹{{ product.price|floatformat:2 }}
+                        </span>
+                    {% else %}
+                        ₹{{ product.price|floatformat:2 }}
+                    {% endif %}
+                {% endif %}
             </div>
             
             <!-- Stock Status -->
             <div id="stockStatus">
                 {% if product.stock > 10 %}
                 <div class="stock-status in-stock">
-                    ✓ In Stock ({{ product.stock }} available)
+                    <i class="fas fa-check-circle"></i> In Stock ({{ product.stock }} available)
                 </div>
                 {% elif product.stock > 0 %}
                 <div class="stock-status low-stock">
-                    ⚠ Low Stock (Only {{ product.stock }} left)
+                    <i class="fas fa-exclamation-triangle"></i> Low Stock (Only {{ product.stock }} left)
                 </div>
                 {% else %}
                 <div class="stock-status out-of-stock">
-                    ✗ Out of Stock
+                    <i class="fas fa-times-circle"></i> Out of Stock
                 </div>
                 {% endif %}
             </div>
             
             <!-- Selected Variant Info -->
             <div id="selectedVariantInfo" class="selected-variant-info">
-                <div class="selected-variant-title">✓ Selected Variant</div>
+                <div class="selected-variant-title">
+                    <i class="fas fa-check-circle"></i> Selected Variant
+                </div>
                 <div class="selected-variant-detail" id="selectedVariantDetail"></div>
             </div>
             
@@ -652,104 +1295,121 @@
                 {{ product.description|linebreaks }}
             </div>
             
-            <!-- Specifications -->
-            <div class="specifications" id="productSpecs">
-                {% if product.brand or product.model_name or product.size or product.color or product.material or product.gender %}
-                <h4>📋 Specifications</h4>
-                <div class="spec-grid">
-                    {% if product.brand %}
-                    <div class="spec-item">
-                        <span class="spec-label">Brand</span>
-                        <span class="spec-value">{{ product.brand }}</span>
-                    </div>
-                    {% endif %}
-                    {% if product.model_name %}
-                    <div class="spec-item">
-                        <span class="spec-label">Model</span>
-                        <span class="spec-value">{{ product.model_name }}</span>
-                    </div>
-                    {% endif %}
-                    {% if product.size %}
-                    <div class="spec-item">
-                        <span class="spec-label">Size</span>
-                        <span class="spec-value">{{ product.size }}</span>
-                    </div>
-                    {% endif %}
-                    {% if product.color %}
-                    <div class="spec-item">
-                        <span class="spec-label">Color</span>
-                        <span class="spec-value">{{ product.color }}</span>
-                    </div>
-                    {% endif %}
-                    {% if product.material %}
-                    <div class="spec-item">
-                        <span class="spec-label">Material</span>
-                        <span class="spec-value">{{ product.material }}</span>
-                    </div>
-                    {% endif %}
-                    {% if product.gender %}
-                    <div class="spec-item">
-                        <span class="spec-label">Gender</span>
-                        <span class="spec-value">{{ product.get_gender_display }}</span>
-                    </div>
-                    {% endif %}
+            <!-- Specifications - Dynamic -->
+            <div class="specifications">
+                <h4><i class="fas fa-list-ul"></i> Specifications</h4>
+                <div class="spec-grid" id="specGrid">
+                    <!-- Dynamic content from JavaScript -->
                 </div>
-                {% endif %}
             </div>
             
-            <!-- Variants (including default product as variant) -->
+            <!-- Shipping Info - Dynamic -->
+            <div class="shipping-info">
+                <h4><i class="fas fa-truck"></i> Shipping & Returns</h4>
+                <div id="shippingDetails">
+                    <!-- Dynamic content from JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Variants Section - HORIZONTAL SCROLL -->
             <div class="variants-section">
-                <h4>🎨 Select Variant</h4>
-                <div class="variant-list" id="variantList">
-                    <!-- Default Product Variant -->
-                    <div class="variant-item selected" 
-                         onclick="selectVariant(null, '{{ product.name|escapejs }}', {{ product.selling_price }}, {{ product.stock }}, '{{ product.main_image.url }}', true)"
-                         data-variant-id="default"
-                         data-variant-name="Standard"
-                         data-variant-price="{{ product.selling_price }}"
-                         data-variant-stock="{{ product.stock }}">
-                        {% if product.main_image %}
-                        <div class="variant-image">
-                            <img src="{{ product.main_image.url }}" alt="Standard">
+                <h4><i class="fas fa-palette"></i> Select Variant</h4>
+                <div class="variant-scroll-container">
+                    <div class="variant-list" id="variantList">
+                        <!-- Default Product Variant -->
+                        <div class="variant-item selected" 
+                             data-variant-id="default"
+                             data-variant-name="Standard"
+                             data-variant-price-current="{% if product.source_type == 'imported' %}{{ product.selling_price }}{% elif product.source_type == 'own' %}{% if product.discount_percentage > 0 %}{{ product.discounted_price }}{% else %}{{ product.selling_price }}{% endif %}{% else %}{% if product.discount_percentage > 0 %}{{ product.discounted_price }}{% else %}{{ product.price }}{% endif %}{% endif %}"
+                             data-variant-price-old="{% if product.source_type == 'imported' and product.discount_percentage > 0 %}{{ product.source_product.price|add:product.margin_rupees }}{% elif product.discount_percentage > 0 %}{% if product.source_type == 'own' %}{{ product.selling_price }}{% else %}{{ product.price }}{% endif %}{% else %}0{% endif %}"
+                             data-variant-stock="{{ product.stock }}"
+                             data-variant-size="{{ product.size|default:'Standard' }}"
+                             data-variant-color="{{ product.color|default:'Standard' }}"
+                             data-variant-material="{{ product.material|default:'Premium' }}"
+                             data-variant-weight="{{ product.weight|default:'0' }}"
+                             data-variant-length="{{ product.length|default:'0' }}"
+                             data-variant-breadth="{{ product.breadth|default:'0' }}"
+                             data-variant-height="{{ product.height|default:'0' }}"
+                             data-variant-shippable="{% if product.is_shippable %}true{% else %}false{% endif %}"
+                             data-variant-returnable="{% if product.is_returnable %}true{% else %}false{% endif %}"
+                             data-variant-return-days="{{ product.return_window_days|default:'0' }}"
+                             data-variant-replaceable="{% if product.is_replaceable %}true{% else %}false{% endif %}"
+                             data-variant-replace-days="{{ product.replacement_window_days|default:'0' }}"
+                             data-variant-main-image="{% if product.main_image %}{{ product.main_image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}"
+                            data-variant-gallery='[
+{% if product.main_image %}
+"{{ product.main_image.url }}"
+{% endif %}
+{% for img in product.additional_images.all %}
+,"{{ img.image.url }}"
+{% endfor %}
+]'>
+                            <div class="variant-image">
+                                <img src="{% if product.main_image %}{{ product.main_image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}" alt="Standard">
+                            </div>
+                            <div class="variant-name">Standard</div>
+                            <div class="variant-price">
+                                ₹{% if product.source_type == 'imported' %}{{ product.selling_price|floatformat:2 }}{% elif product.source_type == 'own' %}{% if product.discount_percentage > 0 %}{{ product.discounted_price|floatformat:2 }}{% else %}{{ product.selling_price|floatformat:2 }}{% endif %}{% else %}{% if product.discount_percentage > 0 %}{{ product.discounted_price|floatformat:2 }}{% else %}{{ product.price|floatformat:2 }}{% endif %}{% endif %}
+                            </div>
+                            {% if product.discount_percentage > 0 %}
+                            <div class="variant-old-price">
+                                ₹{% if product.source_type == 'imported' %}{{ product.source_product.price|add:product.margin_rupees|floatformat:2 }}{% elif product.source_type == 'own' %}{{ product.selling_price|floatformat:2 }}{% else %}{{ product.price|floatformat:2 }}{% endif %}
+                            </div>
+                            {% endif %}
+                            <div class="default-badge">Default</div>
                         </div>
-                        {% endif %}
-                        <div class="variant-name">Standard</div>
-                        <div class="variant-price">₹{{ product.selling_price|floatformat:2 }}</div>
-                        <div class="default-badge">Default</div>
+                        
+                        <!-- Other Variants -->
+                        {% for variant in product.variants.all %}
+                        <div class="variant-item {% if variant.stock == 0 %}disabled{% endif %}" 
+                             data-variant-id="{{ variant.id }}"
+                             data-variant-name="{{ variant.variant_name|escapejs }}"
+                             data-variant-price-current="{% if product.source_type == 'own' %}{% if variant.discount_percentage > 0 %}{{ variant.discounted_price }}{% else %}{{ variant.selling_price }}{% endif %}{% elif product.source_type == 'imported' %}{{ variant.selling_price }}{% else %}{% if variant.discount_percentage > 0 %}{{ variant.discounted_price }}{% else %}{{ variant.price }}{% endif %}{% endif %}"
+                             data-variant-price-old="{% if product.source_type == 'imported' and variant.discount_percentage > 0 %}{{ variant.source_price|add:variant.margin_rupees }}{% elif variant.discount_percentage > 0 %}{% if product.source_type == 'own' %}{{ variant.selling_price }}{% else %}{{ variant.price }}{% endif %}{% else %}0{% endif %}"
+                             data-variant-stock="{{ variant.stock|default:0 }}"
+                             data-variant-size="{{ variant.size|default:'Standard' }}"
+                             data-variant-color="{{ variant.color|default:'Standard' }}"
+                             data-variant-material="{{ variant.material|default:'Premium' }}"
+                             data-variant-weight="{{ variant.weight|default:'0' }}"
+                             data-variant-length="{{ variant.length|default:'0' }}"
+                             data-variant-breadth="{{ variant.breadth|default:'0' }}"
+                             data-variant-height="{{ variant.height|default:'0' }}"
+                             data-variant-shippable="{% if variant.is_shippable|default:product.is_shippable %}true{% else %}false{% endif %}"
+                             data-variant-returnable="{% if variant.is_returnable|default:product.is_returnable %}true{% else %}false{% endif %}"
+                             data-variant-return-days="{{ variant.return_window_days|default:product.return_window_days|default:'0' }}"
+                             data-variant-replaceable="{% if variant.is_replaceable|default:product.is_replaceable %}true{% else %}false{% endif %}"
+                             data-variant-replace-days="{{ variant.replacement_window_days|default:product.replacement_window_days|default:'0' }}"
+                             data-variant-main-image="{% if variant.main_image %}{{ variant.main_image.url }}{% elif product.main_image %}{{ product.main_image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}"
+                             data-variant-gallery='[
+                                 {% if variant.main_image %}"{{ variant.main_image.url }}"{% endif %}
+                                 {% for img in variant.additional_images.all %}{% if forloop.first and variant.main_image %},{% endif %}"{{ img.image.url }}"{% endfor %}
+                             ]'>
+                            <div class="variant-image">
+                                <img src="{% if variant.main_image %}{{ variant.main_image.url }}{% elif product.main_image %}{{ product.main_image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}" alt="{{ variant.variant_name }}">
+                            </div>
+                            <div class="variant-name">{{ variant.variant_name }}</div>
+                            <div class="variant-price">
+                                ₹{% if product.source_type == 'own' %}{% if variant.discount_percentage > 0 %}{{ variant.discounted_price|floatformat:2 }}{% else %}{{ variant.selling_price|floatformat:2 }}{% endif %}{% elif product.source_type == 'imported' %}{{ variant.selling_price|floatformat:2 }}{% else %}{% if variant.discount_percentage > 0 %}{{ variant.discounted_price|floatformat:2 }}{% else %}{{ variant.price|floatformat:2 }}{% endif %}{% endif %}
+                            </div>
+                            {% if variant.discount_percentage > 0 %}
+                            <div class="variant-old-price">
+                                ₹{% if product.source_type == 'imported' %}{{ variant.source_price|add:variant.margin_rupees|floatformat:2 }}{% else %}{{ variant.selling_price|floatformat:2 }}{% endif %}
+                            </div>
+                            {% endif %}
+                            {% if variant.stock == 0 %}
+                            <div class="out-of-stock-badge"><i class="fas fa-ban"></i></div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
                     </div>
-                    
-                    <!-- Other Variants -->
-                    {% for variant in product.variants.all %}
-                    <div class="variant-item {% if variant.stock == 0 %}disabled{% endif %}" 
-                         onclick="selectVariant({{ variant.id }}, '{{ variant.variant_name|escapejs }}', {{ variant.selling_price }}, {{ variant.stock }}, '{{ variant.main_image.url|default:product.main_image.url }}', false)"
-                         data-variant-id="{{ variant.id }}"
-                         data-variant-name="{{ variant.variant_name }}"
-                         data-variant-price="{{ variant.selling_price }}"
-                         data-variant-stock="{{ variant.stock }}">
-                        {% if variant.main_image %}
-                        <div class="variant-image">
-                            <img src="{{ variant.main_image.url }}" alt="{{ variant.variant_name }}">
-                        </div>
-                        {% else %}
-                        <div class="variant-image">
-                            <img src="{{ product.main_image.url }}" alt="{{ variant.variant_name }}">
-                        </div>
-                        {% endif %}
-                        <div class="variant-name">{{ variant.variant_name }}</div>
-                        <div class="variant-price">₹{{ variant.selling_price|floatformat:2 }}</div>
-                        {% if variant.stock == 0 %}
-                        <div class="out-of-stock-badge">Out</div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
                 </div>
             </div>
             
             <!-- CTA Buttons -->
             <div class="cta-buttons">
-                <a href="#" class="btn-buy-now" id="buyNowBtn" {% if product.stock == 0 %}style="pointer-events: none; opacity: 0.5;"{% endif %}>
-                    🛒 Buy Now
-                </a>
+                <button class="btn-buy-now" id="buyNowBtn" {% if product.stock == 0 %}disabled{% endif %}>
+                    <i class="fas fa-bolt"></i> Buy Now
+                </button>
             </div>
         </div>
     </div>
@@ -757,7 +1417,7 @@
     <!-- Related Products -->
     {% if other_products %}
     <div class="related-products">
-        <h3>✨ You May Also Like</h3>
+        <h3><i class="fas fa-heart"></i> You May Also Like</h3>
         <div class="related-grid">
             {% for related in other_products %}
             <a href="/product/{{ related.slug }}/" class="related-card">
@@ -769,8 +1429,29 @@
                     {% endif %}
                 </div>
                 <div class="related-info">
-                    <div class="related-name">{{ related.name|truncatechars:50 }}</div>
-                    <div class="related-price">₹{{ related.selling_price|floatformat:2 }}</div>
+                    <div class="related-name">{{ related.name|truncatechars:40 }}</div>
+                    <div class="related-price">
+                        {% if related.source_type == "own" %}
+                            {% if related.discount_percentage > 0 %}
+                                ₹{{ related.discounted_price|floatformat:2 }}
+                                <span class="related-old-price">₹{{ related.selling_price|floatformat:2 }}</span>
+                            {% else %}
+                                ₹{{ related.selling_price|floatformat:2 }}
+                            {% endif %}
+                        {% elif related.source_type == "imported" %}
+                            ₹{{ related.selling_price|floatformat:2 }}
+                            {% if related.discount_percentage > 0 %}
+                                <span class="related-old-price">₹{{ related.source_product.price|add:related.margin_rupees|floatformat:2 }}</span>
+                            {% endif %}
+                        {% else %}
+                            {% if related.discount_percentage > 0 %}
+                                ₹{{ related.discounted_price|floatformat:2 }}
+                                <span class="related-old-price">₹{{ related.price|floatformat:2 }}</span>
+                            {% else %}
+                                ₹{{ related.price|floatformat:2 }}
+                            {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
             </a>
             {% endfor %}
@@ -781,9 +1462,9 @@
 
 <!-- Lightbox Modal -->
 <div id="lightbox" class="lightbox">
-    <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
-    <span class="lightbox-prev" onclick="prevImage()">&#10094;</span>
-    <span class="lightbox-next" onclick="nextImage()">&#10095;</span>
+    <span class="lightbox-close" onclick="closeLightbox()"><i class="fas fa-times"></i></span>
+    <span class="lightbox-prev" onclick="prevImage()"><i class="fas fa-chevron-left"></i></span>
+    <span class="lightbox-next" onclick="nextImage()"><i class="fas fa-chevron-right"></i></span>
     <img id="lightboxImage" class="lightbox-image" src="">
 </div>
 
@@ -792,153 +1473,210 @@
     let productData = {
         id: {{ product.id }},
         name: "{{ product.name|escapejs }}",
-        slug: "{{ product.slug }}",
         storeId: {{ store.id }},
-        basePrice: {{ product.selling_price }},
-        baseStock: {{ product.stock }},
-        description: `{{ product.description|escapejs }}`,
-        mainImage: "{{ product.main_image.url }}",
-        additionalImages: [
-            {% for image in product.additional_images.all %}
-            "{{ image.image.url }}",
-            {% endfor %}
-        ],
-        variants: {
-            default: {
-                id: null,
-                name: "Standard",
-                price: {{ product.selling_price }},
-                stock: {{ product.stock }},
-                mainImage: "{{ product.main_image.url }}",
-                additionalImages: [
-                    {% for image in product.additional_images.all %}
-                    "{{ image.image.url }}",
-                    {% endfor %}
-                ],
-                isDefault: true
-            }
-            {% for variant in product.variants.all %}
-            ,{{ variant.id }}: {
-                id: {{ variant.id }},
-                name: "{{ variant.variant_name|escapejs }}",
-                price: {{ variant.selling_price }},
-                stock: {{ variant.stock }},
-                mainImage: "{{ variant.main_image.url|default:product.main_image.url }}",
-                additionalImages: [
-                    {% for img in variant.additional_images.all %}
-                    "{{ img.image.url }}",
-                    {% endfor %}
-                ],
-                isDefault: false
-            }
-            {% endfor %}
+        sourceType: "{{ product.source_type }}",
+        defaultVariant: {
+            id: null,
+            name: "Standard",
+            priceCurrent: {% if product.source_type == 'imported' %}{{ product.selling_price }}{% elif product.source_type == 'own' %}{% if product.discount_percentage > 0 %}{{ product.discounted_price }}{% else %}{{ product.selling_price }}{% endif %}{% else %}{% if product.discount_percentage > 0 %}{{ product.discounted_price }}{% else %}{{ product.price }}{% endif %}{% endif %},
+            priceOld: {% if product.source_type == 'imported' and product.discount_percentage > 0 %}{{ product.source_product.price|add:product.margin_rupees }}{% elif product.discount_percentage > 0 %}{% if product.source_type == 'own' %}{{ product.selling_price }}{% else %}{{ product.price }}{% endif %}{% else %}0{% endif %},
+            stock: {{ product.stock }},
+            size: "{{ product.size|default:'Standard' }}",
+            color: "{{ product.color|default:'Standard' }}",
+            material: "{{ product.material|default:'Premium' }}",
+            weight: "{{ product.weight|default:'0' }}",
+            length: "{{ product.length|default:'0' }}",
+            breadth: "{{ product.breadth|default:'0' }}",
+            height: "{{ product.height|default:'0' }}",
+            isShippable: {% if product.is_shippable %}true{% else %}false{% endif %},
+            isReturnable: {% if product.is_returnable %}true{% else %}false{% endif %},
+            returnDays: {{ product.return_window_days|default:0 }},
+            isReplaceable: {% if product.is_replaceable %}true{% else %}false{% endif %},
+            replaceDays: {{ product.replacement_window_days|default:0 }},
+            mainImage: "{% if product.main_image %}{{ product.main_image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}",
+            gallery: [
+
+{% if product.main_image %}
+"{{ product.main_image.url }}"
+{% endif %}
+
+{% for img in product.additional_images.all %}
+,"{{ img.image.url }}"
+{% endfor %}
+
+]
         }
     };
     
-    let currentVariantId = 'default';
-    let currentVariantData = productData.variants.default;
+    let currentVariant = productData.defaultVariant;
     let galleryImages = [];
     let currentImageIndex = 0;
     
-    // Initialize gallery with default product images
-    function initGallery() {
-        galleryImages = [productData.mainImage, ...productData.additionalImages];
-        currentImageIndex = 0;
-        updateThumbnails();
+    // Update all variant details
+    function updateVariantDetails(variant) {
+        // Update price
+        const priceDiv = document.getElementById('priceDisplay');
+        if (variant.priceOld && variant.priceOld > 0) {
+            priceDiv.innerHTML = `₹${parseFloat(variant.priceCurrent).toFixed(2)} <span class="old-price">₹${parseFloat(variant.priceOld).toFixed(2)}</span>`;
+        } else {
+            priceDiv.innerHTML = `₹${parseFloat(variant.priceCurrent).toFixed(2)}`;
+        }
+        
+        // Update stock status
+        const stockDiv = document.getElementById('stockStatus');
+        const buyBtn = document.getElementById('buyNowBtn');
+        if (variant.stock > 10) {
+            stockDiv.innerHTML = `<div class="stock-status in-stock"><i class="fas fa-check-circle"></i> In Stock (${variant.stock} available)</div>`;
+            buyBtn.disabled = false;
+        } else if (variant.stock > 0) {
+            stockDiv.innerHTML = `<div class="stock-status low-stock"><i class="fas fa-exclamation-triangle"></i> Low Stock (Only ${variant.stock} left)</div>`;
+            buyBtn.disabled = false;
+        } else {
+            stockDiv.innerHTML = `<div class="stock-status out-of-stock"><i class="fas fa-times-circle"></i> Out of Stock</div>`;
+            buyBtn.disabled = true;
+        }
+        
+        // Update product name
+        if (variant.id === null) {
+            document.getElementById('productName').innerHTML = productData.name;
+        } else {
+            document.getElementById('productName').innerHTML = `${productData.name} - ${variant.name}`;
+        }
+        
+        // Update selected variant info
+        const selectedInfo = document.getElementById('selectedVariantInfo');
+        const selectedDetail = document.getElementById('selectedVariantDetail');
+        selectedDetail.innerHTML = `${variant.name} - ₹${parseFloat(variant.priceCurrent).toFixed(2)} (${variant.stock > 0 ? variant.stock + ' available' : 'Out of Stock'})`;
+        selectedInfo.classList.add('show');
+        
+        // Update specifications
+        updateSpecifications(variant);
+        
+        // Update shipping info
+        updateShippingInfo(variant);
+        
+        // Update gallery
+        updateGallery(variant);
     }
     
-    // Update gallery for selected variant
-    function updateGalleryForVariant(variantData) {
-        galleryImages = [];
+    // Update specifications
+    function updateSpecifications(variant) {
+        const specGrid = document.getElementById('specGrid');
+        let specsHtml = '';
         
-        if (variantData.mainImage) {
-            galleryImages.push(variantData.mainImage);
+        if (variant.size && variant.size !== 'Standard') {
+            specsHtml += `<div class="spec-item"><span class="spec-label"><i class="fas fa-arrows-alt"></i> Size</span><span class="spec-value">${variant.size}</span></div>`;
+        }
+        if (variant.color && variant.color !== 'Standard') {
+            specsHtml += `<div class="spec-item"><span class="spec-label"><i class="fas fa-palette"></i> Color</span><span class="spec-value">${variant.color}</span></div>`;
+        }
+        if (variant.material && variant.material !== 'Premium') {
+            specsHtml += `<div class="spec-item"><span class="spec-label"><i class="fas fa-cube"></i> Material</span><span class="spec-value">${variant.material}</span></div>`;
+        }
+        if (variant.weight && parseFloat(variant.weight) > 0) {
+            specsHtml += `<div class="spec-item"><span class="spec-label"><i class="fas fa-weight-hanging"></i> Weight</span><span class="spec-value">${variant.weight} kg</span></div>`;
+        }
+        if (variant.length && parseFloat(variant.length) > 0) {
+            specsHtml += `<div class="spec-item"><span class="spec-label"><i class="fas fa-arrows-alt-h"></i> Length</span><span class="spec-value">${variant.length} cm</span></div>`;
+        }
+        if (variant.breadth && parseFloat(variant.breadth) > 0) {
+            specsHtml += `<div class="spec-item"><span class="spec-label"><i class="fas fa-arrows-alt-v"></i> Breadth</span><span class="spec-value">${variant.breadth} cm</span></div>`;
+        }
+        if (variant.height && parseFloat(variant.height) > 0) {
+            specsHtml += `<div class="spec-item"><span class="spec-label"><i class="fas fa-arrow-up"></i> Height</span><span class="spec-value">${variant.height} cm</span></div>`;
         }
         
-        galleryImages.push(...variantData.additionalImages);
-        
-        // If no images, show default product images
-        if (galleryImages.length === 0) {
-            galleryImages = [productData.mainImage, ...productData.additionalImages];
+        if (specsHtml === '') {
+            specsHtml = `<div class="spec-item"><span class="spec-label"><i class="fas fa-star"></i> Quality</span><span class="spec-value">Premium</span></div>
+                        <div class="spec-item"><span class="spec-label"><i class="fas fa-shield-alt"></i> Durability</span><span class="spec-value">High</span></div>`;
         }
         
-        // Update main image
-        if (galleryImages.length > 0) {
-            document.getElementById('mainImage').src = galleryImages[0];
-            currentImageIndex = 0;
-        }
-        
-        updateThumbnails();
+        specGrid.innerHTML = specsHtml;
     }
     
-    // Update thumbnail gallery
+    // Update shipping info
+    function updateShippingInfo(variant) {
+        const shippingDetails = document.getElementById('shippingDetails');
+        let shippingHtml = '';
+        
+        // Shipping badge
+        if (variant.isShippable) {
+            shippingHtml += `<span class="shipping-badge shippable"><i class="fas fa-truck"></i> Free Shipping Available</span>`;
+        } else {
+            shippingHtml += `<span class="shipping-badge not-shippable"><i class="fas fa-store"></i> Pickup Only</span>`;
+        }
+        
+        // Return badge
+        if (variant.isReturnable && variant.returnDays > 0) {
+            shippingHtml += `<span class="shipping-badge returnable"><i class="fas fa-undo-alt"></i> ${variant.returnDays} Day Return</span>`;
+        }
+        
+        // Replace badge
+        if (variant.isReplaceable && variant.replaceDays > 0) {
+            shippingHtml += `<span class="shipping-badge returnable"><i class="fas fa-exchange-alt"></i> ${variant.replaceDays} Day Replacement</span>`;
+        }
+        
+        if (!variant.isReturnable && !variant.isReplaceable) {
+            shippingHtml += `<p style="margin-top: 8px; font-size: 13px;"><i class="fas fa-headset"></i> Contact support for returns/exchanges</p>`;
+        }
+        
+        shippingDetails.innerHTML = shippingHtml;
+    }
+    
+    // Update gallery
+    function updateGallery(variant){
+
+galleryImages = [];
+
+/* always include main image */
+if(variant.mainImage){
+galleryImages.push(variant.mainImage);
+}
+
+/* include gallery images */
+if(Array.isArray(variant.gallery)){
+
+variant.gallery.forEach(img=>{
+
+if(img && img.trim() !== "" && !galleryImages.includes(img)){
+
+galleryImages.push(img);
+
+}
+
+});
+
+}
+
+/* fallback */
+if(galleryImages.length === 0){
+
+galleryImages = [variant.mainImage];
+
+}
+
+/* update main image */
+document.getElementById("mainImage").src = galleryImages[0];
+
+currentImageIndex = 0;
+
+/* update thumbnails */
+updateThumbnails();
+
+}
+    
+    // Update thumbnails
     function updateThumbnails() {
         const thumbnailGallery = document.getElementById('thumbnailGallery');
         thumbnailGallery.innerHTML = '';
         
         galleryImages.forEach((img, idx) => {
-            const thumb = document.createElement('div');
-            thumb.className = 'thumbnail' + (idx === 0 ? ' active' : '');
-            thumb.onclick = () => changeImage(img, idx);
-            thumb.innerHTML = `<img src="${img}" alt="Thumbnail ${idx + 1}">`;
-            thumbnailGallery.appendChild(thumb);
-        });
-    }
-    
-    // Select Variant
-    function selectVariant(variantId, variantName, price, stock, mainImage, isDefault) {
-        // Update current selection
-        if (variantId === null) {
-            currentVariantId = 'default';
-            currentVariantData = productData.variants.default;
-        } else {
-            currentVariantId = variantId;
-            currentVariantData = productData.variants[variantId];
-        }
-        
-        // Update price
-        document.getElementById('displayPrice').innerText = price.toFixed(2);
-        
-        // Update stock status
-        const stockStatusDiv = document.getElementById('stockStatus');
-        const buyBtn = document.getElementById('buyNowBtn');
-        
-        if (stock > 10) {
-            stockStatusDiv.innerHTML = `<div class="stock-status in-stock">✓ In Stock (${stock} available)</div>`;
-            buyBtn.style.pointerEvents = 'auto';
-            buyBtn.style.opacity = '1';
-        } else if (stock > 0) {
-            stockStatusDiv.innerHTML = `<div class="stock-status low-stock">⚠ Low Stock (Only ${stock} left)</div>`;
-            buyBtn.style.pointerEvents = 'auto';
-            buyBtn.style.opacity = '1';
-        } else {
-            stockStatusDiv.innerHTML = `<div class="stock-status out-of-stock">✗ Out of Stock</div>`;
-            buyBtn.style.pointerEvents = 'none';
-            buyBtn.style.opacity = '0.5';
-        }
-        
-        // Show selected variant info
-        const selectedInfo = document.getElementById('selectedVariantInfo');
-        const selectedDetail = document.getElementById('selectedVariantDetail');
-        
-        if (isDefault) {
-            selectedDetail.innerHTML = `Standard - ₹${price.toFixed(2)} (${stock > 0 ? stock + ' available' : 'Out of Stock'})`;
-            document.getElementById('productName').innerHTML = productData.name;
-        } else {
-            selectedDetail.innerHTML = `${variantName} - ₹${price.toFixed(2)} (${stock > 0 ? stock + ' available' : 'Out of Stock'})`;
-            document.getElementById('productName').innerHTML = `${productData.name} - ${variantName}`;
-        }
-        selectedInfo.classList.add('show');
-        
-        // Update gallery with variant images
-        updateGalleryForVariant(currentVariantData);
-        
-        // Update UI selection
-        document.querySelectorAll('.variant-item').forEach(item => {
-            item.classList.remove('selected');
-            if ((variantId === null && item.dataset.variantId === 'default') || 
-                (variantId !== null && item.dataset.variantId == variantId)) {
-                item.classList.add('selected');
+            if (img && img !== '') {
+                const thumb = document.createElement('div');
+                thumb.className = 'thumbnail' + (idx === 0 ? ' active' : '');
+                thumb.onclick = () => changeImage(img, idx);
+                thumb.innerHTML = `<img src="${img}" alt="Thumbnail ${idx + 1}">`;
+                thumbnailGallery.appendChild(thumb);
             }
         });
     }
@@ -948,22 +1686,65 @@
         document.getElementById('mainImage').src = imageUrl;
         currentImageIndex = index;
         
-        // Update active thumbnail
         document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
             thumb.classList.remove('active');
-            if (thumb.querySelector('img').src === imageUrl) {
+            if (i === index) {
                 thumb.classList.add('active');
             }
         });
     }
     
+    // Select variant
+    function selectVariant(element) {
+        if (element.classList.contains('disabled')) return;
+        
+        document.querySelectorAll('.variant-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+        element.classList.add('selected');
+        
+        let galleryData = element.dataset.variantGallery;
+        let gallery = [];
+        try {
+            gallery = JSON.parse(galleryData.replace(/'/g, '"'));
+        } catch(e) {
+            gallery = [];
+        }
+        
+        const variant = {
+            id: element.dataset.variantId === 'default' ? null : element.dataset.variantId,
+            name: element.dataset.variantName,
+            priceCurrent: parseFloat(element.dataset.variantPriceCurrent),
+            priceOld: parseFloat(element.dataset.variantPriceOld),
+            stock: parseInt(element.dataset.variantStock),
+            size: element.dataset.variantSize,
+            color: element.dataset.variantColor,
+            material: element.dataset.variantMaterial,
+            weight: element.dataset.variantWeight,
+            length: element.dataset.variantLength,
+            breadth: element.dataset.variantBreadth,
+            height: element.dataset.variantHeight,
+            isShippable: element.dataset.variantShippable === 'true',
+            isReturnable: element.dataset.variantReturnable === 'true',
+            returnDays: parseInt(element.dataset.variantReturnDays),
+            isReplaceable: element.dataset.variantReplaceable === 'true',
+            replaceDays: parseInt(element.dataset.variantReplaceDays),
+            mainImage: element.dataset.variantMainImage,
+            gallery: gallery
+        };
+        
+        currentVariant = variant;
+        updateVariantDetails(variant);
+    }
+    
     // Lightbox functions
     function openLightbox() {
         const lightbox = document.getElementById('lightbox');
-        const lightboxImage = document.getElementById('lightboxImage');
-        lightboxImage.src = galleryImages[currentImageIndex];
-        lightbox.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        if (galleryImages.length > 0) {
+            document.getElementById('lightboxImage').src = galleryImages[currentImageIndex];
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
     }
     
     function closeLightbox() {
@@ -972,57 +1753,46 @@
     }
     
     function prevImage() {
-        currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
-        document.getElementById('lightboxImage').src = galleryImages[currentImageIndex];
+        if (galleryImages.length > 0) {
+            currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+            document.getElementById('lightboxImage').src = galleryImages[currentImageIndex];
+        }
     }
     
     function nextImage() {
-        currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
-        document.getElementById('lightboxImage').src = galleryImages[currentImageIndex];
+        if (galleryImages.length > 0) {
+            currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+            document.getElementById('lightboxImage').src = galleryImages[currentImageIndex];
+        }
     }
     
-    // Show notification toast
-    function showNotification(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = 'notification-toast';
-        toast.style.background = type === 'success' ? '#16a34a' : '#ef4444';
-        toast.innerHTML = message;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
-    }
-    
-    // Buy Now handler - Redirect to checkout
+    // Buy Now handler
     document.getElementById('buyNowBtn')?.addEventListener('click', function(e) {
         e.preventDefault();
         
-        let stock = currentVariantData.stock;
-        
-        if (stock <= 0) {
-            showNotification('This item is out of stock!', 'error');
+        if (currentVariant.stock <= 0) {
+            const toast = document.createElement('div');
+            toast.className = 'notification-toast';
+            toast.style.background = '#ef4444';
+            toast.innerHTML = '<i class="fas fa-exclamation-circle"></i> This item is out of stock!';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
             return;
         }
         
-        // Build checkout URL
         let checkoutUrl = `/orders/store/${productData.storeId}/product/${productData.id}/checkout/`;
-        
-        // Add variant parameter if not default
-        if (currentVariantId !== 'default' && currentVariantData.id) {
-            checkoutUrl += `?variant_id=${currentVariantData.id}`;
+        if (currentVariant.id) {
+            checkoutUrl += `?variant_id=${currentVariant.id}`;
         }
         
-        // Show loading state
-        const btn = this;
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '⏳ Redirecting...';
-        btn.classList.add('btn-loading');
-        
-        // Redirect to checkout
-        setTimeout(() => {
-            window.location.href = checkoutUrl;
-        }, 300);
+        window.location.href = checkoutUrl;
+    });
+    
+    // Variant click handlers
+    document.querySelectorAll('.variant-item').forEach(variant => {
+        variant.addEventListener('click', function() {
+            selectVariant(this);
+        });
     });
     
     // Keyboard navigation
@@ -1036,7 +1806,7 @@
     });
     
     // Initialize
-    initGallery();
+    updateVariantDetails(productData.defaultVariant);
 </script>
 
 {% endblock %}

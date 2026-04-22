@@ -610,11 +610,11 @@
     }
 
     .btn-reseller-premium,
-.btn-wholeseller-premium{
-    min-width:auto;
-    width:fit-content;
-    max-width:100%;
-}
+    .btn-wholeseller-premium {
+        min-width: auto;
+        width: fit-content;
+        max-width: 100%;
+    }
 
     .btn-wholeseller-premium:hover {
         transform: translateY(-2px);
@@ -625,11 +625,16 @@
     .earnings-flow-premium {
         background: linear-gradient(135deg, #f8fafc, #ffffff);
         border-radius: 32px;
-        padding: 48px 36px;
+        padding: 30px 20px;
         text-align: center;
         margin: 45px 0 55px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
         border: 1px solid #e5e7eb;
+    }
+
+    .earnings-flow-premium {
+        max-width: 100%;
+        overflow-x: hidden;
     }
 
     .earnings-flow-premium h3 {
@@ -639,13 +644,7 @@
         margin-bottom: 30px;
     }
 
-    .flow-steps-premium {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
+
 
     .flow-item-premium {
         background: white;
@@ -665,6 +664,36 @@
         font-size: 20px;
         color: #6366f1;
         font-weight: 600;
+    }
+
+    /* FIX: earnings flow overflow issue */
+    .flow-steps-premium {
+        display: flex;
+        flex-wrap: wrap;
+        /* allow wrap */
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .flow-item-premium {
+        word-break: break-word;
+    }
+
+    .flow-item-premium {
+        width: auto;
+        /* remove full stretch */
+        max-width: 95%;
+        /* keep inside */
+        margin: 0 auto;
+        /* center align */
+    }
+
+    /* arrows also wrap properly */
+    .flow-arrow-premium {
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .security-badges-premium {
@@ -1277,211 +1306,244 @@
     .feature-list-premium li span {
         line-height: 1.4;
     }
+
     /* =====================================
    EXTRA LARGE DESKTOPS (1600px+)
 ===================================== */
-@media (min-width:1600px){
-    .hero-container,
-    .premium-container{
-        max-width:1400px;
+    @media (min-width:1600px) {
+
+        .hero-container,
+        .premium-container {
+            max-width: 1400px;
+        }
     }
-}
 
 
-/* =====================================
+    /* =====================================
    LARGE TABLETS / SMALL LAPTOPS
 ===================================== */
-@media (max-width:1100px){
+    @media (max-width:1100px) {
 
-    .hero-container{
-        gap:30px;
+        .hero-container {
+            gap: 30px;
+        }
+
+        .hero-right img {
+            width: 420px;
+        }
+
+        .card-image-box {
+            flex: 0 0 40%;
+            height: 260px;
+        }
     }
 
-    .hero-right img{
-        width:420px;
-    }
 
-    .card-image-box{
-        flex:0 0 40%;
-        height:260px;
-    }
-}
-
-
-/* =====================================
+    /* =====================================
    TABLET IMPROVEMENTS
 ===================================== */
-@media (max-width:900px){
+    @media (max-width:900px) {
 
-    .split-card{
-        flex-direction:column;
-        text-align:center;
-        min-height:auto;
+        .split-card {
+            flex-direction: column;
+            text-align: center;
+            min-height: auto;
+        }
+
+        .card-image-box {
+            width: 100%;
+            flex: none;
+            height: 240px;
+            margin-top: 20px;
+        }
+
+        .feature-list-premium li {
+            justify-content: center;
+            text-align: left;
+        }
+
+        .cta-img {
+            display: none;
+        }
     }
 
-    .card-image-box{
-        width:100%;
-        flex:none;
-        height:240px;
-        margin-top:20px;
-    }
 
-    .feature-list-premium li{
-        justify-content:center;
-        text-align:left;
-    }
-
-    .cta-img{
-        display:none;
-    }
-}
-
-
-/* =====================================
+    /* =====================================
    MOBILE DEVICES
 ===================================== */
-@media (max-width:768px){
+    @media (max-width:768px) {
 
-    .hero-bg{
-        padding:70px 0;
+        .hero-bg {
+            padding: 70px 0;
+        }
+
+        .hero-left h1 {
+            font-size: 28px;
+            line-height: 1.3;
+        }
+
+        .hero-stats {
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .premium-header {
+            margin-bottom: 40px;
+        }
+
+        .premium-header h2 {
+            font-size: 28px;
+        }
+
+        .step-card-premium {
+            border-radius: 22px;
+        }
+
+        .info-card-premium {
+            border-radius: 24px;
+        }
+
+        .earnings-flow-premium h3 {
+            font-size: 24px;
+        }
+
+        .security-badges-premium {
+            gap: 14px;
+            font-size: 12px;
+        }
+
+        .cta-premium {
+            border-radius: 24px;
+        }
     }
 
-    .hero-left h1{
-        font-size:28px;
-        line-height:1.3;
-    }
 
-    .hero-stats{
-        gap:16px;
-        justify-content:center;
-    }
-
-    .premium-header{
-        margin-bottom:40px;
-    }
-
-    .premium-header h2{
-        font-size:28px;
-    }
-
-    .step-card-premium{
-        border-radius:22px;
-    }
-
-    .info-card-premium{
-        border-radius:24px;
-    }
-
-    .earnings-flow-premium h3{
-        font-size:24px;
-    }
-
-    .security-badges-premium{
-        gap:14px;
-        font-size:12px;
-    }
-
-    .cta-premium{
-        border-radius:24px;
-    }
-}
-
-
-/* =====================================
+    /* =====================================
    SMALL MOBILE
 ===================================== */
-@media (max-width:480px){
+    @media (max-width:480px) {
 
-    .hero-container,
-    .premium-container{
-        padding-left:14px;
-        padding-right:14px;
+        .hero-container,
+        .premium-container {
+            padding-left: 14px;
+            padding-right: 14px;
+        }
+
+        .hero-left h1 {
+            font-size: 24px;
+        }
+
+        .hero-badge {
+            font-size: 11px;
+            padding: 6px 12px;
+        }
+
+        .hero-stats {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .step-card-premium {
+            padding: 24px 16px;
+        }
+
+        .step-icon-wrapper {
+            width: 65px;
+            height: 65px;
+        }
+
+        .step-icon-wrapper i {
+            font-size: 28px;
+        }
+
+        .card-subline {
+            font-size: 13px;
+        }
+
+        .feature-list-premium li {
+            font-size: 14px;
+        }
+
+        .flow-item-premium {
+
+            justify-content: center;
+        }
+
+        .cta-premium h2 {
+            font-size: 22px;
+            line-height: 1.4;
+        }
+
+        .cta-trust {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
     }
 
-    .hero-left h1{
-        font-size:24px;
+    @media (max-width: 480px) {
+
+        .flow-steps-premium {
+            flex-direction: column;
+            /* vertical layout */
+            gap: 12px;
+            align-items: center;
+            /* 🔥 center properly */
+        }
+
+        .flow-arrow-premium {
+            transform: rotate(90deg);
+            /* arrow down */
+        }
+
+        .flow-item-premium {
+
+            max-width: 100%;
+            margin: 0;
+            padding: 12px 14px;
+            /* balanced spacing */
+        }
+
+        .earnings-flow-premium {
+            overflow: hidden;
+            /* prevent outside overflow */
+            padding: 30px 16px;
+            /* clean mobile spacing */
+
+        }
     }
 
-    .hero-badge{
-        font-size:11px;
-        padding:6px 12px;
-    }
-
-    .hero-stats{
-        flex-direction:column;
-        gap:10px;
-    }
-
-    .step-card-premium{
-        padding:24px 16px;
-    }
-
-    .step-icon-wrapper{
-        width:65px;
-        height:65px;
-    }
-
-    .step-icon-wrapper i{
-        font-size:28px;
-    }
-
-    .card-subline{
-        font-size:13px;
-    }
-
-    .feature-list-premium li{
-        font-size:14px;
-    }
-
-    .flow-item-premium{
-        width:100%;
-        justify-content:center;
-    }
-
-    .cta-premium h2{
-        font-size:22px;
-        line-height:1.4;
-    }
-
-    .cta-trust{
-        display:flex;
-        flex-direction:column;
-        gap:8px;
-    }
-}
-
-
-/* =====================================
+    /* =====================================
    ULTRA SMALL DEVICES
 ===================================== */
-@media (max-width:360px){
+    @media (max-width:360px) {
 
-    .hero-left h1{
-        font-size:21px;
-    }
+        .hero-left h1 {
+            font-size: 21px;
+        }
 
-    .premium-header h2{
-        font-size:21px;
-    }
+        .premium-header h2 {
+            font-size: 21px;
+        }
 
-    .btn-primary,
-    .btn-secondary,
-    .btn-reseller-premium,
-    .btn-wholeseller-premium,
-    .btn-cta-primary-premium,
-    .btn-cta-secondary-premium{
-        font-size:13px;
-        padding:12px 16px;
-    }
+        .btn-primary,
+        .btn-secondary,
+        .btn-reseller-premium,
+        .btn-wholeseller-premium,
+        .btn-cta-primary-premium,
+        .btn-cta-secondary-premium {
+            font-size: 13px;
+            padding: 12px 16px;
+        }
 
-    .step-card-premium h3{
-        font-size:18px;
-    }
+        .step-card-premium h3 {
+            font-size: 18px;
+        }
 
-    .info-card-premium h3{
-        font-size:20px;
+        .info-card-premium h3 {
+            font-size: 20px;
+        }
     }
-}
 </style>
 
 <!-- ========== HERO SECTION - COMPLETELY UNTOUCHED ========== -->

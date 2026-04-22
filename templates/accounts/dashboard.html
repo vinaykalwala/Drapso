@@ -8,7 +8,8 @@
     <div class="dashboard-top">
         <div class="dashboard-title-section">
             <h2 class="dashboard-title">
-                <i class="fas fa-chart-pie"></i> Dashboard
+                <i class="fas fa-chart-pie"></i>
+                <span>Dashboard</span>
             </h2>
             <p class="dashboard-subtitle">Welcome back to your control panel</p>
         </div>
@@ -363,7 +364,7 @@
         <!-- Status -->
         <div class="stat-card">
             <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
-<i class="fas fa-check-circle"></i>
+                <i class="fas fa-check-circle"></i>
             </div>
             <div class="stat-content">
                 <h3>
@@ -511,20 +512,20 @@
 
     .dashboard-wrapper {
         margin-left: 260px;
-        padding: 30px;
+        width: calc(100% - 260px);
+        padding: 24px;
         background: #f8fafc;
         min-height: 100vh;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        transition: all 0.3s ease;
     }
 
-    /* Header */
     .dashboard-top {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 30px;
         flex-wrap: wrap;
-        gap: 15px;
+        /* 🔥 IMPORTANT */
+        gap: 10px;
     }
 
     .dashboard-title-section {
@@ -539,6 +540,7 @@
         display: flex;
         align-items: center;
         gap: 12px;
+        word-break: break-word;
     }
 
     .dashboard-subtitle {
@@ -934,11 +936,6 @@
         overflow-x: hidden;
     }
 
-    .dashboard-wrapper {
-        max-width: 100%;
-    }.dashboard-wrapper {
-    overflow-x: hidden;
-}
 
     .summary-logo-fallback {
         width: 32px;
@@ -950,63 +947,6 @@
         justify-content: center;
     }
 
-    /* Responsive */
-    @media (max-width: 1200px) {
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-   
-    @media (max-width: 768px) {
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .quick-actions.two-columns {
-            grid-template-columns: 1fr;
-        }
-
-        .summary-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .dashboard-top {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .welcome-heading {
-            font-size: 22px;
-        }
-    }
-
-    @media (max-width: 768px) {
-        body {
-            overflow-x: hidden;
-        }
-
-        .dashboard-wrapper {
-            margin-left: 0 !important;
-            width: 100%;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .stat-card {
-            flex-direction: column;
-            text-align: center;
-        }
-
-        .action-btn {
-            flex-direction: column;
-            text-align: center;
-        }
-
-        .action-btn i:last-child {
-            display: none;
-        }
-    }
 
     .admin-bg {
         background: url(https://images.openai.com/static-rsc-4/bFvz6HqUzQbPdKSKxrIWmKdPXLrWW1IdtVSEaEjk0B3PWL5Zcmpai5CYgrfPefG2JHkXKARdC6m6sasNnJ_0tPWceF_CCXfLXMVY31cpgOJWoysu1ZANWvZxAlCOnCCph0BMSIuLZ0Z5WEUSoVR8Gq5hu712hHaSBjYR6hqgR7GOAap6hPqjDOizmyeO-76c?purpose=fullsize) no-repeat center;
@@ -1093,45 +1033,120 @@
         object-fit: cover;
     }
 
-    /* ================= TABLET ================= */
-    @media (max-width: 1200px) {
+    /* ================= RESPONSIVE ================= */
+    /* ================= RESPONSIVE BREAKPOINTS ================= */
+
+    /* Large Desktop (1200px - 1400px) */
+    @media screen and (max-width: 1400px) {
+        .dashboard-wrapper {
+            margin-left: 240px;
+            width: calc(100% - 240px);
+            padding: 20px;
+        }
+
+        .stats-grid {
+            gap: 16px;
+        }
+
+        .stat-card {
+            padding: 16px;
+        }
+
+        .stat-content h3 {
+            font-size: 22px;
+        }
+    }
+
+    /* Desktop (992px - 1199px) */
+    @media screen and (max-width: 1199px) {
+        .dashboard-wrapper {
+            margin-left: 220px;
+            width: calc(100% - 220px);
+            padding: 18px;
+        }
 
         .stats-grid {
             grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
         }
 
         .two-column-grid {
             grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .welcome-card {
+            flex-direction: column;
+            text-align: center;
+            padding: 24px;
+        }
+
+        .welcome-left {
+            text-align: center;
+        }
+
+        .welcome-heading {
+            justify-content: center;
+        }
+
+        .welcome-right {
+            width: 100%;
+            text-align: center;
+        }
+
+        .store-banner-img {
+            max-width: 100%;
+            height: auto;
+            max-height: 200px;
+        }
+
+        .dashboard-title {
+            font-size: 24px;
+        }
+
+        .welcome-heading {
+            font-size: 24px;
         }
     }
-@media (max-width: 992px) {
 
-    .sidebar {
-        display: none !important;
-        position: absolute !important;
-        width: 0 !important;
-    }
+    /* Tablet (768px - 991px) */
+    @media screen and (max-width: 991px) {
+        .dashboard-wrapper {
+            margin-left: 0;
+            width: 100%;
+            padding: 16px;
+        }
 
-    .dashboard-wrapper {
-        margin-left: 0 !important;
-        width: 100vw !important;
-        padding: 15px !important;
-    }
+        .dashboard-top {
+            flex-direction: column;
+            align-items: flex-start;
+        }
 
-    .welcome-card {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .two-column-grid {
-        grid-template-columns: 1fr;
-    }
-}
-    /* ================= MOBILE ================= */
-    @media (max-width: 768px) {
+        .date-box {
+            width: 100%;
+            text-align: center;
+        }
 
         .stats-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .stat-card {
+            padding: 14px;
+        }
+
+        .stat-icon-wrapper {
+            width: 45px;
+            height: 45px;
+        }
+
+        .stat-icon-wrapper i {
+            font-size: 18px;
+        }
+
+        .stat-content h3 {
+            font-size: 20px;
         }
 
         .quick-actions.two-columns {
@@ -1142,44 +1157,491 @@
             grid-template-columns: 1fr;
         }
 
-        .dashboard-top {
+        .info-card {
+            padding: 20px;
+        }
+
+        .card-header {
             flex-direction: column;
             align-items: flex-start;
+            gap: 10px;
+        }
+
+        .welcome-card {
+            padding: 20px;
+        }
+
+        .welcome-heading {
+            font-size: 22px;
+        }
+
+        .role-badge {
+            font-size: 12px;
+            padding: 6px 16px;
+        }
+    }
+
+    /* Mobile Landscape (576px - 767px) */
+    @media screen and (max-width: 767px) {
+        .dashboard-wrapper {
+            padding: 12px;
         }
 
         .dashboard-title {
             font-size: 22px;
         }
 
-        .welcome-heading {
-            font-size: 20px;
+        .dashboard-subtitle {
+            font-size: 13px;
         }
-    }
 
-    /* ================= SMALL MOBILE ================= */
-    @media (max-width: 480px) {
+        .date-box {
+            font-size: 12px;
+            padding: 8px 16px;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
 
         .stat-card {
-            flex-direction: column;
-            text-align: center;
-        }
-
-        .action-btn {
-            flex-direction: column;
-            text-align: center;
-            gap: 8px;
-        }
-
-        .action-btn i:last-child {
-            display: none;
-        }
-
-        .store-banner-img {
-            height: 140px;
+            padding: 16px;
         }
 
         .welcome-card {
             padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .welcome-badge {
+            font-size: 11px;
+        }
+
+        .welcome-heading {
+            font-size: 20px;
+        }
+
+        .nice-day {
+            font-size: 13px;
+        }
+
+        .store-banner-img {
+            height: 150px;
+        }
+
+        .default-banner-placeholder {
+            padding: 30px;
+        }
+
+        .info-card {
+            padding: 16px;
+        }
+
+        .card-header h3 {
+            font-size: 16px;
+        }
+
+        .action-btn {
+            padding: 10px 14px;
+        }
+
+        .action-btn span {
+            font-size: 13px;
+        }
+
+        .summary-box {
+            padding: 10px;
+        }
+
+        .summary-details strong {
+            font-size: 12px;
+        }
+
+        .btn-primary {
+            padding: 8px 20px;
+            font-size: 13px;
+        }
+
+        .warning-card {
+            padding: 30px 20px;
+        }
+
+        .warning-card i {
+            font-size: 40px;
+        }
+    }
+
+    /* Mobile Portrait (320px - 575px) */
+    @media screen and (max-width: 575px) {
+        .dashboard-wrapper {
+            padding: 10px;
+        }
+
+        .dashboard-title {
+            font-size: 20px;
+        }
+
+        .dashboard-title i {
+            font-size: 18px;
+        }
+
+        .dashboard-subtitle {
+            font-size: 12px;
+        }
+
+        .date-box {
+            font-size: 11px;
+            padding: 6px 12px;
+        }
+
+        .welcome-card {
+            padding: 16px;
+        }
+
+        .welcome-badge {
+            font-size: 10px;
+            padding: 4px 10px;
+        }
+
+        .welcome-heading {
+            font-size: 18px;
+            gap: 5px;
+        }
+
+        .wave-icon {
+            font-size: 20px;
+        }
+
+        .nice-day {
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+
+        .role-badge {
+            font-size: 11px;
+            padding: 5px 12px;
+        }
+
+        .stat-card {
+            padding: 12px;
+            gap: 12px;
+        }
+
+        .stat-icon-wrapper {
+            width: 40px;
+            height: 40px;
+        }
+
+        .stat-icon-wrapper i {
+            font-size: 16px;
+        }
+
+        .stat-content h3 {
+            font-size: 18px;
+        }
+
+        .stat-content p {
+            font-size: 11px;
+        }
+
+        .stat-trend {
+            font-size: 10px;
+        }
+
+        .info-card {
+            padding: 14px;
+        }
+
+        .card-header h3 {
+            font-size: 15px;
+        }
+
+        .card-badge {
+            font-size: 10px;
+            padding: 3px 8px;
+        }
+
+        .action-btn {
+            padding: 8px 12px;
+            gap: 8px;
+        }
+
+        .action-btn i:first-child {
+            font-size: 14px;
+            width: 20px;
+        }
+
+        .action-btn span {
+            font-size: 12px;
+        }
+
+        .summary-box {
+            padding: 8px;
+            gap: 8px;
+        }
+
+        .summary-box i {
+            font-size: 14px;
+            width: 22px;
+        }
+
+        .summary-details small {
+            font-size: 10px;
+        }
+
+        .summary-details strong {
+            font-size: 11px;
+        }
+
+        .status-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+        }
+
+        .btn-primary {
+            padding: 6px 16px;
+            font-size: 12px;
+        }
+
+        .warning-card {
+            padding: 20px 16px;
+        }
+
+        .warning-card i {
+            font-size: 32px;
+        }
+
+        .warning-card h3 {
+            font-size: 16px;
+        }
+
+        .warning-card p {
+            font-size: 12px;
+        }
+    }
+
+    /* Small Mobile (up to 375px) */
+    @media screen and (max-width: 375px) {
+        .dashboard-wrapper {
+            padding: 8px;
+        }
+
+        .dashboard-title {
+            font-size: 18px;
+        }
+
+        .welcome-heading {
+            font-size: 16px;
+        }
+
+        .stat-content h3 {
+            font-size: 16px;
+        }
+
+        .action-btn span {
+            font-size: 11px;
+        }
+
+        .card-header h3 {
+            font-size: 14px;
+        }
+    }
+
+    /* Landscape Mode for Mobile */
+    @media screen and (max-height: 500px) and (orientation: landscape) {
+        .dashboard-wrapper {
+            min-height: auto;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .welcome-card {
+            flex-direction: row;
+            text-align: left;
+        }
+
+        .welcome-left {
+            text-align: left;
+        }
+
+        .welcome-heading {
+            justify-content: flex-start;
+        }
+
+        .store-banner-img {
+            height: 120px;
+        }
+    }
+
+    /* High Resolution Screens (1440px and above) */
+    @media screen and (min-width: 1440px) {
+        .dashboard-wrapper {
+            margin-left: 280px;
+            width: calc(100% - 280px);
+            padding: 30px;
+        }
+
+        .stats-grid {
+            gap: 24px;
+        }
+
+        .stat-card {
+            padding: 24px;
+        }
+
+        .stat-content h3 {
+            font-size: 28px;
+        }
+
+        .welcome-card {
+            padding: 40px;
+        }
+
+        .welcome-heading {
+            font-size: 32px;
+        }
+    }
+
+    /* Print Styles */
+    @media print {
+        .dashboard-wrapper {
+            margin: 0;
+            padding: 0;
+            background: white;
+        }
+
+        .date-box,
+        .action-btn,
+        .btn-primary,
+        .quick-actions {
+            display: none;
+        }
+
+        .stat-card,
+        .info-card,
+        .welcome-card {
+            border: 1px solid #ddd;
+            box-shadow: none;
+        }
+    }
+
+    /* Dark Mode Support (Optional) */
+    @media (prefers-color-scheme: dark) {
+        @media screen and (max-width: 768px) {
+            .dashboard-wrapper {
+                background: #0f172a;
+            }
+
+            .stat-card,
+            .info-card,
+            .welcome-card,
+            .date-box {
+                background: #1e293b;
+                border-color: #334155;
+            }
+
+            .dashboard-title,
+            .stat-content h3,
+            .card-header h3,
+            .welcome-heading {
+                color: #f1f5f9;
+            }
+
+            .dashboard-subtitle,
+            .nice-day,
+            .stat-content p,
+            .card-badge {
+                color: #94a3b8;
+            }
+
+            .action-btn {
+                background: #334155;
+                border-color: #475569;
+                color: #f1f5f9;
+            }
+
+            .summary-box {
+                background: #334155;
+                border-color: #475569;
+            }
+
+            .summary-details strong {
+                color: #f1f5f9;
+            }
+        }
+    }
+
+
+    .dashboard-title i {
+        flex-shrink: 0;
+    }
+
+    /* Fix 2: Responsive font sizes */
+    @media screen and (max-width: 991px) {
+        .dashboard-title {
+            font-size: 22px !important;
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        .dashboard-title {
+            font-size: 20px !important;
+        }
+    }
+
+    @media screen and (max-width: 576px) {
+        .dashboard-title {
+            font-size: 18px !important;
+        }
+    }
+
+    @media screen and (max-width: 400px) {
+        .dashboard-title {
+            font-size: 16px !important;
+        }
+    }
+
+    /* Fix 3: Ensure wrapper doesn't cut off content */
+    .dashboard-wrapper {
+        overflow-x: hidden;
+        margin-left: 260px;
+        width: calc(100% - 260px);
+    }
+
+    @media screen and (max-width: 991px) {
+        .dashboard-wrapper {
+            margin-left: 0 !important;
+            width: 100% !important;
+        }
+    }
+
+    /* Fix 4: Fix dashboard top layout */
+    .dashboard-top {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    @media screen and (max-width: 480px) {
+        .dashboard-top {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .date-box {
+            width: 100%;
+        }
+    }
+
+    /* Fix for sidebar on mobile */
+    @media screen and (max-width: 991px) {
+
+        .sidebar,
+        #sidebar,
+        [class*="sidebar"] {
+            display: none !important;
         }
     }
 </style>

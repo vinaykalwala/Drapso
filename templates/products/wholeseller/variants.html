@@ -498,6 +498,13 @@
         font-size: 0.85rem;
     }
 
+    .variant-original-price-small {
+        font-size: 0.55rem;
+        color: #94a3b8;
+        text-decoration: line-through;
+        display: block;
+    }
+
     .stock-badge {
         font-size: 0.6rem;
         padding: 2px 6px;
@@ -858,6 +865,21 @@
         border-radius: 8px;
     }
 
+    /* Table Price Styles */
+    .table-current-price {
+        font-weight: 800;
+        color: var(--primary);
+        font-size: 0.9rem;
+    }
+
+    .table-original-price {
+        font-size: 0.7rem;
+        color: #94a3b8;
+        text-decoration: line-through;
+        display: block;
+        margin-top: 2px;
+    }
+
     .variant-actions {
         display: flex;
         gap: 6px;
@@ -1136,7 +1158,9 @@ height:50px;
                         <div class="variant-option" 
                              data-variant-id="{{ variant.id }}"
                              data-variant-name="{{ variant.variant_name }}"
-                             data-variant-price="{{ variant.price }}"
+                             data-variant-price="{{ variant.discounted_price|floatformat:2|default:variant.price }}"
+                             data-variant-original-price="{{ variant.price }}"
+                             data-variant-discount-percentage="{{ variant.discount_percentage|default:0 }}"
                              data-variant-stock="{{ variant.stock }}"
                              data-variant-description="{{ variant.description|default:product.description }}"
                              data-variant-previous-price="{{ variant.previous_price|default:'' }}"
@@ -1174,7 +1198,12 @@ height:50px;
                                         {% endif %}
                                     </div>
                                     <div class="variant-price-stock">
-                                        <span class="price-small">₹{{ variant.price }}</span>
+                                        <div>
+                                            <span class="price-small">₹{{ variant.discounted_price|floatformat:2|default:variant.price }}</span>
+                                            {% if variant.discount_percentage > 0 %}
+                                            <span class="variant-original-price-small">₹{{ variant.price }}</span>
+                                            {% endif %}
+                                        </div>
                                         <span class="stock-badge {% if variant.stock > 10 %}in-stock{% elif variant.stock > 0 %}low-stock{% else %}out-of-stock{% endif %}">
                                             {% if variant.stock > 10 %}In Stock
                                             {% elif variant.stock > 0 %}{{ variant.stock }} left
@@ -1213,10 +1242,10 @@ height:50px;
                 </div>
                 
                 <div class="price-container">
-                    <span class="current-price" id="currentPrice">₹{{ product.price }}</span>
-                    {% if product.previous_price %}
-                    <span class="old-price" id="oldPrice">₹{{ product.previous_price }}</span>
-                    <span class="saved-badge" id="priceSaved">Save ₹{{ product.previous_price|add:product.price|floatformat:0 }}</span>
+                    <span class="current-price" id="currentPrice">₹{{ product.discounted_price|floatformat:2|default:product.price }}</span>
+                    {% if product.discount_percentage > 0 %}
+                    <span class="old-price" id="oldPrice">₹{{ product.price }}</span>
+                    <!-- <span class="saved-badge" id="priceSaved">{{ product.discount_percentage|floatformat:0 }}% OFF</span> -->
                     {% endif %}
                 </div>
                   
@@ -1298,8 +1327,7 @@ height:50px;
                 <tbody>
                     {% for variant in variants %}
                     <tr data-variant-row-id="{{ variant.id }}">
-                        <tr>
-                            <td>
+                        <td>
                             {% if variant.main_image %}
                             <img src="{{ variant.main_image.url }}" class="variant-thumb-modern" alt="{{ variant.variant_name }}">
                             {% else %}
@@ -1308,13 +1336,20 @@ height:50px;
                             </div>
                             {% endif %}
                         </td>
-                        <td><strong>{{ variant.variant_name }}</strong></strong></td>
+                        <td><strong>{{ variant.variant_name }}</strong></td>
                         <td>
                             {% if variant.size %}<i class="fas fa-arrows-alt"></i> {{ variant.size }}{% endif %}
                             {% if variant.color %}{% if variant.size %} | {% endif %}<i class="fas fa-palette"></i> {{ variant.color }}{% endif %}
                             {% if not variant.size and not variant.color %}-{% endif %}
                         </td>
-                        <td style="font-weight: 800; color: var(--primary);">₹{{ variant.price }}</td>
+                        <td>
+                            {% if variant.discount_percentage > 0 %}
+                                <div class="table-current-price">₹{{ variant.discounted_price|floatformat:2 }}</div>
+                                <div class="table-original-price">₹{{ variant.price }}</div>
+                            {% else %}
+                                <div class="table-current-price">₹{{ variant.price }}</div>
+                            {% endif %}
+                        </td>
                         <td>
                             <span class="stock-badge {% if variant.stock > 10 %}in-stock{% elif variant.stock > 0 %}low-stock{% else %}out-of-stock{% endif %}">
                                 {{ variant.stock }} units
@@ -1332,7 +1367,7 @@ height:50px;
                                     <i class="fas fa-trash"></i> Delete
                                 </a>
                             </div>
-                          </td>
+                           </td>
                     </tr>
                     {% empty %}
                     <tr>
@@ -1359,9 +1394,9 @@ height:50px;
     // Store original product data with shipping info
     const originalProductData = {
         description: '{{ product.description|default:""|escapejs }}',
-        price: '{{ product.price }}',
-        oldPrice: '{{ product.previous_price|default:"" }}',
-        priceSaved: '{% if product.previous_price %}Save ₹{{ product.previous_price|add:product.price|floatformat:0 }}{% endif %}',
+        price: '{{ product.discounted_price|floatformat:2|default:product.price }}',
+        oldPrice: '{% if product.discount_percentage > 0 %}{{ product.price }}{% else %}{% endif %}',
+        priceSaved: '{% if product.discount_percentage > 0 %}{{ product.discount_percentage|floatformat:0 }}% OFF{% endif %}',
         mainImage: '{% if product.main_image %}{{ product.main_image.url }}{% endif %}',
         stock: {{ product.stock|default:0 }},
         weight: '{{ product.weight|default:"0" }}',
@@ -1469,9 +1504,10 @@ height:50px;
         variantElement.classList.add('selected');
         
         const variantPrice = variantElement.dataset.variantPrice;
+        const variantOriginalPrice = variantElement.dataset.variantOriginalPrice;
+        const variantDiscountPercentage = parseFloat(variantElement.dataset.variantDiscountPercentage);
         const variantStock = parseInt(variantElement.dataset.variantStock);
         const variantDescription = variantElement.dataset.variantDescription;
-        const variantPreviousPrice = variantElement.dataset.variantPreviousPrice;
         const variantMainImage = variantElement.dataset.variantMainImage;
         
         // Get shipping info from variant data
@@ -1501,11 +1537,11 @@ height:50px;
         
         const oldPriceElement = document.getElementById('oldPrice');
         const priceSavedElement = document.getElementById('priceSaved');
-        if (variantPreviousPrice && oldPriceElement && priceSavedElement) {
-            oldPriceElement.textContent = `₹${variantPreviousPrice}`;
-            const savings = parseFloat(variantPreviousPrice) - parseFloat(variantPrice);
-            priceSavedElement.textContent = `Save ₹${savings.toFixed(0)}`;
+        
+        if (variantDiscountPercentage > 0 && oldPriceElement && priceSavedElement) {
+            oldPriceElement.textContent = `₹${variantOriginalPrice}`;
             oldPriceElement.style.display = 'inline-block';
+            priceSavedElement.textContent = `${Math.round(variantDiscountPercentage)}% OFF`;
             priceSavedElement.style.display = 'inline-block';
         } else if (oldPriceElement && priceSavedElement) {
             oldPriceElement.style.display = 'none';

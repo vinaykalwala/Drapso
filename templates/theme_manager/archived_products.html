@@ -700,7 +700,14 @@
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
     </div>
-
+ {% if messages %}
+    <div id="alertBox" style="margin-bottom:15px; padding:12px 40px 12px 12px; border-radius:8px; background:#e2e5fe; color:#1d21ff; font-weight:600; position:relative;">
+        {% for message in messages %}
+            {{ message }}
+        {% endfor %}
+        <span onclick="document.getElementById('alertBox').style.display='none'" style="position:absolute; right:12px; top:8px; cursor:pointer; font-size:18px; font-weight:bold;">×</span>
+    </div>
+    {% endif %}
     <!-- White Content Card -->
     <div class="archived-content">
 
@@ -787,16 +794,7 @@
                     <i class="far fa-check-square"></i> Select All
                 </label>
             </div>
-            {% if can_restore_all %}
-            <form method="POST" action="{% url 'theme_manager:restore_archived_products' store.id %}" 
-                  onsubmit="return confirm('Restore ALL archived products?');" style="margin:0;">
-                {% csrf_token %}
-                <input type="hidden" name="restore_all" value="true">
-                <button type="submit" class="restore-all-btn">
-                    <i class="fas fa-sync-alt"></i> Restore All ({{ capacity.available_slots }})
-                </button>
-            </form>
-            {% endif %}
+           
         </div>
 
         <!-- Products Grid -->

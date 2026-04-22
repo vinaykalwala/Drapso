@@ -1110,179 +1110,83 @@ document.addEventListener('DOMContentLoaded', function() {
     const marginDisplayInInfo = document.getElementById('marginDisplayInInfo');
     const sellingPriceDisplayInInfo = document.getElementById('sellingPriceDisplayInInfo');
     
-    // Get the effective source price (discounted if available)
+    // FIXED: Get the effective source price (discounted if available)
     {% if source_product.discount_percentage > 0 %}
-        const sourceEffectivePrice = parseFloat("{{ source_product.discounted_price }}");
-    else %}
-        const sourceEffectivePrice = parseFloat("{{ source_product.price }}");
+        const sourceEffectivePrice = parseFloat("{{ source_product.discounted_price|floatformat:2 }}");
+    {% else %}
+        const sourceEffectivePrice = parseFloat("{{ source_product.price|floatformat:2 }}");
     {% endif %}
+    
+    console.log('Source Effective Price:', sourceEffectivePrice); // Debug log
     
     // Store variant data
     const variants = [];
     {% for variant in source_product.variants.all %}
         variants.push({
             id: {{ variant.id }},
-            effectivePrice: parseFloat("{% if variant.discount_percentage > 0 %}{{ variant.discounted_price }}{% else %}{{ variant.price }}{% endif %}"),
+            effectivePrice: parseFloat("{% if variant.discount_percentage > 0 %}{{ variant.discounted_price|floatformat:2 }}{% else %}{{ variant.price|floatformat:2 }}{% endif %}"),
             priceElementId: 'variantPrice{{ variant.id }}'
         });
     {% endfor %}
     
-    // Debounce function to limit AJAX calls
-    let debounceTimer;
-    function debounce(func, delay) {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(func, delay);
-    }
+    console.log('Variants:', variants); // Debug log
     
-    // Function to calculate prices locally (without AJAX for immediate feedback)
-    function calculatePricesLocally(margin) {
-        if (isNaN(margin) || margin < 0) margin = 0;
+    // Function to calculate and update ALL prices
+    function updateAllPrices() {
+        let marginValue = marginInput.value.trim();
+        let margin = parseFloat(marginValue);
         
-        // Calculate product price
-        const productPrice = sourceEffectivePrice + margin;
-        
-        // Update product price displays
-        if (marginPreview) marginPreview.textContent = '₹' + margin.toFixed(2);
-        if (sellingPricePreview) sellingPricePreview.textContent = '₹' + productPrice.toFixed(2);
-        if (marginDisplayInInfo) marginDisplayInInfo.textContent = '₹' + margin.toFixed(2);
-        if (sellingPriceDisplayInInfo) sellingPriceDisplayInInfo.textContent = '₹' + productPrice.toFixed(2);
-        
-        // Update variant prices locally
-        variants.forEach(variant => {
-            const variantPrice = variant.effectivePrice + margin;
-            const priceElement = document.getElementById(variant.priceElementId);
-            if (priceElement) {
-                priceElement.textContent = variantPrice.toFixed(2);
-            }
-        });
-        
-        return productPrice;
-    }
-    
-    // AJAX function to calculate prices from server (optional - for complex calculations)
-    async function calculatePricesWithAJAX(margin) {
-        if (isNaN(margin) || margin < 0) margin = 0;
-        
-        try {
-            // Collect variant effective prices
-            const variantPrices = variants.map(v => v.effectivePrice);
-            
-            // Build URL with parameters
-            const params = new URLSearchParams({
-                margin_rupees: margin,
-                source_price: sourceEffectivePrice,
-                variant_prices: JSON.stringify(variantPrices)
-            });
-            
-            const response = await fetch(`{% url 'products:calculate_price' %}?${params.toString()}`, {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                
-                // Update product price
-                if (sellingPricePreview) sellingPricePreview.textContent = '₹' + data.product_price.toFixed(2);
-                if (sellingPriceDisplayInInfo) sellingPriceDisplayInInfo.textContent = '₹' + data.product_price.toFixed(2);
-                
-                // Update variant prices
-                if (data.variant_prices && data.variant_prices.length === variants.length) {
-                    variants.forEach((variant, index) => {
-                        const priceElement = document.getElementById(variant.priceElementId);
-                        if (priceElement) {
-                            priceElement.textContent = data.variant_prices[index].toFixed(2);
-                        }
-                    });
-                }
-                
-                return data.product_price;
-            }
-        } catch (error) {
-            console.error('AJAX calculation failed:', error);
-            // Fallback to local calculation
-            return calculatePricesLocally(margin);
-        }
-    }
-    
-    // Validate margin function
-    function validateMargin(margin) {
-        const isValid = !isNaN(margin) && margin > 0 && margin !== null && margin !== '';
-        return isValid;
-    }
-    
-    // Show/hide error message
-    function showError(show) {
-        if (show) {
+        // Handle empty or invalid input
+        if (marginValue === '' || marginValue === '-' || isNaN(marginValue)) {
+            margin = 0;
+            if (marginError) marginError.classList.add('show');
+            if (marginInput) marginInput.classList.add('error');
+        } else if (margin <= 0) {
             if (marginError) marginError.classList.add('show');
             if (marginInput) marginInput.classList.add('error');
         } else {
             if (marginError) marginError.classList.remove('show');
             if (marginInput) marginInput.classList.remove('error');
         }
-    }
-    
-    // Update all prices (main function)
-    function updateAllPrices() {
-        let margin = parseFloat(marginInput.value);
         
-        // Handle empty or invalid input
-        if (isNaN(margin) || marginInput.value === '' || marginInput.value === '-') {
-            margin = 0;
-            showError(true);
-        } else if (margin <= 0) {
-            showError(true);
-        } else {
-            showError(false);
-        }
+        // Calculate product selling price
+        const productSellingPrice = sourceEffectivePrice + margin;
         
-        // Update margin preview
+        // Update margin displays
         if (marginPreview) marginPreview.textContent = '₹' + margin.toFixed(2);
         if (marginDisplayInInfo) marginDisplayInInfo.textContent = '₹' + margin.toFixed(2);
         
-        // Calculate and update prices
-        const productPrice = calculatePricesLocally(margin);
+        // Update product selling price displays
+        if (sellingPricePreview) sellingPricePreview.textContent = '₹' + productSellingPrice.toFixed(2);
+        if (sellingPriceDisplayInInfo) sellingPriceDisplayInInfo.textContent = '₹' + productSellingPrice.toFixed(2);
+        
+        // Update purchase price display (keep as is - the cost price)
+        if (purchasePriceSpan) {
+            purchasePriceSpan.textContent = '₹' + sourceEffectivePrice.toFixed(2);
+        }
+        
+        // Update ALL variant prices
+        variants.forEach(variant => {
+            const variantSellingPrice = variant.effectivePrice + margin;
+            const priceElement = document.getElementById(variant.priceElementId);
+            if (priceElement) {
+                priceElement.textContent = variantSellingPrice.toFixed(2);
+                console.log(`Updated variant ${variant.id} price to:`, variantSellingPrice.toFixed(2)); // Debug log
+            }
+        });
         
         return margin > 0;
     }
     
-    // Handle margin input with debounced AJAX (optional - for complex calculations)
-    let ajaxTimeout;
+    // Handle margin input changes
     function handleMarginInput() {
-        let value = marginInput.value.trim();
-        let margin = parseFloat(value);
+        updateAllPrices();
         
-        if (value === '' || value === '-') {
-            showError(true);
-            if (marginPreview) marginPreview.textContent = '₹0';
-            if (sellingPricePreview) sellingPricePreview.textContent = '₹' + sourceEffectivePrice.toFixed(2);
-            if (marginDisplayInInfo) marginDisplayInInfo.textContent = '₹0';
-            if (sellingPriceDisplayInInfo) sellingPriceDisplayInInfo.textContent = '₹' + sourceEffectivePrice.toFixed(2);
-            
-            // Reset variant prices
-            variants.forEach(variant => {
-                const priceElement = document.getElementById(variant.priceElementId);
-                if (priceElement) {
-                    priceElement.textContent = variant.effectivePrice.toFixed(2);
-                }
-            });
-            return;
-        }
-        
-        if (isNaN(margin) || margin <= 0) {
-            showError(true);
-            updateAllPrices();
-        } else {
-            showError(false);
-            updateAllPrices();
-            
-            // Optional: Use AJAX for additional validation or logging
-            clearTimeout(ajaxTimeout);
-            ajaxTimeout = setTimeout(() => {
-                calculatePricesWithAJAX(margin).catch(console.error);
-            }, 500);
+        // Optional: Add AJAX call if needed for server-side validation
+        let margin = parseFloat(marginInput.value);
+        if (!isNaN(margin) && margin > 0) {
+            // You can uncomment this if you want server-side calculations
+            // calculatePricesWithAJAX(margin).catch(console.error);
         }
     }
     
@@ -1293,33 +1197,24 @@ document.addEventListener('DOMContentLoaded', function() {
         marginInput.addEventListener('blur', function() {
             let value = this.value.trim();
             if (value === '' || value === '-') {
-                this.value = '0';
+                this.value = '';
                 updateAllPrices();
-                showError(true);
             } else {
                 let margin = parseFloat(value);
                 if (isNaN(margin) || margin < 0) {
-                    this.value = '0';
+                    this.value = '';
                     updateAllPrices();
-                    showError(true);
                 } else if (margin === 0) {
-                    showError(true);
+                    updateAllPrices();
                 } else {
                     this.value = margin;
                     updateAllPrices();
                 }
             }
         });
-        
-        marginInput.addEventListener('change', function() {
-            let margin = parseFloat(this.value);
-            if (!isNaN(margin) && margin > 0) {
-                calculatePricesWithAJAX(margin).catch(console.error);
-            }
-        });
     }
     
-    // Initial update
+    // Initial update to set default values
     updateAllPrices();
     
     // Form validation and submission
@@ -1330,7 +1225,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Validate margin is required
             if (!marginInput.value || marginInput.value === '' || marginInput.value === '-') {
                 e.preventDefault();
-                showError(true);
+                if (marginError) marginError.classList.add('show');
+                if (marginInput) marginInput.classList.add('error');
                 marginInput.focus();
                 alert('⚠️ Margin is required. Please enter your profit margin.');
                 return false;
@@ -1339,7 +1235,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Validate margin is a positive number
             if (isNaN(margin) || margin <= 0) {
                 e.preventDefault();
-                showError(true);
+                if (marginError) marginError.classList.add('show');
+                if (marginInput) marginInput.classList.add('error');
                 marginInput.focus();
                 alert('⚠️ Please enter a valid margin amount greater than 0.');
                 return false;
@@ -1358,6 +1255,16 @@ document.addEventListener('DOMContentLoaded', function() {
             confirmMessage += `Your Purchase Price: ₹${sourceEffectivePrice.toFixed(2)}\n`;
             confirmMessage += `Your Margin: ₹${margin.toFixed(2)}\n`;
             confirmMessage += `Your Selling Price: ₹${productPrice.toFixed(2)}\n\n`;
+            
+            if (variants.length > 0) {
+                confirmMessage += `Variants (${variants.length}):\n`;
+                variants.forEach(variant => {
+                    const variantPrice = variant.effectivePrice + margin;
+                    confirmMessage += `  • ${variant.id}: ₹${variantPrice.toFixed(2)}\n`;
+                });
+                confirmMessage += `\n`;
+            }
+            
             confirmMessage += `Click OK to import this product to your store.`;
             
             if (!confirm(confirmMessage)) {
@@ -1435,5 +1342,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-
 {% endblock %}

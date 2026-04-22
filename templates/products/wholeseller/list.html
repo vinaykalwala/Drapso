@@ -439,6 +439,32 @@ background-position:center;        padding: 20px 28px;
         color: #3b82f6;
     }
 
+    /* Discount Styles */
+    .original-price {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        text-decoration: line-through;
+        font-weight: normal;
+    }
+
+    .discount-badge {
+        background: #ef4444;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-left: 8px;
+    }
+
+    .price-row {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
     .stock-info {
         display: flex;
         justify-content: space-between;
@@ -520,9 +546,16 @@ background-position:center;        padding: 20px 28px;
     }
 
     .variant-price {
-        font-size: 0.65rem;
-        color: #3b82f6;
+        font-size: 0.75rem;
         font-weight: 700;
+        color: #3b82f6;
+    }
+
+    .variant-original-price {
+        font-size: 0.6rem;
+        color: #94a3b8;
+        text-decoration: line-through;
+        display: block;
     }
 
     /* Action Buttons */
@@ -789,7 +822,15 @@ background-position:center;        padding: 20px 28px;
                 </div>
 
                 <div class="price-box" id="priceBox-{{ product.id }}">
-                    <div class="current-price">₹{{ product.price|floatformat:2 }}</div>
+                    <div class="price-row">
+                        {% if product.discount_percentage > 0 %}
+                            <span class="current-price">₹{{ product.discounted_price|floatformat:2 }}</span>
+                            <span class="original-price">₹{{ product.price|floatformat:2 }}</span>
+                            <!-- <span class="discount-badge">{{ product.discount_percentage|floatformat:0 }}% OFF</span> -->
+                        {% else %}
+                            <span class="current-price">₹{{ product.price|floatformat:2 }}</span>
+                        {% endif %}
+                    </div>
                     <div class="stock-info">
                         <span><i class="fas fa-box"></i> Stock: {{ product.stock }}</span>
                         {% if product.is_low_stock %}
@@ -812,7 +853,9 @@ background-position:center;        padding: 20px 28px;
                     {% for variant in product.variants.all %}
                     <div class="variant-item" 
                          data-variant='{
-                            "price": "{{ variant.price|floatformat:2 }}",
+                            "price": "{{ variant.discounted_price|floatformat:2|default:variant.price|floatformat:2 }}",
+                            "original_price": "{{ variant.price|floatformat:2 }}",
+                            "discount_percentage": {{ variant.discount_percentage|default:0 }},
                             "stock": {{ variant.stock }},
                             "images": [
                                 {% if variant.main_image %}"{{ variant.main_image.url }}"{% endif %}
@@ -829,7 +872,12 @@ background-position:center;        padding: 20px 28px;
                             </div>
                         {% endif %}
                         <div class="variant-name">{{ variant.variant_name|truncatechars:12 }}</div>
-                        <div class="variant-price">₹{{ variant.price|floatformat:2 }}</div>
+                        {% if variant.discount_percentage > 0 %}
+                            <div class="variant-price">₹{{ variant.discounted_price|floatformat:2 }}</div>
+                            <div class="variant-original-price">₹{{ variant.price|floatformat:2 }}</div>
+                        {% else %}
+                            <div class="variant-price">₹{{ variant.price|floatformat:2 }}</div>
+                        {% endif %}
                     </div>
                     {% empty %}
                   <div class="no-variant-box">
@@ -917,6 +965,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // original product price + stock
     originalData[{{ product.id }}] = {
         price: "₹{{ product.price|floatformat:2 }}",
+        discounted_price: "₹{{ product.discounted_price|floatformat:2 }}",
+        discount_percentage: {{ product.discount_percentage|default:0 }},
         stock: {{ product.stock }},
         stockClass: "{% if product.is_low_stock %}low{% elif product.stock < 50 %}medium{% else %}high{% endif %}",
         stockText: "{% if product.is_low_stock %}Low Stock{% elif product.stock < 50 %}Running Low{% else %}In Stock{% endif %}"
@@ -1092,7 +1142,7 @@ function showVariant(productId, element) {
 
 
 
-    // update price + stock
+    // update price + stock with discount display
     const priceBox = document.getElementById(
         "priceBox-" + productId
     );
@@ -1123,35 +1173,46 @@ function showVariant(productId, element) {
                 : "fa-check";
 
 
-        priceBox.innerHTML = `
+        // Check if variant has discount
+        if (variantData.discount_percentage > 0) {
+            priceBox.innerHTML = `
 
-            <div class="current-price">
+                <div class="price-row">
+                    <span class="current-price">₹${variantData.price}</span>
+                    <span class="original-price">₹${variantData.original_price}</span>
+                    <span class="discount-badge">${Math.round(variantData.discount_percentage)}% OFF</span>
+                </div>
+                <div class="stock-info">
+                    <span>
+                        <i class="fas fa-box"></i>
+                        Stock: ${variantData.stock}
+                    </span>
+                    <span class="stock-badge stock-${cls}">
+                        <i class="fas ${icon}"></i>
+                        ${txt}
+                    </span>
+                </div>
 
-                ₹${variantData.price}
+            `;
+        } else {
+            priceBox.innerHTML = `
 
-            </div>
+                <div class="price-row">
+                    <span class="current-price">₹${variantData.price}</span>
+                </div>
+                <div class="stock-info">
+                    <span>
+                        <i class="fas fa-box"></i>
+                        Stock: ${variantData.stock}
+                    </span>
+                    <span class="stock-badge stock-${cls}">
+                        <i class="fas ${icon}"></i>
+                        ${txt}
+                    </span>
+                </div>
 
-            <div class="stock-info">
-
-                <span>
-
-                    <i class="fas fa-box"></i>
-
-                    Stock: ${variantData.stock}
-
-                </span>
-
-                <span class="stock-badge stock-${cls}">
-
-                    <i class="fas ${icon}"></i>
-
-                    ${txt}
-
-                </span>
-
-            </div>
-
-        `;
+            `;
+        }
 
     }
 
@@ -1236,7 +1297,7 @@ function resetToProduct(productId) {
 
 
 
-    // restore price
+    // restore price with discount display
     const original = originalData[productId];
 
     const priceBox = document.getElementById(
@@ -1252,35 +1313,46 @@ function resetToProduct(productId) {
             : "fa-check";
 
 
-    priceBox.innerHTML = `
+    // Check if product has discount
+    if (original.discount_percentage > 0) {
+        priceBox.innerHTML = `
 
-        <div class="current-price">
+            <div class="price-row">
+                <span class="current-price">${original.discounted_price}</span>
+                <span class="original-price">${original.price}</span>
+                <span class="discount-badge">${Math.round(original.discount_percentage)}% OFF</span>
+            </div>
+            <div class="stock-info">
+                <span>
+                    <i class="fas fa-box"></i>
+                    Stock: ${original.stock}
+                </span>
+                <span class="stock-badge stock-${original.stockClass}">
+                    <i class="fas ${icon}"></i>
+                    ${original.stockText}
+                </span>
+            </div>
 
-            ${original.price}
+        `;
+    } else {
+        priceBox.innerHTML = `
 
-        </div>
+            <div class="price-row">
+                <span class="current-price">${original.price}</span>
+            </div>
+            <div class="stock-info">
+                <span>
+                    <i class="fas fa-box"></i>
+                    Stock: ${original.stock}
+                </span>
+                <span class="stock-badge stock-${original.stockClass}">
+                    <i class="fas ${icon}"></i>
+                    ${original.stockText}
+                </span>
+            </div>
 
-        <div class="stock-info">
-
-            <span>
-
-                <i class="fas fa-box"></i>
-
-                Stock: ${original.stock}
-
-            </span>
-
-            <span class="stock-badge stock-${original.stockClass}">
-
-                <i class="fas ${icon}"></i>
-
-                ${original.stockText}
-
-            </span>
-
-        </div>
-
-    `;
+        `;
+    }
 
 
 

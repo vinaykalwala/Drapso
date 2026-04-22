@@ -8,7 +8,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>Single Product Theme</title>
-
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
  <style>
 
 :root{
@@ -421,14 +422,15 @@ transform:scale(1.06);
 .middle-cards{
 display:grid;
 grid-template-columns:repeat(3,1fr);
-margin-top:0;      /* no gap from above section */
+margin-top:0px;      /* no gap from above section */
+gap:14px
 }
 
 
 /* optional: slightly overlap for premium look */
 
 .middle-cards{
-margin-top:-20px;
+margin-top:20px;
 }
 
 
@@ -436,7 +438,7 @@ margin-top:-20px;
 
 .m-card{
 background:white;
-padding:22px;
+padding:2px;
 border-radius:0 0 16px 16px;
 text-align:center;
 border:1px solid #faae7f;
@@ -456,25 +458,56 @@ box-shadow:0 18px 40px rgba(0,0,0,.08);
 
 /* mobile only */
 
-@media(max-width:500px){
+@media(max-width:600px){
 
 .middle-cards{
+
 display:grid;
-grid-template-columns:1fr 1fr;
-margin-top:-10px;
+
+grid-template-columns:1fr;   /* one card per row */
+
+gap:12px;
+
+margin-top:0;
+
 }
 
-/* last card full width */
-
-.middle-cards .m-card:nth-child(3){
-grid-column:1/3;
-}
-
-/* small spacing */
+/* full width card */
 
 .m-card{
-padding:16px;
-font-size:14px;
+
+width:100%;
+
+}
+
+/* icon size smaller for mobile */
+
+.icon-side{
+
+width:70px;
+min-height:70px;
+font-size:22px;
+
+}
+
+/* text spacing */
+
+.text-side{
+
+padding:12px;
+
+}
+
+.text-side h4{
+
+font-size:15px;
+
+}
+
+.text-side p{
+
+font-size:13px;
+
 }
 
 }
@@ -547,7 +580,98 @@ border-radius:3px;
 
 }
 
+.card-split{
 
+display:flex;
+align-items:center;
+
+background:white;
+
+border-radius:14px;
+
+overflow:hidden;
+
+border:1px solid #f3c3a1;
+
+}
+
+/* LEFT ORANGE ICON SIDE */
+
+.icon-side{
+
+width:85px;
+min-height:85px;
+
+background:linear-gradient(135deg,#ff8a3d,#e85d04);
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+color:white;
+font-size:28px;
+
+}
+
+/* RIGHT CONTENT SIDE */
+
+.text-side{
+
+padding:14px 16px;
+
+flex:1;
+
+background:white;
+
+}
+
+.text-side h4{
+
+margin:0;
+
+font-size:16px;
+
+font-weight:700;
+
+color:#222;
+
+}
+
+.text-side p{
+
+margin:4px 0 0 0;
+
+font-size:13px;
+
+color:#666;
+
+line-height:1.4;
+
+}
+
+/* CARD STYLE */
+
+.m-card{
+
+border-radius:14px;
+
+overflow:hidden;
+
+background:white;
+
+box-shadow:0 8px 22px rgba(0,0,0,.05);
+
+transition:.3s;
+
+}
+
+.m-card:hover{
+
+transform:translateY(-4px);
+
+box-shadow:0 18px 40px rgba(0,0,0,.08);
+
+}
 
 
 </style>
