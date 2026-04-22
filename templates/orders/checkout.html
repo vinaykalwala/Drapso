@@ -70,95 +70,231 @@
 </div>
 
 <script>
-    // Use Number() to ensure basePrice is treated as a digit
-    const basePrice = Number("{{ variant.selling_price|default:product.selling_price }}") || 0;
+
+    /* ================= PRICE LOGIC ================= */
+
+    let basePrice = 0;
+
+    {% if product.source_type == "own" %}
+
+        {% if variant %}
+            basePrice = Number("{{ variant.discounted_price|default:variant.selling_price }}");
+        {% else %}
+            basePrice = Number("{{ product.discounted_price|default:product.selling_price }}");
+        {% endif %}
+
+    {% else %}
+
+        {% if variant %}
+            basePrice = Number("{{ variant.selling_price }}");
+        {% else %}
+            basePrice = Number("{{ product.selling_price }}");
+        {% endif %}
+
+    {% endif %}
+
+    basePrice = basePrice || 0;
+
+
+    /* ================= ELEMENTS ================= */
+
     const submitBtn = document.getElementById('submitBtn');
     const btnText = document.getElementById('btnText');
     const infoBox = document.getElementById('deliveryInfo');
     const deliveryMsg = document.getElementById('deliveryMsg');
+
     let timer;
 
+
+    /* ================= UPDATE SUMMARY ================= */
+
     function updateSummary() {
+
         const pincodeField = document.querySelector('[name="shipping_pincode"]');
         const pincode = pincodeField ? pincodeField.value.trim() : "";
+
         const qtyField = document.querySelector('[name="quantity"]');
         const qty = parseInt(qtyField ? qtyField.value : 1) || 1;
-        
-        // Update price display immediately
-        const productTotal = basePrice * qty;
-        document.getElementById('productPriceDisplay').innerText = productTotal.toFixed(2);
-        document.getElementById('totalAmountDisplay').innerText = productTotal.toFixed(2);
 
-        // Lock button and hide previous delivery info
+
+        /* -------- PRICE CALCULATION -------- */
+
+        const productTotal = basePrice * qty;
+
+        document.getElementById('productPriceDisplay').innerText =
+            productTotal.toFixed(2);
+
+        document.getElementById('totalAmountDisplay').innerText =
+            productTotal.toFixed(2);
+
+
+        /* -------- UI LOCK -------- */
+
         submitBtn.disabled = true;
-        btnText.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Checking...';
+
+        btnText.innerHTML =
+            '<i class="fas fa-spinner fa-spin me-2"></i> Checking...';
+
         infoBox.style.display = 'none';
-        deliveryMsg.innerHTML = '';
+
+        deliveryMsg.innerHTML = "";
+
+
+        /* -------- PINCODE CHECK -------- */
 
         if (pincode.length === 6) {
+
             document.getElementById('pincodeLoading').style.display = 'block';
 
-            const url = `/orders/calculate-shipping/?product_id={{product.id}}&pincode=${pincode}&quantity=${qty}&store_id={{store.id}}{% if variant %}&variant_id={{variant.id}}{% endif %}`;
-            
+            const url =
+                `/orders/calculate-shipping/` +
+                `?product_id={{product.id}}` +
+                `&pincode=${pincode}` +
+                `&quantity=${qty}` +
+                `&store_id={{store.id}}` +
+                `{% if variant %}&variant_id={{variant.id}}{% endif %}`;
+
+
             fetch(url)
+
                 .then(res => res.json())
+
                 .then(data => {
+
                     document.getElementById('pincodeLoading').style.display = 'none';
+
                     infoBox.style.display = 'block';
 
+
                     if (data.success && data.delivery_time) {
-                        // SUCCESS
-                        deliveryMsg.className = 'text-success fw-bold';
-                        deliveryMsg.innerHTML = `<i class="fas fa-truck-fast me-2"></i> Est. Delivery: ${data.delivery_time}`;
-                        
-                        // Map hidden logistics data
-                        document.getElementById('id_courier_id_hidden').value = data.courier_id;
-                        document.getElementById('id_courier_name_hidden').value = data.courier_name;
-                        document.getElementById('id_estimated_delivery_date_hidden').value = data.delivery_time;
-                        document.getElementById('id_weight_hidden').value = data.weight;
-                        document.getElementById('id_length_hidden').value = data.length;
-                        document.getElementById('id_breadth_hidden').value = data.breadth;
-                        document.getElementById('id_height_hidden').value = data.height;
-                        document.getElementById('id_pickup_address_hidden').value = data.pickup_address;
-                        document.getElementById('id_pickup_pincode_hidden').value = data.pickup_pincode;
-                        document.getElementById('id_pickup_address_type_hidden').value = data.pickup_location_type;
+
+                        /* -------- SUCCESS -------- */
+
+                        deliveryMsg.className =
+                            'text-success fw-bold';
+
+                        deliveryMsg.innerHTML =
+                            `<i class="fas fa-truck-fast me-2"></i>
+                            Est. Delivery: ${data.delivery_time}`;
+
+
+                        /* -------- MAP HIDDEN FIELDS -------- */
+
+                        document.getElementById('id_courier_id_hidden').value =
+                            data.courier_id;
+
+                        document.getElementById('id_courier_name_hidden').value =
+                            data.courier_name;
+
+                        document.getElementById('id_estimated_delivery_date_hidden').value =
+                            data.delivery_time;
+
+                        document.getElementById('id_weight_hidden').value =
+                            data.weight;
+
+                        document.getElementById('id_length_hidden').value =
+                            data.length;
+
+                        document.getElementById('id_breadth_hidden').value =
+                            data.breadth;
+
+                        document.getElementById('id_height_hidden').value =
+                            data.height;
+
+                        document.getElementById('id_pickup_address_hidden').value =
+                            data.pickup_address;
+
+                        document.getElementById('id_pickup_pincode_hidden').value =
+                            data.pickup_pincode;
+
+                        document.getElementById('id_pickup_address_type_hidden').value =
+                            data.pickup_location_type;
+
+
+                        /* -------- ENABLE BUTTON -------- */
 
                         submitBtn.disabled = false;
-                        btnText.innerHTML = '<i class="fas fa-check-circle me-2"></i> Proceed to Payment';
-                    } else {
-                        // FAILURE (Not Serviceable)
-                        deliveryMsg.className = 'text-danger fw-bold';
-                        deliveryMsg.innerHTML = `<i class="fas fa-exclamation-circle me-2"></i> ${data.error || 'Not serviceable at this pincode'}`;
-                        
-                        submitBtn.disabled = true;
-                        btnText.innerHTML = '<i class="fas fa-lock me-2"></i> Proceed to Payment';
+
+                        btnText.innerHTML =
+                            '<i class="fas fa-check-circle me-2"></i> Proceed to Payment';
+
                     }
+
+                    else {
+
+                        /* -------- NOT SERVICEABLE -------- */
+
+                        deliveryMsg.className =
+                            'text-danger fw-bold';
+
+                        deliveryMsg.innerHTML =
+                            `<i class="fas fa-exclamation-circle me-2"></i>
+                            ${data.error || 'Not serviceable at this pincode'}`;
+
+
+                        submitBtn.disabled = true;
+
+                        btnText.innerHTML =
+                            '<i class="fas fa-lock me-2"></i> Proceed to Payment';
+
+                    }
+
                 })
+
                 .catch(err => {
+
                     document.getElementById('pincodeLoading').style.display = 'none';
-                    btnText.innerHTML = '<i class="fas fa-lock me-2"></i> Proceed to Payment';
+
+                    submitBtn.disabled = true;
+
+                    btnText.innerHTML =
+                        '<i class="fas fa-lock me-2"></i> Proceed to Payment';
+
                     console.error("Shipping check failed:", err);
+
                 });
-        } else {
-            // Pincode is not 6 digits yet
-            btnText.innerHTML = '<i class="fas fa-lock me-2"></i> Proceed to Payment';
+
         }
+
+        else {
+
+            btnText.innerHTML =
+                '<i class="fas fa-lock me-2"></i> Proceed to Payment';
+
+        }
+
     }
 
-    // Listener for Pincode changes
-    document.querySelector('[name="shipping_pincode"]').addEventListener('input', (e) => {
-        submitBtn.disabled = true;
-        infoBox.style.display = 'none';
-        
-        clearTimeout(timer);
-        timer = setTimeout(updateSummary, 700);
-    });
+
+    /* ================= EVENTS ================= */
+
+    document
+        .querySelector('[name="shipping_pincode"]')
+        .addEventListener('input', () => {
+
+            submitBtn.disabled = true;
+
+            infoBox.style.display = 'none';
+
+            clearTimeout(timer);
+
+            timer = setTimeout(updateSummary, 700);
+
+        });
+
 
     const qtyInput = document.querySelector('[name="quantity"]');
+
     if (qtyInput) {
+
         qtyInput.addEventListener('change', updateSummary);
+
     }
 
+
+    /* ================= INITIAL LOAD ================= */
+
     window.onload = updateSummary;
+
 </script>
 {% endblock %}

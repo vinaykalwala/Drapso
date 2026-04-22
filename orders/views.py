@@ -257,7 +257,15 @@ def create_order(request, store_id, product_id):
         form = CheckoutForm(request.POST)
         if form.is_valid():
             quantity = form.cleaned_data['quantity']
-            product_price = float(variant.selling_price if variant else product.selling_price)
+            if product.source_type == "own":
+                    product_price = float(
+                        variant.discounted_price if variant and variant.discounted_price
+                        else product.discounted_price
+                    )
+            else:
+                    product_price = float(
+                        variant.selling_price if variant else product.selling_price
+                 )
             shipping_charge = float(request.POST.get('shipping_charge', 0))
             total_amount = (product_price * quantity) + shipping_charge
             
