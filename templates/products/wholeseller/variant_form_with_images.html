@@ -6,7 +6,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>{{ title }} - {{ product.name }}</title>
     <!-- Bootstrap 5 + Icons + Font -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -71,7 +71,6 @@
             box-shadow: var(--shadow);
             transition: all 0.2s ease;
             overflow: hidden;
-            /* height: 100%; */
         }
 
         .form-card-header {
@@ -94,7 +93,6 @@
             padding: 1.5rem;
         }
 
-        /* Form field styling */
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -111,11 +109,6 @@
             gap: 0.5rem;
         }
 
-        .form-group label i {
-            color: var(--primary);
-            font-size: 0.9rem;
-        }
-
         select, input:not([type="file"]), textarea {
             width: 100%;
             padding: 0.75rem 1rem;
@@ -127,13 +120,22 @@
             color: var(--text-main);
         }
 
+        /* Ensure all text/number inputs get same styling */
+        input[type="text"], input[type="number"], input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            border: 1.5px solid var(--border-color);
+            background: var(--card-bg);
+            font-size: 0.95rem;
+        }
+
         select:focus, input:focus, textarea:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: var(--shadow-glow);
         }
 
-        /* File input styling */
         input[type="file"] {
             padding: 0.5rem;
             border: 1px dashed var(--border-color);
@@ -146,7 +148,6 @@
             background: #fef9c3;
         }
 
-        /* Image preview */
         .image-preview {
             background: #f8fafc;
             border-radius: var(--radius-md);
@@ -163,7 +164,6 @@
             box-shadow: var(--shadow-sm);
         }
 
-        /* Additional images formset */
         .image-form-item {
             background: #fefefe;
             border: 1px solid var(--border-color);
@@ -171,11 +171,6 @@
             padding: 1rem;
             margin-bottom: 1rem;
             transition: all 0.2s;
-        }
-
-        .image-form-item:hover {
-            border-color: var(--primary-light);
-            box-shadow: var(--shadow-sm);
         }
 
         .btn-add-image {
@@ -189,12 +184,6 @@
             width: 100%;
         }
 
-        .btn-add-image:hover {
-            background: #eef2ff;
-            border-color: var(--primary-light);
-            transform: translateY(-1px);
-        }
-
         .btn-save {
             background: linear-gradient(105deg, var(--primary), var(--primary-dark));
             border: none;
@@ -206,13 +195,6 @@
             transition: all 0.2s;
         }
 
-        .btn-save:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 14px 26px rgba(79, 70, 229, 0.3);
-            background: linear-gradient(105deg, var(--primary-dark), var(--primary));
-        }
-
-        /* Toggle switch for boolean fields (is_active etc) */
         .toggle-switch {
             position: relative;
             display: inline-block;
@@ -256,11 +238,27 @@
             transform: translateX(24px);
         }
 
-        .toggle-switch:hover .slider {
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        /* Delete checkbox styling */
+        .delete-image-wrapper {
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--border-color);
+        }
+        .delete-image-wrapper label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #dc2626;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .delete-image-wrapper input {
+            width: auto;
+            margin-right: 6px;
+            transform: scale(1.05);
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .form-container {
                 padding: 0 1rem;
@@ -269,13 +267,12 @@
                 padding: 1.25rem;
             }
         }
-
+        .form-card {
+            animation: fadeSlide 0.3s ease;
+        }
         @keyframes fadeSlide {
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-        .form-card {
-            animation: fadeSlide 0.3s ease;
         }
     </style>
 </head>
@@ -291,7 +288,7 @@
         {% csrf_token %}
 
         <div class="row g-4">
-            <!-- LEFT SIDE: Variant fields (excluding main_image) -->
+            <!-- LEFT SIDE: Variant fields -->
             <div class="col-lg-7">
                 <div class="form-card">
                     <div class="form-card-header">
@@ -302,7 +299,6 @@
                             {% if field.name != "main_image" %}
                                 <div class="form-group">
                                     {% if field.field.widget.input_type == "checkbox" %}
-                                        <!-- Boolean field rendered as toggle switch -->
                                         <div class="d-flex justify-content-between align-items-center">
                                             <span>{{ field.label }}</span>
                                             <label class="toggle-switch">
@@ -312,27 +308,18 @@
                                         </div>
                                     {% else %}
                                         <label>
-                                            {% if field.name == "sku" %}
-                                                <i class="fas fa-barcode"></i>
-                                            {% elif field.name == "price" %}
-                                                <i class="fas fa-dollar-sign"></i>
-                                            {% elif field.name == "compare_price" %}
-                                                <i class="fas fa-tags"></i>
-                                            {% elif field.name == "stock" %}
-                                                <i class="fas fa-boxes"></i>
-                                            {% elif field.name == "weight" %}
-                                                <i class="fas fa-weight-hanging"></i>
-                                            {% else %}
-                                                <i class="fas fa-edit"></i>
-                                            {% endif %}
+                                            {% if field.name == "sku" %}<i class="fas fa-barcode"></i>
+                                            {% elif field.name == "price" %}<i class="fas fa-dollar-sign"></i>
+                                            {% elif field.name == "compare_price" %}<i class="fas fa-tags"></i>
+                                            {% elif field.name == "stock" %}<i class="fas fa-boxes"></i>
+                                            {% elif field.name == "weight" %}<i class="fas fa-weight-hanging"></i>
+                                            {% else %}<i class="fas fa-edit"></i>{% endif %}
                                             {{ field.label }}
                                         </label>
                                         {{ field }}
                                     {% endif %}
                                     {% for error in field.errors %}
-                                        <div class="text-danger small mt-1">
-                                            <i class="fas fa-exclamation-circle"></i> {{ error }}
-                                        </div>
+                                        <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>
                                     {% endfor %}
                                 </div>
                             {% endif %}
@@ -341,22 +328,17 @@
                 </div>
             </div>
 
-            <!-- RIGHT SIDE: Images (Main + Gallery) -->
+            <!-- RIGHT SIDE: Images -->
             <div class="col-lg-5">
                 <!-- MAIN IMAGE -->
                 <div class="form-card mb-4">
-                    <div class="form-card-header">
-                        <i class="fas fa-camera"></i> Main Image
-                    </div>
+                    <div class="form-card-header"><i class="fas fa-camera"></i> Main Image</div>
                     <div class="form-card-body">
                         <div id="mainImagePreview" class="image-preview">
                             {% if form.instance.main_image %}
                                 <img src="{{ form.instance.main_image.url }}" alt="Main image preview">
                             {% else %}
-                                <div class="py-4 text-muted">
-                                    <i class="fas fa-image fa-2x mb-2 d-block"></i>
-                                    No image selected
-                                </div>
+                                <div class="py-4 text-muted"><i class="fas fa-image fa-2x mb-2 d-block"></i>No image selected</div>
                             {% endif %}
                         </div>
                         {{ form.main_image }}
@@ -364,47 +346,43 @@
                     </div>
                 </div>
 
-                <!-- ADDITIONAL IMAGES (Variant Gallery) -->
+                <!-- GALLERY IMAGES (Fixed: Order field same size as Alt text) -->
                 <div class="form-card">
-                    <div class="form-card-header">
-                        <i class="fas fa-images"></i> Variant Gallery
-                    </div>
+                    <div class="form-card-header"><i class="fas fa-images"></i> Variant Gallery</div>
                     <div class="form-card-body">
                         {{ image_formset.management_form }}
-
                         <div id="imageFormsList">
                             {% for f in image_formset %}
-                            <div class="image-form-item">
+                            <div class="image-form-item" data-image-id="{{ f.instance.pk|default:'new' }}">
                                 {% if f.instance.pk and f.instance.image %}
-                                    <div class="text-center mb-2">
-                                        <img src="{{ f.instance.image.url }}" style="max-height: 80px; border-radius: 12px;" class="shadow-sm">
+                                    <div class="text-center mb-3">
+                                        <img src="{{ f.instance.image.url }}" style="max-height: 90px; border-radius: 12px;" class="shadow-sm">
                                     </div>
                                 {% endif %}
-                                <div class="row g-2 align-items-end">
-                                    <div class="col-md-12 mb-2">
-                                        <label class="small fw-semibold">Image file</label>
-                                        {{ f.image }}
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="small fw-semibold">Alt text</label>
+                                <div class="mb-3">
+                                    <label class="small fw-semibold mb-1">Image file</label>
+                                    {{ f.image }}
+                                </div>
+                                <!-- Alt text & Order in equal-width columns (responsive) -->
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        <label class="small fw-semibold mb-1">Alt text</label>
                                         {{ f.alt_text }}
                                     </div>
-                                    <div class="col-md-3">
-                                        <label class="small fw-semibold">Order</label>
+                                    <div class="col-12 col-md-6">
+                                        <label class="small fw-semibold mb-1">Order</label>
                                         {{ f.order }}
                                     </div>
-                                    <div class="col-md-3">
-                                        {% if f.instance.pk %}
-                                            <label class="small text-danger">Delete</label>
-                                            <div class="mt-1">{{ f.DELETE }}</div>
-                                        {% endif %}
-                                    </div>
                                 </div>
+                                {% if f.instance.pk %}
+                                    <div class="delete-image-wrapper">
+                                        <label class="text-danger">{{ f.DELETE }} Remove this image</label>
+                                    </div>
+                                {% endif %}
                                 {{ f.id }}
                             </div>
                             {% endfor %}
                         </div>
-
                         <button type="button" id="addImageBtn" class="btn btn-add-image mt-2">
                             <i class="fas fa-plus-circle me-1"></i> Add another image
                         </button>
@@ -414,9 +392,7 @@
         </div>
 
         <div class="d-flex justify-content-end mt-4">
-            <button type="submit" class="btn btn-save text-white">
-                <i class="fas fa-save me-2"></i> Save Variant
-            </button>
+            <button type="submit" class="btn btn-save text-white"><i class="fas fa-save me-2"></i> Save Variant</button>
         </div>
     </form>
 </div>
@@ -425,13 +401,11 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-
     // ========================
-    // MAIN IMAGE PREVIEW
+    // 1. MAIN IMAGE PREVIEW
     // ========================
     const mainImageInput = document.querySelector("#id_main_image");
     const previewDiv = document.getElementById("mainImagePreview");
-
     if (mainImageInput) {
         mainImageInput.addEventListener("change", function () {
             if (this.files && this.files[0]) {
@@ -441,7 +415,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 };
                 reader.readAsDataURL(this.files[0]);
             } else {
-                // revert to original if exists
                 {% if form.instance.main_image %}
                     previewDiv.innerHTML = `<img src="{{ form.instance.main_image.url }}" class="img-fluid rounded shadow-sm" style="max-height:180px;">`;
                 {% else %}
@@ -452,7 +425,31 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ========================
-    // DYNAMIC IMAGE FORMSET (ADD MORE)
+    // 2. FIX: Add 'form-control' class to ALL alt_text & order inputs (existing + dynamic)
+    //    This ensures they have identical width, padding, font, border.
+    // ========================
+    function applyFormControlToAltAndOrder() {
+        // Select all inputs inside alt_text or order field containers
+        // Django renders alt_text as <input type="text" name="...-alt_text" ...>
+        // and order as <input type="number" name="...-order" ...>
+        document.querySelectorAll('input[name$="-alt_text"], input[name$="-order"]').forEach(input => {
+            if (!input.classList.contains('form-control')) {
+                input.classList.add('form-control');
+            }
+            // Ensure number input also has consistent width (override browser defaults)
+            if (input.type === 'number') {
+                input.style.width = '100%';
+                input.style.boxSizing = 'border-box';
+            }
+        });
+    }
+
+    // Run initially
+    applyFormControlToAltAndOrder();
+
+    // ========================
+    // 3. DYNAMIC ADDITION OF IMAGE FORMSET
+    //    Alt text & Order already get form-control in the generated HTML
     // ========================
     const addBtn = document.getElementById("addImageBtn");
     const container = document.getElementById("imageFormsList");
@@ -460,34 +457,41 @@ document.addEventListener("DOMContentLoaded", function () {
     
     if (totalFormsInput) {
         const prefix = totalFormsInput.name.replace('-TOTAL_FORMS', '');
-
         addBtn.addEventListener("click", function () {
             const formCount = parseInt(totalFormsInput.value);
             const newFormHtml = `
-                <div class="image-form-item">
-                    <div class="row g-2 align-items-end">
-                        <div class="col-md-12 mb-2">
-                            <label class="small fw-semibold">Image file</label>
-                            <input type="file" name="${prefix}-${formCount}-image" class="form-control">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="small fw-semibold">Alt text</label>
+                <div class="image-form-item" data-image-id="new">
+                    <div class="mb-3">
+                        <label class="small fw-semibold mb-1">Image file</label>
+                        <input type="file" name="${prefix}-${formCount}-image" class="form-control">
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="small fw-semibold mb-1">Alt text</label>
                             <input type="text" name="${prefix}-${formCount}-alt_text" class="form-control">
                         </div>
-                        <div class="col-md-3">
-                            <label class="small fw-semibold">Order</label>
+                        <div class="col-12 col-md-6">
+                            <label class="small fw-semibold mb-1">Order</label>
                             <input type="number" name="${prefix}-${formCount}-order" class="form-control">
-                        </div>
-                        <div class="col-md-3">
-                            <!-- no delete checkbox for new items -->
                         </div>
                     </div>
                 </div>
             `;
             container.insertAdjacentHTML("beforeend", newFormHtml);
             totalFormsInput.value = formCount + 1;
+            // No need to reapply form-control because new inputs already have the class
         });
     }
+
+    // Optional: Watch for dynamic changes if any other script modifies DOM
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length) {
+                applyFormControlToAltAndOrder();
+            }
+        });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 });
 </script>
 </body>

@@ -71,7 +71,6 @@
             border: 1px solid var(--border-color);
             box-shadow: var(--shadow);
             transition: all 0.2s ease;
-            /* height: 100%; */
             overflow: hidden;
         }
 
@@ -126,6 +125,16 @@
             font-size: 0.95rem;
             transition: all 0.2s ease;
             color: var(--text-main);
+        }
+
+        /* Force consistent styling for all text/number inputs */
+        input[type="text"], input[type="number"], input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            border: 1.5px solid var(--border-color);
+            background: var(--card-bg);
+            font-size: 0.95rem;
         }
 
         select:focus, input:focus, textarea:focus {
@@ -231,54 +240,73 @@
             animation: fadeSlide 0.3s ease;
         }
         /* ===== TOGGLE SWITCH (IS ACTIVE / FEATURED) ===== */
-.toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 52px;
-    height: 28px;
-}
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
 
-.toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
 
-.toggle-switch .slider {
-    position: absolute;
-    cursor: pointer;
-    inset: 0;
-    background: #e2e8f0;
-    border-radius: 50px;
-    transition: all 0.3s ease;
-}
+        .toggle-switch .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #e2e8f0;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
 
-.toggle-switch .slider::before {
-    content: "";
-    position: absolute;
-    height: 22px;
-    width: 22px;
-    left: 3px;
-    top: 3px;
-    background: white;
-    border-radius: 50%;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
+        .toggle-switch .slider::before {
+            content: "";
+            position: absolute;
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            top: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
 
-/* ON STATE */
-.toggle-switch input:checked + .slider {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-}
+        .toggle-switch input:checked + .slider {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
 
-.toggle-switch input:checked + .slider::before {
-    transform: translateX(24px);
-}
+        .toggle-switch input:checked + .slider::before {
+            transform: translateX(24px);
+        }
 
-/* Hover effect */
-.toggle-switch:hover .slider {
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-}
+        .toggle-switch:hover .slider {
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        /* Delete checkbox styling (for existing images) */
+        .delete-image-wrapper {
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--border-color);
+        }
+        .delete-image-wrapper label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #dc2626;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .delete-image-wrapper input {
+            width: auto;
+            margin-right: 6px;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -314,54 +342,44 @@
 
                         <!-- OTHER FIELDS (dynamic) -->
                         {% for field in form %}
-    {% if field.name != "category" and field.name != "subcategory" and field.name != "main_image" %}
-
-        <div class="form-group">
-
-            {% if field.name == "is_active" or field.name == "is_featured" or field.name == "is_shippable" or field.name == "is_returnable" or field.name == "is_replaceable" %}
-
-                <!-- TOGGLE UI -->
-                <div class="d-flex justify-content-between align-items-center">
-                    <span>{{ field.label }}</span>
-                    <label class="toggle-switch">
-                        {{ field }}
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-            {% else %}
-
-                <label>
-                    {% if field.name == "name" %}
-                        <i class="fas fa-heading"></i>
-                    {% elif field.name == "slug" %}
-                        <i class="fas fa-link"></i>
-                    {% elif field.name == "description" %}
-                        <i class="fas fa-align-left"></i>
-                    {% elif field.name == "price" %}
-                        <i class="fas fa-dollar-sign"></i>
-                    {% elif field.name == "stock" %}
-                        <i class="fas fa-boxes"></i>
-                    {% else %}
-                        <i class="fas fa-edit"></i>
-                    {% endif %}
-                    {{ field.label }}
-                </label>
-
-                {{ field }}
-
-            {% endif %}
-
-            {% for error in field.errors %}
-                <div class="text-danger small mt-1">
-                    <i class="fas fa-exclamation-circle"></i> {{ error }}
-                </div>
-            {% endfor %}
-
-        </div>
-
-    {% endif %}
-{% endfor %}
+                            {% if field.name != "category" and field.name != "subcategory" and field.name != "main_image" %}
+                                <div class="form-group">
+                                    {% if field.name == "is_active" or field.name == "is_featured" or field.name == "is_shippable" or field.name == "is_returnable" or field.name == "is_replaceable" %}
+                                        <!-- TOGGLE UI -->
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span>{{ field.label }}</span>
+                                            <label class="toggle-switch">
+                                                {{ field }}
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    {% else %}
+                                        <label>
+                                            {% if field.name == "name" %}
+                                                <i class="fas fa-heading"></i>
+                                            {% elif field.name == "slug" %}
+                                                <i class="fas fa-link"></i>
+                                            {% elif field.name == "description" %}
+                                                <i class="fas fa-align-left"></i>
+                                            {% elif field.name == "price" %}
+                                                <i class="fas fa-dollar-sign"></i>
+                                            {% elif field.name == "stock" %}
+                                                <i class="fas fa-boxes"></i>
+                                            {% else %}
+                                                <i class="fas fa-edit"></i>
+                                            {% endif %}
+                                            {{ field.label }}
+                                        </label>
+                                        {{ field }}
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="text-danger small mt-1">
+                                            <i class="fas fa-exclamation-circle"></i> {{ error }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -389,7 +407,7 @@
                     </div>
                 </div>
 
-                <!-- ADDITIONAL IMAGES (formset) -->
+                <!-- ADDITIONAL IMAGES (formset) - FIXED: Order field same size as Alt text -->
                 <div class="form-card">
                     <div class="form-card-header">
                         <i class="fas fa-images"></i> Additional Images
@@ -399,32 +417,36 @@
 
                         <div id="imageFormsList">
                             {% for f in image_formset %}
-                            <div class="image-form-item">
+                            <div class="image-form-item" data-image-id="{{ f.instance.pk|default:'new' }}">
                                 {% if f.instance.pk and f.instance.image %}
-                                    <div class="text-center mb-2">
-                                        <img src="{{ f.instance.image.url }}" style="max-height: 80px; border-radius: 12px;" class="shadow-sm">
+                                    <div class="text-center mb-3">
+                                        <img src="{{ f.instance.image.url }}" style="max-height: 90px; border-radius: 12px;" class="shadow-sm">
                                     </div>
                                 {% endif %}
-                                <div class="row g-2 align-items-end">
-                                    <div class="col-md-12 mb-2">
-                                        <label class="small fw-semibold">Image file</label>
-                                        {{ f.image }}
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="small fw-semibold">Alt text</label>
+                                <!-- Image file field (full width) -->
+                                <div class="mb-3">
+                                    <label class="small fw-semibold mb-1">Image file</label>
+                                    {{ f.image }}
+                                </div>
+                                <!-- Alt text & Order in equal-width columns (responsive) -->
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        <label class="small fw-semibold mb-1">Alt text</label>
                                         {{ f.alt_text }}
                                     </div>
-                                    <div class="col-md-3">
-                                        <label class="small fw-semibold">Order</label>
+                                    <div class="col-12 col-md-6">
+                                        <label class="small fw-semibold mb-1">Order</label>
                                         {{ f.order }}
                                     </div>
-                                    <div class="col-md-3">
-                                        {% if f.instance.pk %}
-                                            <label class="small text-danger">Delete</label>
-                                            <div class="mt-1">{{ f.DELETE }}</div>
-                                        {% endif %}
-                                    </div>
                                 </div>
+                                <!-- DELETE checkbox for existing images -->
+                                {% if f.instance.pk %}
+                                    <div class="delete-image-wrapper">
+                                        <label class="text-danger">
+                                            {{ f.DELETE }} Remove this image
+                                        </label>
+                                    </div>
+                                {% endif %}
                                 {{ f.id }}
                             </div>
                             {% endfor %}
@@ -446,9 +468,8 @@
     </form>
 </div>
 </div>
-<!-- Bootstrap JS (optional for toggles, but not required for functionality) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -460,11 +481,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function loadSubcategories(selectedId = null) {
         const categoryId = category.value;
-
         subcategory.innerHTML = '<option value="">---------</option>';
-
         if (!categoryId) return;
-
         fetch(`/products/ajax/load-subcategories/?category_id=${categoryId}`)
             .then(res => res.json())
             .then(data => {
@@ -494,7 +512,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // ========================
     const mainImageInput = document.querySelector("#id_main_image");
     const previewDiv = document.getElementById("mainImagePreview");
-
     if (mainImageInput) {
         mainImageInput.addEventListener("change", function () {
             if (this.files && this.files[0]) {
@@ -504,7 +521,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 };
                 reader.readAsDataURL(this.files[0]);
             } else {
-                // revert to original if exists
                 {% if form.instance.main_image %}
                     previewDiv.innerHTML = `<img src="{{ form.instance.main_image.url }}" class="img-fluid rounded shadow-sm" style="max-height:180px;">`;
                 {% else %}
@@ -515,33 +531,46 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ========================
-    // DYNAMIC IMAGE FORMSET (ADD MORE)
+    // FIX: Add 'form-control' class to ALL alt_text & order inputs (existing + dynamic)
+    // This ensures identical width, padding, font, border.
+    // ========================
+    function applyFormControlToAltAndOrder() {
+        document.querySelectorAll('input[name$="-alt_text"], input[name$="-order"]').forEach(input => {
+            if (!input.classList.contains('form-control')) {
+                input.classList.add('form-control');
+            }
+            if (input.type === 'number') {
+                input.style.width = '100%';
+                input.style.boxSizing = 'border-box';
+            }
+        });
+    }
+    applyFormControlToAltAndOrder();
+
+    // ========================
+    // DYNAMIC IMAGE FORMSET (ADD MORE) - with equal columns for Alt & Order
     // ========================
     const addBtn = document.getElementById("addImageBtn");
     const container = document.getElementById("imageFormsList");
     const totalFormsInput = document.querySelector('[name$="-TOTAL_FORMS"]');
     if (totalFormsInput) {
         const prefix = totalFormsInput.name.replace('-TOTAL_FORMS', '');
-
         addBtn.addEventListener("click", function () {
             const formCount = parseInt(totalFormsInput.value);
             const newFormHtml = `
-                <div class="image-form-item">
-                    <div class="row g-2 align-items-end">
-                        <div class="col-md-12 mb-2">
-                            <label class="small fw-semibold">Image file</label>
-                            <input type="file" name="${prefix}-${formCount}-image" class="form-control">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="small fw-semibold">Alt text</label>
+                <div class="image-form-item" data-image-id="new">
+                    <div class="mb-3">
+                        <label class="small fw-semibold mb-1">Image file</label>
+                        <input type="file" name="${prefix}-${formCount}-image" class="form-control">
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="small fw-semibold mb-1">Alt text</label>
                             <input type="text" name="${prefix}-${formCount}-alt_text" class="form-control">
                         </div>
-                        <div class="col-md-3">
-                            <label class="small fw-semibold">Order</label>
+                        <div class="col-12 col-md-6">
+                            <label class="small fw-semibold mb-1">Order</label>
                             <input type="number" name="${prefix}-${formCount}-order" class="form-control">
-                        </div>
-                        <div class="col-md-3">
-                            <!-- no delete checkbox for new items -->
                         </div>
                     </div>
                 </div>
@@ -550,9 +579,18 @@ document.addEventListener("DOMContentLoaded", function () {
             totalFormsInput.value = formCount + 1;
         });
     }
+
+    // Optional: Watch for dynamic DOM changes
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length) {
+                applyFormControlToAltAndOrder();
+            }
+        });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 });
 </script>
-
 </body>
 </html>     
 {% endblock %}

@@ -10,7 +10,7 @@
     :root {
         --primary: #4f46e5;
         --primary-dark: #3730a3;
-        --hut-wood: #ffffff; 
+        --hut-wood: #ffffff;
         --hut-border: #e2e8f0;
         --roof-color: #4f46e5;
     }
@@ -61,14 +61,14 @@
     }
 
     .chimney {
-    width: clamp(25px, 5vw, 45px);
-    height: clamp(50px, 10vw, 80px);
-    background: #1e293b;
-    position: absolute;
-    top: clamp(20px, 5vw, 40px);
-    right: clamp(10%, 15vw, 22%);
-    border-radius: 4px 4px 0 0;
-    z-index: -1; /* IMPORTANT: bring it above */
+        width: clamp(25px, 5vw, 45px);
+        height: clamp(50px, 10vw, 80px);
+        background: #1e293b;
+        position: absolute;
+        top: clamp(20px, 5vw, 40px);
+        right: clamp(10%, 15vw, 22%);
+        border-radius: 4px 4px 0 0;
+        z-index: -1;
     }
 
     .hut-main-body {
@@ -85,39 +85,35 @@
     .store-focal-point {
         max-width: 800px;
         margin: 0 auto;
-        position: relative; /* Context for absolute logo */
+        position: relative;
     }
 
     .store-hero-banner {
         width: 100%;
         height: clamp(160px, 25vw, 250px);
         border-radius: clamp(20px, 5vw, 40px);
-        overflow: hidden; /* Clips the banner image */
+        overflow: hidden;
         position: relative;
         background: #f8fafc;
         border: 2px solid #f1f5f9;
-        margin-bottom: 0; /* Margin handled by logo space now */
+        margin-bottom: 0;
     }
 
     .store-hero-banner img {
-        width: 100%; 
-        height: 100%; 
+        width: 100%;
+        height: 100%;
         object-fit: cover;
     }
 
-    /* --- FIXED FULL LOGO POSITIONING --- */
     .store-hero-logo {
         width: clamp(100px, 18vw, 140px);
         height: clamp(100px, 18vw, 140px);
         background: white;
         border-radius: clamp(25px, 4vw, 40px);
         border: clamp(4px, 1vw, 8px) solid white;
-        
-        /* Positioning outside the overflow hidden banner */
-        margin: -60px auto 30px; 
+        margin: -60px auto 30px;
         position: relative;
-        z-index: 20; /* Ensures it sits above everything */
-        
+        z-index: 20;
         box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.2);
         display: flex;
         align-items: center;
@@ -128,7 +124,7 @@
     .store-hero-logo img {
         width: 100%;
         height: 100%;
-        object-fit: contain; /* Shows full logo without cropping */
+        object-fit: contain;
         padding: 5px;
     }
 
@@ -204,6 +200,32 @@
         z-index: 5;
     }
 
+    /* Store switcher dropdown – subtle and fits the design */
+    .store-selector-wrapper {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        z-index: 10;
+    }
+    .store-selector {
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(4px);
+        border: 1px solid #e2e8f0;
+        border-radius: 40px;
+        padding: 6px 16px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #1e293b;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        cursor: pointer;
+        border: none;
+        outline: none;
+        max-width: 200px;
+    }
+    .store-selector option {
+        font-weight: 500;
+    }
+
     @media (max-width: 991px) {
         .main-content { margin-left: 0; padding: 20px 10px; }
         .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
@@ -211,123 +233,112 @@
 
     @media (max-width: 576px) {
         .dashboard-grid { grid-template-columns: 1fr; }
-        /* .chimney { display: none; } */
         .status-ribbon { right: 0; top: 10px; padding: 5px 15px; }
         .hut-door-link { width: 100%; justify-content: center; }
         .store-hero-logo { margin-top: -40px; }
-    }
-
-    @media (max-width: 576px) {
-        .chimney {
-            right: 18%;
-            top: 25px;
-        }
+        .chimney { right: 18%; top: 25px; }
+        .store-selector-wrapper { top: 10px; left: 10px; }
     }
 </style>
 
-<div class="content"> 
+<div class="content">
     <div class="main-content">
         <div class="hut-grand-wrapper">
             <div class="chimney"></div>
-            <!-- HEADER -->
+            <!-- ROOF HEADER -->
             <div class="hut-roof-crown">
                 <span class="roof-logo">Reseller Dashboard</span>
             </div>
 
+            <!-- HUT BODY -->
             <div class="hut-main-body">
 
                 {% if stores %}
+                    {# Store selector – appears only if more than one store #}
+                    {% if stores|length > 1 %}
+                    <div class="store-selector-wrapper">
+                        <select id="storeSelector" class="store-selector" onchange="switchStore(this.value)">
+                            {% for s in stores %}
+                                <option value="{{ s.id }}" {% if forloop.first %}selected{% endif %}>
+                                    {{ s.store_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
 
+                    {# We'll render the first store by default, but via JS we can swap content #}
                     {% with store=stores|first %}
+                    <div id="storeDisplayContainer" class="store-focal-point text-center" data-current-store-id="{{ store.id }}">
 
-                    <!-- ================= STORE EXISTS ================= -->
-                    <div class="store-focal-point text-center">
-
-                        {% if store.status == 'active' %}
-                            <div class="status-ribbon">Store Live</div>
-                        {% endif %}
+                        
 
                         <!-- Banner -->
                         <div class="store-hero-banner">
-                            {% if store.store_banner %}
-                                <img src="{{ store.store_banner.url }}">
-                            {% else %}
-                                <img src="{% static 'images/bg.png' %}">
-                            {% endif %}
+                            <img src="{% static 'images/bg.png' %}" alt="Store banner">
                         </div>
 
                         <!-- Logo -->
                         <div class="store-hero-logo">
-                            {% if store.store_logo %}
-                                <img src="{{ store.store_logo.url }}">
-                            {% else %}
-                                <img src="{% static 'images/user.png' %}">
-                            {% endif %}
+                            <img src="{% static 'images/user.png' %}" alt="Store logo">
                         </div>
 
-                        <!-- Info -->
-                        <h1 class="fw-bold mt-3">{{ store.store_name }}</h1>
+                        <!-- Store Name -->
+                        <h1 class="fw-bold mt-3" id="storeName">{{ store.store_name }}</h1>
 
-                        <a href="https://{{ store.subdomain }}.example.com" target="_blank">
+                        <!-- Subdomain Link -->
+                        <a href="https://{{ store.subdomain }}.example.com" target="_blank" id="storeLink">
                             {{ store.subdomain }}.example.com
                         </a>
 
-                        <p class="text-muted mt-2">
+                        <!-- Description -->
+                        <p class="text-muted mt-2" id="storeDescription">
                             {{ store.store_description|default:"Your premium digital storefront is ready for business." }}
                         </p>
 
-                        <!-- Stats -->
+                        <!-- Stats Grid -->
                         <div class="dashboard-grid mt-4">
-
                             <div class="stat-card">
                                 <span class="stat-label">Visitors</span>
-                                <span class="stat-value">{{ store.total_visitors }}</span>
+                                <span class="stat-value" id="storeVisitors">{{ store.total_visitors|default:"—" }}</span>
                             </div>
-
                             <div class="stat-card">
                                 <span class="stat-label">Plan</span>
-                                <span class="stat-value">
-                                    {{ store.subscription_plan.get_name_display }}
-                                </span>
+                                <span class="stat-value" id="storePlan">{{ store.subscription_plan }}</span>
                             </div>
-
                             <div class="stat-card">
                                 <span class="stat-label">Subscription</span>
-                                <span class="stat-value">
+                                <span class="stat-value" id="storeExpiry">
                                     {% if store.subscription_end %}
-                                        {{ store.days_until_expiry }} days left
+                                        {{ store.days_until_expiry|default:"—" }} days left
                                     {% else %}
                                         Lifetime
                                     {% endif %}
                                 </span>
                             </div>
-
                         </div>
 
-                        <!-- Extra Info -->
+                        <!-- Theme and Since info -->
                         <div class="mt-4 d-flex justify-content-center gap-3 flex-wrap small">
                             <div class="bg-light px-3 py-2 rounded-pill">
-                                Theme: <strong>{{ store.theme.name }}</strong>
+                                Theme: <strong id="storeTheme">{{ store.theme }}</strong>
                             </div>
                             <div class="bg-light px-3 py-2 rounded-pill">
                                 Since: <strong>{{ store.created_at|date:"M Y" }}</strong>
                             </div>
                         </div>
 
-                        <!-- CTA -->
+                        <!-- MAIN ACTION BUTTON: ALWAYS GOES TO CREATE STORE STEP 1 -->
                         <div class="mt-4">
-                            <a href="{{ store.next_step_url }}" class="hut-door-link">
-                                {{ store.next_step }}
+                            <a href="{% url 'resellers:create_store_step1' %}" class="hut-door-link" id="storeActionButton">
+                                Create Your Store
                             </a>
                         </div>
-
                     </div>
-
                     {% endwith %}
 
                 {% elif has_created_store %}
-
-                    <!-- ================= STORE EXISTS BUT NOT ACTIVE ================= -->
+                    {# Original fallback for stores exist but none active #}
                     <div class="text-center py-5">
                         <i class="fas fa-campground fa-4x mb-3 text-muted"></i>
                         <h2 class="fw-bold">Hut is Vacant</h2>
@@ -337,40 +348,100 @@
                     </div>
 
                 {% else %}
-
-                    <!-- ================= FIRST TIME USER ================= -->
+                    {# First time user – empty state exactly as in the second design #}
                     <div class="text-center py-5">
-
                         <div class="mb-3">
                             <i class="fas fa-store fa-3x text-primary"></i>
                         </div>
-
                         <h3 class="fw-bold">Your first store awaits</h3>
-
                         <p class="text-muted mx-auto" style="max-width: 500px;">
                             Launch a stunning online store in minutes. Beautiful themes,
                             built-in SEO, and easy management.
                         </p>
-
                         <div class="mt-4">
                             <a href="{% url 'resellers:create_store_step1' %}"
                                class="btn btn-primary btn-lg px-4">
                                Create Store
                             </a>
                         </div>
-
                         <div class="mt-4 small text-muted">
                             ⚡ Instant setup • 📊 Real-time stats • 🛟 24/7 support
                         </div>
-
                     </div>
-
                 {% endif %}
 
-            </div>
-        </div>
-    </div>
-</div>
+            </div><!-- /hut-main-body -->
+        </div><!-- /hut-grand-wrapper -->
+    </div><!-- /main-content -->
+</div><!-- /content -->
+
+{# Hidden data store for all stores, used by JavaScript switcher #}
+{% if stores %}
+<script id="storesData" type="application/json">
+    {{ stores_json|safe }}
+</script>
+{% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (function() {
+        // If multiple stores exist, enable dynamic switching.
+        const storeSelector = document.getElementById('storeSelector');
+        if (storeSelector) {
+            // Retrieve stores data from a JSON script block
+            const storesDataElement = document.getElementById('storesData');
+            if (storesDataElement) {
+                window.stores = JSON.parse(storesDataElement.textContent);
+            } else {
+                console.warn("Stores JSON not provided; switching disabled.");
+                return;
+            }
+
+            window.switchStore = function(storeId) {
+                const store = window.stores.find(s => s.id == storeId);
+                if (!store) return;
+
+                // Update all dynamic fields
+                document.getElementById('storeName').textContent = store.store_name;
+                document.getElementById('storeLink').href = `https://${store.subdomain}.example.com`;
+                document.getElementById('storeLink').textContent = `${store.subdomain}.example.com`;
+                document.getElementById('storeDescription').textContent = store.store_description || "Your premium digital storefront is ready for business.";
+                document.getElementById('storeVisitors').textContent = store.total_visitors || "—";
+                document.getElementById('storePlan').textContent = store.subscription_plan;
+                document.getElementById('storeTheme').textContent = store.theme;
+
+                // Update expiry info
+                let expiryText = "Lifetime";
+                if (store.subscription_end) {
+                    const days = store.days_until_expiry || "—";
+                    expiryText = `${days} days left`;
+                }
+                document.getElementById('storeExpiry').textContent = expiryText;
+
+                // Update status ribbon
+                const ribbon = document.querySelector('.status-ribbon');
+                if (ribbon) {
+                    if (store.status === 'active' && store.is_published) {
+                        ribbon.textContent = 'Store Live';
+                        ribbon.style.background = '#22c55e';
+                    } else if (store.status === 'pending_payment') {
+                        ribbon.textContent = 'Payment Pending';
+                        ribbon.style.background = '#b91c1c';
+                    } else if (store.status === 'expired') {
+                        ribbon.textContent = 'Expired';
+                        ribbon.style.background = '#92400e';
+                    } else {
+                        ribbon.textContent = store.status.charAt(0).toUpperCase() + store.status.slice(1);
+                        ribbon.style.background = '#6b7280';
+                    }
+                }
+
+                // *** ALWAYS LINK TO CREATE STORE STEP 1 ***
+                const actionBtn = document.getElementById('storeActionButton');
+                actionBtn.href = "{% url 'resellers:create_store_step1' %}";
+                actionBtn.textContent = "Create Your Store";
+            };
+        }
+    })();
+</script>
 {% endblock %}
