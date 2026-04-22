@@ -4,7 +4,12 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.core.validators import MinLengthValidator, MaxLengthValidator, RegexValidator
+from django.core.exceptions import ValidationError
 from django.utils.text import slugify
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class SubscriptionPlan(models.Model):
     """Subscription plans for stores - Managed by Superuser"""
@@ -23,8 +28,8 @@ class SubscriptionPlan(models.Model):
     
     name = models.CharField(max_length=50, choices=PLAN_TYPES, unique=True)
     duration = models.CharField(max_length=20, choices=DURATION_CHOICES, default='monthly')
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Added default
-    multiple_theme_limit = models.IntegerField(help_text="Max products for multiple products theme", default=0)  # Added default
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    multiple_theme_limit = models.IntegerField(help_text="Max products for multiple products theme", default=0)
     features = models.TextField(help_text="Comma-separated list of features", blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -51,6 +56,7 @@ class SubscriptionPlan(models.Model):
         except:
             return f"{self.get_name_display()} - {self.get_duration_display()}"
 
+
 class StoreTheme(models.Model):
     """Themes for stores - Only 2 themes total"""
     
@@ -73,6 +79,20 @@ class StoreTheme(models.Model):
     
     def __str__(self):
         return f"{self.name} ({self.get_theme_type_display()})"
+
+
+class StoreManager(models.Manager):
+    """Custom manager that excludes stores with empty names by default"""
+    
+    def get_queryset(self):
+        """Exclude stores with empty or null store_name"""
+        return super().get_queryset().exclude(
+            models.Q(store_name='') | models.Q(store_name__isnull=True)
+        )
+    
+    def all_including_empty(self):
+        """Get all stores including empty ones (use for cleanup)"""
+        return super().get_queryset()
 
 
 class Store(models.Model):
@@ -153,6 +173,10 @@ class Store(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    # Use custom manager
+    objects = StoreManager()
+    all_objects = models.Manager()  # Access all stores including empty ones
+    
     class Meta:
         ordering = ['-created_at']
         indexes = [
@@ -160,17 +184,64 @@ class Store(models.Model):
             models.Index(fields=['status']),
         ]
     
+    def clean(self):
+        """Validate the model before saving"""
+        super().clean()
+        
+        # Ignore validation if store_name is empty (will be handled in save)
+        if not self.store_name or not self.store_name.strip():
+            return
+        
+        # Clean the store_name
+        self.store_name = self.store_name.strip()
+    
     def save(self, *args, **kwargs):
+        """
+        Save store - IGNORES any attempt to save with empty store_name
+        Simply returns without saving or raising error
+        """
+        
+        # 🔥 CRITICAL: Ignore saves with empty store_name
+        if not self.store_name or not self.store_name.strip():
+            # Log warning but don't raise error
+            logger.warning(f"Ignored attempt to save store with empty name for user_id: {self.reseller_id}")
+            
+            # If this is a new store (no ID), silently ignore (don't create)
+            if not self.pk:
+                
+                return  # Simply return without saving
+            
+            # If it's an existing store, also ignore the update
+            
+            return
+        
+        # Clean the store_name
+        self.store_name = self.store_name.strip()
+        
+        # Generate subdomain from store_name
         new_subdomain = slugify(self.store_name.lower())
+        
+        # Check if slugify produced a valid subdomain
+        if not new_subdomain:
+            
+            return
 
+        # Handle subdomain based on whether it's new or existing store
         if self.pk:
             # Existing store → check if name changed
-            old = Store.objects.filter(pk=self.pk).values('store_name', 'subdomain').first()
-
-            if old:
-                if old['store_name'] != self.store_name:
-                    # 🔥 Update subdomain when name changes
+            try:
+                old = Store.all_objects.filter(pk=self.pk).values('store_name', 'subdomain').first()
+                
+                if old and old['store_name'] != self.store_name:
+                    # Update subdomain when name changes
                     self.subdomain = new_subdomain
+                elif old and old['subdomain']:
+                    # Keep existing subdomain
+                    self.subdomain = old['subdomain']
+                else:
+                    self.subdomain = new_subdomain
+            except Store.DoesNotExist:
+                self.subdomain = new_subdomain
         else:
             # New store
             self.subdomain = new_subdomain
@@ -178,14 +249,20 @@ class Store(models.Model):
         # Ensure unique subdomain
         original = self.subdomain
         counter = 1
-        while Store.objects.filter(subdomain=self.subdomain).exclude(id=self.id).exists():
+        while Store.all_objects.filter(subdomain=self.subdomain).exclude(id=self.id).exists():
             self.subdomain = f"{original}{counter}"
             counter += 1
 
+        # Skip full_clean to avoid validation errors on existing data
+        # Just save directly
         super().save(*args, **kwargs)
         
+    
     def get_full_url(self, request=None):
         """Generate full store URL dynamically"""
+        if not self.subdomain:
+            return "#"
+        
         if request:
             host = request.get_host().split(':')[0]
             host_parts = host.split('.')
@@ -292,7 +369,7 @@ class Store(models.Model):
         
         # Calculate remaining days in current subscription
         remaining_seconds = (self.subscription_end - timezone.now()).total_seconds()
-        remaining_days = max(0, remaining_seconds / 86400)  # 86400 seconds in a day
+        remaining_days = max(0, remaining_seconds / 86400)
         
         if remaining_days <= 0:
             return new_plan.price
@@ -307,7 +384,7 @@ class Store(models.Model):
         # Calculate remaining value of current subscription
         remaining_value = current_daily_rate * remaining_days
         
-        # Calculate upgrade price (new plan price minus remaining value)
+        # Calculate upgrade price
         upgrade_price = max(0, float(new_plan.price) - remaining_value)
         
         return round(upgrade_price, 2)
@@ -325,7 +402,6 @@ class Store(models.Model):
         """
         Renew subscription with same or upgraded plan
         Preserves all store data
-        Adds remaining days to new subscription period if renewing before expiry
         """
         # Use new plan if provided, otherwise keep existing
         if plan:
@@ -340,7 +416,7 @@ class Store(models.Model):
         # Get base duration days from plan
         duration_days = self._get_plan_duration_days(self.subscription_plan.duration)
         
-        # Calculate total days = plan duration + remaining days from old subscription (if renewing before expiry)
+        # Calculate total days
         total_days = duration_days + remaining_days_to_add
         
         if self.subscription_plan.duration == 'lifetime':
@@ -395,7 +471,11 @@ class Store(models.Model):
         return summary
     
     def __str__(self):
-        return f"{self.store_name} → {self.subdomain}"
+        # Safe string representation
+        store_name = self.store_name if self.store_name else "Unnamed Store"
+        subdomain = self.subdomain if self.subdomain else "no-subdomain"
+        return f"{store_name} → {subdomain}"
+
 
 class StoreTransaction(models.Model):
     """Store transaction details from Razorpay"""

@@ -40,7 +40,6 @@ def reseller_dashboard(request):
     for store in stores:
         if store.status == 'pending_payment' or not store.payment_status:
             store.next_step = 'Complete Payment'
-            # ✅ Fixed: Pass store.id as argument
             store.next_step_url = reverse('resellers:create_order', args=[store.id])
             store.next_step_icon = 'fas fa-credit-card'
         elif not store.subscription_plan:
@@ -63,10 +62,36 @@ def reseller_dashboard(request):
             store.next_step = 'View Store'
             store.next_step_url = reverse('resellers:store_dashboard', args=[store.id])
             store.next_step_icon = 'fas fa-eye'
-        store = stores.first()
-
-    return render(request, 'resellers/resellerdashboard.html', {'stores': stores,'store': store})
-
+    
+    # Prepare stores data as JSON for JavaScript switcher
+    stores_data = []
+    for store in stores:
+        stores_data.append({
+            'id': store.id,
+            'store_name': store.store_name,
+            'subdomain': store.subdomain,
+            'store_description': store.store_description,
+            'total_visitors': store.total_visitors,
+            'subscription_plan': str(store.subscription_plan) if store.subscription_plan else 'No Plan',
+            'theme': str(store.theme) if store.theme else 'No Theme',
+            'subscription_end': store.subscription_end.isoformat() if store.subscription_end else None,
+            'days_until_expiry': store.days_until_expiry(),
+            'status': store.status,
+            'is_published': store.is_published,
+        })
+    
+    import json
+    stores_json = json.dumps(stores_data)
+    
+    # Check if user has created any store
+    has_created_store = stores.exists()
+    
+    context = {
+        'stores': stores,
+        'stores_json': stores_json,
+        'has_created_store': has_created_store,
+    }
+    return render(request, 'resellers/resellerdashboard.html', context)
 
 
 # resellers/views.py - Update create_store_step1

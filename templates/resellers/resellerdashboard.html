@@ -253,7 +253,7 @@
             <!-- HUT BODY -->
             <div class="hut-main-body">
 
-                {% if stores %}
+                {% if stores and stores|length > 0 %}
                     {# Store selector – appears only if more than one store #}
                     {% if stores|length > 1 %}
                     <div class="store-selector-wrapper">
@@ -267,27 +267,48 @@
                     </div>
                     {% endif %}
 
-                    {# We'll render the first store by default, but via JS we can swap content #}
+                    {# Render the first store by default, JavaScript will handle switching #}
                     {% with store=stores|first %}
                     <div id="storeDisplayContainer" class="store-focal-point text-center" data-current-store-id="{{ store.id }}">
-
                         
+                        <!-- Status Ribbon -->
+                        <div class="status-ribbon" id="statusRibbon">
+                            {% if store.status == 'active' and store.is_published %}
+                                Store Live
+                            {% elif store.status == 'pending_payment' %}
+                                Payment Pending
+                            {% elif store.status == 'expired' %}
+                                Expired
+                            elif store.status == 'suspended' %}
+                                Suspended
+                            {% else %}
+                                {{ store.status|title }}
+                            {% endif %}
+                        </div>
 
                         <!-- Banner -->
                         <div class="store-hero-banner">
-                            <img src="{% static 'images/bg.png' %}" alt="Store banner">
+                            {% if store.store_banner %}
+                                <img src="{{ store.store_banner.url }}" alt="Store banner">
+                            {% else %}
+                                <img src="{% static 'images/bg.png' %}" alt="Store banner">
+                            {% endif %}
                         </div>
 
                         <!-- Logo -->
                         <div class="store-hero-logo">
-                            <img src="{% static 'images/user.png' %}" alt="Store logo">
+                            {% if store.store_logo %}
+                                <img src="{{ store.store_logo.url }}" alt="Store logo">
+                            {% else %}
+                                <img src="{% static 'images/user.png' %}" alt="Store logo">
+                            {% endif %}
                         </div>
 
                         <!-- Store Name -->
                         <h1 class="fw-bold mt-3" id="storeName">{{ store.store_name }}</h1>
 
                         <!-- Subdomain Link -->
-                        <a href="https://{{ store.subdomain }}.example.com" target="_blank" id="storeLink">
+                        <a href="#" target="_blank" id="storeLink" style="text-decoration: none;">
                             {{ store.subdomain }}.example.com
                         </a>
 
@@ -300,17 +321,17 @@
                         <div class="dashboard-grid mt-4">
                             <div class="stat-card">
                                 <span class="stat-label">Visitors</span>
-                                <span class="stat-value" id="storeVisitors">{{ store.total_visitors|default:"—" }}</span>
+                                <span class="stat-value" id="storeVisitors">{{ store.total_visitors|default:"0" }}</span>
                             </div>
                             <div class="stat-card">
                                 <span class="stat-label">Plan</span>
-                                <span class="stat-value" id="storePlan">{{ store.subscription_plan }}</span>
+                                <span class="stat-value" id="storePlan">{{ store.subscription_plan|default:"No Plan" }}</span>
                             </div>
                             <div class="stat-card">
                                 <span class="stat-label">Subscription</span>
                                 <span class="stat-value" id="storeExpiry">
                                     {% if store.subscription_end %}
-                                        {{ store.days_until_expiry|default:"—" }} days left
+                                        {{ store.days_until_expiry|default:"0" }} days left
                                     {% else %}
                                         Lifetime
                                     {% endif %}
@@ -321,34 +342,51 @@
                         <!-- Theme and Since info -->
                         <div class="mt-4 d-flex justify-content-center gap-3 flex-wrap small">
                             <div class="bg-light px-3 py-2 rounded-pill">
-                                Theme: <strong id="storeTheme">{{ store.theme }}</strong>
+                                Theme: <strong id="storeTheme">{{ store.theme|default:"Not Selected" }}</strong>
                             </div>
                             <div class="bg-light px-3 py-2 rounded-pill">
                                 Since: <strong>{{ store.created_at|date:"M Y" }}</strong>
                             </div>
                         </div>
 
-                        <!-- MAIN ACTION BUTTON: ALWAYS GOES TO CREATE STORE STEP 1 -->
+                        <!-- MAIN ACTION BUTTON -->
                         <div class="mt-4">
-                            <a href="{% url 'resellers:create_store_step1' %}" class="hut-door-link" id="storeActionButton">
-                                Create Your Store
+                            <a href="#" class="hut-door-link" id="storeActionButton">
+                                {% if store.status == 'pending_payment' or not store.payment_status %}
+                                    Complete Payment
+                                {% elif not store.subscription_plan %}
+                                    Select Plan
+                                {% elif not store.theme %}
+                                    Select Theme
+                                {% elif store.status == 'expired' %}
+                                    Renew Subscription
+                                {% elif store.status == 'active' and store.is_published %}
+                                    Manage Store
+                                {% else %}
+                                    View Store
+                                {% endif %}
                             </a>
                         </div>
                     </div>
                     {% endwith %}
 
                 {% elif has_created_store %}
-                    {# Original fallback for stores exist but none active #}
+                    {# User has stores but none are active/visible #}
                     <div class="text-center py-5">
                         <i class="fas fa-campground fa-4x mb-3 text-muted"></i>
                         <h2 class="fw-bold">Hut is Vacant</h2>
                         <p class="text-muted">
                             You have stores, but none are currently active.
                         </p>
+                        <div class="mt-4">
+                            <a href="{% url 'resellers:create_store_step1' %}" class="btn btn-primary btn-lg px-4">
+                                Create New Store
+                            </a>
+                        </div>
                     </div>
 
                 {% else %}
-                    {# First time user – empty state exactly as in the second design #}
+                    {# First time user – empty state #}
                     <div class="text-center py-5">
                         <div class="mb-3">
                             <i class="fas fa-store fa-3x text-primary"></i>
@@ -376,7 +414,7 @@
 </div><!-- /content -->
 
 {# Hidden data store for all stores, used by JavaScript switcher #}
-{% if stores %}
+{% if stores and stores|length > 0 %}
 <script id="storesData" type="application/json">
     {{ stores_json|safe }}
 </script>
@@ -385,62 +423,133 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     (function() {
-        // If multiple stores exist, enable dynamic switching.
+        // Check if we have multiple stores and the selector exists
         const storeSelector = document.getElementById('storeSelector');
+        
+        // Function to get the action URL based on store data
+        function getActionUrl(store) {
+            if (store.status === 'pending_payment' || !store.payment_status) {
+                return `/resellers/create-order/${store.id}/`;
+            } else if (!store.subscription_plan || store.subscription_plan === 'No Plan') {
+                return "{% url 'resellers:select_plan' %}";
+            } else if (!store.theme || store.theme === 'No Theme') {
+                return "{% url 'resellers:select_theme' %}";
+            } else if (store.status === 'expired') {
+                return `/resellers/manage-subscription/${store.id}/`;
+            } else if (store.status === 'active' && store.is_published) {
+                return `/resellers/store/${store.id}/`;
+            } else {
+                return `/resellers/store/${store.id}/`;
+            }
+        }
+        
+        // Function to get button text based on store data
+        function getButtonText(store) {
+            if (store.status === 'pending_payment' || !store.payment_status) {
+                return 'Complete Payment';
+            } else if (!store.subscription_plan || store.subscription_plan === 'No Plan') {
+                return 'Select Plan';
+            } else if (!store.theme || store.theme === 'No Theme') {
+                return 'Select Theme';
+            } else if (store.status === 'expired') {
+                return 'Renew Subscription';
+            } else if (store.status === 'active' && store.is_published) {
+                return 'Manage Store';
+            } else {
+                return 'View Store';
+            }
+        }
+        
+        // Function to get status ribbon text and color
+        function getStatusInfo(store) {
+            if (store.status === 'active' && store.is_published) {
+                return { text: 'Store Live', color: '#22c55e' };
+            } else if (store.status === 'pending_payment') {
+                return { text: 'Payment Pending', color: '#b91c1c' };
+            } else if (store.status === 'expired') {
+                return { text: 'Expired', color: '#92400e' };
+            } else if (store.status === 'suspended') {
+                return { text: 'Suspended', color: '#6b7280' };
+            } else {
+                return { text: store.status.charAt(0).toUpperCase() + store.status.slice(1), color: '#6b7280' };
+            }
+        }
+        
         if (storeSelector) {
             // Retrieve stores data from a JSON script block
             const storesDataElement = document.getElementById('storesData');
-            if (storesDataElement) {
-                window.stores = JSON.parse(storesDataElement.textContent);
-            } else {
-                console.warn("Stores JSON not provided; switching disabled.");
-                return;
-            }
-
-            window.switchStore = function(storeId) {
-                const store = window.stores.find(s => s.id == storeId);
-                if (!store) return;
-
-                // Update all dynamic fields
-                document.getElementById('storeName').textContent = store.store_name;
-                document.getElementById('storeLink').href = `https://${store.subdomain}.example.com`;
-                document.getElementById('storeLink').textContent = `${store.subdomain}.example.com`;
-                document.getElementById('storeDescription').textContent = store.store_description || "Your premium digital storefront is ready for business.";
-                document.getElementById('storeVisitors').textContent = store.total_visitors || "—";
-                document.getElementById('storePlan').textContent = store.subscription_plan;
-                document.getElementById('storeTheme').textContent = store.theme;
-
-                // Update expiry info
-                let expiryText = "Lifetime";
-                if (store.subscription_end) {
-                    const days = store.days_until_expiry || "—";
-                    expiryText = `${days} days left`;
-                }
-                document.getElementById('storeExpiry').textContent = expiryText;
-
-                // Update status ribbon
-                const ribbon = document.querySelector('.status-ribbon');
-                if (ribbon) {
-                    if (store.status === 'active' && store.is_published) {
-                        ribbon.textContent = 'Store Live';
-                        ribbon.style.background = '#22c55e';
-                    } else if (store.status === 'pending_payment') {
-                        ribbon.textContent = 'Payment Pending';
-                        ribbon.style.background = '#b91c1c';
-                    } else if (store.status === 'expired') {
-                        ribbon.textContent = 'Expired';
-                        ribbon.style.background = '#92400e';
-                    } else {
-                        ribbon.textContent = store.status.charAt(0).toUpperCase() + store.status.slice(1);
-                        ribbon.style.background = '#6b7280';
+            if (storesDataElement && storesDataElement.textContent) {
+                try {
+                    window.stores = JSON.parse(storesDataElement.textContent);
+                    
+                    window.switchStore = function(storeId) {
+                        const store = window.stores.find(s => s.id == storeId);
+                        if (!store) return;
+                        
+                        // Update all dynamic fields
+                        document.getElementById('storeName').textContent = store.store_name;
+                        
+                        // Update store link
+                        const storeLink = document.getElementById('storeLink');
+                        const storeUrl = `https://${store.subdomain}.example.com`;
+                        storeLink.href = storeUrl;
+                        storeLink.textContent = `${store.subdomain}.example.com`;
+                        
+                        document.getElementById('storeDescription').textContent = store.store_description || "Your premium digital storefront is ready for business.";
+                        document.getElementById('storeVisitors').textContent = store.total_visitors || "0";
+                        document.getElementById('storePlan').textContent = store.subscription_plan || "No Plan";
+                        document.getElementById('storeTheme').textContent = store.theme || "Not Selected";
+                        
+                        // Update expiry info
+                        let expiryText = "Lifetime";
+                        if (store.subscription_end) {
+                            const days = store.days_until_expiry || "0";
+                            expiryText = `${days} days left`;
+                        }
+                        document.getElementById('storeExpiry').textContent = expiryText;
+                        
+                        // Update status ribbon
+                        const ribbon = document.getElementById('statusRibbon');
+                        if (ribbon) {
+                            const statusInfo = getStatusInfo(store);
+                            ribbon.textContent = statusInfo.text;
+                            ribbon.style.background = statusInfo.color;
+                        }
+                        
+                        // Update action button
+                        const actionBtn = document.getElementById('storeActionButton');
+                        actionBtn.href = getActionUrl(store);
+                        actionBtn.textContent = getButtonText(store);
+                    };
+                    
+                    // Initialize with first store
+                    if (window.stores.length > 0) {
+                        window.switchStore(window.stores[0].id);
                     }
+                } catch (e) {
+                    console.error("Error parsing stores data:", e);
                 }
-
-                // *** ALWAYS LINK TO CREATE STORE STEP 1 ***
-                const actionBtn = document.getElementById('storeActionButton');
-                actionBtn.href = "{% url 'resellers:create_store_step1' %}";
-                actionBtn.textContent = "Create Your Store";
-            };
+            } else {
+                console.warn("Stores JSON not provided or empty.");
+            }
+        } else if (document.getElementById('storeActionButton')) {
+            // Single store case - just set up the action button
+            const storesDataElement = document.getElementById('storesData');
+            if (storesDataElement && storesDataElement.textContent) {
+                try {
+                    const stores = JSON.parse(storesDataElement.textContent);
+                    if (stores && stores.length === 1) {
+                        const store = stores[0];
+                        const actionBtn = document.getElementById('storeActionButton');
+                        if (actionBtn) {
+                            actionBtn.href = getActionUrl(store);
+                            actionBtn.textContent = getButtonText(store);
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error parsing stores data:", e);
+                }
+            }
         }
     })();
 </script>

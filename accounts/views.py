@@ -11,6 +11,8 @@ from .models import *
 import logging
 import json
 from django.shortcuts import get_object_or_404
+from django.db.models import Count, Q
+from resellers.models import *
 
 logger = logging.getLogger(__name__)
 from django.core.cache import cache
@@ -650,43 +652,106 @@ User = get_user_model()
 
 @login_required
 def dashboard(request):
+    """Unified dashboard for all user roles"""
     user = request.user
-    store = Store.objects.filter(reseller=request.user).first()
-
-    profile_data = None
+    
+    # Clear messages if needed (optional - you might want to keep them)
     clear_messages(request)
-
+    
+    # Get the first store for resellers (if any)
+    store = None
+    if user.role == User.Role.RESELLER:
+        store = Store.objects.filter(reseller=request.user).first()
+    
+    # Get profile data based on role
+    profile_data = None
     if user.role == User.Role.WHOLESELLER:
         profile_data = getattr(user, 'wholeseller_profile', None)
-
     elif user.role == User.Role.RESELLER:
         profile_data = getattr(user, 'reseller_profile', None)
-
     elif user.role == User.Role.ADMIN:
         profile_data = getattr(user, 'admin_profile', None)
-
-    # 🔥 ADD THIS (MAIN FIX)
+    
+    # Statistics for admin dashboard
     total_users = User.objects.count()
     total_stores = Store.objects.count()
-
-    # if you have models, use them
+    
+    # Calculate actual pending KYC if you have KYC model
     pending_kyc = 0
-    subscription_plans = 0
-
+    try:
+        # If you have a KYC model
+        from kyc.models import KYCRequest
+        pending_kyc = KYCRequest.objects.filter(status='pending').count()
+    except (ImportError, AttributeError):
+        # If no KYC model exists, try to find pending verifications
+        pending_kyc = User.objects.filter(
+            Q(role=User.Role.WHOLESELLER) | Q(role=User.Role.RESELLER),
+            is_verified=False
+        ).count()
+    
+    # Get actual subscription plans count
+    subscription_plans = SubscriptionPlan.objects.filter(is_active=True).count()
+    
+    # Role-specific data
+    role_specific_data = {}
+    
+    if user.role == User.Role.RESELLER and store:
+        # Add store-specific data for resellers
+        role_specific_data = {
+            'store_status': store.status,
+            'store_is_published': store.is_published,
+            'subscription_plan': store.subscription_plan,
+            'remaining_days': store.get_remaining_days() if store.subscription_plan else 0,
+            'total_visitors': store.total_visitors,
+            'store_created_at': store.created_at,
+        }
+    
+    elif user.role == User.Role.WHOLESELLER and profile_data:
+        # Add wholeseller-specific data
+        role_specific_data = {
+            'company_name': getattr(profile_data, 'company_name', ''),
+            'verification_status': getattr(profile_data, 'verification_status', 'pending'),
+            'total_products': getattr(profile_data, 'total_products', 0),
+        }
+    
+    elif user.role == User.Role.ADMIN:
+        # Add admin-specific statistics
+        active_stores = Store.objects.filter(status='active').count()
+        expired_stores = Store.objects.filter(status='expired').count()
+        pending_stores = Store.objects.filter(status='pending_payment').count()
+        
+        # Calculate total revenue from successful transactions
+        from resellers.models import StoreTransaction
+        total_revenue = StoreTransaction.objects.filter(status='success').aggregate(
+            total=models.Sum('amount')
+        )['total'] or 0
+        
+        role_specific_data = {
+            'active_stores': active_stores,
+            'expired_stores': expired_stores,
+            'pending_stores': pending_stores,
+            'total_revenue': total_revenue,
+            'recent_stores': Store.objects.order_by('-created_at')[:5],
+            'recent_users': User.objects.order_by('-date_joined')[:5],
+        }
+    
     context = {
         'user': user,
         'profile': profile_data,
         'role': user.get_role_display(),
         'is_superuser': user.is_superuser,
-        "store": store,
-
-        # 🔥 ADD THESE
+        'store': store,
+        
+        # Statistics
         'total_users': total_users,
         'pending_kyc': pending_kyc,
         'total_stores': total_stores,
         'subscription_plans': subscription_plans,
+        
+        # Role-specific data
+        'role_specific_data': role_specific_data,
     }
-
+    
     return render(request, 'accounts/dashboard.html', context)
 
 @login_required
