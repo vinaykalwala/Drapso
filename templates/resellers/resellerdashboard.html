@@ -350,26 +350,31 @@
                         </div>
 
                         <!-- MAIN ACTION BUTTON -->
-                        <div class="mt-4">
-                            <a href="#" class="hut-door-link" id="storeActionButton">
-                                {% if store.status == 'pending_payment' or not store.payment_status %}
-                                    Complete Payment
-                                {% elif not store.subscription_plan %}
-                                    Select Plan
-                                {% elif not store.theme %}
-                                    Select Theme
-                                {% elif store.status == 'expired' %}
-                                    Renew Subscription
-                                {% elif store.status == 'active' and store.is_published %}
-                                    Manage Store
-                                {% else %}
-                                    View Store
-                                {% endif %}
-                            </a>
+                       <div class="mt-4">
+    <a href="#" class="hut-door-link" id="storeActionButton">
 
-                        {% endif %}
+        {% if store.status == 'pending_payment' or not store.payment_status %}
+            Complete Payment
 
-                        </div>
+        {% elif not store.subscription_plan %}
+            Select Plan
+
+        {% elif not store.theme %}
+            Select Theme
+
+        {% elif store.status == 'expired' %}
+            Renew Subscription
+
+        {% elif store.status == 'active' and store.is_published %}
+            Manage Store
+
+        {% else %}
+            View Store
+
+        {% endif %}
+
+    </a>
+</div>
                     </div>
                     {% endwith %}
 
