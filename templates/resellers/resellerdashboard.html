@@ -330,9 +330,55 @@
 
                         <!-- MAIN ACTION BUTTON: ALWAYS GOES TO CREATE STORE STEP 1 -->
                         <div class="mt-4">
-                            <a href="{% url 'resellers:create_store_step1' %}" class="hut-door-link" id="storeActionButton">
-                                Create Your Store
+
+                        {% if store %}
+
+                            {% if store.status == "pending_payment" or not store.payment_status %}
+
+                                <a href="{% url 'resellers:create_order' store.id %}" class="hut-door-link">
+                                    <i class="fas fa-credit-card me-2"></i>
+                                    Complete Payment
+                                </a>
+
+                            {% elif not store.subscription_plan %}
+
+                                <a href="{% url 'resellers:select_plan' %}" class="hut-door-link">
+                                    <i class="fas fa-tags me-2"></i>
+                                    Select Plan
+                                </a>
+
+                            {% elif not store.theme %}
+
+                                <a href="{% url 'resellers:select_theme' %}" class="hut-door-link">
+                                    <i class="fas fa-palette me-2"></i>
+                                    Select Theme
+                                </a>
+
+                            {% elif store.status == "active" and store.is_published %}
+
+                                <a href="{% url 'resellers:store_dashboard' store.id %}" class="hut-door-link">
+                                    <i class="fas fa-store me-2"></i>
+                                    Manage Store
+                                </a>
+
+                            {% else %}
+
+                                <a href="{% url 'resellers:create_store_step1' %}" class="hut-door-link">
+                                    <i class="fas fa-edit me-2"></i>
+                                    Edit Store
+                                </a>
+
+                            {% endif %}
+
+                        {% else %}
+
+                            <a href="{% url 'resellers:create_store_step1' %}" class="hut-door-link">
+                                <i class="fas fa-plus-circle me-2"></i>
+                                Create Store
                             </a>
+
+                        {% endif %}
+
                         </div>
                     </div>
                     {% endwith %}
