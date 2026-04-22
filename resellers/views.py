@@ -763,6 +763,7 @@ def preview_store(request, store_id):
         "resellers/preview_store.html",
         context
     )
+    
 @login_required
 @user_passes_test(is_reseller)
 def preview_store(request, store_id):
@@ -839,12 +840,13 @@ from django.http import Http404
 from django.db.models import Prefetch
 from products.models import *
 
+
 def store_frontend(request):
     """
     Handles ALL subdomain requests
     """
 
-    # Not a subdomain → let Django handle normal routes
+    # ❌ Not a subdomain
     if not getattr(request, 'is_store_request', False):
         raise Http404("Not a store request")
 
@@ -857,7 +859,7 @@ def store_frontend(request):
             'reason': 'Store not found'
         })
 
-    # ❌ Handle different failure states clearly
+    # ❌ Handle failure states
     if store.status == 'expired':
         return render(request, 'resellers/store_not_found.html', {
             'subdomain': store.subdomain,
@@ -876,7 +878,7 @@ def store_frontend(request):
             'reason': 'Store not published'
         })
 
-    # ✅ ACTIVE STORE → SHOW FRONTEND
+    # ✅ ACTIVE STORE
     try:
         store.increment_visitor()
     except Exception:
@@ -890,7 +892,7 @@ def store_frontend(request):
     else:
         store_url = store.get_full_url(request)
 
-    # 🔥 FULL DATA LOAD (ONLY PUBLISHED)
+    # Load products
     products = store.products.filter(
         is_active=True,
         is_published=True
@@ -912,14 +914,13 @@ def store_frontend(request):
         'products_count': products.count(),
     }
 
-    # Theme-based rendering
+    # Theme rendering
     if store.theme and store.theme.theme_type == 'single':
         template = 'resellers/single_product_theme.html'
     else:
         template = 'resellers/store_frontend.html'
 
     return render(request, template, context)
-
     
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile

@@ -1,12 +1,10 @@
-# resellers/middleware.py
 from django.utils.deprecation import MiddlewareMixin
-from django.urls import set_urlconf
 from .models import Store
 
 
 class SubdomainMiddleware(MiddlewareMixin):
     """
-    Detect subdomain and route store requests to resellers.urls
+    Detect subdomain and route ALL subdomain requests to resellers.urls
     """
 
     def process_request(self, request):
@@ -25,36 +23,37 @@ class SubdomainMiddleware(MiddlewareMixin):
         if host in ['localhost', '127.0.0.1', 'www.localhost']:
             return None
 
-        # Detect subdomain
+        # 🔍 Detect subdomain
         subdomain = None
         if '.' in host:
             parts = host.split('.')
+
+            # local dev → abc.localhost
             if len(parts) == 2 and parts[1] == 'localhost':
                 subdomain = parts[0]
+
+            # production → abc.domain.com
             elif len(parts) >= 3:
                 subdomain = parts[0]
 
         if subdomain and subdomain not in ['www', 'admin', 'api', 'mail']:
             request.subdomain = subdomain
             request.is_store_request = True
-            
-            # Get store (don't fail if not found)
+
+            # Get store (can be None)
             request.current_store = Store.objects.filter(subdomain=subdomain).first()
-            
-            # ONLY switch URLconf for store frontend paths, NOT for API/orders paths
-            # Check if the path is for store frontend (not admin, not orders, not products)
+
+            # 🔥 IMPORTANT FIX: route ALL subdomain requests
             is_store_frontend = not (
-                path.startswith('/admin/') or 
-                path.startswith('/accounts/') or 
-                path.startswith('/products/') or 
+                path.startswith('/admin/') or
+                path.startswith('/accounts/') or
+                path.startswith('/products/') or
                 path.startswith('/orders/') or
                 path.startswith('/api/')
             )
-            
-            if is_store_frontend and request.current_store:
-                # Route to store URLs
+
+            if is_store_frontend:
                 request.urlconf = 'resellers.urls'
-            # Otherwise, let the default URLconf handle it
 
         return None
 
