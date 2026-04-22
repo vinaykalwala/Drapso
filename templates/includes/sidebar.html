@@ -605,12 +605,10 @@ text-align:center;
     <i class="fa-solid fa-boxes-stacked"></i>
   Wholeseller products
 </a>
-{% if store %}
 <a href="{% url 'orders:wholeseller_orders' store.id %}">
     <i class="fa-solid fa-cart-shopping"></i>
     Orders
 </a>
-{% endif %}
 </a>
     <a href="{% url 'products:low_stock_alerts' %}">
     <i class="fa-solid fa-triangle-exclamation"></i>
