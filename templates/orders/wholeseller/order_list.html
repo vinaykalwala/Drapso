@@ -1,0 +1,112 @@
+
+{% load static %}
+
+{% block title %}Wholesale Fulfillment Center{% endblock %}
+
+{% block extra_css %}
+<style>
+    .wh-container { padding: 20px; }
+    .order-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 5px solid #6366f1; /* Wholesaler brand color */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    .status-approved { background: #e0e7ff; color: #4338ca; }
+    .status-shipped { background: #dcfce7; color: #15803d; }
+    .store-tag {
+        font-size: 0.8rem;
+        background: #f3f4f6;
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wh-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">Fulfillment Dashboard</h2>
+            <p class="text-muted">Manage shipping for imported products</p>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-dark">Wholesaler: {{ request.user.username }}</span>
+        </div>
+    </div>
+
+    <ul class="nav nav-pills mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if not status_filter %}active{% endif %}" href="?">All Tasks</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if status_filter == 'approved' %}active{% endif %}" href="?status=approved">Ready to Ship</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if status_filter == 'shipped' %}active{% endif %}" href="?status=shipped">Dispatched</a>
+        </li>
+    </ul>
+
+    {% for order in orders %}
+    <div class="order-card">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <div class="d-flex align-items-center gap-3">
+                    {% if order.product.main_image %}
+                        <img src="{{ order.product.main_image.url }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;">
+                    {% endif %}
+                    <div>
+                        <span class="store-tag">Store: {{ order.store.store_name }}</span><br>
+                        <strong>{{ order.product.name }}</strong>
+                        <div class="text-muted small">Qty: {{ order.quantity }} | SKU: {{ order.product.sku }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="small"><strong>Destination:</strong></div>
+                <div class="text-truncate small">{{ order.shipping_city }}, {{ order.shipping_pincode }}</div>
+                <div class="small"><strong>ID:</strong> {{ order.order_id }}</div>
+            </div>
+
+            <div class="col-md-2 text-center">
+                <span class="status-badge status-{{ order.order_status }}">
+                    {{ order.get_order_status_display }}
+                </span>
+            </div>
+
+            <div class="col-md-3 text-end">
+                {% if order.order_status == 'approved' %}
+                    <form action="{% url 'orders:mark_order_shipped' order.id %}" method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-box-open"></i> Generate Label & Ship
+                        </button>
+                    </form>
+                {% elif order.order_status == 'shipped' and order.label_url %}
+                    <a href="{{ order.label_url }}" target="_blank" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-print"></i> Print Label
+                    </a>
+                {% endif %}
+                
+                <a href="{% url 'orders:wholeseller_order_detail' order.id %}" class="btn btn-link btn-sm text-decoration-none">Details</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="card p-5 text-center shadow-sm">
+        <i class="fas fa-truck-loading fa-3x text-light mb-3"></i>
+        <h4>No fulfillment tasks</h4>
+        <p class="text-muted">Approved orders for imported products will appear here.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -295,10 +295,62 @@ class ShiprocketService:
         except Exception as e:
             logger.error(f"Serviceability API call failed: {str(e)}")
             return None
+    def sync_order_statuses(self, shiprocket_ids):
+        """Fetch latest tracking/status for multiple orders at once"""
+        url = f"{self.base_url}/orders/show/adhoc"
+        # Shiprocket allows checking multiple IDs at once
+        params = {"ids[]": shiprocket_ids} 
+        
+        try:
+            response = requests.get(url, headers=self._get_headers(), params=params)
+            if response.status_code == 200:
+                return response.json().get('data', [])
+            return []
+        except Exception as e:
+            logger.error(f"Sync failed: {e}")
+            return []
+
+    def get_cheapest_courier(self, pickup_postcode, delivery_postcode, weight, length, breadth, height):
+        url = f"{self.base_url}/courier/serviceability/"
+        params = {
+            'pickup_postcode': pickup_postcode,
+            'delivery_postcode': delivery_postcode,
+            'weight': weight,
+            'cod': 0, # Prepaid
+            'length': length, 'breadth': breadth, 'height': height,
+        }
+        try:
+            res = requests.get(url, headers=self._get_headers(), params=params)
+            data = res.json()
+            
+            if res.status_code == 200 and data.get('status') == 200:
+                couriers = data['data']['available_courier_companies']
+                if couriers:
+                    # Logic: Find the cheapest available courier
+                    cheapest = min(couriers, key=lambda x: float(x['freight_charge']))
+                    return {
+                        'courier_id': cheapest['courier_company_id'],
+                        'courier_name': cheapest['courier_name'],
+                        'etd': cheapest['etd'] or "4-6 Days",
+                        'cost': cheapest['freight_charge']
+                    }
+            else:
+                logger.error(f"Shiprocket Serviceability Failed: {data}")
+            return None
+        except Exception as e:
+            logger.exception("Shiprocket API Connection Error")
+            return None
 
     def create_order(self, order_data):
         url = f"{self.base_url}/orders/create/adhoc"
         
+        # Address Guard: Ensure address is at least 3 chars by padding with city if needed
+        raw_address = order_data.get('address', '')
+        if len(raw_address) < 3:
+            clean_address = f"{raw_address}, {order_data.get('city')}"[:80]
+        else:
+            clean_address = raw_address[:80]
+
         # Prepare items payload
         order_items = [{
             "name": item.get('name')[:40],
@@ -313,7 +365,7 @@ class ShiprocketService:
             "pickup_location": order_data.get('pickup_location'), 
             "billing_customer_name": order_data.get('customer_name'),
             "billing_last_name": "",
-            "billing_address": order_data.get('address'),
+            "billing_address": clean_address, # Used protected address
             "billing_city": order_data.get('city'),
             "billing_pincode": order_data.get('pincode'),
             "billing_state": order_data.get('state'),
@@ -355,38 +407,85 @@ class ShiprocketService:
             response = requests.post(url, headers=self._get_headers(), json=payload, timeout=30)
             data = response.json()
             
-            # Check for success status 1
             if response.status_code == 200 and data.get('awb_assign_status') == 1:
                 res_data = data.get('response', {}).get('data', {})
                 return {
                     'success': True,
                     'awb_code': res_data.get('awb_code'),
                     'courier_name': res_data.get('courier_name'),
-                    'actual_charge': res_data.get('rate')
+                    'actual_charge': res_data.get('rate') # This raw value is protected by the view's math
                 }
             
-            # Extract detailed error (e.g., Insufficient Credits)
             error_reason = data.get('message', 'AWB Assignment Failed')
-            if 'response' in data and isinstance(data['response'], dict):
-                inner_data = data['response'].get('data', {})
-                if isinstance(inner_data, dict) and inner_data.get('message'):
-                    error_reason = inner_data.get('message')
-            
             return {'success': False, 'error': error_reason}
         except Exception as e:
             return {'success': False, 'error': str(e)}
             
     def generate_shipping_label(self, shipment_id):
-        """Generate shipping label and return the PDF URL"""
-        url = f"{self.base_url}/orders/print/label"
-        payload = {"shipment_id": [shipment_id]} # Must be a list
+        url = f"{self.base_url}/courier/generate/label"
+
+        payload = {
+            "shipment_id": [int(shipment_id)]  # ✅ MUST be array
+        }
+
+        try:
+            response = requests.post(
+                url,
+                headers=self._get_headers(),
+                json=payload,
+                timeout=30
+            )
+
+
+            data = response.json()
+
+            # ✅ Extract label URL from all possible formats
+            label_url = (
+                data.get('label_url') or
+                data.get('response', {}).get('label_url')
+            )
+
+            if response.status_code == 200 and label_url:
+                return {
+                    'success': True,
+                    'label_url': label_url
+                }
+
+            return {
+                'success': False,
+                'error': data
+            }
+
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    def generate_invoice(self, shiprocket_order_id):
+        """Generate invoice for Shiprocket Order IDs"""
+        url = f"{self.base_url}/orders/print/invoice"
+        payload = {"ids": [shiprocket_order_id]}
         
         try:
             response = requests.post(url, headers=self._get_headers(), json=payload, timeout=30)
             data = response.json()
-            if response.status_code == 200 and 'label_url' in data:
-                return {'success': True, 'label_url': data.get('label_url')}
-            return {'success': False, 'error': 'Label URL not found in response'}
+            if response.status_code == 200 and data.get('is_invoice_created'):
+                return {'success': True, 'url': data.get('invoice_url'), 'invoice_url': data.get('invoice_url')}
+            return {'success': False, 'error': 'Invoice generation failed or not ready'}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+
+    def generate_manifest(self, shipment_id):
+        """Generate manifest for Shipment IDs"""
+        url = f"{self.base_url}/manifests/generate"
+        payload = {"shipment_id": [shipment_id]}
+        
+        try:
+            response = requests.post(url, headers=self._get_headers(), json=payload, timeout=30)
+            data = response.json()
+            if response.status_code == 200 and data.get('manifest_url'):
+                return {'success': True, 'url': data.get('manifest_url'), 'manifest_url': data.get('manifest_url')}
+            return {'success': False, 'error': 'Manifest not ready. Ensure pickup is requested.'}
         except Exception as e:
             return {'success': False, 'error': str(e)}
 
@@ -397,12 +496,27 @@ class ShiprocketService:
         try:
             response = requests.post(url, headers=self._get_headers(), json=payload, timeout=30)
             data = response.json()
-            # Pickup API usually returns status in 'pickup_status'
-            return {'success': response.status_code == 200, 'data': data}
+            return {'success': response.status_code == 200, 'data': data, 'error': data.get('message')}
         except Exception as e:
-            logger.error(f"Pickup request failed: {str(e)}")
             return {'success': False, 'error': str(e)}
-
+    def cancel_shipment(self, awb_code):
+        """
+        Triggers the AWB cancellation in Shiprocket.
+        """
+        url = f"{self.base_url}/courier/generate/cancel"
+        # Shiprocket expects a list of AWBs
+        payload = {"awbs": [awb_code]} 
+        
+        try:
+            response = requests.post(url, headers=self._get_headers(), json=payload, timeout=30)
+            data = response.json()
+            # Status 200 means the request was accepted
+            if response.status_code == 200:
+                return {'success': True, 'message': 'Cancellation requested successfully'}
+            return {'success': False, 'error': data.get('message', 'Cancellation failed')}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+            
     def create_return_order(self, return_data):
         """Create a return shipment for reverse pickup"""
         url = f"{self.base_url}/returns/create"
@@ -498,3 +612,21 @@ class ShiprocketService:
         except Exception as e:
             logger.error(f"Return pickup scheduling failed: {str(e)}")
             return None
+    
+    def get_all_shiprocket_orders(self, page=1, per_page=50):
+        """Fetch all orders directly from Shiprocket API"""
+        url = f"{self.base_url}/orders"
+        params = {
+            "page": page,
+            "per_page": per_page,
+            # You can add status filters here if needed
+        }
+        
+        try:
+            response = requests.get(url, headers=self._get_headers(), params=params, timeout=30)
+            if response.status_code == 200:
+                return response.json() # Returns a dict with 'data' (list of orders)
+            return {"data": []}
+        except Exception as e:
+            logger.error(f"Failed to fetch Shiprocket orders: {e}")
+            return {"data": []}

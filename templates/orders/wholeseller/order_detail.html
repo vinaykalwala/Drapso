@@ -1,0 +1,174 @@
+{% load static %}
+
+{% block title %}Wholesaler Order Detail - {{ order.order_id }}{% endblock %}
+
+{% block content %}
+
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">Order: {{ order.order_id }}</h2>
+            <small class="text-muted">Assigned Wholesaler Fulfillment</small>
+        </div>
+        <span class="badge p-2 {% if order.order_status == 'shipped' %}bg-info{% elif order.order_status == 'delivered' %}bg-success{% elif order.order_status == 'cancelled' %}bg-danger{% else %}bg-primary{% endif %}">
+            {{ order.get_order_status_display }}
+        </span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Product & Quantity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        {% if order.product.main_image %}
+                            <img src="{{ order.product.main_image.url }}" class="rounded me-3" style="width: 80px; height: 80px; object-fit: cover;">
+                        {% endif %}
+                        <div>
+                            <h5 class="mb-1">{{ order.product.name }}</h5>
+                            <p class="text-muted mb-1">SKU: {{ order.sku }} | HSN: {{ order.hsn_code }}</p>
+                            {% if order.variant %}<p class="mb-1">Variant: <span class="badge bg-light text-dark">{{ order.variant.variant_name }}</span></p>{% endif %}
+                            <p class="fw-bold mb-0 text-primary">Quantity: {{ order.quantity }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Shipping Address</h5>
+                </div>
+                <div class="card-body">
+                    <p class="fs-5 mb-1"><strong>{{ order.customer_name }}</strong></p>
+                    <p class="mb-1"><i class="fas fa-phone me-2 text-muted"></i> {{ order.customer_phone }}</p>
+                    <p class="mb-0">
+                        {{ order.shipping_address|linebreaksbr }}<br>
+                        <strong>{{ order.shipping_city }}, {{ order.shipping_state }} - {{ order.shipping_pincode }}</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4 shadow-sm border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Fulfillment Actions</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Show ship button for approved or paid status -->
+                    {% if order.order_status == 'approved' or order.order_status == 'paid' %}
+                        <div class="alert alert-warning small">
+                            <i class="fas fa-exclamation-circle"></i> Ready for dispatch.
+                        </div>
+                        
+                        <!-- Show recreate shipment button if shipment_id exists but might be invalid -->
+                        {% if order.shipment_id and not order.awb_code %}
+                        <div class="alert alert-info small">
+                            <i class="fas fa-info-circle"></i> 
+                            Shipment ID: {{ order.shipment_id }}
+                            <form action="{% url 'orders:recreate_shipment' order.id %}" method="POST" class="mt-2">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-warning btn-sm w-100">
+                                    <i class="fas fa-sync-alt"></i> Recreate Shipment (if 404 errors)
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                        
+                        <form action="{% url 'orders:mark_order_shipped' order.id %}" method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success w-100 py-2 shadow-sm">
+                                <i class="fas fa-truck me-2"></i> Generate Label & Ship
+                            </button>
+                        </form>
+                        
+                    {% elif order.order_status == 'shipped' or order.order_status == 'out_for_delivery' or order.order_status == 'delivered' %}
+                        <h6 class="text-muted mb-3">Download Documents</h6>
+                        <div class="list-group mb-3">
+                            <a href="{% url 'orders:download_doc' order.id 'label' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" target="_blank">
+                                <span><i class="fas fa-file-download text-primary me-2"></i> Shipping Label</span>
+                                <i class="fas fa-chevron-right small text-muted"></i>
+                            </a>
+                            <a href="{% url 'orders:download_doc' order.id 'invoice' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" target="_blank">
+                                <span><i class="fas fa-file-invoice text-info me-2"></i> B2C Invoice</span>
+                                <i class="fas fa-chevron-right small text-muted"></i>
+                            </a>
+                            <a href="{% url 'orders:download_doc' order.id 'manifest' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" target="_blank">
+                                <span><i class="fas fa-clipboard-list text-secondary me-2"></i> Pickup Manifest</span>
+                                <i class="fas fa-chevron-right small text-muted"></i>
+                            </a>
+                        </div>
+                        
+                        <!-- Fix button for missing label URL -->
+                        {% if not order.label_url %}
+                        <div class="alert alert-warning small">
+                            <i class="fas fa-exclamation-triangle"></i> Label URL is missing.
+                            <form action="{% url 'orders:fix_label' order.id %}" method="POST" class="mt-2">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-warning btn-sm w-100">
+                                    <i class="fas fa-sync-alt"></i> Fetch Missing Label
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="bg-light p-3 rounded border small">
+                            <strong>Tracking Details:</strong><br>
+                            AWB: <span class="font-monospace">{{ order.awb_code|default:"Not assigned" }}</span><br>
+                            Courier: {{ order.courier_name|default:"Not assigned" }}<br>
+                            {% if order.tracking_url %}
+                            Tracking: <a href="{{ order.tracking_url }}" target="_blank">{{ order.tracking_url }}</a>
+                            {% endif %}
+                        </div>
+                        
+                    {% else %}
+                        <p class="text-center text-muted my-3">No actions available for {{ order.order_status }} status.</p>
+                    {% endif %}
+                    
+                    <a href="{% url 'orders:wholeseller_orders' %}" class="btn btn-outline-secondary w-100 mt-3">
+                        <i class="fas fa-list me-2"></i> Back to Orders
+                    </a>
+                </div>
+            </div>
+            
+          
+            
+            <!-- Activity Log Card -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 small fw-bold">Activity Log</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush small">
+                        {% for entry in order.status_history %}
+                        <li class="list-group-item py-3">
+                            <div class="d-flex justify-content-between">
+                                <strong class="text-capitalize text-primary">{{ entry.status }}</strong>
+                                <span class="text-muted" style="font-size: 0.85rem;">
+                                    {{ entry.timestamp|slice:":10" }} {{ entry.timestamp|slice:"11:16" }}
+                                </span>
+                            </div>
+                            {% if entry.details %}
+                            <div class="small text-muted mt-1">
+                                {% if entry.details.awb_code %}
+                                AWB: {{ entry.details.awb_code }}<br>
+                                {% endif %}
+                                {% if entry.details.note %}
+                                Note: {{ entry.details.note }}
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-muted">No history found.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

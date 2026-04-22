@@ -52,6 +52,11 @@ class Order(models.Model):
     product = models.ForeignKey('products.ResellerProduct', on_delete=models.SET_NULL, null=True, related_name='orders')
     variant = models.ForeignKey('products.ResellerProductVariant', on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
     quantity = models.IntegerField(default=1, validators=[MinValueValidator(1)])
+
+    # --- ADDED FOR SHIPROCKET ---
+    sku = models.CharField(max_length=100, blank=True, null=True)
+    hsn_code = models.CharField(max_length=20, blank=True, null=True)
+    # ----------------------------
     
     # Store and Reseller
     store = models.ForeignKey('resellers.Store', on_delete=models.CASCADE, related_name='orders')
@@ -70,11 +75,23 @@ class Order(models.Model):
     
     # Shiprocket Data
     shiprocket_order_id = models.CharField(max_length=100, blank=True, null=True)
+    courier_id = models.IntegerField(null=True, blank=True, help_text="Shiprocket's internal Courier ID")
+    actual_shipping_cost = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True, 
+        help_text="Final charge returned by Shiprocket at AWB assignment"
+    )
     shipment_id = models.CharField(max_length=100, blank=True, null=True)
     awb_code = models.CharField(max_length=100, blank=True, null=True)
     courier_name = models.CharField(max_length=100, blank=True, null=True)
     tracking_url = models.URLField(blank=True, null=True)
     tracking_status = models.TextField(blank=True)
+    weight = models.FloatField(default=0.5, help_text="Billable weight in kg (Max of actual vs volumetric)")
+    length = models.FloatField(default=10.0, help_text="Package length in cm")
+    breadth = models.FloatField(default=10.0, help_text="Package breadth in cm")
+    height = models.FloatField(default=10.0, help_text="Package height in cm")
     
     # Delivery Estimates
     estimated_delivery_date = models.DateField(null=True, blank=True)
@@ -84,7 +101,7 @@ class Order(models.Model):
     pickup_address_type = models.CharField(max_length=20, choices=[('wholeseller', 'Wholeseller'), ('reseller', 'Reseller')])
     pickup_address = models.TextField()
     pickup_pincode = models.CharField(max_length=10)
-    
+    label_url = models.URLField(max_length=1000, blank=True, null=True)
     # Webhook tracking
     webhook_received_at = models.DateTimeField(null=True, blank=True)
     last_shiprocket_status = models.CharField(max_length=100, blank=True)
@@ -108,43 +125,68 @@ class Order(models.Model):
             models.Index(fields=['awb_code']),
             models.Index(fields=['shipment_id']),
         ]
-    
-    def save(self, *args, **kwargs):
-        if not self.order_id:
-            self.order_id = f"ORD{timezone.now().strftime('%Y%m%d')}{uuid.uuid4().hex[:8].upper()}"
-        super().save(*args, **kwargs)
-    
-    def __str__(self):
-        return f"{self.order_id} - {self.customer_name}"
-    
+
     def add_status_history(self, status, details=None):
-        """Add entry to status history"""
+        from django.utils import timezone
+
+        valid_statuses = dict(self.ORDER_STATUS_CHOICES)
+        if status not in valid_statuses:
+            raise ValueError(f"Invalid status: {status}")
+
+        self.order_status = status
+
+        if status == 'shipped' and not self.shipped_at:
+            self.shipped_at = timezone.now()
+
         history_entry = {
             'status': status,
             'timestamp': timezone.now().isoformat(),
             'details': details or {}
         }
-        self.status_history.append(history_entry)
-        self.save(update_fields=['status_history'])
-    
+
+        existing = list(self.status_history or [])
+        existing.append(history_entry)
+        self.status_history = existing
+
+        # safer save
+        super(Order, self).save()
+
+    def save(self, *args, **kwargs):
+        # 1. Generate unique Order ID for new objects
+        if not self.order_id:
+            self.order_id = f"ORD{timezone.now().strftime('%Y%m%d')}{uuid.uuid4().hex[:8].upper()}"
+        
+        # 2. Populate SKU/HSN from Product/Variant for new objects
+        if not self.pk:
+            # Determine source (Variant takes priority over Product)
+            source = self.variant if self.variant else self.product
+            if source:
+                if not self.sku:
+                    self.sku = getattr(source, 'sku', None)
+                if not self.hsn_code:
+                    # Default to '0000' if HSN is missing to avoid Shiprocket errors
+                    self.hsn_code = getattr(source, 'hsn_code', "0000")
+
+        # 3. Ensure label_url length doesn't cause silent save failures
+        # (Already handled by the model field max_length=1000)
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.order_id} - {self.customer_name}"
+
+    # Helper Logic Methods
     def can_cancel(self):
-        """Check if order can be cancelled (before shipping)"""
         return self.order_status in ['pending', 'paid', 'approved'] and not self.shipped_at
-    
+
     def can_request_return(self):
-        """Check if return can be requested (within 7 days of delivery)"""
-        if self.order_status != 'delivered':
+        if self.order_status != 'delivered' or not self.delivered_at:
             return False
-        if not self.delivered_at:
-            return False
-        days_since_delivery = (timezone.now() - self.delivered_at).days
-        return days_since_delivery <= 7
-    
+        return (timezone.now() - self.delivered_at).days <= 7
+
     def can_approve(self):
-        """Check if reseller can approve order"""
         return self.order_status == 'paid' and self.payment_status == 'success'
-
-
+        
 class ReturnRequest(models.Model):
     """Return Request Model with Unboxing Video"""
     

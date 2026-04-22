@@ -1,0 +1,101 @@
+
+{% load static %}
+
+{% block title %}Confirm Shipment - {{ order.order_id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Ship Order</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0"><i class="fas fa-shipping-fast me-2"></i> Confirm Dispatch</h5>
+                    <span class="badge {% if order.product.source_type == 'imported' %}bg-info{% else %}bg-primary{% endif %}">
+                        {% if order.product.source_type == 'imported' %}Wholesale Shipment{% else %}Direct Shipment{% endif %}
+                    </span>
+                </div>
+                
+                <div class="card-body p-4">
+                    <div class="row mb-4">
+                        <div class="col-sm-6">
+                            <h6 class="text-muted text-uppercase small fw-bold">Customer Details</h6>
+                            <p class="mb-0"><strong>{{ order.customer_name }}</strong></p>
+                            <p class="text-muted small mb-0">{{ order.customer_phone }}</p>
+                            <p class="text-muted small">{{ order.shipping_address }}, {{ order.shipping_city }} - {{ order.shipping_pincode }}</p>
+                        </div>
+                        <div class="col-sm-6 text-sm-end">
+                            <h6 class="text-muted text-uppercase small fw-bold">Order Reference</h6>
+                            <p class="mb-0">#{{ order.order_id }}</p>
+                            <p class="text-muted small">AWB: <span class="text-dark fw-bold">{{ order.awb_code|default:"Pending" }}</span></p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="small text-muted">Product</th>
+                                    <th class="small text-muted text-center">Quantity</th>
+                                    <th class="small text-muted text-end">Weight</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if order.product.main_image %}
+                                                <img src="{{ order.product.main_image.url }}" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                            {% endif %}
+                                            <div>
+                                                <div class="fw-bold">{{ order.product.name }}</div>
+                                                <div class="text-muted small">SKU: {{ order.product.sku|default:"N/A" }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">{{ order.quantity }}</td>
+                                    <td class="text-end text-muted">{{ order.weight }} kg</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-warning border-0 mt-3 d-flex">
+                        <i class="fas fa-exclamation-triangle mt-1 me-3"></i>
+                        <div>
+                            <p class="mb-0 small"><strong>Attention:</strong> Clicking "Confirm & Generate Label" will notify the courier for pickup at your registered location. Please ensure the package is packed and ready for handover.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-white p-4 d-flex justify-content-between">
+                    <button type="button" onclick="history.back()" class="btn btn-light px-4">Cancel</button>
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success px-4 fw-bold">
+                            <i class="fas fa-barcode me-2"></i> Confirm & Generate Label
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="mt-4 px-2">
+                <h6 class="small fw-bold text-uppercase text-muted">Process Help</h6>
+                <ul class="list-unstyled small text-muted">
+                    <li><i class="fas fa-check-circle text-success me-2"></i> Label will be available for download instantly after confirmation.</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i> An automated tracking email will be sent to the customer.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

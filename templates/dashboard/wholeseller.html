@@ -1,0 +1,14 @@
+
+{% block content %}
+<h2>Wholeseller Packing Station</h2>
+
+<h3>Ready to Ship (Approved)</h3>
+<div class="order-grid">
+    {% for order in ready_to_ship %}
+    <div class="order-card">
+        <p><strong>{{ order.order_id }}</strong></p>
+        <p>AWB: {{ order.awb_code }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

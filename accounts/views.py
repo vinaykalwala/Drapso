@@ -1405,3 +1405,99 @@ def delete_reseller_address(request, address_id):
     address.delete()
     messages.success(request, 'Address deleted successfully.')
     return redirect('accounts:reseller_addresses')
+
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import render
+
+from .models import WholesellerAddress, ResellerAddress
+
+
+@staff_member_required
+def shiprocket_all_addresses_view(request):
+
+    # ================= WHOLESELLER ADDRESSES =================
+    wholeseller_addresses = (
+        WholesellerAddress.objects
+        .select_related('user')
+        .filter(
+            is_primary=True,
+            is_active=True,
+            user__role='wholeseller',
+            user__inventory__is_verified=True,
+            user__kyc__status='approved',
+            user__wholeseller_products__isnull=False
+        )
+        .exclude(user__inventory__isnull=True)
+        .exclude(user__kyc__isnull=True)
+        .distinct()
+    )
+
+    # ================= RESELLER ADDRESSES =================
+    reseller_addresses = (
+        ResellerAddress.objects
+        .select_related('user')
+        .filter(
+            is_primary=True,
+            user__role='reseller',
+
+            # must have store
+            user__stores__isnull=False,
+
+            # must have own products
+            user__reseller_products__source_type='own'
+        )
+        .distinct()
+    )
+
+    # ================= FORMAT BOTH =================
+    formatted_data = []
+
+    # Wholesellers
+    for addr in wholeseller_addresses:
+        user = addr.user
+
+        full_address = addr.address_line1
+        if addr.address_line2:
+            full_address += f", {addr.address_line2}"
+
+        formatted_data.append({
+            "type": "wholeseller",
+            "address_name": addr.address_name,
+            "complete_address": full_address,
+            "landmark": addr.address_line2 or addr.city,
+            "pincode": addr.postal_code,
+            "city": addr.city,
+            "state": addr.state,
+            "country": addr.country,
+            "pickup_incharge": addr.contact_person,
+            "contact_phone": addr.contact_phone,
+            "email": user.email,
+            "role": user.role,
+        })
+
+    # Resellers
+    for addr in reseller_addresses:
+        user = addr.user
+
+        full_address = addr.address_line1
+        if addr.address_line2:
+            full_address += f", {addr.address_line2}"
+
+        formatted_data.append({
+            "type": "reseller",
+            "address_name": addr.address_name,
+            "complete_address": full_address,
+            "landmark": addr.address_line2 or addr.city,
+            "pincode": addr.postal_code,
+            "city": addr.city,
+            "state": addr.state,
+            "country": addr.country,
+            "pickup_incharge": addr.contact_person,
+            "contact_phone": addr.contact_phone,
+            "email": user.email,
+            "role": user.role,
+        })
+
+    return render(request, "admin/shiprocket_all_addresses.html", {
+        "addresses": formatted_data
+    })

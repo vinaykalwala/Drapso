@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from .views import *
 
 app_name = 'accounts'
 
@@ -51,5 +52,10 @@ urlpatterns = [
     path('reseller/addresses/edit/<int:address_id>/', views.edit_reseller_address, name='edit_reseller_address'),
     path('reseller/addresses/set-primary/<int:address_id>/', views.set_primary_reseller_address, name='set_primary_reseller_address'),
     path('reseller/addresses/delete/<int:address_id>/', views.delete_reseller_address, name='delete_reseller_address'),
+    path(
+        "shiprocket-all-addresses/",
+        shiprocket_all_addresses_view,
+        name="shiprocket_all_addresses"
+    ),
    
 ]

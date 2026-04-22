@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shiprocket Addresses</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f6f8fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .filters {
+            margin-bottom: 15px;
+        }
+
+        .filters button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            background: #e0e0e0;
+        }
+
+        .filters button.active {
+            background: #007bff;
+            color: #fff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        th {
+            background: #fafafa;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .tag {
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #fff;
+        }
+
+        .wholeseller {
+            background: #28a745;
+        }
+
+        .reseller {
+            background: #ff9800;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+        }
+
+        .search-box {
+            margin-bottom: 10px;
+        }
+
+        .search-box input {
+            padding: 8px;
+            width: 250px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>📦 Shiprocket Pickup Addresses</h2>
+
+    <!-- 🔍 Search -->
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search city / name / pincode...">
+    </div>
+
+    <!-- 🔘 Filters -->
+    <div class="filters">
+        <button onclick="filterType('all')" class="active">All</button>
+        <button onclick="filterType('wholeseller')">Wholesellers</button>
+        <button onclick="filterType('reseller')">Resellers</button>
+    </div>
+
+    <!-- 📊 Table -->
+    <table id="addressTable">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Address Name</th>
+                <th>Complete Address</th>
+                <th>Landmark</th>
+                <th>Pincode</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Country</th>
+                <th>Incharge</th>
+                <th>Phone</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for addr in addresses %}
+            <tr data-type="{{ addr.type }}">
+                <td>
+                    <span class="tag {{ addr.type }}">
+                        {{ addr.type|title }}
+                    </span>
+                </td>
+                <td>{{ addr.address_name }}</td>
+                <td>{{ addr.complete_address }}</td>
+                <td>{{ addr.landmark }}</td>
+                <td>{{ addr.pincode }}</td>
+                <td>{{ addr.city }}</td>
+                <td>{{ addr.state }}</td>
+                <td>{{ addr.country }}</td>
+                <td>{{ addr.pickup_incharge }}</td>
+                <td>{{ addr.contact_phone }}</td>
+                <td>{{ addr.email }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="11" class="empty">
+                    No addresses found
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+<!-- ⚙️ JS for filtering + search -->
+<script>
+    let currentFilter = "all";
+
+    function filterType(type) {
+        currentFilter = type;
+
+        let rows = document.querySelectorAll("#addressTable tbody tr");
+        let buttons = document.querySelectorAll(".filters button");
+
+        buttons.forEach(btn => btn.classList.remove("active"));
+        event.target.classList.add("active");
+
+        rows.forEach(row => {
+            let rowType = row.getAttribute("data-type");
+
+            if (type === "all" || rowType === type) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    document.getElementById("searchInput").addEventListener("keyup", function () {
+        let value = this.value.toLowerCase();
+        let rows = document.querySelectorAll("#addressTable tbody tr");
+
+        rows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+
+            let matchesSearch = text.includes(value);
+            let matchesFilter = (currentFilter === "all" || row.getAttribute("data-type") === currentFilter);
+
+            if (matchesSearch && matchesFilter) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

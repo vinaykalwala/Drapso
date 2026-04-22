@@ -1,3 +1,4 @@
+
 {% load static %}
 
 {% block title %}Complete Your Payment | Drapso{% endblock %}
@@ -60,18 +61,23 @@
                     <input type="hidden" name="razorpay_signature" id="razorpay_signature">
                     
                     <input type="hidden" name="product_id" value="{{ product_id }}">
-                    <input type="hidden" name="variant_id" value="{{ variant_id }}">
+                    <input type="hidden" name="variant_id" value="{{ variant_id|default:'' }}">
                     <input type="hidden" name="quantity" value="{{ quantity }}">
-                    
                     <input type="hidden" name="product_price" value="{{ product_price }}">
                     <input type="hidden" name="shipping_charge" value="{{ shipping_charge }}">
                     <input type="hidden" name="total_amount" value="{{ amount }}">
 
                     <input type="hidden" name="courier_name" value="{{ courier_name|default:'' }}">
+                    <input type="hidden" name="courier_id" value="{{ courier_id|default:'' }}"> 
                     <input type="hidden" name="estimated_delivery_date" value="{{ estimated_delivery_date|default:'' }}">
                     <input type="hidden" name="pickup_address" value="{{ pickup_address|default:'' }}">
                     <input type="hidden" name="pickup_pincode" value="{{ pickup_pincode|default:'' }}">
                     <input type="hidden" name="pickup_address_type" value="{{ pickup_address_type|default:'' }}">
+
+                    <input type="hidden" name="weight" value="{{ weight|default:'0.5' }}">
+                    <input type="hidden" name="length" value="{{ length|default:'10.0' }}">
+                    <input type="hidden" name="breadth" value="{{ breadth|default:'10.0' }}">
+                    <input type="hidden" name="height" value="{{ height|default:'10.0' }}">
 
                     {% for key, value in form_data.items %}
                         <input type="hidden" name="{{ key }}" value="{{ value }}">
@@ -81,7 +87,7 @@
                 <div id="loading-spinner" style="display: none;">
                     <div class="spinner-border text-primary mb-3" role="status"></div>
                     <p class="mb-0 fw-bold">Verifying payment...</p>
-                    <small class="text-muted">Deducting inventory and creating your order. Please wait.</small>
+                    <small class="text-muted">Finalizing order and deducting inventory. Please wait.</small>
                 </div>
 
                 <div id="action-buttons">
@@ -106,25 +112,25 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     const options = {
-        "key": "{{ razorpay_key_id }}",
-        "amount": "{{ amount_paise }}",
+        "key": "{{ razorpay_key_id|escapejs }}",
+        "amount": "{{ amount_paise|escapejs }}",
         "currency": "INR",
-        "name": "Drapso",
-        "description": "Order for {{ form_data.customer_name|escapejs }}",
-        "image": "{% static 'images/drapsologo.jpg' %}",
-        "order_id": "{{ razorpay_order_id }}",
+        "name": "{{ store.store_name|default:'Drapso'|escapejs }}",
+        "description": "Payment for Order #{{ razorpay_order_id|escapejs }}",
+        "image": "{% if store.logo %}{{ store.logo.url|escapejs }}{% else %}{% static 'images/drapsologo.jpg'|escapejs %}{% endif %}",
+        "order_id": "{{ razorpay_order_id|escapejs }}",
         
         "handler": function (response) {
-            // 1. Visual Feedback
+            // Hide buttons and show spinner
             document.getElementById('action-buttons').style.display = 'none';
             document.getElementById('loading-spinner').style.display = 'block';
             
-            // 2. Map Razorpay response to our hidden form
+            // Map Razorpay response
             document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
             document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
             document.getElementById('razorpay_signature').value = response.razorpay_signature;
             
-            // 3. Final submit to payment_success view
+            // Submit form to payment_success
             document.getElementById('payment-form').submit();
         },
         
@@ -140,16 +146,20 @@
         
         "modal": {
             "ondismiss": function() {
-                // Allows user to try again if they accidentally close the popup
-                console.log('Payment modal closed');
+                console.log('Payment modal closed by user');
             }
         }
     };
 
+    // Initialize Razorpay
     const rzp1 = new Razorpay(options);
 
     document.getElementById('pay-button').onclick = function(e) {
-        rzp1.open();
+        if (typeof Razorpay !== 'undefined') {
+            rzp1.open();
+        } else {
+            alert("Payment gateway is loading. Please try again in a moment.");
+        }
         e.preventDefault();
     };
 </script>

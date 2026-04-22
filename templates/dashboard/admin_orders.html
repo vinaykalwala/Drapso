@@ -1,0 +1,30 @@
+
+{% block content %}
+<h2>Global Order Audit</h2>
+
+<div class="finance-summary">
+    <h3>Total Revenue: ₹{{ total_revenue }}</h3>
+</div>
+
+<h3>Shipping Margin Alerts</h3>
+<table class="alert-table">
+    <tr class="header">
+        <th>Order ID</th>
+        <th>Charged to Customer</th>
+        <th>Actual Cost (Paid to SR)</th>
+        <th>Loss/Profit</th>
+    </tr>
+    {% for order in all_orders %}
+    <tr class="{% if order.actual_shipping_cost > order.shipping_charge %}text-danger{% endif %}">
+        <td>{{ order.order_id }}</td>
+        <td>₹{{ order.shipping_charge }}</td>
+        <td>₹{{ order.actual_shipping_cost }}</td>
+        <td>
+            {% with loss=order.shipping_charge|add:"-"|add:order.actual_shipping_cost %}
+                {{ loss }}
+            {% endwith %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

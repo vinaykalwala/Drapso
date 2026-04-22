@@ -1,0 +1,68 @@
+
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Confirm Approval & Sync to Shiprocket</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Order ID:</strong> {{ order.order_id }} <br>
+                        <strong>Customer:</strong> {{ order.customer_name }}
+                    </div>
+
+                    <h5>Shipping Details</h5>
+                    <table class="table table-sm border">
+                        <tr>
+                            <th>Address:</th>
+                            <td>{{ order.shipping_address }}, {{ order.shipping_city }}, {{ order.shipping_pincode }}</td>
+                        </tr>
+                        <tr>
+                            <th>Courier Partner:</th>
+                            <td>{{ order.courier_name }}</td>
+                        </tr>
+                    </table>
+
+                    <h5 class="mt-4">Logistics Calculations</h5>
+                    <div class="row text-center bg-light p-3 border rounded">
+                        <div class="col-4">
+                            <small class="text-muted d-block">Billable Weight</small>
+                            <strong>{{ order.weight }} kg</strong>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Dimensions (LxBxH)</small>
+                            <strong>{{ order.length }}x{{ order.breadth }}x{{ order.height }} cm</strong>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Shipping Charge</small>
+                            <strong>₹{{ order.shipping_charge }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 border-start border-4 border-warning bg-light">
+                        <p class="mb-0 text-muted">
+                            <i class="fas fa-info-circle me-2"></i>
+                            By clicking confirm, this order will be registered with Shiprocket. 
+                            Ensure the pickup location (Pincode: {{ order.pickup_pincode }}) is correct.
+                        </p>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <a href="{% url 'orders:reseller_order_detail' store.id order.id %}" class="btn btn-secondary">
+                        Go Back
+                    </a>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">
+                            Confirm & Sync Shipping
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

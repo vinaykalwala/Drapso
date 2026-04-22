@@ -1,0 +1,33 @@
+
+{% block content %}
+<h2>Reseller Dashboard</h2>
+
+<div class="stats-row">
+    <div class="card">Pending: {{ pending_orders.count }}</div>
+    <div class="card">In Transit: {{ in_transit.count }}</div>
+</div>
+
+<h3>Recent Orders</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in pending_orders %}
+        <tr>
+            <td>{{ order.order_id }}</td>
+            <td>{{ order.customer_name }}</td>
+            <td><span class="badge">{{ order.order_status }}</span></td>
+            <td>
+                <a href="{% url 'orders:approve_order' order.store.id order.id %}" class="btn">Approve</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
