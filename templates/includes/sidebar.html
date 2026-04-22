@@ -638,16 +638,17 @@ text-align:center;
     <i class="fa-solid fa-chart-line"></i>
     Dashboard
 </a>
+
+
+{% if store %}
 <a href="{% url 'products:reseller_product_list' store.id %}">
     <i class="fa-solid fa-cubes"></i>
     Reseller Products
 </a>
-{% if store %}
 <a href="{% url 'orders:reseller_orders' store.id %}">
     <i class="fa-solid fa-cart-shopping"></i>
     Orders
 </a>
-{% endif %}
 <a href="{% url 'products:price_notifications' store.id %}" class="menu-link">
 
     <span>
@@ -667,6 +668,9 @@ text-align:center;
     <i class="fa-solid fa-box-archive"></i>
     Archived Products
 </a>
+{% endif %}
+
+
 </a>
     <a href="{% url 'products:low_stock_alerts' %}">
     <i class="fa-solid fa-triangle-exclamation"></i>
