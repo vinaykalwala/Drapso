@@ -44,15 +44,17 @@
    /* PRODUCTS GRID */
 
    .products {
-      display: grid;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 22px;
+}
 
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-
-      gap: 22px;
-
-      align-items: stretch;
-   }
-
+/* when no products → center */
+.products:has(.no-products-container) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
    /* CARD */
 
@@ -275,11 +277,61 @@
       }
 
    }
+
+   /* No products styles */
+   .no-products-container {
+      min-height: 60vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+   }
+
+   .no-products {
+      text-align: center;
+      padding: 60px 20px;
+      background: #f9fafb;
+      border-radius: 16px;
+      max-width: 500px;
+      width: 100%;
+      margin: 0 auto;
+   }
+
+   .no-products-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+   }
+
+   .no-products-message {
+      font-size: 24px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 10px;
+   }
+
+   .no-products-submessage {
+      font-size: 16px;
+      color: #6b7280;
+   }
+
+   @media (max-width: 640px) {
+      .no-products {
+         padding: 40px 16px;
+      }
+      .no-products-icon {
+         font-size: 60px;
+      }
+      .no-products-message {
+         font-size: 20px;
+      }
+      .no-products-submessage {
+         font-size: 14px;
+      }
+   }
 </style>
 
 
 
-{% if store.store_banner %}
+{% if products and store.store_banner %}
 
 <div class="banner-wrap">
 
@@ -301,222 +353,237 @@
 
 <div class="container">
 
+   {% if products %}
+
    <div class="heading">
 
       Our Products
 
    </div>
 
+   {% endif %}
+
 
 
    <div class="products">
 
+      {% if products %}
 
-      {% for product in products %}
+         {% for product in products %}
 
-      <div class="card">
-
-
-         {% if product.main_image %}
-
-         <img src="{{ product.main_image.url }}" class="main-img">
-
-         {% else %}
-
-         <img src="{% static 'img/no-image.png' %}" class="main-img">
-
-         {% endif %}
+         <div class="card">
 
 
+            {% if product.main_image %}
 
-         <div class="name">
+            <img src="{{ product.main_image.url }}" class="main-img">
 
-            {{ product.name|truncatewords:3 }}
+            {% else %}
+
+            <img src="{% static 'img/no-image.png' %}" class="main-img">
+
+            {% endif %}
+
+
+
+            <div class="name">
+
+               {{ product.name|truncatewords:3 }}
+            </div>
+
+
+
+          <div class="price">
+
+   {% if product.source_type == "own" %}
+
+       {% if product.discount_percentage > 0 %}
+
+           ₹{{ product.discounted_price|floatformat:2 }}
+
+           <span style="
+           text-decoration: line-through;
+           color:#94a3b8;
+           font-size:14px;
+           font-weight:normal;
+           ">
+
+               ₹{{ product.selling_price|floatformat:2 }}
+
+           </span>
+
+       {% else %}
+
+           ₹{{ product.selling_price|floatformat:2 }}
+
+       {% endif %}
+
+
+   {% elif product.source_type == "imported" %}
+
+       ₹{{ product.selling_price|floatformat:2 }}
+
+       {% if product.discount_percentage > 0 %}
+
+           <span style="
+           text-decoration: line-through;
+           color:#94a3b8;
+           font-size:14px;
+           font-weight:normal;
+           ">
+
+               ₹{{ product.source_product.price|add:product.margin_rupees|floatformat:2 }}
+
+           </span>
+
+       {% endif %}
+
+
+   {% else %}
+
+       {% if product.discount_percentage > 0 %}
+
+           ₹{{ product.discounted_price|floatformat:2 }}
+
+           <span style="
+           text-decoration: line-through;
+           color:#94a3b8;
+           font-size:14px;
+           font-weight:normal;
+           ">
+
+               ₹{{ product.selling_price|floatformat:2 }}
+
+           </span>
+
+       {% else %}
+
+           ₹{{ product.selling_price|floatformat:2 }}
+
+       {% endif %}
+
+   {% endif %}
+
+   </div>
+
+           <div class="variant-title">
+       Available Variants
+   </div>
+
+   {% if product.variants.exists %}
+
+   <div class="variants">
+
+   {% for variant in product.variants.all %}
+
+   <div class="variant-box">
+
+   {% if variant.main_image %}
+   <img src="{{ variant.main_image.url }}">
+   {% else %}
+   <img src="{% static 'img/no-image.png' %}">
+   {% endif %}
+
+
+   <div class="v-name">
+   {{ variant.size }}{% if variant.color %}-{{ variant.color }}{% endif %}
+   </div>
+
+
+   <!-- selling price -->
+   <div class="v-price">
+
+   {% if product.source_type == "own" %}
+
+       {% if variant.discount_percentage > 0 %}
+           ₹{{ variant.discounted_price|floatformat:2 }}
+       {% else %}
+           ₹{{ variant.selling_price|floatformat:2 }}
+       {% endif %}
+
+   {% elif product.source_type == "imported" %}
+
+       ₹{{ variant.selling_price|floatformat:2 }}
+
+   {% else %}
+
+       {% if variant.discount_percentage > 0 %}
+           ₹{{ variant.discounted_price|floatformat:2 }}
+       {% else %}
+           ₹{{ variant.price|floatformat:2 }}
+       {% endif %}
+
+   {% endif %}
+
+   </div>
+
+
+   <!-- original strike price -->
+   {% if variant.discount_percentage > 0 %}
+
+   <div class="v-original-price">
+
+   {% if product.source_type == "imported" %}
+
+   ₹{{ variant.source_price|add:variant.margin_rupees|floatformat:2 }}
+
+   {% elif product.source_type == "own" %}
+
+   ₹{{ variant.selling_price|floatformat:2 }}
+
+   {% else %}
+
+   ₹{{ variant.price|floatformat:2 }}
+
+   {% endif %}
+
+   </div>
+
+   {% endif %}
+
+
+   </div>
+
+   {% endfor %}
+
+   </div>
+
+
+   {% else %}
+
+   <div class="no-variant">
+       <div style="font-size:18px">📦</div>
+       <div>No variants available</div>
+   </div>
+
+   {% endif %}
+
+
+
+            <a href="/product/{{ product.slug }}/" class="btn" {% if is_preview %}
+               style="pointer-events:none;opacity:.6;cursor:not-allowed;" {% endif %}>
+
+               View Details
+
+            </a>
+
+
+
          </div>
 
-
-
-       <div class="price">
-
-{% if product.source_type == "own" %}
-
-    {% if product.discount_percentage > 0 %}
-
-        ₹{{ product.discounted_price|floatformat:2 }}
-
-        <span style="
-        text-decoration: line-through;
-        color:#94a3b8;
-        font-size:14px;
-        font-weight:normal;
-        ">
-
-            ₹{{ product.selling_price|floatformat:2 }}
-
-        </span>
-
-    {% else %}
-
-        ₹{{ product.selling_price|floatformat:2 }}
-
-    {% endif %}
-
-
-{% elif product.source_type == "imported" %}
-
-    ₹{{ product.selling_price|floatformat:2 }}
-
-    {% if product.discount_percentage > 0 %}
-
-        <span style="
-        text-decoration: line-through;
-        color:#94a3b8;
-        font-size:14px;
-        font-weight:normal;
-        ">
-
-            ₹{{ product.source_product.price|add:product.margin_rupees|floatformat:2 }}
-
-        </span>
-
-    {% endif %}
-
-
-{% else %}
-
-    {% if product.discount_percentage > 0 %}
-
-        ₹{{ product.discounted_price|floatformat:2 }}
-
-        <span style="
-        text-decoration: line-through;
-        color:#94a3b8;
-        font-size:14px;
-        font-weight:normal;
-        ">
-
-            ₹{{ product.selling_price|floatformat:2 }}
-
-        </span>
-
-    {% else %}
-
-        ₹{{ product.selling_price|floatformat:2 }}
-
-    {% endif %}
-
-{% endif %}
-
-</div>
-
-        <div class="variant-title">
-    Available Variants
-</div>
-
-{% if product.variants.exists %}
-
-<div class="variants">
-
-{% for variant in product.variants.all %}
-
-<div class="variant-box">
-
-{% if variant.main_image %}
-<img src="{{ variant.main_image.url }}">
-{% else %}
-<img src="{% static 'img/no-image.png' %}">
-{% endif %}
-
-
-<div class="v-name">
-{{ variant.size }}{% if variant.color %}-{{ variant.color }}{% endif %}
-</div>
-
-
-<!-- selling price -->
-<div class="v-price">
-
-{% if product.source_type == "own" %}
-
-    {% if variant.discount_percentage > 0 %}
-        ₹{{ variant.discounted_price|floatformat:2 }}
-    {% else %}
-        ₹{{ variant.selling_price|floatformat:2 }}
-    {% endif %}
-
-{% elif product.source_type == "imported" %}
-
-    ₹{{ variant.selling_price|floatformat:2 }}
-
-{% else %}
-
-    {% if variant.discount_percentage > 0 %}
-        ₹{{ variant.discounted_price|floatformat:2 }}
-    {% else %}
-        ₹{{ variant.price|floatformat:2 }}
-    {% endif %}
-
-{% endif %}
-
-</div>
-
-
-<!-- original strike price -->
-{% if variant.discount_percentage > 0 %}
-
-<div class="v-original-price">
-
-{% if product.source_type == "imported" %}
-
-₹{{ variant.source_price|add:variant.margin_rupees|floatformat:2 }}
-
-{% elif product.source_type == "own" %}
-
-₹{{ variant.selling_price|floatformat:2 }}
-
-{% else %}
-
-₹{{ variant.price|floatformat:2 }}
-
-{% endif %}
-
-</div>
-
-{% endif %}
-
-
-</div>
-
-{% endfor %}
-
-</div>
-
-
-{% else %}
-
-<div class="no-variant">
-    <div style="font-size:18px">📦</div>
-    <div>No variants available</div>
-</div>
-
-{% endif %}
-
-
-
-         <a href="/product/{{ product.slug }}/" class="btn" {% if is_preview %}
-            style="pointer-events:none;opacity:.6;cursor:not-allowed;" {% endif %}>
-
-            View Details
-
-         </a>
-
-
-
-      </div>
-
-      {% endfor %}
-
-
+         {% endfor %}
+
+      {% else %}
+
+         <div class="no-products-container">
+            <div class="no-products">
+               <div class="no-products-icon">🛍️</div>
+               <div class="no-products-message">No products found</div>
+               <div class="no-products-submessage">Please check back later for new arrivals!</div>
+            </div>
+         </div>
+
+      {% endif %}
 
    </div>
 

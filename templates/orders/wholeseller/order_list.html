@@ -1,112 +1,720 @@
-
+{% extends 'dashboard_base.html' %}
 {% load static %}
 
 {% block title %}Wholesale Fulfillment Center{% endblock %}
 
-{% block extra_css %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
 <style>
-    .wh-container { padding: 20px; }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .content {
+        padding: 5px 30px;
+        background: linear-gradient(145deg, #f5f7fb 0%, #f0f4f8 100%);
+        padding-bottom: 30px;
+    }
+
+    .fc-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* ========== BANNER SECTION ========== */
+    .banner-section {
+        background: linear-gradient(135deg, #4f46e5 0%, #312e81 50%, #4f46e5 100%);
+        border-radius:28px 28px 0 0;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .banner-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('{% static "images/bannerorder.jpg" %}');
+        background-repeat: repeat;
+        opacity: 0.3;
+    }
+
+    .banner-content {
+        padding: 40px 48px;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 30px;
+    }
+
+    .banner-text h1 {
+        font-size: 32px;
+        font-weight: 800;
+        color: white;
+        margin: 0 0 12px 0;
+        letter-spacing: -0.5px;
+    }
+
+    .banner-text h1 i {
+        margin-right: 12px;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px;
+        border-radius: 16px;
+    }
+
+    .banner-text p {
+        font-size: 15px;
+        color: rgba(255, 255, 255, 0.8);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .banner-text p i {
+        font-size: 14px;
+    }
+
+    .banner-stats {
+        display: flex;
+        gap: 30px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        padding: 16px 32px;
+        border-radius: 60px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: 800;
+        color: white;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.7);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 5px;
+    }
+
+    /* ========== FILTERS & BADGE ROW ========== */
+    .filters-row {
+        background: white;
+        border-radius:0 0 20px 20px;
+        padding: 16px 24px;
+        margin-bottom: 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        border: 1px solid #eef2ff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    .filters-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .filter-pill {
+        padding: 10px 28px;
+        border-radius: 50px;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        background: #f8fafc;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-pill i {
+        font-size: 13px;
+    }
+
+    .filter-pill:hover {
+        border-color: #4f46e5;
+        color: #4f46e5;
+        background: #faf9ff;
+    }
+
+    .filter-pill.active {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .badge-side {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: linear-gradient(135deg, #f0f0ff, #faf9ff);
+        padding: 8px 24px;
+        border-radius: 50px;
+        border: 1px solid rgba(79, 70, 229, 0.2);
+    }
+
+    .badge-side i {
+        font-size: 18px;
+        color: #4f46e5;
+    }
+
+    .badge-side span {
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 14px;
+    }
+
+    .badge-side small {
+        font-weight: 600;
+        color: #4f46e5;
+        background: rgba(79, 70, 229, 0.1);
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-size: 12px;
+    }
+
+    /* ========== ORDER CARDS GRID ========== */
+    .orders-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+    }
+
+    /* Order Card */
     .order-card {
         background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid #eef2ff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    .order-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.12);
+        border-color: #c7d2fe;
+    }
+
+    .card-inner {
+        padding: 22px 24px;
+    }
+
+    /* Store Row */
+    .store-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .store-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .store-avatar {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 800;
+        font-size: 18px;
+    }
+
+    .store-details h4 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0 0 4px 0;
+    }
+
+    .store-details span {
+        font-size: 11px;
+        color: #94a3b8;
+        font-weight: 500;
+    }
+
+    .order-badge {
+        background: #f1f5f9;
+        padding: 6px 14px;
+        border-radius: 30px;
+        font-family: monospace;
+        font-size: 12px;
+        font-weight: 700;
+        color: #475569;
+    }
+
+    /* Product Row */
+    .product-row {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+    .product-image {
+        width: 70px;
+        height: 70px;
+        background: #f8fafc;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        flex-shrink: 0;
+        border: 1px solid #eef2ff;
+    }
+
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-image i {
+        font-size: 30px;
+        color: #cbd5e1;
+    }
+
+    .product-details {
+        flex: 1;
+    }
+
+    .product-name {
+        font-weight: 800;
+        font-size: 15px;
+        color: #1e293b;
+        margin-bottom: 8px;
+        line-height: 1.4;
+    }
+
+    .product-meta {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .meta-item i {
+        font-size: 11px;
+        color: #94a3b8;
+    }
+
+    /* Destination Row */
+    .destination-row {
+        background: #fafcff;
+        border-radius: 18px;
+        padding: 14px 18px;
+        margin-bottom: 18px;
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        border: 1px solid #f0f2f8;
+    }
+
+    .dest-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        min-width: 110px;
+    }
+
+    .dest-icon {
+        width: 36px;
+        height: 36px;
+        background: white;
         border-radius: 12px;
-        padding: 15px;
-        margin-bottom: 15px;
-        border-left: 5px solid #6366f1; /* Wholesaler brand color */
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #4f46e5;
+        border: 1px solid #eef2ff;
     }
+
+    .dest-info {
+        line-height: 1.3;
+    }
+
+    .dest-label {
+        font-size: 10px;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .dest-value {
+        font-size: 13px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    /* Status Row */
+    .status-row {
+        margin-bottom: 20px;
+    }
+
     .status-badge {
-        padding: 5px 12px;
-        border-radius: 15px;
-        font-size: 0.8rem;
-        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 18px;
+        border-radius: 40px;
+        font-size: 12px;
+        font-weight: 700;
     }
-    .status-approved { background: #e0e7ff; color: #4338ca; }
-    .status-shipped { background: #dcfce7; color: #15803d; }
-    .store-tag {
-        font-size: 0.8rem;
-        background: #f3f4f6;
-        padding: 2px 8px;
-        border-radius: 4px;
+
+    .status-approved {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-shipped {
+        background: #e0e7ff;
+        color: #4f46e5;
+    }
+
+    .status-pending {
+        background: #fed7aa;
+        color: #9a3412;
+    }
+
+    /* Buttons Row */
+    .buttons-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary {
+        background: #4f46e5;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 40px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-primary:hover {
+        background: #4338ca;
+        transform: translateY(-1px);
+    }
+
+    .btn-success {
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 40px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-success:hover {
+        background: #059669;
+        transform: translateY(-1px);
+    }
+
+    .btn-outline {
+        background: white;
+        border: 1px solid #e2e8f0;
+        padding: 10px 20px;
+        border-radius: 40px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #475569;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-outline:hover {
+        border-color: #4f46e5;
+        color: #4f46e5;
+    }
+
+    /* Empty State */
+    .empty-state {
+        grid-column: span 2;
+        text-align: center;
+        background: white;
+        border-radius: 28px;
+        padding: 60px;
+        border: 1px solid #eef2ff;
+    }
+
+    .empty-state i {
+        font-size: 55px;
+        color: #cbd5e1;
+        margin-bottom: 16px;
+    }
+
+    .empty-state h3 {
+        font-size: 18px;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 6px;
+    }
+
+    .empty-state p {
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    /* Responsive */
+    @media (max-width: 1000px) {
+        .orders-grid {
+            grid-template-columns: 1fr;
+        }
+        .empty-state {
+            grid-column: span 1;
+        }
+        .banner-content {
+            flex-direction: column;
+            text-align: center;
+            padding: 30px;
+        }
+        .banner-stats {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .content {
+            padding: 16px;
+        }
+        .banner-content {
+            padding: 24px;
+        }
+        .banner-text h1 {
+            font-size: 24px;
+        }
+        .banner-stats {
+            gap: 20px;
+            padding: 12px 20px;
+        }
+        .stat-number {
+            font-size: 22px;
+        }
+        .filters-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .filters-group {
+            justify-content: center;
+        }
+        .badge-side {
+            justify-content: center;
+        }
+        .card-inner {
+            padding: 16px;
+        }
+        .buttons-row {
+            flex-direction: column;
+        }
+        .btn-primary, .btn-success, .btn-outline {
+            width: 100%;
+            justify-content: center;
+        }
+        .destination-row {
+            flex-direction: column;
+        }
     }
 </style>
-{% endblock %}
 
-{% block content %}
-<div class="wh-container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="mb-0">Fulfillment Dashboard</h2>
-            <p class="text-muted">Manage shipping for imported products</p>
+<div class="content">
+    <div class="fc-container">
+        <!-- BANNER SECTION with Image/Pattern -->
+        <div class="banner-section">
+            <div class="banner-content">
+                <div class="banner-text">
+                    <h1>
+                        <i class="fas fa-warehouse"></i> 
+                        Fulfillment Center
+                    </h1>
+                    <p>
+                        <i class="fas fa-shipping-fast"></i> 
+                        Manage shipping for imported products
+                    </p>
+                </div>
+                <div class="banner-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ orders|length|default:0 }}</div>
+                        <div class="stat-label">Total Orders</div>
+                    </div>
+                   
+                </div>
+            </div>
         </div>
-        <div class="text-end">
-            <span class="badge bg-dark">Wholesaler: {{ request.user.username }}</span>
+
+        <!-- FILTERS ROW - Left side filters, Right side badge -->
+        <div class="filters-row">
+            <div class="filters-group">
+                <a href="?" class="filter-pill {% if not status_filter %}active{% endif %}">
+                    <i class="fas fa-list"></i> All Tasks
+                </a>
+                <a href="?status=approved" class="filter-pill {% if status_filter == 'approved' %}active{% endif %}">
+                    <i class="fas fa-box-open"></i> Ready to Ship
+                </a>
+                <a href="?status=shipped" class="filter-pill {% if status_filter == 'shipped' %}active{% endif %}">
+                    <i class="fas fa-truck"></i> Dispatched
+                </a>
+            </div>
+            <div class="badge-side">
+                <i class="fas fa-store"></i>
+                <span>{{ request.user.username }}</span>
+                <small>Wholesaler</small>
+            </div>
         </div>
-    </div>
 
-    <ul class="nav nav-pills mb-4">
-        <li class="nav-item">
-            <a class="nav-link {% if not status_filter %}active{% endif %}" href="?">All Tasks</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if status_filter == 'approved' %}active{% endif %}" href="?status=approved">Ready to Ship</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if status_filter == 'shipped' %}active{% endif %}" href="?status=shipped">Dispatched</a>
-        </li>
-    </ul>
+        <!-- ORDER CARDS GRID - 2 per row -->
+        <div class="orders-grid">
+            {% for order in orders %}
+            <div class="order-card">
+                <div class="card-inner">
+                    <!-- Store & Order ID -->
+                    <div class="store-row">
+                        <div class="store-info">
+                            <div class="store-avatar">{{ order.store.store_name|slice:":2"|upper }}</div>
+                            <div class="store-details">
+                                <h4>{{ order.store.store_name }}</h4>
+                                <span>Store ID: #{{ order.store.id }}</span>
+                            </div>
+                        </div>
+                        <div class="order-badge">#{{ order.order_id }}</div>
+                    </div>
 
-    {% for order in orders %}
-    <div class="order-card">
-        <div class="row align-items-center">
-            <div class="col-md-4">
-                <div class="d-flex align-items-center gap-3">
-                    {% if order.product.main_image %}
-                        <img src="{{ order.product.main_image.url }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;">
-                    {% endif %}
-                    <div>
-                        <span class="store-tag">Store: {{ order.store.store_name }}</span><br>
-                        <strong>{{ order.product.name }}</strong>
-                        <div class="text-muted small">Qty: {{ order.quantity }} | SKU: {{ order.product.sku }}</div>
+                    <!-- Product -->
+                    <div class="product-row">
+                        <div class="product-image">
+                            {% if order.product.main_image %}
+                                <img src="{{ order.product.main_image.url }}" alt="">
+                            {% else %}
+                                <i class="fas fa-box"></i>
+                            {% endif %}
+                        </div>
+                        <div class="product-details">
+                            <div class="product-name">{{ order.product.name }}</div>
+                            <div class="product-meta">
+                                <span class="meta-item"><i class="fas fa-cubes"></i> Qty: {{ order.quantity }}</span>
+                                <span class="meta-item"><i class="fas fa-barcode"></i> SKU: {{ order.product.sku }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Destination -->
+                    <div class="destination-row">
+                        <div class="dest-item">
+                            <div class="dest-icon"><i class="fas fa-city"></i></div>
+                            <div class="dest-info">
+                                <div class="dest-label">City</div>
+                                <div class="dest-value">{{ order.shipping_city|default:"—" }}</div>
+                            </div>
+                        </div>
+                        <div class="dest-item">
+                            <div class="dest-icon"><i class="fas fa-map-pin"></i></div>
+                            <div class="dest-info">
+                                <div class="dest-label">PIN Code</div>
+                                <div class="dest-value">{{ order.shipping_pincode|default:"—" }}</div>
+                            </div>
+                        </div>
+                       
+                    </div>
+
+                    <!-- Status -->
+                    <div class="status-row">
+                        <span class="status-badge status-{{ order.order_status }}">
+                            <i class="fas {% if order.order_status == 'approved' %}fa-check-circle{% elif order.order_status == 'shipped' %}fa-truck{% else %}fa-clock{% endif %}"></i>
+                            {{ order.get_order_status_display }}
+                        </span>
+                    </div>
+
+                    <!-- 3 Buttons -->
+                    <div class="buttons-row">
+                        {% if order.order_status == 'approved' %}
+                            <form action="{% url 'orders:mark_order_shipped' order.id %}" method="POST" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-primary">
+                                    <i class="fas fa-box-open"></i> Generate Label & Ship
+                                </button>
+                            </form>
+                        {% elif order.order_status == 'shipped' and order.label_url %}
+                            <a href="{{ order.label_url }}" target="_blank" class="btn-success">
+                                <i class="fas fa-print"></i> Print Label
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'orders:wholeseller_order_detail' order.id %}" class="btn-outline">
+                            <i class="fas fa-eye"></i> Details
+                        </a>
                     </div>
                 </div>
             </div>
-
-            <div class="col-md-3">
-                <div class="small"><strong>Destination:</strong></div>
-                <div class="text-truncate small">{{ order.shipping_city }}, {{ order.shipping_pincode }}</div>
-                <div class="small"><strong>ID:</strong> {{ order.order_id }}</div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-truck-loading"></i>
+                <h3>No fulfillment tasks</h3>
+                <p>Approved orders for imported products will appear here.</p>
             </div>
-
-            <div class="col-md-2 text-center">
-                <span class="status-badge status-{{ order.order_status }}">
-                    {{ order.get_order_status_display }}
-                </span>
-            </div>
-
-            <div class="col-md-3 text-end">
-                {% if order.order_status == 'approved' %}
-                    <form action="{% url 'orders:mark_order_shipped' order.id %}" method="POST" class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-primary btn-sm">
-                            <i class="fas fa-box-open"></i> Generate Label & Ship
-                        </button>
-                    </form>
-                {% elif order.order_status == 'shipped' and order.label_url %}
-                    <a href="{{ order.label_url }}" target="_blank" class="btn btn-outline-success btn-sm">
-                        <i class="fas fa-print"></i> Print Label
-                    </a>
-                {% endif %}
-                
-                <a href="{% url 'orders:wholeseller_order_detail' order.id %}" class="btn btn-link btn-sm text-decoration-none">Details</a>
-            </div>
+            {% endfor %}
         </div>
     </div>
-    {% empty %}
-    <div class="card p-5 text-center shadow-sm">
-        <i class="fas fa-truck-loading fa-3x text-light mb-3"></i>
-        <h4>No fulfillment tasks</h4>
-        <p class="text-muted">Approved orders for imported products will appear here.</p>
-    </div>
-    {% endfor %}
 </div>
 {% endblock %}
