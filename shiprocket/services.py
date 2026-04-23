@@ -630,3 +630,147 @@ class ShiprocketService:
         except Exception as e:
             logger.error(f"Failed to fetch Shiprocket orders: {e}")
             return {"data": []}
+
+    def get_all_orders(self):
+        """
+        Fetch ALL Shiprocket orders (handles pagination internally)
+        """
+        all_orders = []
+        page = 1
+        per_page = 50  # safe limit
+
+        try:
+            while True:
+                url = f"{self.base_url}/orders"
+
+                params = {
+                    "page": page,
+                    "per_page": per_page
+                }
+
+                response = requests.get(
+                    url,
+                    headers=self._get_headers(),
+                    params=params,
+                    timeout=30
+                )
+
+                # Retry if token expired
+                if response.status_code == 401:
+                    self._authenticate()
+                    response = requests.get(
+                        url,
+                        headers=self._get_headers(),
+                        params=params,
+                        timeout=30
+                    )
+
+                if response.status_code != 200:
+                    return {
+                        "success": False,
+                        "error": response.text
+                    }
+
+                data = response.json()
+                orders = data.get("data", [])
+
+                if not orders:
+                    break
+
+                all_orders.extend(orders)
+
+                # Stop when last page reached
+                if len(orders) < per_page:
+                    break
+
+                page += 1
+
+            return {
+                "success": True,
+                "orders": all_orders,
+                "total": len(all_orders)
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+
+    # ==========================================
+    # 🔍 FETCH ORDER BY SHIPROCKET ORDER ID
+    # ==========================================
+    def get_order_by_shiprocket_id(self, shiprocket_order_id):
+        """
+        Fetch a single order using Shiprocket order_id
+        """
+        url = f"{self.base_url}/orders/show/{shiprocket_order_id}"
+
+        try:
+            response = requests.get(
+                url,
+                headers=self._get_headers(),
+                timeout=30
+            )
+
+            if response.status_code == 401:
+                self._authenticate()
+                response = requests.get(url, headers=self._get_headers(), timeout=30)
+
+            if response.status_code == 200:
+                data = response.json()
+                return {
+                    "success": True,
+                    "order": data.get("data", {})
+                }
+
+            return {
+                "success": False,
+                "error": response.text
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+
+    # ==========================================
+    # 🚚 FETCH ORDER BY SHIPMENT ID (BEST)
+    # ==========================================
+    def get_order_by_shipment_id(self, shipment_id):
+        """
+        Fetch shipment details (recommended for tracking/status)
+        """
+        url = f"{self.base_url}/shipments/{shipment_id}"
+
+        try:
+            response = requests.get(
+                url,
+                headers=self._get_headers(),
+                timeout=30
+            )
+
+            if response.status_code == 401:
+                self._authenticate()
+                response = requests.get(url, headers=self._get_headers(), timeout=30)
+
+            if response.status_code == 200:
+                data = response.json()
+                return {
+                    "success": True,
+                    "shipment": data.get("data", {})
+                }
+
+            return {
+                "success": False,
+                "error": response.text
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e)
+            }
