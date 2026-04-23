@@ -1,104 +1,675 @@
+{% extends "dashboard_base.html" %}
+{% load static %}
 
+{% block title %}{% endblock %}
 
 {% block content %}
+<link
+    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
+    rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-<div class="card">
+    body {
+        font-family: 'Inter', sans-serif;
+        background: #f4f6fb;
+        color: #1e293b;
+        line-height: 1.5;
+    }
 
-    <h3>📦 All Orders (Admin)</h3>
+    .sidebar {
+        width: 250px;
+    }
 
-    <table width="100%" border="1" cellpadding="10">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Customer</th>
-                <th>Store</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th>AWB</th>
-                <th>Courier</th>
-                <th>Pickup Date</th>
-                <th>Tracking</th>
-                <th>Action</th>
-            </tr>
-        </thead>
+    /* main dashboard container (matching typical dashboard_base block) */
+    .main-content {
+        margin-left: 260px;
+        /* sidebar width + little gap */
+        padding: 2rem 1.5rem;
+    }
 
-        <tbody>
-        {% for order in orders %}
-        <tr>
+    /* card styling */
+    .card {
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03), 0 2px 6px rgba(0, 0, 0, 0.05);
+
+        transition: all 0.2s ease;
+        border: 1px solid #eef2f8;
+    }
+
+    /* header inside card */
+    .card h3 {
+        font-size: 1.55rem;
+        font-weight: 600;
+        padding: 1.25rem 1.5rem 0.75rem 1.5rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #0f172a;
+        letter-spacing: -0.2px;
+        border-bottom: 2px solid #eef2f8;
+    }
+
+    .card h3 i {
+        font-size: 1.6rem;
+        color: #3b82f6;
+    }
+
+    /* TABLE STYLES – clean, minimal, professional */
+    .orders-table {
+        width: max-content;
+        /* 🔥 IMPORTANT FIX */
+        min-width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+
+    }
+
+    .orders-table th,
+    .orders-table td {
+        padding: 0.7rem 0.6rem;
+        font-size: 0.8rem;
+    }
+
+    .orders-table td,
+    .orders-table th {
+        white-space: nowrap;
+        text-align: left;
+    }
+
+    .orders-table td:nth-child(7),
+    /* courier */
+    .orders-table td:nth-child(8) {
+        /* pickup date */
+        white-space: normal;
+    }
+
+    .orders-table thead tr {
+        background: #f8fafd;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .orders-table th {
+        text-align: left;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #475569;
+        background-color: #f9fbfe;
+        border-bottom: 1px solid #e2edf2;
+    }
+
+    .orders-table td {
+
+        vertical-align: middle;
+        border-bottom: 1px solid #eff3f8;
+        color: #1f2a44;
+        font-weight: 500;
+    }
+
+    .orders-table tbody tr:hover {
+        background-color: #fafcff;
+        transition: 0.2s;
+    }
+
+    /* badge styles (status) */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0.25rem 0.75rem;
+        border-radius: 40px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+        background: #f1f5f9;
+        color: #1e293b;
+    }
+
+    .badge i {
+        font-size: 0.7rem;
+    }
+
+    .badge.success {
+        background: #e0f9ef;
+        color: #0b5e42;
+    }
+
+    .badge.danger {
+        background: #fee9e6;
+        color: #b91c1c;
+    }
+
+    .badge.info {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .badge.warning {
+        background: #fff0db;
+        color: #b45309;
+    }
+
+    /* action & track buttons */
+    .action-btn,
+    .track-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: none;
+        border: none;
+        font-size: 0.8rem;
+        font-weight: 500;
+        padding: 0.4rem 0.9rem;
+        border-radius: 40px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        background: #f1f4f9;
+        color: #1e293b;
+    }
+
+    .track-btn {
+        background: #eef2ff;
+        color: #2563eb;
+    }
+
+    .track-btn i {
+        font-size: 0.75rem;
+    }
+
+    .action-btn:hover,
+    .track-btn:hover {
+        background: #e2e8f0;
+        transform: translateY(-1px);
+    }
+
+    .track-btn:hover {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    /* empty row */
+    .empty-row td {
+        text-align: center;
+        padding: 3rem;
+        font-size: 0.95rem;
+        color: #6c757d;
+        background: #ffffff;
+    }
+
+    .mono-text {
+        font-family: 'Inter', monospace;
+        font-weight: 500;
+        color: #0f3b5c;
+        letter-spacing: 0.2px;
+    }
+
+    /* awb & courier text */
+    .mono-text {
+        font-family: 'Inter', monospace;
+        font-weight: 500;
+        color: #0f3b5c;
+        letter-spacing: 0.2px;
+    }
+
+    /* responsive extra touches */
+    @media (max-width: 768px) {
+        .main-content {
+            padding: 1rem;
+        }
+
+        .card h3 {
+            font-size: 1.3rem;
+            padding: 1rem 1.2rem;
+        }
+
+        .orders-table th,
+        .orders-table td {
+            padding: 0.8rem 0.8rem;
+        }
+    }
+
+    /* tiny pill for ID */
+    .order-id {
+        font-weight: 600;
+        color: #0f172a;
+        background: #f1f5f9;
+        display: inline-block;
+        padding: 0.15rem 0.5rem;
+        border-radius: 30px;
+        font-size: 0.8rem;
+    }
+
+    @media (max-width: 768px) {
+
+        .orders-table th:nth-child(6),
+        .orders-table td:nth-child(6),
+        /* AWB */
+        .orders-table th:nth-child(7),
+        .orders-table td:nth-child(7) {
+            /* courier */
+            display: none;
+        }
+    }
+
+    .table-scroll {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        display: block;
+        border-radius: 20px;
+    }
+
+    /* smooth scroll look */
+    .table-scroll::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .table-scroll::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+    /* ============================= */
+/* 📱 MOBILE (0px - 480px) */
+/* ============================= */
+@media (max-width: 480px) {
+
+    .main-content {
+        margin-left: 0;
+        padding: 10px;
+    }
+
+    .sidebar {
+        display: none;
+    }
+
+    /* Header */
+    .card > div:first-child {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    /* Search + filter */
+    #searchInput,
+    #statusFilter {
+        width: 100%;
+    }
+
+    /* Table */
+    .orders-table {
+        font-size: 0.7rem;
+    }
+
+    .orders-table th,
+    .orders-table td {
+        padding: 6px;
+    }
+
+    /* Hide less important columns */
+    .orders-table th:nth-child(6),
+    .orders-table td:nth-child(6),
+    .orders-table th:nth-child(7),
+    .orders-table td:nth-child(7),
+    .orders-table th:nth-child(8),
+    .orders-table td:nth-child(8) {
+        display: none;
+    }
+}
+
+
+/* ============================= */
+/* 📱 LARGE MOBILE (481px - 768px) */
+/* ============================= */
+@media (max-width: 768px) {
+
+    .main-content {
+        margin-left: 0;
+        padding: 15px;
+    }
+
+    .sidebar {
+        display: none;
+    }
+
+    .card > div:first-child {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #searchInput {
+        width: 100%;
+    }
+
+    .orders-table th,
+    .orders-table td {
+        padding: 8px;
+    }
+
+    /* Hide some columns */
+    .orders-table th:nth-child(7),
+    .orders-table td:nth-child(7),
+    .orders-table th:nth-child(8),
+    .orders-table td:nth-child(8) {
+        display: none;
+    }
+}
+
+
+/* ============================= */
+/* 💻 TABLET (769px - 1024px) */
+/* ============================= */
+@media (max-width: 1024px) {
+
+    .main-content {
+        margin-left: 200px;
+    }
+
+    .sidebar {
+        width: 200px;
+    }
+
+    .orders-table {
+        font-size: 0.8rem;
+    }
+
+    .orders-table th,
+    .orders-table td {
+        padding: 10px;
+    }
+}
+
+
+/* ============================= */
+/* 💻 SMALL LAPTOP (1025px - 1280px) */
+/* ============================= */
+@media (max-width: 1280px) {
+
+    .orders-table {
+        font-size: 0.85rem;
+    }
+}
+
+
+/* ============================= */
+/* 🖥️ LARGE SCREENS (1281px+) */
+/* ============================= */
+@media (min-width: 1281px) {
+
+    .orders-table {
+        font-size: 0.9rem;
+    }
+
+    .main-content {
+        max-width: 1600px;
+        margin-left: 260px;
+    }
+}@media (max-width: 900px) {
+    .sidebar {
+        display: none;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 15px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+    <div class="main-content">
+        <div class="card">
+
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; padding:20px 24px; flex-wrap:wrap; gap:10px; border-bottom:1px solid #eef2f8;">
+
+                <!-- LEFT -->
+                <div style="display:flex; flex-direction:column;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <i class="fas fa-boxes" style="color:#3b82f6;"></i>
+                        <span style="font-size:1.4rem; font-weight:600;">All Orders</span>
+                    </div>
+                    <span style="font-size:0.8rem; color:#64748b;">
+                        Total Orders: {{ orders|length }}
+                    </span>
+                </div>
+
+                <!-- RIGHT -->
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+
+                    <!-- SEARCH -->
+                    <input type="text" id="searchInput" placeholder="Search orders..."
+                        style="padding:8px 14px; border-radius:10px; border:1px solid #e2e8f0; width:220px; font-size:0.85rem;">
+
+                    <!-- FILTER -->
+                    <select id="statusFilter"
+                        style="padding:8px 12px; border-radius:10px; border:1px solid #e2e8f0; font-size:0.85rem;">
+
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Packed</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="in transit">In Transit</option>
+                        <option value="out for delivery">Out for Delivery</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="canceled">Cancelled</option>
+                        <option value="rto">Cancellation Requested</option>
+                    </select>
+
+                    <!-- LIVE BADGE -->
+                    <span style="font-size:0.75rem; background:#eef2ff; padding:4px 10px; border-radius:50px;">
+                        <i class="fas fa-sync-alt"></i> Live
+                    </span>
+
+                </div>
+
+            </div>
 
             <!-- ========================= -->
-            <!-- LOCAL DATA -->
+            <!-- PROFESSIONAL TABLE -->
             <!-- ========================= -->
-            <td>{{ order.local.id }}</td>
-            <td>{{ order.local.customer_name }}</td>
-            <td>{{ order.local.store.store_name }}</td>
-            <td>₹{{ order.local.total_amount }}</td>
+            <div class="table-scroll">
+                <table class="orders-table" width="100%">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag"></i> ID</th>
+                            <th><i class="fas fa-user"></i> Customer</th>
+                            <th><i class="fas fa-store"></i> Store</th>
+                            <th><i class="fas fa-rupee-sign"></i> Total</th>
+                            <th><i class="fas fa-truck-fast"></i> Status</th>
+                            <th><i class="fas fa-barcode"></i> AWB</th>
+                            <th><i class="fas fa-shipping-fast"></i> Courier</th>
+                            <th><i class="fas fa-calendar-alt"></i> Pickup Date</th>
+                            <th><i class="fas fa-map-pin"></i> Tracking</th>
+                            <th><i class="fas fa-eye"></i> Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- ================================================= -->
+                        <!-- BACKEND LOOP: dynamic orders context                -->
+                        <!-- This structure is 100% backend-ready (Django)       -->
+                        <!-- Replace placeholders with real variable names       -->
+                        <!-- ================================================= -->
+                        {% for order in orders %}
+                        <tr>
+                            <!-- local order ID -->
+                            <td><span class="order-id">#{{ order.local.id }}</span></td>
 
-            <!-- ========================= -->
-            <!-- STATUS -->
-            <!-- ========================= -->
-            <td>
-                <span class="badge 
-                    {% if order.shiprocket.status == 'DELIVERED' %}success
-                    {% elif order.shiprocket.status == 'CANCELED' %}danger
-                    {% elif order.shiprocket.status == 'IN TRANSIT' %}info
-                    {% else %}warning
-                    {% endif %}
-                ">
-                    {{ order.shiprocket.status|default:"N/A" }}
-                </span>
-            </td>
+                            <!-- customer name -->
+                            <td style="font-weight: 500;">
+                                <i class="fas fa-user-circle" style="color: #3b82f6; margin-right: 6px;"></i>
+                                {{ order.local.customer_name|default:"Guest" }}
+                            </td>
 
-            <!-- ========================= -->
-            <!-- SHIPMENT DATA (FIXED) -->
-            <!-- ========================= -->
-            <td>
-                {{ order.shiprocket.shipment.awb|default:"Not Assigned" }}
-            </td>
+                            <!-- store name -->
+                            <td>{{ order.local.store.store_name|default:"—" }}</td>
 
-            <td>
-                {{ order.shiprocket.shipment.courier|default:"-" }}
-            </td>
+                            <!-- total amount -->
+                            <td><span style="font-weight: 600;">₹{{ order.local.total_amount|floatformat:2 }}</span>
+                            </td>
 
-            <td>
-                {{ order.shiprocket.shipment.pickup_scheduled_date|default:"-" }}
-            </td>
+                            <!-- STATUS badge (dynamic) -->
+                            <td>
+                                {% with status=order.shiprocket.status|default:"PENDING" %}
+                                <span class="badge 
+                                {% if status == 'DELIVERED' %}success
+                                {% elif status == 'CANCELED' %}danger
+                                {% elif status == 'IN TRANSIT' %}info
+                                {% else %}warning
+                                {% endif %}
+                                " data-status="{{ status|lower|cut:' ' }}">
+                                    <i class="fas 
+                                    {% if status == 'DELIVERED' %}fa-check-circle
+                                    {% elif status == 'CANCELED' %}fa-ban
+                                    {% elif status == 'IN TRANSIT' %}fa-truck
+                                    {% else %}fa-clock
+                                    {% endif %}
+                                "></i>
+                                    {{ status }}
+                                </span>
+                                {% endwith %}
+                            </td>
 
-            <!-- ========================= -->
-            <!-- TRACKING LINK -->
-            <!-- ========================= -->
-            <td>
-                {% if order.shiprocket.shipment.awb %}
-                    <a href="https://shiprocket.co/tracking/{{ order.shiprocket.shipment.awb }}" target="_blank" class="btn">
-                        Track
-                    </a>
-                {% else %}
-                    -
-                {% endif %}
-            </td>
+                            <!-- AWB Number -->
+                            <td class="mono-text">
+                                {% if order.shiprocket.shipment.awb %}
+                                <i class="fas fa-qrcode" style="color: #4b5563; margin-right: 5px;"></i>
+                                {{ order.shiprocket.shipment.awb }}
+                                {% else %}
+                                <span style="color: #94a3b8;">Not Assigned</span>
+                                {% endif %}
+                            </td>
 
-            <!-- ========================= -->
-            <!-- ACTION -->
-            <!-- ========================= -->
-            <td>
-                <a href="{% url 'orders:shiprocket_order_detail' order.local.id %}" class="btn">
-                    View
-                </a>
-            </td>
+                            <!-- Courier name -->
+                            <td>
+                                {% if order.shiprocket.shipment.courier %}
+                                {{ order.shiprocket.shipment.courier }}
+                                {% else %}
+                                <span style="color: #94a3b8;">—</span>
+                                {% endif %}
+                            </td>
 
-        </tr>
+                            <!-- Pickup scheduled date -->
+                            <td>
+                                {% if order.shiprocket.shipment.pickup_scheduled_date %}
+                                <i class="far fa-calendar-alt" style="margin-right: 5px; color: #5b6e8c;"></i>
+                                {{ order.shiprocket.shipment.pickup_scheduled_date }}
+                                {% else %}
+                                <span style="color: #94a3b8;">—</span>
+                                {% endif %}
+                            </td>
 
-        {% empty %}
-        <tr>
-            <td colspan="10" style="text-align:center;">
-                No orders found
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
+                            <!-- Tracking link -->
+                            <td>
+                                {% if order.shiprocket.shipment.awb %}
+                                <a href="https://shiprocket.co/tracking/{{ order.shiprocket.shipment.awb }}"
+                                    target="_blank" class="track-btn">
+                                    <i class="fas fa-external-link-alt"></i> Track
+                                </a>
+                                {% else %}
+                                <span style="color: #a0afc0; font-size: 0.8rem;">—</span>
+                                {% endif %}
+                            </td>
 
-    </table>
+                            <!-- View action (detail page) -->
+                            <td>
+                                <a href="{% url 'orders:shiprocket_order_detail' order.local.id %}" class="action-btn">
+                                    <i class="fas fa-chevron-circle-right"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr class="empty-row">
+                            <td colspan="10">
+                                <i class="fas fa-inbox"
+                                    style="font-size: 1.8rem; color: #cbd5e1; margin-bottom: 8px; display: block;"></i>
+                                No orders found · <span style="color: #3b82f6;">Create new shipment to see data</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-</div>
+            <!-- optional footer note (elegant) -->
+            {% if orders %}
+            <div
+                style="padding: 0.9rem 1.5rem 1.3rem 1.5rem; border-top: 1px solid #edf2f7; background: #fefefe; border-radius: 0 0 24px 24px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.6rem;">
+                    <div style="font-size: 0.75rem; color: #5b6e8c;">
+                        <i class="fas fa-chart-line"></i> Total orders: {{ orders|length }}
+                    </div>
+                    <div style="font-size: 0.7rem; color: #7c8ea0;">
+                        <i class="fas fa-shield-alt"></i> Shiprocket integrated · real-time updates
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 
-{% endblock %}
+    <!-- Tiny optional script to add tooltip-like behaviour (purely cosmetic) -->
+
+    <script>
+        const searchInput = document.getElementById("searchInput");
+        const statusFilter = document.getElementById("statusFilter");
+
+        function filterTable() {
+            const searchValue = searchInput.value.toLowerCase();
+            const selectedStatus = statusFilter.value;
+
+            const rows = document.querySelectorAll(".orders-table tbody tr");
+
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                const statusElement = row.querySelector(".badge");
+                const status = statusElement
+                    ? statusElement.getAttribute("data-status").toLowerCase().trim()
+                    : "";
+
+                const matchSearch = text.includes(searchValue);
+                let matchStatus = false;
+
+                if (selectedStatus === "") {
+                    matchStatus = true;
+                } else {
+                    matchStatus = status.includes(selectedStatus);
+                }
+
+                if (matchSearch && matchStatus) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+
+        // 🔍 search typing
+        searchInput.addEventListener("keyup", filterTable);
+
+        // 🔽 dropdown change
+        statusFilter.addEventListener("change", filterTable);
+
+        // No backend logic change — pure UX helpers, but fully ready for Django
+        document.querySelectorAll('.track-btn').forEach(btn => {
+            btn.addEventListener('mouseenter', (e) => {
+                // just for subtle effect
+            });
+        });
+        // Consistent badge icon set already rendered server-side, but any dynamic touch can be added
+        console.log("Admin orders table - professional design ready");
+    </script>
+
+    {% endblock %}
