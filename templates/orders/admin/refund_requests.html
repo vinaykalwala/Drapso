@@ -1,137 +1,570 @@
-
+{% extends "dashboard_base.html" %}
 {% load static %}
 
-{% block title %}Refund Requests - Admin{% endblock %}
+{% block title %}{% endblock %}
 
-{% block extra_css %}
+{% block content %}
+<link
+    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
+    rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --primary: #4f46e5;
+        --primary-light: #6366f1;
+        --primary-dark: #4338ca;
+        --gradient-start: #4f46e5;
+        --gradient-end: #6366f1;
+
+        --text-dark: #1e1b4b;
+        --text-light: #64748b;
+
+        --bg-light: #f8fafc;
+        --bg-card: #ffffff;
+
+        --shadow-soft: 0 4px 20px rgba(99, 102, 241, 0.08);
+        --shadow-hover: 0 12px 40px rgba(99, 102, 241, 0.15);
+
+        --border-light: #e2e8f0;
+
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --error: #ef4444;
+
+        --border-radius: 12px;
+        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+        background: var(--bg-light);
+        color: var(--text-dark);
+        line-height: 1.5;
+    }
+.main-content {
+    margin-left: 260px; /* same width as sidebar */
+    padding: 20px;
+    width: calc(100% - 260px);
+}
+    /* main container */
     .refund-container {
-        padding: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1.8rem;
     }
+
+    /* page heading with gradient primary */
+    .page-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .page-heading h2 {
+        font-size: 1.9rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        letter-spacing: -0.3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-heading h2 i {
+        background: none;
+        color: var(--primary);
+        font-size: 2rem;
+        background-clip: unset;
+        -webkit-background-clip: unset;
+        color: var(--primary);
+    }
+
+    .refund-stats {
+        background: var(--bg-card);
+        padding: 0.5rem 1.2rem;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        box-shadow: var(--shadow-soft);
+        border: 1px solid var(--border-light);
+        color: var(--primary-dark);
+    }
+
+    .refund-stats i {
+        color: var(--primary);
+    }
+
+    /* section titles */
+    .section-title {
+        font-size: 1.35rem;
+        font-weight: 600;
+        margin: 1.8rem 0 1.2rem 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-left: 5px solid var(--primary);
+        padding-left: 16px;
+        color: var(--text-dark);
+    }
+
+    .section-title i {
+        color: var(--primary);
+        font-size: 1.3rem;
+    }
+
+    /* refund card - modern with primary accents */
     .refund-card {
-        background: white;
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        background: var(--bg-card);
+        border-radius: var(--border-radius);
+        padding: 0;
+        margin-bottom: 24px;
+        box-shadow: var(--shadow-soft);
+        transition: var(--transition);
+        border: 1px solid var(--border-light);
+        overflow: hidden;
     }
+
+    .refund-card:hover {
+        box-shadow: var(--shadow-hover);
+        border-color: var(--primary-light);
+        transform: translateY(-2px);
+    }
+
+    /* header inside card */
     .refund-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #f0f0f0;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 1.2rem 1.5rem 0.9rem 1.5rem;
+        background: var(--bg-card);
+        border-bottom: 1px solid var(--border-light);
     }
+
+    .order-info {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .order-id-badge {
+        font-weight: 700;
+        background: rgba(79, 70, 229, 0.08);
+        padding: 4px 14px;
+        border-radius: 40px;
+        font-size: 0.8rem;
+        color: var(--primary-dark);
+        letter-spacing: -0.2px;
+    }
+
+    .amount-badge {
+        font-weight: 700;
+        background: rgba(34, 197, 94, 0.1);
+        padding: 4px 14px;
+        border-radius: 40px;
+        font-size: 0.9rem;
+        color: #166534;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 14px;
+        border-radius: 40px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+    }
+
+    .status-pending {
+        background: rgba(245, 158, 11, 0.12);
+        color: #b45309;
+    }
+
+    .status-pending i {
+        color: var(--warning);
+    }
+
+    .status-completed {
+        background: rgba(34, 197, 94, 0.12);
+        color: #166534;
+    }
+
+    .status-completed i {
+        color: var(--success);
+    }
+
+    /* body of card - two column layout */
+    .refund-body {
+        padding: 1.2rem 1.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.8rem;
+    }
+
+    .customer-section {
+        flex: 1.2;
+        min-width: 200px;
+    }
+
+    .bank-section {
+        flex: 1;
+        min-width: 240px;
+    }
+
+    .info-row {
+        margin-bottom: 12px;
+        font-size: 0.9rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 6px;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: var(--text-light);
+        width: 110px;
+    }
+
+    .info-value {
+        color: var(--text-dark);
+        font-weight: 500;
+        word-break: break-word;
+    }
+
     .bank-details {
-        background: #f8f9fa;
-        border-radius: 12px;
-        padding: 15px;
-        margin: 15px 0;
+        background: rgba(79, 70, 229, 0.02);
+        border-radius: 16px;
+        padding: 1rem 1.2rem;
+        margin: 8px 0;
+        border: 1px solid var(--border-light);
+        font-size: 0.85rem;
+        transition: var(--transition);
     }
+
+    .bank-details:hover {
+        border-color: var(--primary-light);
+        background: rgba(79, 70, 229, 0.03);
+    }
+
+    .bank-details strong {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: var(--primary);
+    }
+
+    .bank-details p {
+        margin: 6px 0;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .return-reason {
+        background: rgba(99, 102, 241, 0.04);
+        border-radius: 16px;
+        padding: 0.75rem 1rem;
+        margin-top: 12px;
+        font-size: 0.85rem;
+        border-left: 3px solid var(--primary);
+    }
+
+    /* primary button */
     .btn-process {
-        background: #28a745;
+        background: linear-gradient(105deg, var(--gradient-start), var(--gradient-end));
+        color: white;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: var(--transition);
+        text-decoration: none;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(79, 70, 229, 0.2);
+    }
+
+    .btn-process:hover {
+        background: linear-gradient(105deg, var(--primary-dark), var(--primary));
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(79, 70, 229, 0.25);
         color: white;
     }
-    .status-badge {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.8em;
-    }
-    .status-pending { background: #ffc107; }
-    .status-completed { background: #28a745; color: white; }
-</style>
-{% endblock %}
 
-{% block content %}
-<div class="refund-container">
-    <h2 class="mb-4">Refund Requests</h2>
-    
-    <!-- Pending Refunds -->
-    <h4 class="mb-3">Pending Refunds ({{ refunds|length }})</h4>
-    {% for refund in refunds %}
-    <div class="refund-card">
-        <div class="refund-header">
-            <div>
-                <strong>Order: {{ refund.order.order_id }}</strong>
-                <span class="status-badge status-pending ms-2">Pending</span>
-            </div>
-            <div>
-                <strong>Amount: ₹{{ refund.refund_amount|floatformat:2 }}</strong>
-            </div>
-        </div>
-        
-        <div class="row">
-            <div class="col-md-6">
-                <div><strong>Customer:</strong> {{ refund.order.customer_name }}</div>
-                <div><strong>Email:</strong> {{ refund.order.customer_email }}</div>
-                <div><strong>Phone:</strong> {{ refund.order.customer_phone }}</div>
-                <div><strong>Refund Type:</strong> {{ refund.get_refund_type_display }}</div>
-                <div><strong>Requested:</strong> {{ refund.requested_at|date:"F d, Y g:i A" }}</div>
-            </div>
-            <div class="col-md-6">
-                <div class="bank-details">
-                    <strong>Bank Details for Refund:</strong><br>
-                    Account Holder: {{ refund.account_holder_name }}<br>
-                    Account Number: {{ refund.account_number }}<br>
-                    IFSC: {{ refund.ifsc_code }}<br>
-                    Bank: {{ refund.bank_name }}<br>
-                    {% if refund.upi_id %}UPI: {{ refund.upi_id }}{% endif %}
+    .btn-outline-proof {
+        background: transparent;
+        border: 1px solid var(--primary-light);
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--primary-dark);
+        transition: var(--transition);
+    }
+
+    .btn-outline-proof:hover {
+        background: rgba(79, 70, 229, 0.08);
+        border-color: var(--primary);
+        color: var(--primary-dark);
+    }
+
+    .alert-info-modern {
+        background: rgba(79, 70, 229, 0.05);
+        border-left: 6px solid var(--primary);
+        padding: 1.2rem;
+        border-radius: 16px;
+        color: var(--text-dark);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .card-actions {
+        padding: 0.8rem 1.5rem 1.3rem 1.5rem;
+        border-top: 1px solid var(--border-light);
+        background: var(--bg-card);
+    }
+
+    @media (max-width: 760px) {
+        .refund-container {
+            padding: 1rem;
+        }
+
+        .refund-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .refund-body {
+            flex-direction: column;
+        }
+
+        .info-label {
+            width: 100%;
+        }
+    }
+
+    .fa,
+    .fas,
+    .far {
+        margin-right: 4px;
+    }
+
+    hr {
+        margin: 0.5rem 0;
+    }
+
+    .section-title span {
+        background: rgba(79, 70, 229, 0.1);
+        padding: 2px 12px;
+        border-radius: 40px;
+        font-size: 0.8rem;
+        margin-left: 10px;
+        color: var(--primary-dark);
+    }
+
+    .mt-4 {
+        margin-top: 1.8rem;
+    }
+    @media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+</style>
+
+    <div class="main-content">
+        <div class="refund-container">
+            <div class="page-heading">
+                <h2>
+                    <i class="fas fa-hand-holding-usd"></i>
+                    Refund Requests
+                </h2>
+                <div class="refund-stats">
+                    <i class="fas fa-shield-alt"></i> Secure · Bank Transfer Ready
                 </div>
             </div>
-        </div>
-        
-        {% if refund.return_request %}
-        <div class="mt-2">
-            <strong>Return Reason:</strong> {{ refund.return_request.get_reason_display }}<br>
-            <strong>Return Description:</strong> {{ refund.return_request.description }}
-        </div>
-        {% endif %}
-        
-        <div class="mt-3">
-            <a href="{% url 'orders:process_refund' refund.id %}" class="btn btn-process">
-                <i class="fas fa-money-bill-wave"></i> Process Refund
-            </a>
-        </div>
-    </div>
-    {% empty %}
-    <div class="alert alert-info">No pending refund requests.</div>
-    {% endfor %}
-    
-    <!-- Completed Refunds -->
-    {% if completed_refunds %}
-    <h4 class="mb-3 mt-4">Completed Refunds</h4>
-    {% for refund in completed_refunds %}
-    <div class="refund-card">
-        <div class="refund-header">
-            <div>
-                <strong>Order: {{ refund.order.order_id }}</strong>
-                <span class="status-badge status-completed ms-2">Completed</span>
+
+            <!-- ============= PENDING REFUNDS SECTION ============= -->
+            <div class="section-title">
+                <i class="fas fa-hourglass-half"></i>
+                Pending Refunds
+                <span>{{ refunds|length }}</span>
             </div>
-            <div>
-                <strong>Amount: ₹{{ refund.refund_amount|floatformat:2 }}</strong>
-            </div>
-        </div>
-        
-        <div class="row">
-            <div class="col-md-6">
-                <div><strong>Customer:</strong> {{ refund.order.customer_name }}</div>
-                <div><strong>Transaction ID:</strong> {{ refund.transaction_id|default:"N/A" }}</div>
-                <div><strong>Processed:</strong> {{ refund.processed_at|date:"F d, Y g:i A" }}</div>
-            </div>
-            <div class="col-md-6">
-                {% if refund.admin_notes %}
-                    <strong>Admin Notes:</strong> {{ refund.admin_notes }}
-                {% endif %}
-                {% if refund.transfer_proof %}
-                    <br><a href="{{ refund.transfer_proof.url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
-                        <i class="fas fa-file-pdf"></i> View Transfer Proof
+
+            {% for refund in refunds %}
+            <div class="refund-card">
+                <div class="refund-header">
+                    <div class="order-info">
+                        <span class="order-id-badge"><i class="fas fa-receipt"></i> Order: {{ refund.order.order_id
+                            }}</span>
+                        <span class="status-badge status-pending"><i class="fas fa-spinner fa-pulse"></i> Pending</span>
+                    </div>
+                    <div class="amount-badge">
+                        <i class="fas fa-rupee-sign"></i> {{ refund.refund_amount|floatformat:2 }}
+                    </div>
+                </div>
+
+                <div class="refund-body">
+                    <!-- left: customer & return details -->
+                    <div class="customer-section">
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-user"></i> Customer:</span>
+                            <span class="info-value">{{ refund.order.customer_name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-envelope"></i> Email:</span>
+                            <span class="info-value">{{ refund.order.customer_email }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-phone-alt"></i> Phone:</span>
+                            <span class="info-value">{{ refund.order.customer_phone }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-tag"></i> Refund Type:</span>
+                            <span class="info-value">{{ refund.get_refund_type_display }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="far fa-calendar-alt"></i> Requested:</span>
+                            <span class="info-value">{{ refund.requested_at|date:"F d, Y g:i A" }}</span>
+                        </div>
+
+                        {% if refund.return_request %}
+                        <div class="return-reason">
+                            <i class="fas fa-exchange-alt" style="margin-right: 8px; color: var(--primary);"></i>
+                            <strong>Return Reason:</strong> {{ refund.return_request.get_reason_display }}<br>
+                            <strong style="margin-top: 5px; display:inline-block;">Description:</strong> {{
+                            refund.return_request.description }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- right: bank details for refund -->
+                    <div class="bank-section">
+                        <div class="bank-details">
+                            <strong><i class="fas fa-university"></i> Bank / UPI for Refund</strong>
+                            <p><i class="fas fa-user-check"></i> <span>Account Holder: {{ refund.account_holder_name
+                                    }}</span></p>
+                            <p><i class="fas fa-credit-card"></i> Account Number: {{ refund.account_number }}</p>
+                            <p><i class="fas fa-code-branch"></i> IFSC: {{ refund.ifsc_code }}</p>
+                            <p><i class="fas fa-building"></i> Bank: {{ refund.bank_name }}</p>
+                            {% if refund.upi_id %}
+                            <p><i class="fab fa-google-pay"></i> UPI ID: {{ refund.upi_id }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <a href="{% url 'orders:process_refund' refund.id %}" class="btn-process">
+                        <i class="fas fa-money-bill-wave"></i> Process Refund
                     </a>
-                {% endif %}
+                    <span style="font-size:0.7rem; margin-left: 15px; color:var(--text-light);"><i
+                            class="fas fa-lock"></i> Secure payment gateway</span>
+                </div>
             </div>
+            {% empty %}
+            <div class="alert-info-modern">
+                <i class="fas fa-check-circle" style="font-size: 1.7rem; color: var(--success);"></i>
+                <div>✨ No pending refund requests. All customer refunds are up to date.</div>
+            </div>
+            {% endfor %}
+
+            <!-- ============= COMPLETED REFUNDS SECTION ============= -->
+            {% if completed_refunds %}
+            <div class="section-title mt-4">
+                <i class="fas fa-check-double"></i>
+                Completed Refunds
+                <span>{{ completed_refunds|length }}</span>
+            </div>
+
+            {% for refund in completed_refunds %}
+            <div class="refund-card">
+                <div class="refund-header">
+                    <div class="order-info">
+                        <span class="order-id-badge"><i class="fas fa-receipt"></i> Order: {{ refund.order.order_id
+                            }}</span>
+                        <span class="status-badge status-completed"><i class="fas fa-check-circle"></i> Completed</span>
+                    </div>
+                    <div class="amount-badge" style="background: rgba(34,197,94,0.1);">
+                        <i class="fas fa-rupee-sign"></i> {{ refund.refund_amount|floatformat:2 }}
+                    </div>
+                </div>
+
+                <div class="refund-body">
+                    <div class="customer-section">
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-user"></i> Customer:</span>
+                            <span class="info-value">{{ refund.order.customer_name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-hashtag"></i> Transaction ID:</span>
+                            <span class="info-value">{{ refund.transaction_id|default:"N/A" }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="far fa-clock"></i> Processed:</span>
+                            <span class="info-value">{{ refund.processed_at|date:"F d, Y g:i A" }}</span>
+                        </div>
+                        {% if refund.admin_notes %}
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-sticky-note"></i> Admin Notes:</span>
+                            <span class="info-value">{{ refund.admin_notes }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="bank-section">
+                        {% if refund.transfer_proof %}
+                        <div class="bank-details" style="background: rgba(79,70,229,0.02);">
+                            <strong><i class="fas fa-paperclip"></i> Transfer confirmation</strong>
+                            <div style="margin-top: 12px;">
+                                <a href="{{ refund.transfer_proof.url }}" target="_blank" class="btn-outline-proof">
+                                    <i class="fas fa-file-pdf"></i> View Transfer Proof
+                                </a>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="bank-details" style="background: rgba(99,102,241,0.02);">
+                            <i class="fas fa-check-circle" style="color: var(--success);"></i> Refund completed — fully
+                            settled.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-actions" style="background: #ffffff; border-top-color: var(--border-light);">
+                    <span style="font-size:0.75rem; color: var(--primary);"><i class="fas fa-check-circle"></i> Amount
+                        refunded successfully</span>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
         </div>
     </div>
-    {% endfor %}
-    {% endif %}
-</div>
+
 {% endblock %}

@@ -1,39 +1,585 @@
 
-{% block title %}Order Success - Drapso{% endblock %}
-
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-body text-center p-5">
-                    <div class="mb-4">
-                        <i class="fas fa-check-circle" style="font-size: 64px; color: #28a745;"></i>
-                    </div>
-                    <h3 class="mb-3">Payment Successful!</h3>
-                    <p class="text-muted mb-4">
-                        Thank you for your order. Your payment has been received successfully.
-                    </p>
-                    
-                    <div class="alert alert-success">
-                        <strong>Order ID:</strong> #{{ order.order_id }}<br>
-                        <strong>Total Amount:</strong> ₹{{ order.total_amount }}
-                    </div>
-                    
-                    <p class="mb-4">
-                        We've sent a confirmation email to <strong>{{ order.customer_email }}</strong>.<br>
-                        You can track your order status using the link below.
-                    </p>
-                    
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'orders:track_order' order_id=order.order_id %}" class="btn btn-primary">
-                            <i class="fas fa-truck"></i> Track Your Order
-                        </a>
-                
-                    </div>
-                </div>
-            </div>
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="theme-color" content="#22c55e">
+    <title>Order Confirmed | Drapso</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 50%, #a7f3d0 100%);
+        min-height: 100vh;
+    }
+
+    :root {
+        --success: #22c55e;
+        --success-dark: #05b144;
+        --success-light: #dcfce7;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+    }
+
+    /* ===== MAIN WRAPPER ===== */
+    .success-wrapper {
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        position: relative;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    /* Custom scrollbar */
+    .success-wrapper::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .success-wrapper::-webkit-scrollbar-track {
+        background: rgba(34, 197, 94, 0.1);
+        border-radius: 10px;
+    }
+
+    .success-wrapper::-webkit-scrollbar-thumb {
+        background: #22c55e;
+        border-radius: 10px;
+    }
+
+    .success-wrapper::-webkit-scrollbar-thumb:hover {
+        background: #15803d;
+    }
+
+    /* ===== BACKGROUND FLOATING ELEMENTS ===== */
+    .bg-particle {
+        position: fixed;
+        border-radius: 50%;
+        background: rgba(34, 197, 94, 0.08);
+        animation: floatBg 8s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .bg-particle:nth-child(1) { width: 300px; height: 300px; top: -100px; left: -100px; animation-delay: 0s; }
+    .bg-particle:nth-child(2) { width: 200px; height: 200px; bottom: -50px; right: -50px; animation-delay: 1s; }
+    .bg-particle:nth-child(3) { width: 150px; height: 150px; top: 40%; right: 10%; animation-delay: 2s; }
+    .bg-particle:nth-child(4) { width: 250px; height: 250px; bottom: 20%; left: -80px; animation-delay: 3s; }
+    .bg-particle:nth-child(5) { width: 100px; height: 100px; top: 20%; left: 20%; animation-delay: 4s; }
+
+    @keyframes floatBg {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        50% { transform: translate(30px, 30px) rotate(180deg); }
+    }
+
+    /* ===== MAIN CARD ===== */
+    .success-card {
+        display: grid;
+        grid-template-columns: 0.9fr 1.1fr;
+        max-width: 1100px;
+        width: 100%;
+        background: white;
+        border-radius: 40px;
+        overflow: hidden;
+        box-shadow: 0 40px 80px rgba(0, 0, 0, 0.12);
+        position: relative;
+        z-index: 10;
+    }
+
+    /* ===== LEFT SECTION - ILLUSTRATION ===== */
+    .illustration-section {
+        background: linear-gradient(145deg, #06bd61 0%, #10b948 50%, #34d399 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        padding: 40px;
+    }
+
+    /* Animated circles in background */
+    .illustration-section::before {
+        content: '';
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+        background-size: 40px 40px;
+        animation: moveDots 20s linear infinite;
+    }
+
+    @keyframes moveDots {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(40px, 40px); }
+    }
+
+    /* Floating checkmark circles */
+    .float-circle {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        animation: floatCircle 4s ease-in-out infinite;
+    }
+
+    .float-circle-1 { width: 120px; height: 120px; top: 10%; left: -30px; animation-delay: 0s; }
+    .float-circle-2 { width: 80px; height: 80px; bottom: 15%; right: -20px; animation-delay: 1s; }
+    .float-circle-3 { width: 60px; height: 60px; top: 50%; right: 20%; animation-delay: 2s; }
+
+    @keyframes floatCircle {
+        0%, 100% { transform: translateY(0) scale(1); opacity: 0.5; }
+        50% { transform: translateY(-20px) scale(1.1); opacity: 0.8; }
+    }
+
+    /* Main illustration image */
+    .success-illustration {
+        width: 100%;
+        max-width: 350px;
+        animation: floatMain 5s ease-in-out infinite;
+        position: relative;
+        z-index: 5;
+        filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.15));
+    }
+
+    @keyframes floatMain {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-15px) rotate(3deg); }
+    }
+
+    /* ===== RIGHT SECTION - CONTENT ===== */
+    .content-section {
+        padding: 50px 45px;
+        background: white;
+        position: relative;
+    }
+
+    /* Success Icon */
+    .success-icon-wrapper {
+        width: 85px;
+        height: 85px;
+        background: linear-gradient(145deg, #22c55e, #15803d);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 28px;
+        box-shadow: 0 15px 30px rgba(34, 197, 94, 0.3);
+        animation: iconPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes iconPop {
+        0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    .success-icon-wrapper i {
+        font-size: 38px;
+        color: white;
+        animation: iconCheck 0.8s ease-in-out 0.3s both;
+    }
+
+    @keyframes iconCheck {
+        0% { transform: scale(0); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+
+    /* Title Section */
+    .success-title {
+        font-size: 32px;
+        font-weight: 800;
+        color: #065f46;
+        margin-bottom: 12px;
+        letter-spacing: -0.3px;
+        animation: slideUp 0.5s ease-out 0.2s both;
+    }
+
+    .success-subtitle {
+        font-size: 15px;
+        color: #6b7280;
+        line-height: 1.5;
+        margin-bottom: 30px;
+        animation: slideUp 0.5s ease-out 0.3s both;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Order Details Box */
+    .order-details-box {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 24px;
+        padding: 24px;
+        margin-bottom: 30px;
+        border: 1px solid #bbf7d0;
+        animation: slideUp 0.5s ease-out 0.4s both;
+    }
+
+    .detail-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .detail-label i {
+        color: #22c55e;
+        font-size: 14px;
+    }
+
+    .detail-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: #065f46;
+        font-family: monospace;
+    }
+
+    /* Amount highlight */
+    .amount-value {
+        font-size: 22px;
+        font-weight: 800;
+        color: #059669;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        animation: slideUp 0.5s ease-out 0.5s both;
+    }
+
+    .btn-track {
+        flex: 1;
+        background: linear-gradient(145deg, #22c55e, #15803d);
+        color: white;
+        text-decoration: none;
+        padding: 14px 24px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    }
+
+    .btn-track:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(34, 197, 94, 0.4);
+    }
+
+    .btn-secondary {
+        flex: 1;
+        background: white;
+        color: #059669;
+        text-decoration: none;
+        padding: 14px 24px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        border: 2px solid #22c55e;
+    }
+
+    .btn-secondary:hover {
+        background: #f0fdf4;
+        transform: translateY(-3px);
+    }
+
+    /* Confetti Animation */
+    .confetti {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        background: #22c55e;
+        animation: confettiFall 3s linear forwards;
+        pointer-events: none;
+        z-index: 9999;
+    }
+
+    @keyframes confettiFall {
+        0% {
+            transform: translateY(-100vh) rotate(0deg);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(100vh) rotate(720deg);
+            opacity: 0;
+        }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 850px) {
+        .success-card {
+            grid-template-columns: 1fr;
+            border-radius: 30px;
+        }
+        
+        .illustration-section {
+            padding: 50px 20px;
+            min-height: 280px;
+        }
+        
+        .success-illustration {
+            width: 60%;
+            max-width: 220px;
+        }
+        
+        .content-section {
+            padding: 35px 30px;
+        }
+        
+        .success-title {
+            font-size: 28px;
+        }
+        
+        .detail-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .success-wrapper {
+            padding: 30px 15px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .success-wrapper {
+            padding: 20px 15px;
+        }
+        
+        .content-section {
+            padding: 25px 20px;
+        }
+        
+        .success-title {
+            font-size: 24px;
+        }
+        
+        .success-icon-wrapper {
+            width: 70px;
+            height: 70px;
+        }
+        
+        .success-icon-wrapper i {
+            font-size: 30px;
+        }
+        
+        .order-details-box {
+            padding: 18px;
+        }
+        
+        .amount-value {
+            font-size: 18px;
+        }
+        
+        .detail-label {
+            font-size: 11px;
+        }
+        
+        .detail-value {
+            font-size: 14px;
+        }
+    }
+
+    /* For extra small devices */
+    @media (max-width: 360px) {
+        .content-section {
+            padding: 20px 15px;
+        }
+        
+        .success-title {
+            font-size: 22px;
+        }
+        
+        .btn-track, .btn-secondary {
+            padding: 12px 16px;
+            font-size: 13px;
+        }
+    }
+
+    /* Landscape mode support */
+    @media (max-width: 850px) and (orientation: landscape) {
+        .success-wrapper {
+            padding: 20px;
+        }
+        
+        .success-card {
+            max-width: 90%;
+        }
+        
+        .illustration-section {
+            min-height: 200px;
+        }
+        
+        .success-illustration {
+            max-width: 150px;
+        }
+    }
+</style>
+
+<div class="success-wrapper">
+    
+    <!-- Background floating particles -->
+    <div class="bg-particle"></div>
+    <div class="bg-particle"></div>
+    <div class="bg-particle"></div>
+    <div class="bg-particle"></div>
+    <div class="bg-particle"></div>
+    
+    <!-- Main Success Card -->
+    <div class="success-card">
+        
+        <!-- Left Illustration Section -->
+        <div class="illustration-section">
+            <div class="float-circle float-circle-1"></div>
+            <div class="float-circle float-circle-2"></div>
+            <div class="float-circle float-circle-3"></div>
+            <img src="{% static 'images/payment.webp' %}" alt="Success Illustration" class="success-illustration">
         </div>
+        
+        <!-- Right Content Section -->
+        <div class="content-section">
+            
+            <!-- Success Icon -->
+            <div class="success-icon-wrapper">
+                <i class="fas fa-check"></i>
+            </div>
+            
+            <!-- Title -->
+            <h1 class="success-title">Order Confirmed! 🎉</h1>
+            <p class="success-subtitle">Your payment was successful. Your order is now being prepared for shipment & We've sent a confirmation email to below email.
+                        You can track your order status using the link below.      </p>
+            
+            <!-- Order Details Box -->
+            <div class="order-details-box">
+                <div class="detail-row">
+                    <span class="detail-label"><i class="fas fa-receipt"></i> Order ID</span>
+                    <span class="detail-value">#{{ order.order_id }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label"><i class="fas fa-rupee-sign"></i> Amount Paid</span>
+                    <span class="detail-value amount-value">₹{{ order.total_amount }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label"><i class="fas fa-envelope"></i> Email</span>
+                    <span class="detail-value">{{ order.customer_email }}</span>
+                    
+                </div>
+                
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="{% url 'orders:track_order' order_id=order.order_id %}" class="btn-track">
+                    <i class="fas fa-truck"></i> Track Your Order
+                </a>
+             <a href="{{ store_url }}/" class="btn-secondary">
+    <i class="fas fa-store"></i> Back to Store
+</a>
+            </div>
+            
+        </div>
+        
     </div>
 </div>
+
+<script>
+    // Confetti effect on page load
+    function createConfetti() {
+        const colors = ['#22c55e', '#15803d', '#34d399', '#a7f3d0', '#fbbf24', '#10b981', '#059669'];
+        const confettiCount = 150;
+        
+        for (let i = 0; i < confettiCount; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.width = (Math.random() * 10 + 5) + 'px';
+            confetti.style.height = (Math.random() * 10 + 5) + 'px';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.animationDelay = (Math.random() * 2) + 's';
+            confetti.style.animationDuration = (Math.random() * 2 + 2.5) + 's';
+            confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0%';
+            document.body.appendChild(confetti);
+            
+            // Remove confetti after animation
+            setTimeout(() => {
+                if (confetti && confetti.remove) {
+                    confetti.remove();
+                }
+            }, 5000);
+        }
+    }
+
+    // Trigger confetti on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        createConfetti();
+    });
+
+    // Handle window resize for better responsiveness
+    window.addEventListener('resize', function() {
+        // Adjust any dynamic elements if needed
+    });
+</script>
+
+</body>
+</html>
+
 {% endblock %}

@@ -353,7 +353,7 @@
                        <div class="mt-4">
     <a href="#" class="hut-door-link" id="storeActionButton">
 
-        {% if store.status == 'pending_payment' or not store.payment_status %}
+        {% if store.status == 'pending_payment'%}
             Complete Payment
 
         {% elif not store.subscription_plan %}
@@ -436,7 +436,7 @@
         
         // Function to get the action URL based on store data
         function getActionUrl(store) {
-            if (store.status === 'pending_payment' || !store.payment_status) {
+            if (store.status === 'pending_payment' && !store.payment_status) {
                 return `/resellers/create-order/${store.id}/`;
             } else if (!store.subscription_plan || store.subscription_plan === 'No Plan') {
                 return "{% url 'resellers:select_plan' %}";
@@ -453,7 +453,7 @@
         
         // Function to get button text based on store data
         function getButtonText(store) {
-            if (store.status === 'pending_payment' || !store.payment_status) {
+            if (store.status === 'pending_payment') {
                 return 'Complete Payment';
             } else if (!store.subscription_plan || store.subscription_plan === 'No Plan') {
                 return 'Select Plan';
