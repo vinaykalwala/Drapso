@@ -116,6 +116,12 @@
             font-size: 0.9rem;
         }
 
+        /* Asterisk for required fields */
+        .required-asterisk {
+            color: #dc2626;
+            margin-left: 2px;
+        }
+
         select, input:not([type="file"]), textarea {
             width: 100%;
             padding: 0.75rem 1rem;
@@ -330,11 +336,14 @@
                     <div class="form-card-body">
                         <!-- CATEGORY -->
                         <div class="form-group">
-                            <label><i class="fas fa-folder-tree"></i> Category</label>
+                            <label>
+                                <i class="fas fa-folder-tree"></i> Category
+                                {% if form.category.field.required %}<span class="required-asterisk">*</span>{% endif %}
+                            </label>
                             {{ form.category }}
                         </div>
 
-                        <!-- SUBCATEGORY -->
+                        <!-- SUBCATEGORY (optional) -->
                         <div class="form-group">
                             <label><i class="fas fa-tag"></i> Subcategory</label>
                             {{ form.subcategory }}
@@ -369,6 +378,10 @@
                                                 <i class="fas fa-edit"></i>
                                             {% endif %}
                                             {{ field.label }}
+                                            {# Show red asterisk if field is required OR if it's one of the mandatory shipping dimensions #}
+                                            {% if field.field.required or field.name == 'weight' or field.name == 'length' or field.name == 'breadth' or field.name == 'height' %}
+                                                <span class="required-asterisk">*</span>
+                                            {% endif %}
                                         </label>
                                         {{ field }}
                                     {% endif %}
@@ -386,10 +399,11 @@
 
             <!-- RIGHT SIDE: Images -->
             <div class="col-lg-4">
-                <!-- MAIN IMAGE -->
+                <!-- MAIN IMAGE (required) -->
                 <div class="form-card mb-4">
                     <div class="form-card-header">
                         <i class="fas fa-camera"></i> Main Image
+                        <span class="required-asterisk">*</span>
                     </div>
                     <div class="form-card-body">
                         <div id="mainImagePreview" class="image-preview">
@@ -407,7 +421,7 @@
                     </div>
                 </div>
 
-                <!-- ADDITIONAL IMAGES (formset) - FIXED: Order field same size as Alt text -->
+                <!-- ADDITIONAL IMAGES (formset) -->
                 <div class="form-card">
                     <div class="form-card-header">
                         <i class="fas fa-images"></i> Additional Images
@@ -423,12 +437,14 @@
                                         <img src="{{ f.instance.image.url }}" style="max-height: 90px; border-radius: 12px;" class="shadow-sm">
                                     </div>
                                 {% endif %}
-                                <!-- Image file field (full width) -->
+                                <!-- Image file field (required) -->
                                 <div class="mb-3">
-                                    <label class="small fw-semibold mb-1">Image file</label>
+                                    <label class="small fw-semibold mb-1">
+                                        Image file <span class="required-asterisk">*</span>
+                                    </label>
                                     {{ f.image }}
                                 </div>
-                                <!-- Alt text & Order in equal-width columns (responsive) -->
+                                <!-- Alt text & Order -->
                                 <div class="row g-3">
                                     <div class="col-12 col-md-6">
                                         <label class="small fw-semibold mb-1">Alt text</label>
@@ -560,7 +576,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const newFormHtml = `
                 <div class="image-form-item" data-image-id="new">
                     <div class="mb-3">
-                        <label class="small fw-semibold mb-1">Image file</label>
+                        <label class="small fw-semibold mb-1">
+                            Image file <span class="required-asterisk">*</span>
+                        </label>
                         <input type="file" name="${prefix}-${formCount}-image" class="form-control">
                     </div>
                     <div class="row g-3">
@@ -577,18 +595,59 @@ document.addEventListener("DOMContentLoaded", function () {
             `;
             container.insertAdjacentHTML("beforeend", newFormHtml);
             totalFormsInput.value = formCount + 1;
+            // Delay to ensure the new elements are in the DOM, then add placeholders
+            setTimeout(applyPlaceholders, 50);
         });
     }
 
-    // Optional: Watch for dynamic DOM changes
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.addedNodes.length) {
-                applyFormControlToAltAndOrder();
+    // ========================
+    // AUTO PLACEHOLDER FROM LABEL TEXT
+    // ========================
+    function applyPlaceholders() {
+        // For non‑toggle fields: find each label inside a .form-group, then its next sibling input/textarea/select (but select doesn't support placeholder)
+        document.querySelectorAll('.form-group').forEach(group => {
+            const label = group.querySelector('label');
+            const input = group.querySelector('input:not([type="file"]):not([type="checkbox"]), textarea');
+            if (label && input && !input.placeholder) {
+                // Clean label text: remove icon, asterisk, extra spaces
+                let labelText = label.textContent
+                    .replace(/[\n\r]+/g, ' ')
+                    .replace(/\s{2,}/g, ' ')
+                    .trim();
+                // Remove the red asterisk if present
+                labelText = labelText.replace(/\*$/, '').trim();
+                // Set placeholder
+                input.placeholder = labelText;
             }
         });
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
+
+        // Main image file input (special, outside .form-group)
+        const mainImageLabel = document.querySelector('.form-card-header i.fa-camera')?.parentElement;
+        if (mainImageLabel) {
+            const mainFile = document.getElementById('id_main_image');
+            if (mainFile && !mainFile.placeholder) {
+                let text = mainImageLabel.textContent.replace(/[\n\r]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+                text = text.replace(/\*$/, '').trim();
+                mainFile.placeholder = 'Choose ' + text;
+            }
+        }
+
+        // For newly added image forms (inside #imageFormsList)
+        document.querySelectorAll('#imageFormsList .image-form-item').forEach(item => {
+            const fileLabel = item.querySelector('label:first-of-type');
+            const fileInput = item.querySelector('input[type="file"]');
+            if (fileLabel && fileInput && !fileInput.placeholder) {
+                let text = fileLabel.textContent.replace(/[\n\r]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+                text = text.replace(/\*$/, '').trim();
+                fileInput.placeholder = 'Choose ' + text;
+            }
+        });
+    }
+
+    // Run on load
+    applyPlaceholders();
+
+    // Reapply when new dynamic forms are added (addBtn already calls applyPlaceholders after insertion)
 });
 </script>
 </body>
