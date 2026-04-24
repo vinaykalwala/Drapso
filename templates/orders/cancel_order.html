@@ -1,61 +1,776 @@
+{% extends base_template %}
 {% load static %}
 
-{% block title %}Cancel Order - {{ order.order_id }}{% endblock %}
-
 {% block content %}
+
+<style>
+
+/* ===== PURE WHITE THEME ===== */
+:root {
+    --danger: #ef4444;
+    --danger-dark: #dc2626;
+    --danger-light: #fee2e2;
+    --orange: #f97316;
+    --orange-light: #fff7ed;
+    --orange-dark: #ea580c;
+    --success: #22c55e;
+    --dark: #1e293b;
+    --gray: #64748b;
+    --gray-light: #94a3b8;
+    --border: #e2e8f0;
+    --bg: #f8fafc;
+    --white: #ffffff;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08);
+    --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1);
+    --radius: 20px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+}
+
+/* ===== MAIN LAYOUT ===== */
+.cancel-container {
+    position: relative;
+    max-width: 1250px;
+    margin: 30px auto;
+    padding: 40px 24px;
+    background: var(--white);
+    min-height: calc(100vh - 60px);
+    border-radius: 24px;
+    z-index: 1;
+    overflow: hidden;
+}
+
+/* 🔥 Animated Gradient Border */
+.cancel-container::before {
+    content: "";
+    position: absolute;
+    inset: -2px; /* border thickness */
+    border-radius: 26px;
+    background: linear-gradient(
+        270deg,
+        #22c55e,
+        #f97316,
+        #22c55e
+    );
+    background-size: 300% 300%;
+    animation: borderFlow 6s linear infinite;
+    z-index: -1;
+}
+
+/* Inner mask (keeps inside white) */
+.cancel-container::after {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    background: var(--white);
+    border-radius: 22px;
+    z-index: -1;
+}
+
+/* Animation */
+@keyframes borderFlow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+.cancel-layout {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 30px;
+    align-items: start;
+}
+
+/* ===== LEFT CARD ===== */
+.cancel-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 32px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Header - Title and Icon Side by Side */
+.cancel-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.cancel-icon {
+    width: 55px;
+    height: 55px;
+    background: var(--danger-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.cancel-icon i {
+    font-size: 28px;
+    color: var(--danger);
+}
+
+.cancel-title-box {
+    flex: 1;
+}
+
+.cancel-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--dark);
+    margin-bottom: 4px;
+}
+
+.cancel-title span {
+    color: var(--danger);
+}
+
+.cancel-sub {
+    font-size: 13px;
+    color: var(--gray);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cancel-sub i {
+    font-size: 12px;
+    color: var(--orange);
+}
+
+/* Order Info Box */
+.order-summary {
+    background: var(--bg);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.summary-label {
+    font-weight: 600;
+    color: var(--gray);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.summary-label i {
+    width: 20px;
+    color: var(--orange);
+}
+
+.summary-value {
+    font-weight: 700;
+    color: var(--dark);
+    font-size: 15px;
+}
+
+/* Status Badge */
+.status-badge {
+    background: var(--orange-light);
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-left: 3px solid var(--orange);
+}
+
+.status-text {
+    font-size: 13px;
+    color: var(--gray);
+}
+
+.status-text i {
+    color: var(--orange);
+    margin-right: 6px;
+}
+
+.status-value-badge {
+    background: var(--white);
+    padding: 5px 14px;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--orange-dark);
+    border: 1px solid var(--border);
+}
+
+/* Form Section */
+.form-section {
+    margin-top: 8px;
+}
+
+.form-title {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--dark);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-title i {
+    color: var(--orange);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-wrapper i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-light);
+    font-size: 14px;
+}
+
+.input-field {
+    width: 80%;
+    padding: 12px 14px 12px 42px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    outline: none;
+    font-size: 14px;
+    transition: all 0.2s;
+    background: var(--white);
+}
+
+.input-field:focus {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.08);
+}
+
+/* Buttons Side by Side */
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.btn-cancel {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--danger);
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-cancel:hover {
+    background: var(--danger-dark);
+    transform: translateY(-1px);
+}
+
+.btn-back {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--gray);
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s;
+    background: var(--white);
+}
+
+.btn-back:hover {
+    border-color: var(--orange);
+    color: var(--orange);
+}
+
+/* Blocked State */
+.blocked-message {
+    text-align: center;
+    padding: 48px 24px;
+    background: var(--bg);
+    border-radius: var(--radius-md);
+    margin-bottom: 20px;
+}
+
+.blocked-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--gray-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    background: #f1f5f9;
+}
+
+.blocked-icon i {
+    font-size: 28px;
+    color: var(--gray);
+}
+
+.blocked-title {
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--dark);
+    margin-bottom: 8px;
+}
+
+.blocked-text {
+    font-size: 13px;
+    color: var(--gray);
+}
+
+/* ===== RIGHT SIDE INFO ===== */
+.info-sidebar {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 28px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+    position: sticky;
+    top: 20px;
+}
+
+.info-image {
+    margin-bottom: 24px;
+}
+
+.info-image img {
+    max-width: 160px;
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+}
+
+.info-header {
+    margin-bottom: 24px;
+}
+
+.info-icon {
+    width: 55px;
+    height: 55px;
+    background: var(--orange-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px;
+}
+
+.info-icon i {
+    font-size: 26px;
+    color: var(--orange);
+}
+
+.info-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--dark);
+    margin-bottom: 4px;
+}
+
+.info-sub {
+    font-size: 12px;
+    color: var(--gray);
+}
+
+/* Info List */
+.info-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px 0;
+    text-align: left;
+}
+
+.info-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--gray);
+}
+
+.info-list li:last-child {
+    border-bottom: none;
+}
+
+.info-list i {
+    width: 28px;
+    height: 28px;
+    background: var(--orange-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--orange);
+    flex-shrink: 0;
+}
+
+.info-list strong {
+    color: var(--dark);
+    font-weight: 600;
+}
+
+/* Support */
+.support-card {
+    background: var(--orange-light);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    text-align: center;
+    margin-top: 8px;
+}
+
+.support-card p {
+    font-size: 12px;
+    color: var(--gray);
+    margin-bottom: 12px;
+}
+
+.support-email {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--orange);
+    padding: 8px 18px;
+    border-radius: 30px;
+    text-decoration: none;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.support-email:hover {
+    background: var(--orange-dark);
+    transform: translateY(-1px);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1000px) {
+    .cancel-layout {
+        grid-template-columns: 1fr 320px;
+        gap: 24px;
+    }
+}
+
+@media (max-width: 850px) {
+    .cancel-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .info-sidebar {
+        max-width: 450px;
+        margin: 0 auto;
+        position: static;
+    }
+}
+
+@media (max-width: 600px) {
+    .cancel-container {
+        padding: 24px 16px;
+    }
+    
+    .cancel-card {
+        padding: 24px 20px;
+    }
+    
+    .cancel-header {
+        gap: 12px;
+    }
+    
+    .cancel-icon {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .cancel-icon i {
+        font-size: 24px;
+    }
+    
+    .cancel-title {
+        font-size: 22px;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .full-width {
+        grid-column: span 1;
+    }
+    
+    .summary-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+    
+    .status-badge {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .info-list li {
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .cancel-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .cancel-title-box {
+        text-align: center;
+    }
+    
+    .cancel-sub {
+        justify-content: center;
+    }
+}
+
+</style>
+
+
 <div class="cancel-container">
+    <div class="cancel-layout">
 
-    <!-- WARNING -->
-    <div class="warning-card">
-        <h5>Cancel Order</h5>
-        <p>
-            Order: <strong>{{ order.order_id }}</strong><br>
-            Amount: ₹{{ order.total_amount }}
-        </p>
+        <!-- LEFT SIDE - MAIN FORM -->
+        <div class="cancel-card">
+
+            <!-- Header - Icon and Title Side by Side -->
+            <div class="cancel-header">
+                <div class="cancel-icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="cancel-title-box">
+                    <div class="cancel-title">Cancel <span>Order</span></div>
+                    <div class="cancel-sub">
+                        <i class="fas fa-shield-alt"></i>
+                        This action cannot be undone
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="order-summary">
+                <div class="summary-row">
+                    <span class="summary-label"><i class="fas fa-hashtag"></i> Order ID</span>
+                    <span class="summary-value">{{ order.order_id }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label"><i class="fas fa-rupee-sign"></i> Total Amount</span>
+                    <span class="summary-value">₹{{ order.total_amount }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label"><i class="fas fa-calendar-alt"></i> Order Date</span>
+                    <span class="summary-value">{{ order.created_at|date:"d M Y" }}</span>
+                </div>
+            </div>
+
+            <!-- Current Status -->
+            <div class="status-badge">
+                <span class="status-text"><i class="fas fa-info-circle"></i> Current Status</span>
+                <span class="status-value-badge">{{ order.get_order_status_display }}</span>
+            </div>
+
+            {% if order.can_cancel %}
+
+            <!-- Refund Form -->
+            <div class="form-section">
+                <div class="form-title">
+                    <i class="fas fa-university"></i>
+                    Refund Details
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="form-grid">
+                        <div class="input-wrapper full-width">
+                            <i class="fas fa-user"></i>
+                            <input type="text" name="account_holder_name" placeholder="Account Holder Name" required class="input-field">
+                        </div>
+
+                        <div class="input-wrapper">
+                            <i class="fas fa-credit-card"></i>
+                            <input type="text" name="account_number" placeholder="Account Number" required class="input-field">
+                        </div>
+
+                        <div class="input-wrapper">
+                            <i class="fas fa-check-circle"></i>
+                            <input type="text" name="confirm_account_number" placeholder="Confirm Account Number" required class="input-field">
+                        </div>
+
+                        <div class="input-wrapper">
+                            <i class="fas fa-code"></i>
+                            <input type="text" name="ifsc_code" placeholder="IFSC Code" required class="input-field">
+                        </div>
+
+                        <div class="input-wrapper">
+                            <i class="fas fa-building"></i>
+                            <input type="text" name="bank_name" placeholder="Bank Name" required class="input-field">
+                        </div>
+
+                        <div class="input-wrapper full-width">
+                            <i class="fab fa-google-pay"></i>
+                            <input type="text" name="upi_id" placeholder="UPI ID (Optional)" class="input-field">
+                        </div>
+                    </div>
+
+                    <!-- Buttons Side by Side -->
+                    <div class="action-buttons">
+                        <button type="submit" class="btn-cancel">
+                            <i class="fas fa-times-circle"></i>
+                            Confirm Cancellation
+                        </button>
+                        
+                        <a href="{% url 'orders:send_tracking_otp' %}" class="btn-back">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Orders
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            {% else %}
+
+            <!-- Blocked Message -->
+            <div class="blocked-message">
+                <div class="blocked-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <div class="blocked-title">Cannot Cancel This Order</div>
+                <div class="blocked-text">
+                    {% if order.order_status == 'delivered' %}
+                        This order has already been delivered
+                    {% elif order.order_status == 'shipped' %}
+                        This order has been shipped
+                    {% elif order.order_status == 'cancelled' %}
+                        This order is already cancelled
+                    {% else %}
+                        This order is not eligible for cancellation
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Back Button Only when Blocked -->
+            <div class="action-buttons">
+                <a href="{% url 'orders:send_tracking_otp' %}" class="btn-back" style="width: 100%;">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Orders
+                </a>
+            </div>
+
+            {% endif %}
+
+        </div>
+
+        <!-- RIGHT SIDE - INFO PANEL -->
+        <div class="info-sidebar">
+
+            <div class="info-image">
+                <img src="{% static 'images/refund.png' %}" alt="Refund" onerror="this.src='https://placehold.co/160x120/F8FAFC/64748B?text=Refund'">
+            </div>
+
+            <div class="info-header">
+                <div class="info-icon">
+                    <i class="fas fa-hand-holding-usd"></i>
+                </div>
+                <div class="info-title">Refund Information</div>
+                <div class="info-sub">Processed within 5-7 days</div>
+            </div>
+
+            <ul class="info-list">
+                <li>
+                    <i class="fas fa-clock"></i>
+                    <span><strong>Processing Time:</strong> 5-7 working days</span>
+                </li>
+                <li>
+                    <i class="fas fa-university"></i>
+                    <span><strong>Refund Method:</strong> Bank Transfer / UPI</span>
+                </li>
+                <li>
+                    <i class="fas fa-shield-alt"></i>
+                    <span><strong>Security:</strong> Encrypted & secure</span>
+                </li>
+                <li>
+                    <i class="fas fa-envelope"></i>
+                    <span><strong>Notification:</strong> Email confirmation sent</span>
+                </li>
+                <li>
+                    <i class="fas fa-phone-alt"></i>
+                    <span><strong>Support:</strong> 24/7 customer assistance</span>
+                </li>
+            </ul>
+
+            <div class="support-card">
+                <p><i class="fas fa-headset"></i> Need assistance with cancellation?</p>
+                <a href="mailto:support@example.com" class="support-email">
+                    <i class="fas fa-envelope"></i> Contact Support
+                </a>
+            </div>
+
+        </div>
+
     </div>
-
-    <!-- STATUS INFO -->
-    <div class="alert alert-info">
-        Current Status: <b>{{ order.get_order_status_display }}</b>
-    </div>
-
-    <!-- 🔥 USE MODEL METHOD -->
-    {% if order.can_cancel %}
-
-    <form method="POST">
-        {% csrf_token %}
-
-        <h5>Refund Details</h5>
-
-        <input type="text" name="account_holder_name" placeholder="Account Holder Name" required class="form-control mb-2">
-
-        <input type="text" name="account_number" placeholder="Account Number" required class="form-control mb-2">
-
-        <input type="text" name="confirm_account_number" placeholder="Confirm Account Number" required class="form-control mb-2">
-
-        <input type="text" name="ifsc_code" placeholder="IFSC Code" required class="form-control mb-2">
-
-        <input type="text" name="bank_name" placeholder="Bank Name" required class="form-control mb-2">
-
-        <input type="text" name="upi_id" placeholder="UPI ID (optional)" class="form-control mb-3">
-
-        <button type="submit" class="btn btn-danger w-100">
-            Confirm Cancel
-        </button>
-
-    </form>
-
-    {% else %}
-
-    <div class="alert alert-danger">
-        ❌ This order cannot be cancelled.
-    </div>
-
-    {% endif %}
-
-    <a href="{% url 'orders:send_tracking_otp' %}" class="btn btn-secondary mt-3 w-100">
-        Back to Orders
-    </a>
-
 </div>
+
 {% endblock %}

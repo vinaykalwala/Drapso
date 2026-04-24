@@ -7,6 +7,7 @@ from accounts.models import (
 
 from wholesellers.models import WholesellerKYC
 from products.models import PriceChangeNotification
+from orders.models import Refund
 
 
 def user_profile_data(request):
@@ -15,6 +16,7 @@ def user_profile_data(request):
     role = None
     pending_kyc_count = 0
     pending_price_notifications = 0
+    pending_refund_requests = 0
 
     if request.user.is_authenticated:
 
@@ -37,13 +39,20 @@ def user_profile_data(request):
         elif request.user.role == "admin":
             profile = AdminProfile.objects.filter(user=request.user).first()
 
+            # KYC count
             pending_kyc_count = WholesellerKYC.objects.filter(
-                status="pending"
+                status__iexact="pending"
+            ).count()
+
+            # 🔥 REFUND COUNT (ROBUST FIX)
+            pending_refund_requests = Refund.objects.filter(
+                status__in=["pending", "requested", "processing"]
             ).count()
 
     return {
         "profile": profile,
         "role": role,
         "pending_kyc_count": pending_kyc_count,
-        "pending_price_notifications": pending_price_notifications
+        "pending_price_notifications": pending_price_notifications,
+        "pending_refund_requests": pending_refund_requests
     }

@@ -1,157 +1,1095 @@
-
+{% extends "dashboard_base.html" %}
+{% load static %}
 
 {% block content %}
 
-<div class="card">
+<style>
+    :root {
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --primary-light: #e0e7ff;
+        --primary-bg: #eef2ff;
+        --success: #10b981;
+        --success-light: #d1fae5;
+        --warning: #f59e0b;
+        --warning-light: #fef3c7;
+        --danger: #ef4444;
+        --danger-light: #fee2e2;
+        --info: #06b6d4;
+        --info-light: #cffafe;
+        --gray-50: #fafafa;
+        --gray-100: #f4f4f5;
+        --gray-200: #e4e4e7;
+        --gray-300: #d4d4d8;
+        --gray-400: #a1a1aa;
+        --gray-500: #71717a;
+        --gray-600: #52525b;
+        --gray-700: #3f3f46;
+        --gray-800: #27272a;
+        --gray-900: #18181b;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        --radius: 16px;
+        --radius-lg: 20px;
+        --radius-xl: 24px;
+    }
 
-    <h2>📦 Order Details</h2>
+    .order-detail-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px 28px;
+        background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 50%, #fefce8 100%);
+        min-height: calc(100vh - 60px);
+    }
 
-    <!-- ========================= -->
-    <!-- LOCAL ORDER -->
-    <!-- ========================= -->
-    <h3>🧾 Local Order</h3>
-    <p><b>Order ID:</b> {{ local.id }}</p>
-    <p><b>Customer:</b> {{ local.customer_name }}</p>
-    <p><b>Total:</b> ₹{{ local.total_amount }}</p>
-    <p><b>Delivery Charges:</b>₹{{ local.actual_shipping_cost }}</p>
-    <p>
-    <b>Tracking Url:</b>
-    <a href="{{ local.tracking_url }}" target="_blank">
-        {{ local.tracking_url }}
-    </a>
-</p>
-    <hr>
+    /* Header Section - Premium Gradient */
+    .order-header {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%);
+        border-radius: var(--radius-xl);
+        padding: 32px 36px;
+        margin-bottom: 32px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-xl);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+    }
 
-    <!-- ========================= -->
-    <!-- STATUS -->
-    <!-- ========================= -->
-    <h3>📊 Status</h3>
-    <p><b>Status:</b> {{ order.status }}</p>
-    <p><b>Created:</b> {{ order.created_at }}</p>
-    <p><b>Channel Created:</b> {{ order.channel_created_at }}</p>
+    .order-header::before {
+        content: '\f1ce';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        position: absolute;
+        bottom: -30px;
+        right: 20px;
+        font-size: 160px;
+        opacity: 0.06;
+        pointer-events: none;
+    }
 
-    <hr>
+    .order-header::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
 
-    <!-- ========================= -->
-    <!-- CHANNEL -->
-    <!-- ========================= -->
-    <h3>🏷️ Channel</h3>
-    <p><b>Name:</b> {{ order.channel_name }}</p>
-    <p><b>Code:</b> {{ order.base_channel_code }}</p>
+    .header-title-section {
+        flex: 1;
+        min-width: 200px;
+        z-index: 2;
+    }
 
-    <hr>
+    .order-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #fff, #e0d5ff);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
 
-    <!-- ========================= -->
-    <!-- CUSTOMER -->
-    <!-- ========================= -->
-    <h3>👤 Customer</h3>
-    <p>{{ order.customer_name }}</p>
-    <p>{{ order.customer_email }}</p>
-    <p>{{ order.customer_phone }}</p>
+    .order-header h1 i {
+        background: none;
+        -webkit-background-clip: unset;
+        background-clip: unset;
+        color: white;
+        font-size: 2rem;
+    }
 
-    <hr>
+    .order-meta {
+        display: flex;
+        gap: 28px;
+        flex-wrap: wrap;
+        color: rgba(255,255,255,0.9);
+        font-size: 0.85rem;
+    }
 
-    <!-- ========================= -->
-    <!-- ADDRESS -->
-    <!-- ========================= -->
-    <h3>📍 Address</h3>
-    <p>{{ order.customer_address }}</p>
-    <p>{{ order.customer_city }}, {{ order.customer_state }}</p>
-    <p>{{ order.customer_pincode }}</p>
+    .order-meta span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        backdrop-filter: blur(4px);
+        padding: 4px 0;
+    }
 
-    <hr>
+    /* Track Button - Glass Morphism */
+    .track-btn-wrapper {
+        z-index: 2;
+    }
 
-    <!-- ========================= -->
-    <!-- PAYMENT -->
-    <!-- ========================= -->
-    <h3>💳 Payment</h3>
-    <p><b>Method:</b> {{ order.payment_method }}</p>
-    <p><b>Total:</b> ₹{{ order.total }}</p>
-    <p><b>Tax:</b> ₹{{ order.tax }}</p>
+    .track-btn {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 12px 32px;
+        border-radius: 60px;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        letter-spacing: 0.5px;
+    }
 
-    <hr>
+    .track-btn:hover {
+        background: white;
+        color: #7c3aed;
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px rgba(0,0,0,0.2);
+        border-color: white;
+    }
 
-    <!-- ========================= -->
-    <!-- SHIPPING -->
-    <!-- ========================= -->
-    <h3>🚚 Shipping</h3>
-    <p><b>SLA:</b> {{ order.sla }}</p>
-    <p><b>Method:</b> {{ order.shipping_method }}</p>
-    <p><b>Pickup Location:</b> {{ order.pickup_location }}</p>
-    <p><b>Pickup ID:</b> {{ order.pickup_id }}</p>
+    /* Stats Grid - Modern Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 32px;
+    }
 
-    <hr>
+    @media (max-width: 992px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
 
-    <!-- ========================= -->
-    <!-- SHIPMENT (FIXED) -->
-    <!-- ========================= -->
-    <h3>📦 Shipment Details</h3>
+    @media (max-width: 576px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 
-    {% with s=order.shipments %}
-        <p><b>Courier:</b> {{ s.courier }}</p>
-        <p><b>AWB:</b> {{ s.awb }}</p>
-        <p><b>Pickup Scheduled:</b> {{ s.pickup_scheduled_date }}</p>
-        <p><b>ETD:</b> {{ s.etd }}</p>
+    .stat-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 22px 24px;
+        box-shadow: var(--shadow-lg);
+        border: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+    }
 
-        <p><b>Weight:</b> {{ s.weight }}</p>
-        <p><b>Dimensions:</b> {{ s.dimensions }}</p>
-        <p><b>Volumetric:</b> {{ s.volumetric_weight }}</p>
-    {% endwith %}
+    .stat-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 35px -12px rgba(0,0,0,0.15);
+    }
 
-    <hr>
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+    }
 
-    <!-- ========================= -->
-    <!-- PRODUCTS -->
-    <!-- ========================= -->
-    <h3>📦 Products</h3>
+    .stat-icon {
+        font-size: 2.2rem;
+        margin-bottom: 12px;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        width: fit-content;
+    }
 
-    <table border="1" width="100%" cellpadding="10">
-        <tr>
-            <th>Name</th>
-            <th>SKU</th>
-            <th>Qty</th>
-            <th>Price</th>
-            <th>Total</th>
-        </tr>
+    .stat-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
 
-        {% for item in order.products %}
-        <tr>
-            <td>{{ item.name }}</td>
-            <td>{{ item.channel_sku }}</td>
-            <td>{{ item.quantity }}</td>
-            <td>₹{{ item.price }}</td>
-            <td>₹{{ item.net_total }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--gray-800), var(--gray-600));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        word-break: break-word;
+    }
 
-    <hr>
+    .stat-sub {
+        font-size: 0.7rem;
+        color: var(--gray-400);
+        margin-top: 6px;
+    }
 
-    <!-- ========================= -->
-    <!-- EXTRA INFO -->
-    <!-- ========================= -->
-    <h3>🧾 Notes</h3>
-    <p>{{ order.comment }}</p>
+    /* Main Grid - Equal Height Cards */
+    .order-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+        margin-bottom: 32px;
+    }
 
-    <hr>
+    @media (max-width: 992px) {
+        .order-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 
-    <!-- ========================= -->
-    <!-- PACKAGE / AWB DATA -->
-    <!-- ========================= -->
-    <h3>⚖️ Package Info</h3>
+    /* Info Cards - Unique Premium Style */
+    .info-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        border: none;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background: linear-gradient(135deg, #ffffff, #fefefe);
+    }
 
-    <p><b>Applied Weight:</b> {{ order.awb_data.applied_weight }}</p>
-    <p><b>Freight:</b> {{ order.awb_data.charges.freight_charges }}</p>
+    .info-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 35px -12px rgba(99, 102, 241, 0.2);
+    }
 
-    <hr>
+    .card-header {
+        background: linear-gradient(135deg, #f8fafc, #ffffff);
+        padding: 18px 24px;
+        border-bottom: 2px solid var(--primary-light);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        flex-shrink: 0;
+    }
 
-    <!-- ========================= -->
-    <!-- FLAGS -->
-    <!-- ========================= -->
-    <h3>⚙️ Flags</h3>
-    <p>Allow Return: {{ order.allow_return }}</p>
-    <p>Incomplete: {{ order.is_incomplete }}</p>
+    .card-header-icon {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+    }
 
+    .card-header-icon i {
+        font-size: 1.3rem;
+        color: white;
+    }
+
+    .card-header h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--gray-800), var(--gray-600));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin: 0;
+        letter-spacing: -0.3px;
+    }
+
+    .card-body {
+        padding: 0;
+        flex: 1;
+    }
+
+    /* Unique Row Style - Alternating Pattern */
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 20px;
+        margin: 0;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .info-row:nth-child(even) {
+        background: linear-gradient(90deg, #faf5ff, #ffffff);
+    }
+
+    .info-row:hover {
+        background: linear-gradient(90deg, #f3e8ff, #ffffff);
+    }
+
+    .info-label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--gray-600);
+        letter-spacing: -0.2px;
+    }
+
+    .info-label i {
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        width: 20px;
+        font-size: 0.9rem;
+    }
+
+    .info-value {
+        color: var(--gray-700);
+        font-weight: 500;
+        text-align: right;
+        word-break: break-word;
+        flex: 1;
+        padding-left: 16px;
+        font-size: 0.9rem;
+    }
+
+    .info-value a {
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .info-value a:hover {
+        opacity: 0.7;
+        text-decoration: underline;
+    }
+
+    /* Status Badge - Modern */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 18px;
+        border-radius: 60px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        white-space: nowrap;
+        letter-spacing: 0.3px;
+    }
+
+    .status-delivered {
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+        color: #065f46;
+    }
+
+    .status-processing {
+        background: linear-gradient(135deg, #cffafe, #a5f3fc);
+        color: #0e7490;
+    }
+
+    .status-pending {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        color: #92400e;
+    }
+
+    .status-cancelled {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        color: #991b1b;
+    }
+
+    .status-shipped {
+        background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+        color: #4338ca;
+    }
+
+    /* Products Table - Modern Design */
+    .products-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        margin-bottom: 32px;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        border: none;
+    }
+
+    .products-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .products-table th {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        padding: 18px 20px;
+        text-align: left;
+        font-weight: 700;
+        color: var(--gray-600);
+        border-bottom: 2px solid var(--primary-light);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+
+    .products-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--gray-100);
+        color: var(--gray-700);
+        vertical-align: middle;
+    }
+
+    .products-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .products-table tr:hover {
+        background: linear-gradient(90deg, #faf5ff, #ffffff);
+    }
+
+    .product-name {
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--gray-800), var(--gray-600));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .product-sku {
+        font-size: 0.7rem;
+        color: var(--gray-400);
+        font-family: 'Courier New', monospace;
+        display: block;
+        margin-top: 4px;
+    }
+
+    .product-price {
+        font-weight: 600;
+        color: var(--gray-600);
+    }
+
+    .product-total {
+        font-weight: 800;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    /* Mobile Product Table */
+   @media (max-width: 768px) {
+    .products-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .products-table {
+        min-width: 650px;
+        width: max-content;
+    }
+    
+    .products-table thead {
+        display: table-header-group; /* Keep header visible */
+    }
+    
+    .products-table tbody {
+        display: table-row-group;
+    }
+    
+    .products-table tr {
+        display: table-row;
+        border: none;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .products-table td {
+        display: table-cell;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--gray-100);
+        text-align: left;
+        white-space: nowrap;
+    }
+    
+    .products-table td::before {
+        content: none; /* Remove pseudo-element labels */
+    }
+    
+    .product-name {
+        min-width: 180px;
+    }
+    
+    .product-sku {
+        white-space: normal;
+        word-break: break-word;
+    }
+}
+
+    /* Bottom Section - Premium Cards */
+    .bottom-section {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-top: 8px;
+    }
+
+    @media (max-width: 992px) {
+        .bottom-section {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 640px) {
+        .bottom-section {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .package-card, .notes-card, .flags-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        border: none;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .package-card:hover, .notes-card:hover, .flags-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 35px -12px rgba(0,0,0,0.15);
+    }
+
+    /* Notes Section - Special Gradient */
+    .notes-card .card-header {
+        background: linear-gradient(135deg, #fffbeb, #ffffff);
+        border-bottom-color: #fde68a;
+    }
+
+    .notes-card .card-header-icon {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .notes-content {
+        padding: 20px;
+        color: var(--gray-600);
+        line-height: 1.7;
+        font-size: 0.9rem;
+        background: #fffbeb;
+    }
+
+    /* Flags Card */
+    .flags-container {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding: 20px;
+    }
+
+    .flag {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 20px;
+        border-radius: 60px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    .flag-true {
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+        color: #065f46;
+    }
+
+    .flag-false {
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        color: var(--gray-500);
+    }
+
+    @media (max-width: 900px) {
+        .content {
+            margin-top: 70px;
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .order-detail-container {
+            padding: 16px;
+        }
+        .order-header {
+            padding: 24px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .track-btn-wrapper {
+            width: 100%;
+        }
+        .track-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .order-header h1 {
+            font-size: 1.5rem;
+        }
+        .order-meta {
+            font-size: 0.7rem;
+            gap: 16px;
+        }
+        .card-body {
+            padding: 0;
+        }
+        .info-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .info-label {
+            width: 100%;
+        }
+        .info-value {
+            text-align: left;
+            width: 100%;
+            padding-left: 0;
+        }
+        .flags-container {
+            flex-direction: column;
+        }
+        .flag {
+            justify-content: center;
+        }
+    }
+
+    /* Print Styles */
+    @media print {
+        .track-btn-wrapper,
+        .stats-grid {
+            display: none;
+        }
+        .order-detail-container {
+            padding: 0;
+            background: white;
+        }
+        .info-card, .products-card, .package-card, .notes-card, .flags-card {
+            box-shadow: none;
+            border: 1px solid #ddd;
+            break-inside: avoid;
+        }
+        .order-header {
+            background: #4f46e5;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+    }
+
+    /* Animation */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(25px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .info-card, .products-card, .package-card, .notes-card, .flags-card, .stat-card {
+        animation: fadeInUp 0.5s ease-out forwards;
+    }
+    
+    .info-card:nth-child(1) { animation-delay: 0s; }
+    .info-card:nth-child(2) { animation-delay: 0.05s; }
+    .info-card:nth-child(3) { animation-delay: 0.1s; }
+    .info-card:nth-child(4) { animation-delay: 0.15s; }
+    .info-card:nth-child(5) { animation-delay: 0.2s; }
+    .info-card:nth-child(6) { animation-delay: 0.25s; }
+</style>
+
+<div class="content">
+<div class="order-detail-container">
+    
+    <!-- Header with Track Button -->
+    <div class="order-header">
+        <div class="header-title-section">
+            <h1>
+                <i class="fas fa-sparkles"></i>
+                Order Details
+            </h1>
+            <div class="order-meta">
+                <span><i class="fas fa-calendar-alt"></i> Created: {{ order.created_at }}</span>
+                <span><i class="fas fa-clock"></i> Channel Created: {{ order.channel_created_at }}</span>
+            </div>
+        </div>
+        <div class="track-btn-wrapper">
+            {% if local.tracking_url %}
+            <a href="{{ local.tracking_url }}" target="_blank" class="track-btn">
+                <i class="fas fa-map-marker-alt"></i> Track Order
+                <i class="fas fa-arrow-right"></i>
+            </a>
+            {% else %}
+            <button class="track-btn" disabled style="opacity:0.5; cursor:not-allowed;">
+                <i class="fas fa-truck"></i> Tracking Unavailable
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
+            <div class="stat-label">Total Amount</div>
+            <div class="stat-value">₹{{ order.total }}</div>
+            <div class="stat-sub">Including tax & shipping</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-boxes"></i></div>
+            <div class="stat-label">Order Items</div>
+            <div class="stat-value">{{ order.products|length }} products</div>
+            <div class="stat-sub">Total quantity: 
+                {% with total_qty=0 %}
+                {% for item in order.products %}{% if forloop.first %}{{ item.quantity }}{% endif %}{% endfor %}
+                {% endwith %}
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-truck-fast"></i></div>
+            <div class="stat-label">Delivery Charges</div>
+            <div class="stat-value">₹{{ local.actual_shipping_cost }}</div>
+            <div class="stat-sub">Shipping fee</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+            <div class="stat-label">Order Status</div>
+            <div class="stat-value">
+                <span class="status-badge 
+                    {% if order.status == 'delivered' %}status-delivered
+                    {% elif order.status == 'processing' %}status-processing
+                    {% elif order.status == 'pending' %}status-pending
+                    {% elif order.status == 'cancelled' %}status-cancelled
+                    {% elif order.status == 'shipped' %}status-shipped
+                    {% else %}status-pending{% endif %}">
+                    <i class="fas 
+                        {% if order.status == 'delivered' %}fa-check-circle
+                        {% elif order.status == 'processing' %}fa-spinner fa-pulse
+                        {% elif order.status == 'pending' %}fa-clock
+                        {% elif order.status == 'cancelled' %}fa-times-circle
+                        {% elif order.status == 'shipped' %}fa-truck
+                        {% else %}fa-info-circle{% endif %}"></i>
+                    {{ order.status|upper }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="order-grid">
+        
+        <!-- Local Order Info -->
+        <div class="info-card">
+            <div class="card-header">
+                <div class="card-header-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <h3>Local Order Information</h3>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-hashtag"></i> Order ID</span>
+                    <span class="info-value">#{{ local.id }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-user"></i> Customer</span>
+                    <span class="info-value">{{ local.customer_name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-money-bill-wave"></i> Total Amount</span>
+                    <span class="info-value">₹{{ local.total_amount }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-truck"></i> Delivery Charges</span>
+                    <span class="info-value">₹{{ local.actual_shipping_cost }}</span>
+                </div>
+                {% if local.tracking_url %}
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-map-marker-alt"></i> Tracking URL</span>
+                    <span class="info-value">
+                        <a href="{{ local.tracking_url }}" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> Track Order
+                        </a>
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Channel & Payment Info -->
+        <div class="info-card">
+            <div class="card-header">
+                <div class="card-header-icon">
+                    <i class="fas fa-store"></i>
+                </div>
+                <h3>Channel & Payment</h3>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-tag"></i> Channel Name</span>
+                    <span class="info-value">{{ order.channel_name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-code"></i> Channel Code</span>
+                    <span class="info-value">{{ order.base_channel_code }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-credit-card"></i> Payment Method</span>
+                    <span class="info-value">{{ order.payment_method|default:"N/A" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-percent"></i> Tax</span>
+                    <span class="info-value">₹{{ order.tax }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Details -->
+        <div class="info-card">
+            <div class="card-header">
+                <div class="card-header-icon">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h3>Customer Details</h3>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-user"></i> Full Name</span>
+                    <span class="info-value">{{ order.customer_name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-envelope"></i> Email Address</span>
+                    <span class="info-value">{{ order.customer_email|default:"—" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-phone"></i> Phone Number</span>
+                    <span class="info-value">{{ order.customer_phone|default:"—" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="info-card">
+            <div class="card-header">
+                <div class="card-header-icon">
+                    <i class="fas fa-location-dot"></i>
+                </div>
+                <h3>Shipping Address</h3>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-address-card"></i> Full Address</span>
+                    <span class="info-value">{{ order.customer_address }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-city"></i> City / State</span>
+                    <span class="info-value">{{ order.customer_city }}, {{ order.customer_state }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-mail-bulk"></i> PIN Code</span>
+                    <span class="info-value">{{ order.customer_pincode }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shipping Details -->
+        <div class="info-card">
+            <div class="card-header">
+                <div class="card-header-icon">
+                    <i class="fas fa-shipping-fast"></i>
+                </div>
+                <h3>Shipping Details</h3>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-hourglass-half"></i> SLA</span>
+                    <span class="info-value">{{ order.sla|default:"N/A" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-truck"></i> Shipping Method</span>
+                    <span class="info-value">{{ order.shipping_method|default:"Standard" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-map-pin"></i> Pickup Location</span>
+                    <span class="info-value">{{ order.pickup_location|default:"N/A" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-id-card"></i> Pickup ID</span>
+                    <span class="info-value">{{ order.pickup_id|default:"N/A" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shipment Details -->
+        <div class="info-card">
+            <div class="card-header">
+                <div class="card-header-icon">
+                    <i class="fas fa-boxes"></i>
+                </div>
+                <h3>Shipment Details</h3>
+            </div>
+            <div class="card-body">
+                {% with s=order.shipments %}
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-truck"></i> Courier</span>
+                    <span class="info-value">{{ s.courier|default:"N/A" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-barcode"></i> AWB Number</span>
+                    <span class="info-value">{{ s.awb|default:"N/A" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-calendar"></i> Pickup Scheduled</span>
+                    <span class="info-value">{{ s.pickup_scheduled_date|default:"N/A" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-clock"></i> Estimated Delivery</span>
+                    <span class="info-value">{{ s.etd|default:"N/A" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-weight-hanging"></i> Weight</span>
+                    <span class="info-value">{{ s.weight|default:"N/A" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-arrows-alt"></i> Dimensions</span>
+                    <span class="info-value">{{ s.dimensions|default:"N/A" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-cube"></i> Volumetric Weight</span>
+                    <span class="info-value">{{ s.volumetric_weight|default:"N/A" }}</span>
+                </div>
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="products-card">
+        <div class="card-header">
+            <div class="card-header-icon">
+                <i class="fas fa-cubes"></i>
+            </div>
+            <h3>Order Items</h3>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th>Product Details</th>
+                        <th>SKU</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.products %}
+                    <tr>
+                        <td data-label="Product Details" class="product-name">
+                            {{ item.name }}
+                            <span class="product-sku">SKU: {{ item.channel_sku }}</span>
+                        </td>
+                        <td data-label="SKU"><span style="background: #f1f5f9; padding: 4px 10px; border-radius: 8px; font-family: monospace; font-size: 0.7rem;">{{ item.channel_sku }}</span></td>
+                        <td data-label="Quantity"><span class="product-price">{{ item.quantity }} ×</span></td>
+                        <td data-label="Unit Price" class="product-price">₹{{ item.price }}</td>
+                        <td data-label="Total" class="product-total">₹{{ item.net_total }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Bottom Section -->
+    <div class="bottom-section">
+        <div class="package-card">
+            <div class="card-header">
+                <div class="card-header-icon">
+                    <i class="fas fa-weight-scale"></i>
+                </div>
+                <h3>Package Information</h3>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-weight-hanging"></i> Applied Weight</span>
+                    <span class="info-value">{{ order.awb_data.applied_weight|default:"N/A" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-money-bill"></i> Freight Charges</span>
+                    <span class="info-value">₹{{ order.awb_data.charges.freight_charges|default:"0" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="notes-card">
+            <div class="card-header">
+                <div class="card-header-icon">
+                    <i class="fas fa-pen"></i>
+                </div>
+                <h3>Order Notes</h3>
+            </div>
+            <div class="card-body">
+                {% if order.comment %}
+                <div class="notes-content">
+                    {{ order.comment|linebreaks }}
+                </div>
+                {% else %}
+                <div class="notes-content" style="color: var(--gray-400);">
+                    <i class="fas fa-comment-dots"></i> No additional notes
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="flags-card">
+            <div class="card-header">
+                <div class="card-header-icon">
+                    <i class="fas fa-flag-checkered"></i>
+                </div>
+                <h3>Order Flags</h3>
+            </div>
+            <div class="card-body">
+                <div class="flags-container">
+                    <span class="flag {% if order.allow_return %}flag-true{% else %}flag-false{% endif %}">
+                        <i class="fas {% if order.allow_return %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i>
+                        Allow Return: {{ order.allow_return|yesno:"Yes,No" }}
+                    </span>
+                    <span class="flag {% if order.is_incomplete %}flag-true{% else %}flag-false{% endif %}">
+                        <i class="fas {% if order.is_incomplete %}fa-exclamation-triangle{% else %}fa-check-circle{% endif %}"></i>
+                        Incomplete Order: {{ order.is_incomplete|yesno:"Yes,No" }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  </div>
 </div>
 
 {% endblock %}
