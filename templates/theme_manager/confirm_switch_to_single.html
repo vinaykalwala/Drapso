@@ -810,10 +810,26 @@
                             </h5>
                         </div>
                         <div class="product-card__body">
-                            <div class="product-info-row">
-                                <span class="info-label">Price</span>
-                                <span class="info-value">₹{{ product.selling_price }}</span>
-                            </div>
+                           <div class="product-info-row">
+    <span class="info-label">Price</span>
+    <span class="info-value">
+
+        {% if product.source_type == "own" %}
+
+            {% if product.discount_percentage > 0 %}
+                ₹{{ product.discounted_price|floatformat:2 }}
+            {% else %}
+                ₹{{ product.selling_price|floatformat:2 }}
+            {% endif %}
+
+        {% else %}
+
+            ₹{{ product.selling_price|floatformat:2 }}
+
+        {% endif %}
+
+    </span>
+</div>
                             <div class="product-info-row">
                                 <span class="info-label">Stock</span>
                                 <span class="info-value">{{ product.stock }} units</span>

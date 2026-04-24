@@ -722,8 +722,8 @@
                 <div class="profile-top-stats">
                     <div class="profile-stat-card">
                         <i class="fas fa-chart-simple"></i>
-                        <h3>₹{{ profile.total_sales|default:"0" }}</h3>
-                        <p>Total Sales</p>
+                        <h3 style="font-size: 16px;">{{ profile.get_reseller_type_display|default:"—" }}</h3>
+        <p>Reseller Type</p>
                     </div>
                     <div class="profile-stat-card">
                         <i class="fas fa-coins"></i>

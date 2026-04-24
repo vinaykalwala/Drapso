@@ -245,12 +245,16 @@
         width: 110px;
     }
 
-    .info-value {
-        color: var(--text-dark);
-        font-weight: 500;
-        word-break: break-word;
-    }
-
+   .info-value {
+    color: var(--text-dark);
+    font-weight: 500;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+.bank-details p {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
     .bank-details {
         background: rgba(79, 70, 229, 0.02);
         border-radius: 16px;
@@ -428,6 +432,46 @@
     .toggle-btn:hover {
         transform: translateY(-1px);
     }
+      @media (max-width: 900px) {
+        .content {
+            margin-top: 70px;
+        }
+    }
+    @media (max-width:700px){
+
+/* make rows vertical */
+.info-row{
+flex-direction:column;
+align-items:flex-start;
+}
+
+/* label full width */
+.info-label{
+width:100%;
+}
+
+/* prevent any overflow */
+.refund-container,
+.refund-card,
+.refund-body{
+overflow-x:hidden;
+}
+
+/* ensure content fits screen */
+.customer-section,
+.bank-section{
+width:100%;
+}
+
+/* fix long text everywhere */
+.info-value,
+.bank-details,
+.return-reason{
+word-break:break-word;
+overflow-wrap:anywhere;
+}
+
+}
 </style>
 
 <div class="main-content">

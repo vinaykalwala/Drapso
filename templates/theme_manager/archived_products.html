@@ -682,6 +682,18 @@
     .product-card__image {
         height: 150px;
     }
+}.product-card__price {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111;
+}
+
+.old-price {
+    font-size: 12px;           /* 👈 smaller */
+    color: #999;               /* 👈 light grey */
+    text-decoration: line-through;
+    margin-left: 6px;
+    font-weight: 400;          /* 👈 lighter */
 }
 </style>
 
@@ -825,8 +837,32 @@
                     
                     <div class="product-card__body">
                         <h5 class="product-card__title">{{ record.product.name }}</h5>
-                        <div class="product-card__price">₹{{ record.product.selling_price }}</div>
-                        <div class="product-card__stock">
+<div class="product-card__price">
+
+    {% if record.product.source_type == "own" and record.product.discount_percentage > 0 and record.product.discounted_price < record.product.selling_price %}
+
+        ₹{{ record.product.discounted_price|floatformat:2 }}
+        <span class="old-price">
+            ₹{{ record.product.selling_price|floatformat:2 }}
+        </span>
+
+    {% elif record.product.source_type == "imported" %}
+
+        ₹{{ record.product.selling_price|floatformat:2 }}
+
+        {% if record.product.source_product.price and record.product.source_product.price|add:record.product.margin_rupees > record.product.selling_price %}
+            <span class="old-price">
+                ₹{{ record.product.source_product.price|add:record.product.margin_rupees|floatformat:2 }}
+            </span>
+        {% endif %}
+
+    {% else %}
+
+        ₹{{ record.product.selling_price|floatformat:2 }}
+
+    {% endif %}
+
+</div>              <div class="product-card__stock">
                             <i class="fas fa-boxes"></i> Stock: {{ record.product.stock }}
                         </div>
                         <div class="product-card__status">
