@@ -57,6 +57,8 @@
             padding: 2rem 2rem 1.8rem 2rem;
             text-align: center;
             position: relative;
+            padding-top: 3rem;
+            /* prevent overlap */
         }
 
         .header-section h2 {
@@ -346,7 +348,7 @@
             .otp-input-wrapper input {
                 padding: 0.8rem 0.5rem;
             }
-            
+
             .email-info {
                 font-size: 0.8rem;
             }
@@ -387,6 +389,40 @@
             letter-spacing: 4px;
             font-weight: 700;
         }
+
+        .top-buttons {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 6px 10px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.25s ease;
+        }
+
+        .back-btn:hover {
+            background: white;
+            color: var(--primary);
+        }
+
+        /* second button slightly different */
+        .back-btn.secondary {
+            background: rgba(255, 255, 255, 0.25);
+        }
     </style>
 </head>
 
@@ -394,6 +430,15 @@
 
     <div class="verify-card">
         <div class="header-section">
+            <div class="top-buttons">
+                <a href="/" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Store
+                </a>
+
+                <a href="" class="back-btn secondary">
+                    <i class="fas fa-envelope"></i> Email
+                </a>
+            </div>
             <h2>
                 <i class="fas fa-key"></i>
                 Verify OTP
@@ -403,7 +448,7 @@
         </div>
 
         <div class="form-body">
-           
+
             <!-- Email Display (hidden field + visual confirmation) -->
             <div class="email-info">
                 <i class="fas fa-envelope"></i>
@@ -413,9 +458,9 @@
             <!-- OTP Verification Form -->
             <form method="post" action="{% url 'orders:verify_tracking_otp' %}" id="verifyOtpForm">
                 {% csrf_token %}
-                
+
                 <input type="hidden" name="email" value="{{ email }}">
-                
+
                 <div class="input-group">
                     <div class="input-label">
                         <i class="fas fa-shield-alt"></i>
@@ -423,10 +468,11 @@
                     </div>
                     <div class="otp-input-wrapper">
                         <i class="fas fa-lock"></i>
-                        <input type="text" name="otp" placeholder="Enter 6-digit OTP" required autocomplete="off" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
+                        <input type="text" name="otp" placeholder="Enter 6-digit OTP" required autocomplete="off"
+                            maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
                     </div>
                 </div>
-                
+
                 <button type="submit" class="btn-verify" id="verifyBtn">
                     <i class="fas fa-check-circle"></i>
                     Verify OTP
@@ -434,7 +480,7 @@
                 </button>
             </form>
 
-          
+
             <!-- extra professional elements -->
             <div class="info-footnote">
                 <span><i class="fas fa-lock"></i> Secure verification</span>
@@ -559,21 +605,21 @@
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showToast('OTP resent successfully! Check your email.', false);
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showToast('OTP resent successfully! Check your email.', false);
+                                resetResendButton();
+                            } else {
+                                showToast(data.message || 'Failed to resend OTP. Please try again.', true);
+                                resetResendButton();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showToast('Network error. Please try again.', true);
                             resetResendButton();
-                        } else {
-                            showToast(data.message || 'Failed to resend OTP. Please try again.', true);
-                            resetResendButton();
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showToast('Network error. Please try again.', true);
-                        resetResendButton();
-                    });
+                        });
                 });
             }
 
