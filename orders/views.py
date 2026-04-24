@@ -1537,7 +1537,7 @@ def cancel_order(request, order_id):
     # ============================
     if not order.can_cancel():
         messages.error(request, "Order cannot be cancelled. It may have already been shipped.")
-        return redirect('send_tracking_otp')
+        return redirect('orders:send_tracking_otp')
 
     # ============================
     # 🚨 EXTRA SAFETY (SHIPROCKET)
@@ -1842,3 +1842,4 @@ def shiprocket_order_detail(request, order_id):
         "local": local_order,
         "order": order_data
     })
+
