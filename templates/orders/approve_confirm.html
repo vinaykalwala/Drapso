@@ -1,68 +1,308 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
 
+{% block title %}Confirm Approval - {{ order.order_id }}{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Confirm Approval & Sync to Shiprocket</h4>
+<style>
+    /* ============================================
+       PREMIUM LOGISTICS CONFIRMATION DESIGN
+       ============================================ */
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --primary-light: #eef2ff;
+        --success: #10b981;
+        --success-light: #d1fae5;
+        --warning: #f59e0b;
+        --warning-light: #fef3c7;
+        --gray-50: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-500: #64748b;
+        --gray-800: #1e293b;
+        --radius-lg: 16px;
+        --radius-xl: 20px;
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    }
+
+    .conf-page {
+        background: var(--gray-50);
+        min-height: 100vh;
+        padding: 40px 20px;
+    }
+
+    .conf-card {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        border: 1px solid var(--gray-200);
+    }
+
+    /* ========== HEADER ========== */
+    .conf-header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        padding: 32px;
+        text-align: center;
+        color: white;
+    }
+
+    .conf-header i {
+        font-size: 40px;
+        margin-bottom: 16px;
+        opacity: 0.9;
+    }
+
+    .conf-header h4 {
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        margin: 0;
+    }
+
+    /* ========== BODY SECTIONS ========== */
+    .conf-body {
+        padding: 32px;
+    }
+
+    .order-summary-box {
+        background: var(--primary-light);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+        border: 1px solid rgba(79, 70, 229, 0.1);
+    }
+
+    .summary-item label {
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--primary);
+        letter-spacing: 1px;
+    }
+
+    .summary-item span {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--gray-800);
+    }
+
+    .section-title {
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--gray-800);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .section-title i { color: var(--primary); }
+
+    /* ========== DETAILS GRID ========== */
+    .details-table {
+        width: 100%;
+        margin-bottom: 32px;
+        border-collapse: separate;
+        border-spacing: 0;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+    }
+
+    .details-table th {
+        background: var(--gray-50);
+        padding: 14px 20px;
+        font-size: 13px;
+        color: var(--gray-500);
+        width: 35%;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .details-table td {
+        padding: 14px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--gray-800);
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    /* ========== LOGISTICS BOXES ========== */
+    .logistics-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .log-box {
+        background: white;
+        padding: 16px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--gray-200);
+        text-align: center;
+        transition: all 0.3s;
+    }
+
+    .log-box:hover {
+        border-color: var(--primary);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .log-box small {
+        display: block;
+        color: var(--gray-500);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .log-box strong {
+        font-size: 16px;
+        color: var(--primary);
+    }
+
+    /* ========== WARNING BOX ========== */
+    .sync-warning {
+        background: var(--warning-light);
+        border-left: 4px solid var(--warning);
+        padding: 16px 20px;
+        border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+        margin-bottom: 0;
+    }
+
+    .sync-warning p {
+        font-size: 13px;
+        color: #92400e;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* ========== FOOTER ACTIONS ========== */
+    .conf-footer {
+        background: var(--gray-50);
+        padding: 24px 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    .btn-conf {
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 14px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-back { background: white; color: var(--gray-500); border: 1px solid var(--gray-200); }
+    .btn-back:hover { background: var(--gray-100); color: var(--gray-800); }
+
+    .btn-sync { background: var(--success); color: white; border: none; cursor: pointer; }
+    .btn-sync:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+        .order-summary-box { flex-direction: column; text-align: center; gap: 16px; }
+        .logistics-grid { grid-template-columns: 1fr; }
+        .conf-footer { flex-direction: column; }
+        .btn-conf { width: 100%; justify-content: center; }
+        .details-table th { width: 40%; padding: 10px; }
+        .details-table td { padding: 10px; }
+    }
+</style>
+<div class="content">
+<div class="conf-page">
+    <div class="conf-card">
+        <div class="conf-header">
+            <i class="fas fa-shipping-fast"></i>
+            <h4>Confirm Approval & Logistics</h4>
+            <p class="mb-0 opacity-75 small">Securely sync this order with Shiprocket for dispatch</p>
+        </div>
+
+        <div class="conf-body">
+            <div class="order-summary-box">
+                <div class="summary-item">
+                    <label>Order ID</label>
+                    <span>#{{ order.order_id }}</span>
                 </div>
-                <div class="card-body">
-                    <div class="alert alert-info">
-                        <strong>Order ID:</strong> {{ order.order_id }} <br>
-                        <strong>Customer:</strong> {{ order.customer_name }}
-                    </div>
-
-                    <h5>Shipping Details</h5>
-                    <table class="table table-sm border">
-                        <tr>
-                            <th>Address:</th>
-                            <td>{{ order.shipping_address }}, {{ order.shipping_city }}, {{ order.shipping_pincode }}</td>
-                        </tr>
-                        <tr>
-                            <th>Courier Partner:</th>
-                            <td>{{ order.courier_name }}</td>
-                        </tr>
-                    </table>
-
-                    <h5 class="mt-4">Logistics Calculations</h5>
-                    <div class="row text-center bg-light p-3 border rounded">
-                        <div class="col-4">
-                            <small class="text-muted d-block">Billable Weight</small>
-                            <strong>{{ order.weight }} kg</strong>
-                        </div>
-                        <div class="col-4">
-                            <small class="text-muted d-block">Dimensions (LxBxH)</small>
-                            <strong>{{ order.length }}x{{ order.breadth }}x{{ order.height }} cm</strong>
-                        </div>
-                        <div class="col-4">
-                            <small class="text-muted d-block">Shipping Charge</small>
-                            <strong>₹{{ order.shipping_charge }}</strong>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 p-3 border-start border-4 border-warning bg-light">
-                        <p class="mb-0 text-muted">
-                            <i class="fas fa-info-circle me-2"></i>
-                            By clicking confirm, this order will be registered with Shiprocket. 
-                            Ensure the pickup location (Pincode: {{ order.pickup_pincode }}) is correct.
-                        </p>
-                    </div>
-                </div>
-                <div class="card-footer d-flex justify-content-between">
-                    <a href="{% url 'orders:reseller_order_detail' store.id order.id %}" class="btn btn-secondary">
-                        Go Back
-                    </a>
-                    <form method="POST">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-success">
-                            Confirm & Sync Shipping
-                        </button>
-                    </form>
+                <div class="summary-item">
+                    <label>Customer Name</label>
+                    <span>{{ order.customer_name }}</span>
                 </div>
             </div>
+
+            <div class="section-title">
+                <i class="fas fa-map-marker-alt"></i> Delivery Destination
+            </div>
+            <table class="details-table">
+                <tr>
+                    <th>Address Details</th>
+                    <td>{{ order.shipping_address }}, {{ order.shipping_city }}, {{ order.shipping_pincode }}</td>
+                </tr>
+                <tr>
+                    <th>Logistics Provider</th>
+                    <td>
+                        <span class="badge bg-white text-primary border px-2 py-1">
+                            <i class="fas fa-truck-moving me-1"></i> {{ order.courier_name }}
+                        </span>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="section-title">
+                <i class="fas fa-calculator"></i> Package Dimensions
+            </div>
+            <div class="logistics-grid">
+                <div class="log-box">
+                    <small>Billable Weight</small>
+                    <strong>{{ order.weight }} kg</strong>
+                </div>
+                <div class="log-box">
+                    <small>L x B x H</small>
+                    <strong>{{ order.length }}×{{ order.breadth }}×{{ order.height }} cm</strong>
+                </div>
+                <div class="log-box">
+                    <small>Est. Shipping</small>
+                    <strong>₹{{ order.shipping_charge }}</strong>
+                </div>
+            </div>
+
+            <div class="sync-warning">
+                <p>
+                    <i class="fas fa-info-circle me-1"></i>
+                    <strong>Important:</strong> By confirming, this shipment data will be pushed to Shiprocket. Ensure your pickup location at <strong>{{ order.pickup_pincode }}</strong> is active and ready for the courier partner.
+                </p>
+            </div>
+        </div>
+
+        <div class="conf-footer">
+            <a href="{% url 'orders:reseller_order_detail' store.id order.id %}" class="btn-conf btn-back">
+                <i class="fas fa-arrow-left"></i> Cancel & Go Back
+            </a>
+            <form method="POST" class="m-0">
+                {% csrf_token %}
+                <button type="submit" class="btn-conf btn-sync">
+                    Confirm & Sync Shipping <i class="fas fa-cloud-upload-alt"></i>
+                </button>
+            </form>
         </div>
     </div>
+</div>
 </div>
 {% endblock %}
