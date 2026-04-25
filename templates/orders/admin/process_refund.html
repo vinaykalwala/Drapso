@@ -1,91 +1,462 @@
-
+{% extends "dashboard_base.html" %}
 {% load static %}
 
-{% block title %}Process Refund{% endblock %}
+{% block content %}
+{# Fonts and base styles from reference #}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-{% block extra_css %}
 <style>
-    .process-container {
-        max-width: 800px;
-        margin: 40px auto;
-        padding: 0 20px;
+    /* ----- Base & Container (matched to reference) ----- */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
     }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #eef2ff, #f8fafc);
+        min-height: 100vh;
+    }
+
+    .process-container {
+        width: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px clamp(12px, 2vw, 24px);
+        animation: fadeInUp 0.5s ease;
+    }
+
+    /* ----- Card Styling (like .table-container / .stat-card) ----- */
     .refund-card {
         background: white;
-        border-radius: 16px;
-        padding: 30px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border-radius: clamp(16px, 4vw, 24px);
+        padding: clamp(24px, 5vw, 36px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
     }
+
+    /* ----- Header (gradient text) ----- */
+    .refund-header {
+        margin-bottom: clamp(24px, 5vw, 32px);
+    }
+
+    .refund-header h3 {
+        font-size: clamp(24px, 6vw, 32px);
+        font-weight: 800;
+        background: linear-gradient(135deg, #1f2937, #4b5563);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: -0.02em;
+        margin: 0 0 8px 0;
+    }
+
+    .refund-header h3 span {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .refund-subhead {
+        color: #6b7280;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* ----- Bank Info Box (similar to stat-card but info style) ----- */
     .bank-info {
-        background: #f8f9fa;
-        border-radius: 12px;
-        padding: 20px;
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-radius: clamp(16px, 3vw, 20px);
+        padding: clamp(20px, 4vw, 28px);
         margin-bottom: 30px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
     }
-    .btn-submit {
-        background: #28a745;
-        width: 100%;
-        padding: 12px;
+
+    .bank-info h6 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .bank-info h6 i {
+        color: #667eea;
+        font-size: 20px;
+    }
+
+    .bank-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px 30px;
+    }
+
+    .bank-detail-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .bank-detail-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6b7280;
         font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    .bank-detail-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+        word-break: break-word;
+    }
+
+    .bank-detail-value small {
+        font-weight: 400;
+        color: #6b7280;
+        font-size: 13px;
+        margin-left: 8px;
+    }
+
+    /* ----- Alert Info (modernized) ----- */
+    .alert-info {
+        background: rgba(102, 126, 234, 0.08);
+        border-left: 4px solid #667eea;
+        border-radius: 14px;
+        padding: 16px 20px;
+        margin-bottom: 30px;
+        color: #374151;
+        font-size: 14px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(102, 126, 234, 0.15);
+    }
+
+    .alert-info i {
+        color: #667eea;
+        font-size: 18px;
+        margin-top: 2px;
+    }
+
+    /* ----- Form Elements (matching search input & reference) ----- */
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 14px;
+        color: #374151;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-label i {
+        color: #667eea;
+        margin-right: 6px;
+        font-size: 14px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 14px 18px;
+        border: 2px solid #e5e7eb;
+        border-radius: 16px;
+        font-size: 15px;
+        font-family: 'Inter', sans-serif;
+        background: white;
+        transition: all 0.3s ease;
+        color: #1f2937;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.12);
+        background: white;
+    }
+
+    .form-control::placeholder {
+        color: #9ca3af;
+        font-weight: 400;
+    }
+
+    /* File input custom style */
+    input[type="file"].form-control {
+        padding: 12px 16px;
+        background: #fafbfc;
+    }
+
+    textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .form-text {
+        font-size: 13px;
+        color: #6b7280;
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* ----- Submit Button (gradient like .btn-view) ----- */
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        width: 100%;
+        padding: 15px 20px;
+        border: none;
+        border-radius: 16px;
+        color: white;
+        font-size: 16px;
+        font-weight: 700;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 14px rgba(102, 126, 234, 0.25);
+        margin-top: 10px;
+        letter-spacing: 0.3px;
+    }
+
+    .btn-submit i {
+        font-size: 18px;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(102, 126, 234, 0.35);
+        background: linear-gradient(135deg, #5a6fd8, #6a3f8f);
+    }
+
+    /* ----- Animations ----- */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ----- Responsive Fine-tuning ----- */
+    @media (max-width: 640px) {
+        .bank-detail-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        
+        .refund-card {
+            padding: 20px 18px;
+        }
+        
+        .alert-info {
+            padding: 14px 16px;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .content {
+            margin-top: 60px;
+        }
+    }
+
+    /* Touch-friendly */
+    @media (hover: none) and (pointer: coarse) {
+        .btn-submit, .form-control {
+            min-height: 50px;
+        }
+    }
+
+    /* Helper for error/success states (if needed) */
+    .errorlist {
+        color: #ef4444;
+        font-size: 13px;
+        padding-left: 6px;
+        margin-top: 6px;
+        list-style: none;
+    }
+
+    /* Django form rendering (keep consistent) */
+    .form-control.is-invalid {
+        border-color: #ef4444;
     }
 </style>
-{% endblock %}
-
-{% block content %}
+<div class="content">
 <div class="process-container">
     <div class="refund-card">
-        <h3 class="mb-4">Process Refund</h3>
+        <div class="refund-header">
+            <h3>Process <span>Refund</span></h3>
+            <div class="refund-subhead">
+                <i class="fas fa-arrow-left" style="opacity: 0.6;"></i> 
+                Complete bank transfer and confirm details
+            </div>
+        </div>
         
+        {# Bank Details Card #}
         <div class="bank-info">
-            <h6>Customer Bank Details</h6>
-            <div class="row">
-                <div class="col-md-6">
-                    <strong>Account Holder:</strong> {{ refund.account_holder_name }}<br>
-                    <strong>Account Number:</strong> {{ refund.account_number }}<br>
-                    <strong>IFSC Code:</strong> {{ refund.ifsc_code }}
+            <h6><i class="fas fa-university"></i> Customer Bank Details</h6>
+            <div class="bank-detail-grid">
+                <div class="bank-detail-item">
+                    <span class="bank-detail-label"><i class="far fa-user"></i> Account Holder</span>
+                    <span class="bank-detail-value">{{ refund.account_holder_name }}</span>
                 </div>
-                <div class="col-md-6">
-                    <strong>Bank Name:</strong> {{ refund.bank_name }}<br>
-                    <strong>UPI ID:</strong> {{ refund.upi_id|default:"Not provided" }}
+                <div class="bank-detail-item">
+                    <span class="bank-detail-label"><i class="far fa-credit-card"></i> Account Number</span>
+                    <span class="bank-detail-value">{{ refund.account_number }}</span>
+                </div>
+                <div class="bank-detail-item">
+                    <span class="bank-detail-label"><i class="fas fa-code-branch"></i> IFSC Code</span>
+                    <span class="bank-detail-value">{{ refund.ifsc_code }}</span>
+                </div>
+                <div class="bank-detail-item">
+                    <span class="bank-detail-label"><i class="fas fa-building"></i> Bank Name</span>
+                    <span class="bank-detail-value">{{ refund.bank_name }}</span>
+                </div>
+                <div class="bank-detail-item">
+                    <span class="bank-detail-label"><i class="fas fa-mobile-alt"></i> UPI ID</span>
+                    <span class="bank-detail-value">
+                        {{ refund.upi_id|default:"—" }}
+                        {% if not refund.upi_id %}<small>Not provided</small>{% endif %}
+                    </span>
                 </div>
             </div>
         </div>
         
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i> 
-            <strong>Instructions:</strong> Transfer the refund amount to the customer's bank account using your company's banking portal, then fill in the details below.
+        {# Instructions Alert #}
+        <div class="alert-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong style="color: #1f2937;">Transfer Instructions</strong><br>
+                Transfer the refund amount to the customer's bank account using your company's banking portal, then fill in the transaction details below.
+            </div>
         </div>
         
-        <form method="POST" enctype="multipart/form-data">
+        {# Refund Form #}
+        <form method="POST" enctype="multipart/form-data" novalidate>
             {% csrf_token %}
             
-            <div class="mb-3">
-                <label class="form-label">Refund Amount *</label>
+            {# Refund Amount #}
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-rupee-sign"></i> Refund Amount *
+                </label>
                 {{ form.refund_amount }}
-                <small class="text-muted">Amount to refund (should match order amount)</small>
+                <div class="form-text">
+                    <i class="far fa-check-circle"></i> Amount should match the order total
+                </div>
+                {% if form.refund_amount.errors %}
+                    <ul class="errorlist">{% for error in form.refund_amount.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
             </div>
             
-            <div class="mb-3">
-                <label class="form-label">Transaction Reference ID</label>
+            {# Transaction ID #}
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-receipt"></i> Transaction Reference ID
+                </label>
                 {{ form.transaction_id }}
-                <small class="text-muted">NEFT/IMPS/UPI transaction reference number</small>
+                <div class="form-text">
+                    <i class="far fa-clock"></i> NEFT/IMPS/UPI reference number
+                </div>
+                {% if form.transaction_id.errors %}
+                    <ul class="errorlist">{% for error in form.transaction_id.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
             </div>
             
-            <div class="mb-3">
-                <label class="form-label">Transfer Proof *</label>
+            {# Transfer Proof #}
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-cloud-upload-alt"></i> Transfer Proof *
+                </label>
                 {{ form.transfer_proof }}
-                <small class="text-muted">Upload screenshot or PDF of bank transfer confirmation</small>
+                <div class="form-text">
+                    <i class="far fa-file-image"></i> Upload screenshot or PDF of confirmation
+                </div>
+                {% if form.transfer_proof.errors %}
+                    <ul class="errorlist">{% for error in form.transfer_proof.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
             </div>
             
-            <div class="mb-3">
-                <label class="form-label">Admin Notes (Optional)</label>
+            {# Admin Notes #}
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="far fa-sticky-note"></i> Admin Notes (Optional)
+                </label>
                 {{ form.admin_notes }}
+                <div class="form-text">
+                    <i class="far fa-edit"></i> Internal notes only
+                </div>
+                {% if form.admin_notes.errors %}
+                    <ul class="errorlist">{% for error in form.admin_notes.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
             </div>
             
-            <button type="submit" class="btn btn-success btn-submit" onclick="return confirm('Confirm that you have transferred the refund amount to the customer\'s account?')">
+            <button type="submit" class="btn-submit" onclick="return confirm('Confirm that the refund amount has been successfully transferred to the customer\'s account?')">
                 <i class="fas fa-check-circle"></i> Confirm Refund Processed
             </button>
         </form>
     </div>
 </div>
+</div>
+
+{# Add a small script to add modern classes to Django form fields automatically #}
+<script>
+    (function() {
+        // Add form-control class to all input, select, textarea generated by Django
+        const form = document.querySelector('form');
+        if (form) {
+            const inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                // Avoid overriding file input completely, but still add class
+                input.classList.add('form-control');
+                
+                // Special style for file input
+                if (input.type === 'file') {
+                    input.classList.add('form-control');
+                }
+                
+                // If field has errors, add is-invalid
+                if (input.parentElement.querySelector('.errorlist')) {
+                    input.classList.add('is-invalid');
+                }
+            });
+        }
+        
+        // For amount field, set placeholder if not already
+        const amountField = document.querySelector('#id_refund_amount');
+        if (amountField && !amountField.getAttribute('placeholder')) {
+            amountField.placeholder = 'Enter refund amount';
+        }
+        
+        const transField = document.querySelector('#id_transaction_id');
+        if (transField && !transField.getAttribute('placeholder')) {
+            transField.placeholder = 'e.g., NEFT123456789';
+        }
+        
+        const notesField = document.querySelector('#id_admin_notes');
+        if (notesField && !notesField.getAttribute('placeholder')) {
+            notesField.placeholder = 'Optional remarks about this refund...';
+        }
+    })();
+</script>
 {% endblock %}

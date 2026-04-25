@@ -32,7 +32,11 @@
         /* sidebar width + little gap */
         padding: 2rem 1.5rem;
     }
-
+  @media (max-width: 900px) {
+        .content {
+            margin-top: 70px;
+        }
+    }
     /* card styling */
     .card {
         background: #ffffff;
@@ -464,7 +468,7 @@
                         <option value="out for delivery">Out for Delivery</option>
                         <option value="delivered">Delivered</option>
                         <option value="canceled">Cancelled</option>
-                        <option value="rto">Cancellation Requested</option>
+                        <option value="cancellationrequested">Cancellation Requested</option>
                     </select>
 
                     <!-- LIVE BADGE -->

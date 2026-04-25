@@ -109,6 +109,11 @@
             gap: 0.5rem;
         }
 
+        .required-asterisk {
+            color: #dc2626;
+            margin-left: 2px;
+        }
+
         select, input:not([type="file"]), textarea {
             width: 100%;
             padding: 0.75rem 1rem;
@@ -300,7 +305,10 @@
                                 <div class="form-group">
                                     {% if field.field.widget.input_type == "checkbox" %}
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <span>{{ field.label }}</span>
+                                            <span>
+                                                {{ field.label }}
+                                                {% if field.field.required %}<span class="required-asterisk">*</span>{% endif %}
+                                            </span>
                                             <label class="toggle-switch">
                                                 {{ field }}
                                                 <span class="slider"></span>
@@ -315,6 +323,9 @@
                                             {% elif field.name == "weight" %}<i class="fas fa-weight-hanging"></i>
                                             {% else %}<i class="fas fa-edit"></i>{% endif %}
                                             {{ field.label }}
+                                            {% if field.field.required or field.name == 'weight' or field.name == 'length' or field.name == 'breadth' or field.name == 'height' %}
+                                                <span class="required-asterisk">*</span>
+                                            {% endif %}
                                         </label>
                                         {{ field }}
                                     {% endif %}
@@ -330,9 +341,12 @@
 
             <!-- RIGHT SIDE: Images -->
             <div class="col-lg-5">
-                <!-- MAIN IMAGE -->
+                <!-- MAIN IMAGE (optional in variant, but add asterisk if required) -->
                 <div class="form-card mb-4">
-                    <div class="form-card-header"><i class="fas fa-camera"></i> Main Image</div>
+                    <div class="form-card-header">
+                        <i class="fas fa-camera"></i> Main Image
+                        {% if form.main_image.field.required %}<span class="required-asterisk">*</span>{% endif %}
+                    </div>
                     <div class="form-card-body">
                         <div id="mainImagePreview" class="image-preview">
                             {% if form.instance.main_image %}
@@ -360,7 +374,10 @@
                                     </div>
                                 {% endif %}
                                 <div class="mb-3">
-                                    <label class="small fw-semibold mb-1">Image file</label>
+                                    <label class="small fw-semibold mb-1">
+                                        Image file
+                                        {% if f.image.field.required %}<span class="required-asterisk">*</span>{% endif %}
+                                    </label>
                                     {{ f.image }}
                                 </div>
                                 <!-- Alt text & Order in equal-width columns (responsive) -->
@@ -426,30 +443,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // ========================
     // 2. FIX: Add 'form-control' class to ALL alt_text & order inputs (existing + dynamic)
-    //    This ensures they have identical width, padding, font, border.
     // ========================
     function applyFormControlToAltAndOrder() {
-        // Select all inputs inside alt_text or order field containers
-        // Django renders alt_text as <input type="text" name="...-alt_text" ...>
-        // and order as <input type="number" name="...-order" ...>
         document.querySelectorAll('input[name$="-alt_text"], input[name$="-order"]').forEach(input => {
             if (!input.classList.contains('form-control')) {
                 input.classList.add('form-control');
             }
-            // Ensure number input also has consistent width (override browser defaults)
             if (input.type === 'number') {
                 input.style.width = '100%';
                 input.style.boxSizing = 'border-box';
             }
         });
     }
-
-    // Run initially
     applyFormControlToAltAndOrder();
 
     // ========================
     // 3. DYNAMIC ADDITION OF IMAGE FORMSET
-    //    Alt text & Order already get form-control in the generated HTML
     // ========================
     const addBtn = document.getElementById("addImageBtn");
     const container = document.getElementById("imageFormsList");
@@ -462,7 +471,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const newFormHtml = `
                 <div class="image-form-item" data-image-id="new">
                     <div class="mb-3">
-                        <label class="small fw-semibold mb-1">Image file</label>
+                        <label class="small fw-semibold mb-1">
+                            Image file <span class="required-asterisk">*</span>
+                        </label>
                         <input type="file" name="${prefix}-${formCount}-image" class="form-control">
                     </div>
                     <div class="row g-3">
@@ -479,15 +490,61 @@ document.addEventListener("DOMContentLoaded", function () {
             `;
             container.insertAdjacentHTML("beforeend", newFormHtml);
             totalFormsInput.value = formCount + 1;
-            // No need to reapply form-control because new inputs already have the class
+            setTimeout(applyPlaceholders, 30);
         });
     }
 
-    // Optional: Watch for dynamic changes if any other script modifies DOM
+    // ========================
+    // 4. AUTO PLACEHOLDER FROM LABEL TEXT
+    // ========================
+    function applyPlaceholders() {
+        // For non-toggle fields: find each label inside a .form-group, then its next sibling input/textarea/select (but select doesn't support placeholder)
+        document.querySelectorAll('.form-group').forEach(group => {
+            const label = group.querySelector('label');
+            const input = group.querySelector('input:not([type="file"]):not([type="checkbox"]), textarea');
+            if (label && input && !input.placeholder) {
+                let labelText = label.textContent
+                    .replace(/[\n\r]+/g, ' ')
+                    .replace(/\s{2,}/g, ' ')
+                    .trim();
+                // Remove any trailing asterisk that was added for required fields
+                labelText = labelText.replace(/\*$/, '').trim();
+                input.placeholder = labelText;
+            }
+        });
+
+        // Main image file input (outside .form-group)
+        const mainImageLabel = document.querySelector('.form-card-header i.fa-camera')?.parentElement;
+        if (mainImageLabel) {
+            const mainFile = document.getElementById('id_main_image');
+            if (mainFile && !mainFile.placeholder) {
+                let text = mainImageLabel.textContent.replace(/[\n\r]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+                text = text.replace(/\*$/, '').trim();
+                mainFile.placeholder = 'Choose ' + text;
+            }
+        }
+
+        // For newly added image forms
+        document.querySelectorAll('#imageFormsList .image-form-item').forEach(item => {
+            const fileLabel = item.querySelector('label:first-of-type');
+            const fileInput = item.querySelector('input[type="file"]');
+            if (fileLabel && fileInput && !fileInput.placeholder) {
+                let text = fileLabel.textContent.replace(/[\n\r]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+                text = text.replace(/\*$/, '').trim();
+                fileInput.placeholder = 'Choose ' + text;
+            }
+        });
+    }
+
+    // Run on load
+    applyPlaceholders();
+
+    // Watch for dynamic changes (e.g., if any later script modifies DOM)
     const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.addedNodes.length) {
                 applyFormControlToAltAndOrder();
+                applyPlaceholders(); // reapply placeholders when new elements appear
             }
         });
     });

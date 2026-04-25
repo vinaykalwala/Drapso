@@ -528,10 +528,11 @@
             
             <!-- Action Buttons -->
             <div class="action-buttons">
-                <a href="{% url 'orders:track_order' order_id=order.order_id %}" class="btn-track">
-                    <i class="fas fa-truck"></i> Track Your Order
-                </a>
-             <a href="{{ store_url }}/" class="btn-secondary">
+               <a href="/orders/track/" class="btn-track">
+    Track My Order
+</a>
+
+             <a href="/" class="btn-secondary">
     <i class="fas fa-store"></i> Back to Store
 </a>
             </div>

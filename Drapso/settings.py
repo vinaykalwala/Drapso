@@ -77,6 +77,7 @@ TEMPLATES = [
                 'accounts.context_processors.user_profile_data',
                 'resellers.context_processors.store_context',
                 "products.context_processors.reseller_store",
+                "orders.context_processors.dynamic_base_template",
             ],
         },
     },
@@ -91,7 +92,7 @@ WSGI_APPLICATION = 'Drapso.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'db1.sqlite3',
     }
 }
 

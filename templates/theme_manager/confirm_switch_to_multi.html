@@ -768,8 +768,22 @@
                             </div>
                         </td>
                         <td data-label="Price" class="price-cell">
-                            ₹{{ record.product.selling_price }}
-                        </td>
+
+    {% if record.product.source_type == "own" %}
+
+        {% if record.product.discount_percentage > 0 %}
+            ₹{{ record.product.discounted_price|floatformat:2 }}
+        {% else %}
+            ₹{{ record.product.selling_price|floatformat:2 }}
+        {% endif %}
+
+    {% else %}
+
+        ₹{{ record.product.selling_price|floatformat:2 }}
+
+    {% endif %}
+
+</td>
                         <td data-label="Status">
                             {% if record.product.is_published %}
                                 <span class="badge-custom badge-published">

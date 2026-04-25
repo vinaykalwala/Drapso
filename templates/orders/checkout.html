@@ -1,300 +1,795 @@
-
+{% extends base_template %}
 {% load static %}
 
 {% block content %}
-<div class="container py-5">
-    <form method="POST" id="checkoutForm">
+<style>
+    /* ========== UNIQUE PREMIUM CHECKOUT STYLES ========== */
+    
+    /* Root variables */
+    :root {
+        --drapso-green: #059669;
+        --drapso-green-light: #10b981;
+        --drapso-green-soft: #d1fae5;
+        --drapso-green-bg: #ecfdf5;
+        --drapso-orange: #ea580c;
+        --drapso-orange-light: #f97316;
+        --drapso-orange-soft: #ffedd5;
+        --drapso-dark: #0f172a;
+        --drapso-gray: #475569;
+        --drapso-gray-light: #94a3b8;
+        --drapso-border: #e2e8f0;
+        --drapso-white: #ffffff;
+    }
+
+    /* Unique container */
+    .drapso-checkout-root {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(145deg, #f9fafb 0%, #f1f5f9 100%);
+        min-height: 100vh;
+        padding: 1rem;
+    }
+
+    .drapso-checkout-container {
+        max-width: 1250px;
+        margin: 0 auto;
+    }
+
+    /* Header */
+    .drapso-checkout-header {
+        text-align: center;
+        margin-bottom: 1.9rem;
+    }
+
+    .drapso-checkout-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--drapso-green), var(--drapso-orange));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .drapso-checkout-subtitle {
+        color: var(--drapso-gray);
+        font-size: 0.95rem;
+    }
+.drapso-checkout-title {
+    margin: 0;           /* 🔥 remove default gap */
+}
+
+.drapso-checkout-subtitle {
+    margin: 20px 0 0 0;  /* small controlled spacing */
+}
+    /* Two column layout */
+    .drapso-two-columns {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.7rem;
+    }
+
+    .drapso-left-col {
+        flex: 1.4;
+        min-width: 300px;
+    }
+
+    .drapso-right-col {
+        flex: 1;
+        min-width: 300px;
+    }
+
+    @media (max-width: 900px) {
+        .drapso-two-columns {
+            flex-direction: column;
+        }
+        .drapso-checkout-root {
+            padding: 1rem;
+        }
+    }
+
+    /* Cards */
+    .drapso-card {
+        background: var(--drapso-white);
+        border-radius: 28px;
+        box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(226, 232, 240, 0.6);
+        overflow: hidden;
+    }
+
+    .drapso-card-padding {
+        padding: 2rem;
+    }
+
+    @media (max-width: 640px) {
+        .drapso-card-padding {
+            padding: 1.5rem;
+        }
+    }
+
+    .drapso-sticky {
+        position: sticky;
+        top: 2rem;
+    }
+
+    /* Section titles */
+    .drapso-shipping-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--drapso-dark);
+        margin-bottom: 1.8rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-left: 4px solid var(--drapso-orange);
+        padding-left: 1rem;
+    }
+
+    .drapso-summary-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--drapso-dark);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Form grid - proper two columns */
+    .drapso-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.2rem;
+    }
+
+    .drapso-form-full {
+        grid-column: 1 / -1;
+    }
+
+    @media (max-width: 640px) {
+        .drapso-form-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+
+    /* Form fields */
+    .drapso-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .drapso-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--drapso-gray);
+    }
+
+    .drapso-input {
+        padding: 0.85rem 1rem;
+        border-radius: 16px;
+        border: 1.5px solid var(--drapso-border);
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        background: var(--drapso-white);
+    }
+
+    .drapso-input:focus {
+        outline: none;
+        border-color: var(--drapso-green);
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+    }
+
+    /* Product image */
+    .drapso-product-area {
+        background: linear-gradient(145deg, var(--drapso-green-bg), var(--drapso-white));
+        border-radius: 20px;
+        padding: 1.2rem;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(5, 150, 105, 0.12);
+    }
+
+    .drapso-product-img {
+        width: 100%;
+        max-height: 180px;
+        object-fit: contain;
+        border-radius: 16px;
+    }
+
+    .drapso-product-placeholder {
+        width: 100%;
+        height: 150px;
+        background: var(--drapso-green-soft);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .drapso-product-placeholder i {
+        font-size: 3.5rem;
+        color: var(--drapso-green);
+    }
+
+    .drapso-product-name {
+        font-weight: 700;
+        margin-top: 0.8rem;
+        color: var(--drapso-dark);
+        font-size: 1rem;
+    }
+
+    .drapso-product-sku {
+        font-size: 0.7rem;
+        color: var(--drapso-gray);
+        margin-top: 0.2rem;
+    }
+
+    /* Quantity section - both sides */
+    .drapso-quantity-section {
+        background: var(--drapso-orange-soft);
+        padding: 1rem 1.2rem;
+        border-radius: 20px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .drapso-quantity-label {
+        font-weight: 600;
+        color: var(--drapso-dark);
+        font-size: 1rem;
+    }
+
+    .drapso-quantity-input {
+        width: 90px;
+        padding: 0.6rem;
+        border-radius: 50px;
+        text-align: center;
+        font-weight: 600;
+        border: 1.5px solid var(--drapso-border);
+        font-family: inherit;
+        font-size: 1rem;
+        background: var(--drapso-white);
+    }
+
+    /* Summary rows */
+    .drapso-summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.6rem 0;
+    }
+
+    .drapso-summary-divider {
+        margin: 0.8rem 0;
+        border: none;
+        border-top: 1px solid var(--drapso-border);
+    }
+
+    .drapso-total-label {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--drapso-dark);
+    }
+
+    .drapso-total-amount {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--drapso-green);
+    }
+
+    /* Delivery chip */
+    .drapso-delivery-box {
+        background: var(--drapso-green-soft);
+        border-radius: 16px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-left: 4px solid var(--drapso-green);
+        margin-top: 1.2rem;
+    }
+
+    .drapso-delivery-icon {
+        color: var(--drapso-green);
+        font-size: 1.2rem;
+    }
+
+    /* Button */
+    .drapso-checkout-btn {
+        width: 100%;
+        background: linear-gradient(105deg, var(--drapso-orange), #c2410c);
+        border: none;
+        padding: 1rem 1.5rem;
+        border-radius: 60px;
+        font-weight: 700;
+        font-size: 1rem;
+        color: white;
+        transition: all 0.25s;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 1.8rem;
+    }
+
+    .drapso-checkout-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background: var(--drapso-gray-light);
+    }
+
+    .drapso-checkout-btn:not(:disabled):hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(234, 88, 12, 0.3);
+    }
+
+    /* Loading spinner */
+    .drapso-spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: drapso-spin 0.6s linear infinite;
+    }
+
+    @keyframes drapso-spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Pincode loader */
+    .drapso-loader-box {
+        background: #f0fdf4;
+        padding: 0.9rem;
+        border-radius: 16px;
+        margin: 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-left: 4px solid var(--drapso-green);
+    }
+
+    /* Trust badges */
+    .drapso-trust-row {
+        display: flex;
+        gap: 1.2rem;
+        justify-content: center;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--drapso-border);
+        font-size: 0.7rem;
+        color: var(--drapso-gray);
+        flex-wrap: wrap;
+    }
+
+    .drapso-trust-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    /* Utilities */
+    .drapso-text-success { color: var(--drapso-green) !important; }
+    .drapso-text-danger { color: var(--drapso-orange) !important; }
+    .drapso-font-bold { font-weight: 700; }
+    .drapso-d-none { display: none; }
+    /* ===== PERFECT RESPONSIVE 2 COLUMN ===== */
+.drapso-two-columns {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 1.5rem;
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .drapso-two-columns {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .drapso-two-columns {
+        grid-template-columns: 1fr;
+    }
+}
+@media (max-width: 1000px) {
+
+    
+    /* 🔥 Fix input cutting */
+    .drapso-form-grid > * {
+        min-width: 0;
+    }
+
+    .drapso-input {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* 🔥 Reduce padding so it fits small screens */
+    .drapso-card {
+        padding: 14px;
+    }
+
+    /* 🔥 Prevent overflow */
+    .drapso-left-col,
+    .drapso-right-col {
+        width: 100%;
+    }
+
+}
+</style>
+
+<div class="drapso-checkout-root">
+<div class="drapso-checkout-container">
+    
+    <!-- Header -->
+    <div class="drapso-checkout-header">
+        <h1 class="drapso-checkout-title">
+            Checkout
+        </h1>
+<p class="drapso-checkout-subtitle">Complete your purchase securely with our 100% protected payment gateway. Free shipping across India. Easy returns within 7 days. 24/7 customer support available.</p>    </div>
+
+    <form method="POST" id="drapsoCheckoutForm">
         {% csrf_token %}
-        <div class="row g-4">
-            <div class="col-md-7">
-                <div class="card p-4 shadow-sm border-0 rounded-4">
-                    <h4 class="mb-4">Shipping Details</h4>
-                    
-                    <input type="hidden" name="shipping_charge" id="id_shipping_charge_hidden" value="0">
-                    <input type="hidden" name="courier_name" id="id_courier_name_hidden">
-                    <input type="hidden" name="courier_id" id="id_courier_id_hidden">
-                    <input type="hidden" name="estimated_delivery_date" id="id_estimated_delivery_date_hidden">
-                    <input type="hidden" name="pickup_address" id="id_pickup_address_hidden">
-                    <input type="hidden" name="pickup_pincode" id="id_pickup_pincode_hidden">
-                    <input type="hidden" name="pickup_address_type" id="id_pickup_address_type_hidden">
-                    
-                    <input type="hidden" name="weight" id="id_weight_hidden">
-                    <input type="hidden" name="length" id="id_length_hidden">
-                    <input type="hidden" name="breadth" id="id_breadth_hidden">
-                    <input type="hidden" name="height" id="id_height_hidden">
-
-                    <div class="row">
-                        {% for field in form %}
-                            <div class="{% if field.name == 'customer_name' or field.name == 'customer_email' or field.name == 'customer_phone' %}col-md-12{% else %}col-md-6{% endif %} mb-3">
-                                <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
-                                {{ field }}
+        
+        <div class="drapso-two-columns">
+            
+            <!-- LEFT COLUMN -->
+            <div class="drapso-left-col">
+                <div class="drapso-card">
+                    <div class="drapso-card-padding">
+                        <h4 class="drapso-shipping-title">
+                            <i class="fas fa-map-marker-alt" style="color: var(--drapso-orange);"></i>
+                            Shipping Details
+                        </h4>
+                        
+                        <!-- Hidden fields -->
+                        <input type="hidden" name="shipping_charge" id="drapsoShippingCharge" value="0">
+                        <input type="hidden" name="courier_name" id="drapsoCourierName">
+                        <input type="hidden" name="courier_id" id="drapsoCourierId">
+                        <input type="hidden" name="estimated_delivery_date" id="drapsoEstDelivery">
+                        <input type="hidden" name="pickup_address" id="drapsoPickupAddress">
+                        <input type="hidden" name="pickup_pincode" id="drapsoPickupPincode">
+                        <input type="hidden" name="pickup_address_type" id="drapsoPickupType">
+                        <input type="hidden" name="weight" id="drapsoWeight">
+                        <input type="hidden" name="length" id="drapsoLength">
+                        <input type="hidden" name="breadth" id="drapsoBreadth">
+                        <input type="hidden" name="height" id="drapsoHeight">
+                        
+                        <!-- Form fields in proper grid -->
+                        <div class="drapso-form-grid">
+                            {% for field in form %}
+                                <div class="drapso-field {% if field.name == 'customer_name' or field.name == 'customer_email' or field.name == 'customer_phone' or field.name == 'shipping_address' %}drapso-form-full{% endif %}">
+                                    <label class="drapso-label">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <small class="drapso-text-danger">{{ field.errors|striptags }}</small>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Pincode loading -->
+                        <div id="drapsoPincodeLoading" class="drapso-d-none">
+                            <div class="drapso-loader-box">
+                                <div class="drapso-spinner" style="border-top-color: var(--drapso-green);"></div>
+                                <span>Checking serviceability...</span>
                             </div>
-                        {% endfor %}
+                        </div>
+                        
+                        <!-- Submit button -->
+                        <button type="submit" class="drapso-checkout-btn" id="drapsoSubmitBtn" disabled>
+                            <span id="drapsoBtnText"><i class="fas fa-lock"></i> Proceed to Payment</span>
+                        </button>
                     </div>
-
-                    <div id="pincodeLoading" style="display:none;" class="text-primary small mb-3">
-                        <div class="spinner-border spinner-border-sm me-2"></div>
-                        Checking serviceability...
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-lg w-100 py-3 mt-3 shadow-sm" id="submitBtn" disabled>
-                        <span id="btnText"><i class="fas fa-lock me-2"></i> Proceed to Payment</span>
-                    </button>
                 </div>
             </div>
-
-            <div class="col-md-5">
-                <div class="card p-4 border-0 shadow-sm rounded-4 sticky-top" style="top: 20px;">
-                    <h5 class="mb-4">Order Summary</h5>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Subtotal</span>
-                        <span>₹<span id="productPriceDisplay">0.00</span></span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Shipping</span>
-                        <span class="text-success fw-bold">FREE</span>
-                    </div>
-                    <hr>
-                    <div class="d-flex justify-content-between fw-bold fs-4 mt-2">
-                        <span>Total</span>
-                        <span class="text-primary">₹<span id="totalAmountDisplay">0.00</span></span>
-                    </div>
-
-                    <div id="deliveryInfo" class="mt-3 p-3 rounded-3 bg-light text-center small" style="display:none;">
-                        <span id="deliveryMsg"></span>
+            
+            <!-- RIGHT COLUMN -->
+            <div class="drapso-right-col">
+                <div class="drapso-card drapso-sticky">
+                    <div class="drapso-card-padding">
+                        <h5 class="drapso-summary-title">
+                            <i class="fas fa-receipt" style="color: var(--drapso-green);"></i>
+                            Order Summary
+                        </h5>
+                        
+                        <!-- Product Image -->
+                        <div class="drapso-product-area">
+                            {% if variant and variant.main_image %}
+                                <img src="{{ variant.main_image.url }}" alt="{{ variant.variant_name }}" class="drapso-product-img">
+                            {% elif product.main_image %}
+                                <img src="{{ product.main_image.url }}" alt="{{ product.name }}" class="drapso-product-img">
+                            {% else %}
+                                <div class="drapso-product-placeholder">
+                                    <i class="fas fa-box-open"></i>
+                                </div>
+                            {% endif %}
+                            <div class="drapso-product-name">
+                                {% if variant %}
+                                    {{ variant.variant_name }}
+                                {% elif product %}
+                                    {{ product.name }}
+                                {% else %}
+                                    Premium Product
+                                {% endif %}
+                            </div>
+                            <div class="drapso-product-sku">
+                                SKU: {% if variant %}{{ variant.sku|default:"—" }}{% else %}{{ product.sku|default:"—" }}{% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Quantity - TWO WAY BINDING with LEFT form field -->
+                        <div class="drapso-quantity-section">
+                            <span class="drapso-quantity-label"><i class="fas fa-boxes"></i> Quantity</span>
+                            <input type="number" id="drapsoRightQuantity" value="1" min="1" class="drapso-quantity-input">
+                        </div>
+                        
+                        <!-- Prices -->
+                        <div class="drapso-summary-row">
+                            <span>Subtotal</span>
+                            <span class="drapso-font-bold">₹<span id="drapsoSubtotal">0.00</span></span>
+                        </div>
+                        <div class="drapso-summary-row">
+                            <span>Shipping</span>
+                            <span class="drapso-text-success drapso-font-bold">FREE</span>
+                        </div>
+                        <div class="drapso-summary-divider"></div>
+                        <div class="drapso-summary-row">
+                            <span class="drapso-total-label">Total</span>
+                            <span class="drapso-total-amount">₹<span id="drapsoTotal">0.00</span></span>
+                        </div>
+                        
+                        <!-- Delivery info -->
+                        <div id="drapsoDeliveryInfo" class="drapso-d-none">
+                            <div class="drapso-delivery-box">
+                                <i class="fas fa-truck-fast drapso-delivery-icon"></i>
+                                <span id="drapsoDeliveryMsg" class="drapso-font-bold"></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Trust badges -->
+                        <div class="drapso-trust-row">
+                            <span class="drapso-trust-item"><i class="fas fa-shield-alt" style="color: var(--drapso-green);"></i> Secure SSL</span>
+                            <span class="drapso-trust-item"><i class="fas fa-undo-alt" style="color: var(--drapso-orange);"></i> Easy Returns</span>
+                            <span class="drapso-trust-item"><i class="fas fa-headset"></i> 24/7 Support</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </form>
 </div>
+</div>
 
 <script>
-
-    /* ================= PRICE LOGIC ================= */
-
-    let basePrice = 0;
-
+    // Base price
+    let drapsoBasePrice = 0;
+    
     {% if product.source_type == "own" %}
-
         {% if variant %}
-            basePrice = Number("{{ variant.discounted_price|default:variant.selling_price }}");
+            drapsoBasePrice = Number("{{ variant.discounted_price|default:variant.selling_price }}");
         {% else %}
-            basePrice = Number("{{ product.discounted_price|default:product.selling_price }}");
+            drapsoBasePrice = Number("{{ product.discounted_price|default:product.selling_price }}");
         {% endif %}
-
     {% else %}
-
         {% if variant %}
-            basePrice = Number("{{ variant.selling_price }}");
+            drapsoBasePrice = Number("{{ variant.selling_price }}");
         {% else %}
-            basePrice = Number("{{ product.selling_price }}");
+            drapsoBasePrice = Number("{{ product.selling_price }}");
         {% endif %}
-
     {% endif %}
-
-    basePrice = basePrice || 0;
-
-
-    /* ================= ELEMENTS ================= */
-
-    const submitBtn = document.getElementById('submitBtn');
-    const btnText = document.getElementById('btnText');
-    const infoBox = document.getElementById('deliveryInfo');
-    const deliveryMsg = document.getElementById('deliveryMsg');
-
-    let timer;
-
-
-    /* ================= UPDATE SUMMARY ================= */
-
-    function updateSummary() {
-
+    
+    drapsoBasePrice = drapsoBasePrice || 0;
+    
+    // Elements
+    const drapsoSubmitBtn = document.getElementById('drapsoSubmitBtn');
+    const drapsoBtnText = document.getElementById('drapsoBtnText');
+    const drapsoDeliveryInfo = document.getElementById('drapsoDeliveryInfo');
+    const drapsoDeliveryMsg = document.getElementById('drapsoDeliveryMsg');
+    const drapsoRightQuantity = document.getElementById('drapsoRightQuantity');
+    const drapsoPincodeLoading = document.getElementById('drapsoPincodeLoading');
+    const drapsoSubtotalSpan = document.getElementById('drapsoSubtotal');
+    const drapsoTotalSpan = document.getElementById('drapsoTotal');
+    
+    // Get the LEFT form quantity field (the one in your Django form)
+    const drapsoLeftQuantity = document.querySelector('[name="quantity"]');
+    
+    let drapsoPincodeTimer;
+    let drapsoIsSyncing = false;
+    
+    // ========== UPDATE PRICE ONLY (IMMEDIATE) ==========
+    function drapsoUpdatePriceOnly() {
+        const qty = parseInt(drapsoLeftQuantity ? drapsoLeftQuantity.value : 1) || 1;
+        
+        // Update RIGHT display to match LEFT
+        if (drapsoRightQuantity && drapsoRightQuantity.value != qty) {
+            drapsoRightQuantity.value = qty;
+        }
+        
+        // Update price IMMEDIATELY
+        const productTotal = drapsoBasePrice * qty;
+        drapsoSubtotalSpan.innerText = productTotal.toFixed(2);
+        drapsoTotalSpan.innerText = productTotal.toFixed(2);
+    }
+    
+    // ========== CHECK SHIPPING (WITH DELAY FOR PINCODE) ==========
+    function drapsoCheckShipping() {
         const pincodeField = document.querySelector('[name="shipping_pincode"]');
         const pincode = pincodeField ? pincodeField.value.trim() : "";
-
-        const qtyField = document.querySelector('[name="quantity"]');
-        const qty = parseInt(qtyField ? qtyField.value : 1) || 1;
-
-
-        /* -------- PRICE CALCULATION -------- */
-
-        const productTotal = basePrice * qty;
-
-        document.getElementById('productPriceDisplay').innerText =
-            productTotal.toFixed(2);
-
-        document.getElementById('totalAmountDisplay').innerText =
-            productTotal.toFixed(2);
-
-
-        /* -------- UI LOCK -------- */
-
-        submitBtn.disabled = true;
-
-        btnText.innerHTML =
-            '<i class="fas fa-spinner fa-spin me-2"></i> Checking...';
-
-        infoBox.style.display = 'none';
-
-        deliveryMsg.innerHTML = "";
-
-
-        /* -------- PINCODE CHECK -------- */
-
+        const qty = parseInt(drapsoLeftQuantity ? drapsoLeftQuantity.value : 1) || 1;
+        
+        // Reset UI for shipping check
+        drapsoSubmitBtn.disabled = true;
+        drapsoBtnText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+        drapsoDeliveryInfo.classList.add('drapso-d-none');
+        
+        // Check pincode
         if (pincode.length === 6) {
-
-            document.getElementById('pincodeLoading').style.display = 'block';
-
-            const url =
-                `/orders/calculate-shipping/` +
-                `?product_id={{product.id}}` +
-                `&pincode=${pincode}` +
-                `&quantity=${qty}` +
-                `&store_id={{store.id}}` +
-                `{% if variant %}&variant_id={{variant.id}}{% endif %}`;
-
-
+            drapsoPincodeLoading.classList.remove('drapso-d-none');
+            
+            const url = `/orders/calculate-shipping/?product_id={{product.id}}&pincode=${pincode}&quantity=${qty}&store_id={{store.id}}{% if variant %}&variant_id={{variant.id}}{% endif %}`;
+            
             fetch(url)
-
                 .then(res => res.json())
-
                 .then(data => {
-
-                    document.getElementById('pincodeLoading').style.display = 'none';
-
-                    infoBox.style.display = 'block';
-
-
+                    drapsoPincodeLoading.classList.add('drapso-d-none');
+                    drapsoDeliveryInfo.classList.remove('drapso-d-none');
+                    
                     if (data.success && data.delivery_time) {
-
-                        /* -------- SUCCESS -------- */
-
-                        deliveryMsg.className =
-                            'text-success fw-bold';
-
-                        deliveryMsg.innerHTML =
-                            `<i class="fas fa-truck-fast me-2"></i>
-                            Est. Delivery: ${data.delivery_time}`;
-
-
-                        /* -------- MAP HIDDEN FIELDS -------- */
-
-                        document.getElementById('id_courier_id_hidden').value =
-                            data.courier_id;
-
-                        document.getElementById('id_courier_name_hidden').value =
-                            data.courier_name;
-
-                        document.getElementById('id_estimated_delivery_date_hidden').value =
-                            data.delivery_time;
-
-                        document.getElementById('id_weight_hidden').value =
-                            data.weight;
-
-                        document.getElementById('id_length_hidden').value =
-                            data.length;
-
-                        document.getElementById('id_breadth_hidden').value =
-                            data.breadth;
-
-                        document.getElementById('id_height_hidden').value =
-                            data.height;
-
-                        document.getElementById('id_pickup_address_hidden').value =
-                            data.pickup_address;
-
-                        document.getElementById('id_pickup_pincode_hidden').value =
-                            data.pickup_pincode;
-
-                        document.getElementById('id_pickup_address_type_hidden').value =
-                            data.pickup_location_type;
-
-
-                        /* -------- ENABLE BUTTON -------- */
-
-                        submitBtn.disabled = false;
-
-                        btnText.innerHTML =
-                            '<i class="fas fa-check-circle me-2"></i> Proceed to Payment';
-
+                        drapsoDeliveryMsg.innerHTML = `✅ Est. Delivery: ${data.delivery_time}`;
+                        drapsoDeliveryMsg.style.color = "var(--drapso-green)";
+                        
+                        // Hidden fields
+                        document.getElementById('drapsoCourierId').value = data.courier_id || '';
+                        document.getElementById('drapsoCourierName').value = data.courier_name || '';
+                        document.getElementById('drapsoEstDelivery').value = data.delivery_time || '';
+                        document.getElementById('drapsoWeight').value = data.weight || '';
+                        document.getElementById('drapsoLength').value = data.length || '';
+                        document.getElementById('drapsoBreadth').value = data.breadth || '';
+                        document.getElementById('drapsoHeight').value = data.height || '';
+                        document.getElementById('drapsoPickupAddress').value = data.pickup_address || '';
+                        document.getElementById('drapsoPickupPincode').value = data.pickup_pincode || '';
+                        document.getElementById('drapsoPickupType').value = data.pickup_location_type || '';
+                        
+                        drapsoSubmitBtn.disabled = false;
+                        drapsoBtnText.innerHTML = '<i class="fas fa-check-circle"></i> Proceed to Payment';
+                    } else {
+                        drapsoDeliveryMsg.innerHTML = `⚠️ ${data.error || 'Not serviceable at this pincode'}`;
+                        drapsoDeliveryMsg.style.color = "var(--drapso-orange)";
+                        drapsoSubmitBtn.disabled = true;
+                        drapsoBtnText.innerHTML = '<i class="fas fa-lock"></i> Proceed to Payment';
                     }
-
-                    else {
-
-                        /* -------- NOT SERVICEABLE -------- */
-
-                        deliveryMsg.className =
-                            'text-danger fw-bold';
-
-                        deliveryMsg.innerHTML =
-                            `<i class="fas fa-exclamation-circle me-2"></i>
-                            ${data.error || 'Not serviceable at this pincode'}`;
-
-
-                        submitBtn.disabled = true;
-
-                        btnText.innerHTML =
-                            '<i class="fas fa-lock me-2"></i> Proceed to Payment';
-
-                    }
-
                 })
-
                 .catch(err => {
-
-                    document.getElementById('pincodeLoading').style.display = 'none';
-
-                    submitBtn.disabled = true;
-
-                    btnText.innerHTML =
-                        '<i class="fas fa-lock me-2"></i> Proceed to Payment';
-
-                    console.error("Shipping check failed:", err);
-
+                    drapsoPincodeLoading.classList.add('drapso-d-none');
+                    drapsoDeliveryInfo.classList.remove('drapso-d-none');
+                    drapsoDeliveryMsg.innerHTML = '🔌 Network error. Please try again.';
+                    drapsoDeliveryMsg.style.color = "var(--drapso-orange)";
+                    drapsoSubmitBtn.disabled = true;
+                    console.error(err);
                 });
-
+        } else {
+            drapsoPincodeLoading.classList.add('drapso-d-none');
+            drapsoBtnText.innerHTML = '<i class="fas fa-lock"></i> Proceed to Payment';
+            if (pincode.length > 0 && pincode.length !== 6) {
+                drapsoDeliveryInfo.classList.remove('drapso-d-none');
+                drapsoDeliveryMsg.innerHTML = '📍 Enter 6-digit pincode';
+                drapsoDeliveryMsg.style.color = "var(--drapso-orange)";
+            }
         }
-
-        else {
-
-            btnText.innerHTML =
-                '<i class="fas fa-lock me-2"></i> Proceed to Payment';
-
-        }
-
     }
-
-
-    /* ================= EVENTS ================= */
-
-    document
-        .querySelector('[name="shipping_pincode"]')
-        .addEventListener('input', () => {
-
-            submitBtn.disabled = true;
-
-            infoBox.style.display = 'none';
-
-            clearTimeout(timer);
-
-            timer = setTimeout(updateSummary, 700);
-
+    
+    // ========== SYNC FUNCTIONS ==========
+    function drapsoSyncLeftToRight() {
+        if (drapsoIsSyncing) return;
+        drapsoIsSyncing = true;
+        
+        if (drapsoLeftQuantity && drapsoRightQuantity) {
+            const leftVal = parseInt(drapsoLeftQuantity.value) || 1;
+            if (drapsoRightQuantity.value != leftVal) {
+                drapsoRightQuantity.value = leftVal;
+            }
+        }
+        
+        drapsoIsSyncing = false;
+    }
+    
+    function drapsoSyncRightToLeft() {
+        if (drapsoIsSyncing) return;
+        drapsoIsSyncing = true;
+        
+        if (drapsoLeftQuantity && drapsoRightQuantity) {
+            const rightVal = parseInt(drapsoRightQuantity.value) || 1;
+            if (drapsoLeftQuantity.value != rightVal) {
+                drapsoLeftQuantity.value = rightVal;
+                // Update price immediately when right quantity changes
+                drapsoUpdatePriceOnly();
+            }
+        }
+        
+        drapsoIsSyncing = false;
+    }
+    
+    // ========== EVENT HANDLERS ==========
+    
+    // LEFT quantity change - update price IMMEDIATELY, then check shipping with delay
+    if (drapsoLeftQuantity) {
+        drapsoLeftQuantity.addEventListener('input', function() {
+            // Update price instantly
+            drapsoUpdatePriceOnly();
+            drapsoSyncLeftToRight();
+            
+            // Clear previous timer and set new one for shipping check
+            clearTimeout(drapsoPincodeTimer);
+            drapsoPincodeTimer = setTimeout(drapsoCheckShipping, 500);
         });
-
-
-    const qtyInput = document.querySelector('[name="quantity"]');
-
-    if (qtyInput) {
-
-        qtyInput.addEventListener('change', updateSummary);
-
+        
+        drapsoLeftQuantity.addEventListener('change', function() {
+            drapsoUpdatePriceOnly();
+            drapsoSyncLeftToRight();
+            clearTimeout(drapsoPincodeTimer);
+            drapsoPincodeTimer = setTimeout(drapsoCheckShipping, 500);
+        });
     }
-
-
-    /* ================= INITIAL LOAD ================= */
-
-    window.onload = updateSummary;
-
+    
+    // RIGHT quantity change - update left and price IMMEDIATELY
+    if (drapsoRightQuantity) {
+        drapsoRightQuantity.addEventListener('input', function() {
+            drapsoSyncRightToLeft();
+            // Price already updated in sync function, now check shipping with delay
+            clearTimeout(drapsoPincodeTimer);
+            drapsoPincodeTimer = setTimeout(drapsoCheckShipping, 500);
+        });
+        
+        drapsoRightQuantity.addEventListener('change', function() {
+            drapsoSyncRightToLeft();
+            clearTimeout(drapsoPincodeTimer);
+            drapsoPincodeTimer = setTimeout(drapsoCheckShipping, 500);
+        });
+    }
+    
+    // Pincode field - only check shipping, not price
+    const drapsoPincodeField = document.querySelector('[name="shipping_pincode"]');
+    if (drapsoPincodeField) {
+        drapsoPincodeField.addEventListener('input', () => {
+            clearTimeout(drapsoPincodeTimer);
+            drapsoPincodeTimer = setTimeout(drapsoCheckShipping, 700);
+        });
+    }
+    
+    // Add class to inputs
+    window.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('#drapsoCheckoutForm input, #drapsoCheckoutForm select, #drapsoCheckoutForm textarea').forEach(el => {
+            if (el.type !== 'hidden' && !el.classList.contains('drapso-quantity-input')) {
+                el.classList.add('drapso-input');
+            }
+        });
+        
+        // Initial update
+        drapsoUpdatePriceOnly();
+        drapsoCheckShipping();
+    });
+    
+    // Form submit
+    document.getElementById('drapsoCheckoutForm')?.addEventListener('submit', function(e) {
+        if (drapsoSubmitBtn.disabled) {
+            e.preventDefault();
+            alert("Please wait, checking delivery availability...");
+            return false;
+        }
+    });
 </script>
 {% endblock %}

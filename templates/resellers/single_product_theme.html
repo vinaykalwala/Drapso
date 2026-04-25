@@ -163,7 +163,8 @@ Available Variants
 
 {% for variant in product.variants.all %}
 
-<div class="variant {% if forloop.first %}active{% endif %}"
+<div class="variant"
+data-id="{{ variant.id }}"
 
 data-img="{% if variant.main_image %}{{ variant.main_image.url }}{% elif product.main_image %}{{ product.main_image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}"
 
@@ -316,20 +317,15 @@ No variants available for this product
             </div>
             
            <div class="btn-row">
-
 <button class="btn buy"
-
-{% if is_preview %}
-disabled
-style="opacity:.6;cursor:not-allowed;"
-{% endif %}
-
->
-
-Buy Now
-
+        id="buyNowBtn"
+        data-product-id="{{ product.id }}"
+        data-store-id="{{ store.id }}"
+        {% if is_preview %}
+        disabled style="opacity:.6;cursor:not-allowed;"
+        {% endif %}>
+    Buy Now
 </button>
-
 </div>
         </div>
     </div>
@@ -477,259 +473,169 @@ Contact support for returns
 </div>
 
 <script>
+let currentVariantId = null;
 
 document.addEventListener("DOMContentLoaded", function() {
 
-const gallery = document.getElementById('gallery');
-const mainImg = document.getElementById('main');
-const backBtn = document.getElementById('backBtn');
+    const gallery = document.getElementById('gallery');
+    const mainImg = document.getElementById('main');
+    const backBtn = document.getElementById('backBtn');
 
-/* store original product data */
+    /* store original product data */
+    let originalData = {
+        mainSrc: mainImg ? mainImg.src : '',
+        galleryImgs: [],
+        price: document.getElementById('price')?.innerHTML || '',
+        specs: document.getElementById('specs')?.innerHTML || '',
+        desc: document.getElementById('desc')?.innerText || ''
+    };
 
-let originalData = {
+    /* store original gallery */
+    if (gallery){
+        gallery.querySelectorAll('img').forEach(img=>{
+            originalData.galleryImgs.push(img.src);
+        });
+    }
 
-mainSrc: mainImg ? mainImg.src : '',
+    /* gallery click */
+    if (gallery){
+        gallery.addEventListener('click',function(e){
+            if(e.target.tagName==="IMG"){
+                document.querySelectorAll('#gallery img').forEach(i=>i.classList.remove('active'));
+                e.target.classList.add('active');
+                mainImg.src = e.target.src;
+            }
+        });
+    }
 
-galleryImgs: [],
+    /* BACK BUTTON */
+    if (backBtn){
+        backBtn.addEventListener('click',function(){
 
-price: document.getElementById('price') ? document.getElementById('price').innerHTML : '',
+            // reset image
+            mainImg.src = originalData.mainSrc;
 
-specs: document.getElementById('specs') ? document.getElementById('specs').innerHTML : '',
+            // reset gallery
+            let html="";
+            originalData.galleryImgs.forEach((img,index)=>{
+                html += `<img src="${img}" class="${index==0?'active':''}">`;
+            });
+            gallery.innerHTML = html;
 
-desc: document.getElementById('desc') ? document.getElementById('desc').innerText : ''
+            // reset price
+            document.getElementById('price').innerHTML = originalData.price;
 
-};
+            // reset specs
+            document.getElementById('specs').innerHTML = originalData.specs;
 
+            // reset desc
+            document.getElementById('desc').innerText = originalData.desc;
 
+            // reset variants
+            document.querySelectorAll('.variant').forEach(v=>v.classList.remove('active'));
 
-/* store original gallery */
+            // 🔥 IMPORTANT FIX
+            currentVariantId = null;
 
-if (gallery){
+            backBtn.style.display="none";
+        });
+    }
 
-gallery.querySelectorAll('img').forEach(img=>{
+    /* VARIANT CLICK (MAIN LOGIC) */
+    document.querySelectorAll(".variant").forEach(v=>{
+        v.addEventListener("click",function(){
 
-originalData.galleryImgs.push(img.src);
+            // remove all active
+            document.querySelectorAll(".variant").forEach(x=>x.classList.remove("active"));
+
+            // set active
+            this.classList.add("active");
+
+            // 🔥 STORE VARIANT ID (CRITICAL)
+            currentVariantId = this.dataset.id;
+
+            const imgSrc = this.dataset.img;
+            const galleryData = this.dataset.gallery ? JSON.parse(this.dataset.gallery) : [];
+            const price = this.dataset.price;
+            const oldPrice = this.dataset.oldprice;
+            const size = this.dataset.size;
+            const color = this.dataset.color;
+            const material = this.dataset.material;
+            const weight = this.dataset.weight;
+            const length = this.dataset.length;
+            const breadth = this.dataset.breadth;
+            const height = this.dataset.height;
+            const desc = this.dataset.desc;
+
+            // change main image
+            if(imgSrc){
+                mainImg.src = imgSrc;
+            }
+
+            // update gallery
+            if(galleryData.length){
+                let html="";
+                galleryData.forEach((img,index)=>{
+                    html+=`<img src="${img}" class="${index==0?'active':''}">`;
+                });
+                gallery.innerHTML = html;
+            }
+
+            // update price
+            let priceHtml = `₹${price}`;
+            if(oldPrice && oldPrice !== ''){
+                priceHtml += ` <span class="old">₹${oldPrice}</span>`;
+            }
+            document.getElementById("price").innerHTML = priceHtml;
+
+            // update desc
+            document.getElementById("desc").innerText = desc;
+
+            // update specs
+            document.getElementById("specs").innerHTML = `
+                <div class="spec">Size: ${size}</div>
+                <div class="spec">Color: ${color}</div>
+                <div class="spec">Material: ${material}</div>
+                <div class="spec">Weight: ${weight} kg</div>
+                <div class="spec">Length: ${length} cm</div>
+                <div class="spec">Breadth: ${breadth} cm</div>
+                <div class="spec">Height: ${height} cm</div>
+            `;
+
+            // show back button
+            if(backBtn){
+                backBtn.style.display="block";
+            }
+
+        });
+    });
+
+    /* BUY NOW */
+    const btn = document.getElementById("buyNowBtn");
+
+    if (btn){
+        btn.addEventListener("click", function () {
+
+            const productId = this.dataset.productId;
+            const storeId = this.dataset.storeId;
+
+            if (!productId){
+                alert("Product ID missing");
+                return;
+            }
+
+            let url = `/orders/store/${storeId}/product/${productId}/checkout/?buy_now=1`;
+
+            if (currentVariantId){
+                url += `&variant_id=${currentVariantId}`;
+            }
+
+            window.location.href = url;
+        });
+    }
 
 });
-
-}
-
-
-
-/* gallery click */
-
-if (gallery){
-
-gallery.addEventListener('click',function(e){
-
-if(e.target.tagName==="IMG"){
-
-document.querySelectorAll('#gallery img').forEach(i=>i.classList.remove('active'));
-
-e.target.classList.add('active');
-
-mainImg.src = e.target.src;
-
-}
-
-});
-
-}
-
-
-
-/* back to main product */
-
-if (backBtn){
-
-backBtn.addEventListener('click',function(){
-
-mainImg.src = originalData.mainSrc;
-
-
-
-/* reset gallery */
-
-let html="";
-
-originalData.galleryImgs.forEach((img,index)=>{
-
-html += `<img src="${img}" class="${index==0?'active':''}">`;
-
-});
-
-gallery.innerHTML = html;
-
-
-
-/* reset price */
-
-document.getElementById('price').innerHTML = originalData.price;
-
-
-
-/* reset specs */
-
-document.getElementById('specs').innerHTML = originalData.specs;
-
-
-
-/* reset desc */
-
-document.getElementById('desc').innerText = originalData.desc;
-
-
-
-/* reset variant active */
-
-document.querySelectorAll('.variant').forEach(v=>v.classList.remove('active'));
-
-if(document.querySelector('.variant'))
-
-document.querySelector('.variant').classList.add('active');
-
-
-
-backBtn.style.display="none";
-
-});
-
-}
-
-
-
-/* variant click */
-
-document.querySelectorAll(".variant").forEach(v=>{
-
-v.addEventListener("click",function(){
-
-
-
-document.querySelectorAll(".variant")
-
-.forEach(x=>x.classList.remove("active"));
-
-
-
-this.classList.add("active");
-
-
-
-const imgSrc = this.dataset.img;
-
-const galleryData = this.dataset.gallery ? JSON.parse(this.dataset.gallery) : [];
-
-const price = this.dataset.price;
-
-const oldPrice = this.dataset.oldprice;
-
-const size = this.dataset.size;
-
-const color = this.dataset.color;
-
-const material = this.dataset.material;
-
-const weight = this.dataset.weight;
-
-const length = this.dataset.length;
-
-const breadth = this.dataset.breadth;
-
-const height = this.dataset.height;
-
-const desc = this.dataset.desc;
-
-
-
-/* change MAIN IMAGE ONLY */
-
-if(imgSrc){
-
-mainImg.src = imgSrc;
-
-}
-
-
-
-/* update gallery */
-
-if(galleryData.length){
-
-let html="";
-
-galleryData.forEach((img,index)=>{
-
-html+=`<img src="${img}" class="${index==0?'active':''}">`;
-
-});
-
-gallery.innerHTML = html;
-
-}
-
-
-
-/* update price */
-
-let priceHtml = `₹${price}`;
-
-if(oldPrice && oldPrice !== ''){
-
-priceHtml += ` <span class="old">₹${oldPrice}</span>`;
-
-}
-
-document.getElementById("price").innerHTML = priceHtml;
-
-
-
-/* update short desc */
-
-document.getElementById("desc").innerText = desc;
-
-
-
-/* update small specs */
-
-document.getElementById("specs").innerHTML = `
-
-<div class="spec">Size: ${size}</div>
-
-<div class="spec">Color: ${color}</div>
-
-<div class="spec">Material: ${material}</div>
-
-<div class="spec">Weight: ${weight} kg</div>
-
-<div class="spec">Length: ${length} cm</div>
-
-<div class="spec">Breadth: ${breadth} cm</div>
-
-<div class="spec">Height: ${height} cm</div>
-
-`;
-
-
-
-/* show back button */
-
-if(backBtn){
-
-backBtn.style.display="block";
-
-}
-
-});
-
-});
-
-
-
-});
-
 </script>
-
 <style>
 /* ===================== COMPLETE STYLES ===================== */
 
