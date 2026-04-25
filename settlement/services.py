@@ -112,14 +112,15 @@ class DrapsoSettlementService:
     @transaction.atomic
     def process_order_payment(cls, order):
         """
-        Process order payment and create settlement records
+        Process order payment and create settlement records.
+        Credits Drapso commission to the Superuser wallet.
         """
         from .models import OrderSettlement, Wallet
         from accounts.models import User
         
         settlement_data = cls.calculate_settlement(order)
         
-        # Create settlement record
+        # 1. Create settlement record
         settlement = OrderSettlement.objects.create(
             order=order,
             order_total=settlement_data['customer_payment'],
@@ -133,7 +134,7 @@ class DrapsoSettlementService:
             status='IN_ESCROW'
         )
         
-        # Update Wholesaler Escrow (Imported Only)
+        # 2. Update Wholesaler Escrow (Imported Only)
         if settlement_data['is_imported'] and order.wholeseller:
             wh_wallet, _ = Wallet.objects.get_or_create(user=order.wholeseller)
             wh_wallet.add_to_escrow(
@@ -142,7 +143,7 @@ class DrapsoSettlementService:
                 order_id=order.order_id
             )
         
-        # Update Reseller Escrow
+        # 3. Update Reseller Escrow
         if order.reseller:
             res_wallet, _ = Wallet.objects.get_or_create(user=order.reseller)
             res_wallet.add_to_escrow(
@@ -151,14 +152,31 @@ class DrapsoSettlementService:
                 order_id=order.order_id
             )
         
-        # Update Platform Commission Wallet
-        platform_user = User.objects.get(username='platform')
-        plat_wallet, _ = Wallet.objects.get_or_create(user=platform_user)
-        comm = settlement_data['deductions']['drapso_commission']
-        plat_wallet.available_balance += comm
-        plat_wallet.total_credited += comm
-        plat_wallet.save()
+        # 4. Update Platform Commission (Sent to Superuser)
+        # Find the first superuser in the system
+        platform_owner = User.objects.filter(is_superuser=True).first()
         
+        if platform_owner:
+            plat_wallet, _ = Wallet.objects.get_or_create(user=platform_owner)
+            comm = settlement_data['deductions']['drapso_commission']
+            
+            # Crediting directly to available_balance as platform commission usually isn't held in escrow
+            plat_wallet.available_balance += comm
+            plat_wallet.total_credited += comm
+            plat_wallet.save()
+            
+            # Optional: Create a transaction record for the platform owner
+            from .models import WalletTransaction
+            WalletTransaction.objects.create(
+                wallet=plat_wallet,
+                amount=comm,
+                transaction_type='PLATFORM_COMMISSION',
+                description=f"Commission from Order {order.order_id}",
+                balance_after=plat_wallet.available_balance,
+                order_id=order.order_id
+            )
+        else:
+            pass
         return settlement_data, settlement
 
     @classmethod
