@@ -156,21 +156,37 @@ class Order(models.Model):
         if not self.order_id:
             self.order_id = f"ORD{timezone.now().strftime('%Y%m%d')}{uuid.uuid4().hex[:8].upper()}"
         
-        # 2. Populate SKU/HSN from Product/Variant for new objects
+        # 2. Detect change in actual_shipping_cost for existing orders
+        trigger_settlement_update = False
+        if self.pk:
+            try:
+                old_instance = Order.objects.get(pk=self.pk)
+                # If the cost has changed (even if manually in Admin)
+                if old_instance.actual_shipping_cost != self.actual_shipping_cost:
+                    trigger_settlement_update = True
+            except Order.DoesNotExist:
+                pass
+
+        # 3. Populate SKU/HSN from Product/Variant for new objects
         if not self.pk:
-            # Determine source (Variant takes priority over Product)
             source = self.variant if self.variant else self.product
             if source:
                 if not self.sku:
                     self.sku = getattr(source, 'sku', None)
                 if not self.hsn_code:
-                    # Default to '0000' if HSN is missing to avoid Shiprocket errors
                     self.hsn_code = getattr(source, 'hsn_code', "0000")
 
-        # 3. Ensure label_url length doesn't cause silent save failures
-        # (Already handled by the model field max_length=1000)
-
+        # Perform the actual save
         super().save(*args, **kwargs)
+
+        # 4. Trigger Settlement Recalculation if cost changed
+        if trigger_settlement_update:
+            from settlement.services import DrapsoSettlementService
+            try:
+                DrapsoSettlementService.recalculate_after_shipping(self)
+            except Exception as e:
+                # Log the error but don't crash the save process
+                print(f"Error updating settlement after manual cost change: {e}")
 
     def __str__(self):
         return f"{self.order_id} - {self.customer_name}"

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'theme_manager',
     'orders',
     'shiprocket',
+    'settlement',
 ]
 
 MIDDLEWARE = [
@@ -146,6 +147,7 @@ AUTHENTICATION_BACKENDS = [
 RAZORPAY_KEY_ID = 'rzp_test_KdiESTDcHPC74B'
 RAZORPAY_KEY_SECRET = 'F8aPdLzdQKLt3RmgTWFcnYBG'
 RAZORPAY_CURRENCY = 'INR'
+RAZORPAYX_ACCOUNT_NUMBER = '2323232323232323'
 
 SUBSCRIPTION_CURRENCY = "INR"
 
@@ -174,5 +176,3 @@ SHIPROCKET_PASSWORD = 'rGe&NvTK@Xw9e@n&Ltbul1bTL8CIBKiE'
 SHIPROCKET_BASE_URL = 'https://apiv2.shiprocket.in/v1/external'
 SHIPROCKET_WEBHOOK_SECRET = ''
 
-
-# MAIN_WEBSITE_URL = "drapso.com"

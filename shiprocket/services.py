@@ -703,39 +703,27 @@ class ShiprocketService:
     # ==========================================
     def get_order_by_shiprocket_id(self, shiprocket_order_id):
         """
-        Fetch a single order using Shiprocket order_id
+        Fetches full order details. Note: Actual freight usually 
+        appears in 'shipments' -> 'awb_data' after pickup.
         """
         url = f"{self.base_url}/orders/show/{shiprocket_order_id}"
-
         try:
-            response = requests.get(
-                url,
-                headers=self._get_headers(),
-                timeout=30
-            )
-
+            response = requests.get(url, headers=self._get_headers(), timeout=30)
+            
+            # Re-auth if token expired
             if response.status_code == 401:
                 self._authenticate()
                 response = requests.get(url, headers=self._get_headers(), timeout=30)
 
             if response.status_code == 200:
-                data = response.json()
                 return {
                     "success": True,
-                    "order": data.get("data", {})
+                    "order": response.json().get("data", {})
                 }
-
-            return {
-                "success": False,
-                "error": response.text
-            }
-
+            return {"success": False, "error": response.text}
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e)
-            }
-
+            return {"success": False, "error": str(e)}
+            
 
     # ==========================================
     # 🚚 FETCH ORDER BY SHIPMENT ID (BEST)

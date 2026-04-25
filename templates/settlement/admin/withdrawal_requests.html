@@ -1,0 +1,95 @@
+
+{% load static %}
+
+{% block title %}Withdrawal Requests - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Withdrawal Requests</h2>
+            <hr>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="btn-group">
+                <a href="?status=" class="btn {% if not status_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">All</a>
+                {% for status_code, status_label in status_choices %}
+                    <a href="?status={{ status_code }}" class="btn {% if status_filter == status_code %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        {{ status_label }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Withdrawals Table -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Seller</th>
+                                    <th>Amount</th>
+                                    <th>Bank Account</th>
+                                    <th>NEFT Fee</th>
+                                    <th>Status</th>
+                                    <th>Requested</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for withdrawal in withdrawals %}
+                                <tr>
+                                    <td><code>{{ withdrawal.id|slice:":8" }}...</code></td>
+                                    <td>
+                                        <strong>{{ withdrawal.wallet.user.username }}</strong><br>
+                                        <small>{{ withdrawal.wallet.user.get_role_display }}</small><br>
+                                        <small>{{ withdrawal.wallet.user.email }}</small>
+                                    </td>
+                                    <td class="text-success font-weight-bold">₹{{ withdrawal.amount|floatformat:2 }}</td>
+                                    <td>
+                                        {{ withdrawal.bank_name }}<br>
+                                        {{ withdrawal.account_number }}<br>
+                                        <small>IFSC: {{ withdrawal.ifsc_code }}</small>
+                                    </td>
+                                    <td>₹{{ withdrawal.neft_fee|floatformat:2 }}</td>
+                                    <td>
+                                        {% if withdrawal.status == 'PENDING' %}
+                                            <span class="badge badge-warning">Pending</span>
+                                        {% elif withdrawal.status == 'APPROVED' %}
+                                            <span class="badge badge-info">Approved</span>
+                                        {% elif withdrawal.status == 'COMPLETED' %}
+                                            <span class="badge badge-success">Completed</span>
+                                        {% elif withdrawal.status == 'REJECTED' %}
+                                            <span class="badge badge-danger">Rejected</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ withdrawal.requested_at|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'settlement:admin_withdrawal_detail' withdrawal.id %}" class="btn btn-sm btn-primary">
+                                            View & Act
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center">No withdrawal requests found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

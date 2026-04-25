@@ -1,0 +1,141 @@
+
+{% load static %}
+
+{% block title %}Wallet Dashboard - Drapso{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>My Wallet</h2>
+            <hr>
+        </div>
+    </div>
+    
+    <!-- Balance Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Available Balance</h5>
+                    <h2 class="card-text">₹{{ wallet.available_balance|floatformat:2 }}</h2>
+                    <small>Ready for withdrawal</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">In Escrow</h5>
+                    <h2 class="card-text">₹{{ wallet.escrow_balance|floatformat:2 }}</h2>
+                    <small>Will be available after delivery + 3 days</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Withdrawal</h5>
+                    <h2 class="card-text">₹{{ wallet.pending_withdrawal|floatformat:2 }}</h2>
+                    <small>Awaiting admin approval</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-secondary">
+                <div class="card-body">
+                    <h5 class="card-title">Total Earned</h5>
+                    <h2 class="card-text">₹{{ wallet.total_credited|floatformat:2 }}</h2>
+                    <small>Lifetime earnings</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Withdrawal Info -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Withdrawal Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Minimum Withdrawal:</strong> ₹{{ minimum_withdrawal }}</p>
+                    <p><strong>Weekly Limit:</strong> ₹{{ weekly_limit }}</p>
+                    <p><strong>Withdrawn This Week:</strong> ₹{{ weekly_withdrawn|floatformat:2 }}</p>
+                    <p><strong>Remaining This Week:</strong> ₹{{ weekly_limit|add:weekly_withdrawn|floatformat:2 }}</p>
+                    <p><strong>NEFT Fee:</strong> ₹{{ neft_fee.total|floatformat:2 }} (₹{{ neft_fee.fee }} + ₹{{ neft_fee.gst }} GST)</p>
+                    <p><small class="text-muted">Note: NEFT fees are paid by Drapso, not deducted from your withdrawal.</small></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Quick Actions</h5>
+                </div>
+                <div class="card-body text-center">
+                    {% if wallet.available_balance >= minimum_withdrawal %}
+                        <a href="{% url 'settlement:withdrawal_request' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-rupee-sign"></i> Request Withdrawal
+                        </a>
+                    {% else %}
+                        <button class="btn btn-secondary btn-lg" disabled>
+                            Minimum withdrawal ₹{{ minimum_withdrawal }}
+                        </button>
+                    {% endif %}
+                    <a href="{% url 'settlement:withdrawal_history' %}" class="btn btn-outline-info btn-lg ml-2">
+                        <i class="fas fa-history"></i> View History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Transactions -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recent Transactions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tx in recent_transactions %}
+                                <tr>
+                                    <td>{{ tx.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td>{{ tx.get_transaction_type_display }}</td>
+                                    <td class="{% if tx.transaction_type == 'ESCROW_CREDIT' or tx.transaction_type == 'ESCROW_RELEASE' %}text-success{% else %}text-danger{% endif %}">
+                                        {% if tx.transaction_type == 'WITHDRAWAL_HOLD' or tx.transaction_type == 'WITHDRAWAL_COMPLETED' or tx.transaction_type == 'WITHDRAWAL_REJECTED' %}
+                                            -₹{{ tx.amount|floatformat:2 }}
+                                        {% else %}
+                                            +₹{{ tx.amount|floatformat:2 }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ tx.description|truncatechars:50 }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No transactions found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <a href="{% url 'settlement:transaction_history' %}" class="btn btn-link">View All Transactions</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

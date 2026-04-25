@@ -1,0 +1,396 @@
+
+{% load static %}
+
+{% block title %}Withdrawal Request Details - Admin{% endblock %}
+
+{% block extrastyle %}
+<style>
+    .detail-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+    .detail-header {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-bottom: 1px solid #e9ecef;
+        font-weight: 600;
+        font-size: 16px;
+    }
+    .detail-body {
+        padding: 20px;
+    }
+    .info-row {
+        display: flex;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .info-label {
+        width: 180px;
+        font-weight: 600;
+        color: #495057;
+    }
+    .info-value {
+        flex: 1;
+        color: #212529;
+    }
+    .badge-pending {
+        background: #ffc107;
+        color: #856404;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .badge-approved {
+        background: #17a2b8;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .badge-completed {
+        background: #28a745;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .badge-rejected {
+        background: #dc3545;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .action-form {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+    .btn-approve {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+    .btn-reject {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+    .btn-approve:hover, .btn-reject:hover {
+        opacity: 0.9;
+    }
+    .rejection-reason {
+        margin-top: 15px;
+        display: none;
+    }
+    .rejection-reason.show {
+        display: block;
+    }
+    textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 5px;
+        margin-top: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'settlement:admin_withdrawal_requests' %}">Withdrawal Requests</a></li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Seller Information Card -->
+            <div class="detail-card">
+                <div class="detail-header">
+                    <i class="fas fa-user"></i> Seller Information
+                </div>
+                <div class="detail-body">
+                    <div class="info-row">
+                        <div class="info-label">Username:</div>
+                        <div class="info-value">{{ withdrawal.wallet.user.username }}</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">Role:</div>
+                        <div class="info-value">{{ withdrawal.wallet.user.get_role_display }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Email:</div>
+                        <div class="info-value">{{ withdrawal.wallet.user.email }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Phone:</div>
+                        <div class="info-value">{{ withdrawal.wallet.user.phone }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Withdrawal Details Card -->
+            <div class="detail-card">
+                <div class="detail-header">
+                    <i class="fas fa-money-bill-wave"></i> Withdrawal Details
+                </div>
+                <div class="detail-body">
+                    <div class="info-row">
+                        <div class="info-label">Request ID:</div>
+                        <div class="info-value"><code>{{ withdrawal.id }}</code></div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Amount:</div>
+                        <div class="info-value"><strong style="color: #28a745; font-size: 18px;">₹{{ withdrawal.amount|floatformat:2 }}</strong></div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">NEFT Fee:</div>
+                        <div class="info-value">₹{{ withdrawal.neft_fee|floatformat:2 }} (paid by Drapso)</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Status:</div>
+                        <div class="info-value">
+                            {% if withdrawal.status == 'PENDING' %}
+                                <span class="badge-pending">Pending Admin Approval</span>
+                            {% elif withdrawal.status == 'APPROVED' %}
+                                <span class="badge-approved">Approved - Processing</span>
+                            {% elif withdrawal.status == 'COMPLETED' %}
+                                <span class="badge-completed">Completed</span>
+                            {% elif withdrawal.status == 'REJECTED' %}
+                                <span class="badge-rejected">Rejected</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Requested At:</div>
+                        <div class="info-value">{{ withdrawal.requested_at|date:"Y-m-d H:i:s" }}</div>
+                    </div>
+                    {% if withdrawal.approved_at %}
+                    <div class="info-row">
+                        <div class="info-label">Approved At:</div>
+                        <div class="info-value">{{ withdrawal.approved_at|date:"Y-m-d H:i:s" }}</div>
+                    </div>
+                    {% endif %}
+                    {% if withdrawal.completed_at %}
+                    <div class="info-row">
+                        <div class="info-label">Completed At:</div>
+                        <div class="info-value">{{ withdrawal.completed_at|date:"Y-m-d H:i:s" }}</div>
+                    </div>
+                    {% endif %}
+                    {% if withdrawal.razorpay_payout_id %}
+                    <div class="info-row">
+                        <div class="info-label">Razorpay Payout ID:</div>
+                        <div class="info-value"><code>{{ withdrawal.razorpay_payout_id }}</code></div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Bank Account Details Card -->
+            <div class="detail-card">
+                <div class="detail-header">
+                    <i class="fas fa-university"></i> Bank Account Details
+                </div>
+                <div class="detail-body">
+                    <div class="info-row">
+                        <div class="info-label">Account Holder:</div>
+                        <div class="info-value">{{ withdrawal.account_holder_name }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Bank Name:</div>
+                        <div class="info-value">{{ withdrawal.bank_name }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Account Number:</div>
+                        <div class="info-value">{{ withdrawal.account_number }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">IFSC Code:</div>
+                        <div class="info-value">{{ withdrawal.ifsc_code }}</div>
+                    </div>
+                    {% if withdrawal.upi_id %}
+                    <div class="info-row">
+                        <div class="info-label">UPI ID:</div>
+                        <div class="info-value">{{ withdrawal.upi_id }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Seller Statistics Card -->
+            <div class="detail-card">
+                <div class="detail-header">
+                    <i class="fas fa-chart-line"></i> Seller Statistics
+                </div>
+                <div class="detail-body">
+                    <div class="info-row">
+                        <div class="info-label">Total Earned:</div>
+                        <div class="info-value">₹{{ withdrawal.wallet.total_credited|floatformat:2 }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Total Withdrawn:</div>
+                        <div class="info-value">₹{{ withdrawal.wallet.total_withdrawn|floatformat:2 }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Available Balance:</div>
+                        <div class="info-value">₹{{ withdrawal.wallet.available_balance|floatformat:2 }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Pending Withdrawal:</div>
+                        <div class="info-value">₹{{ withdrawal.wallet.pending_withdrawal|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Action Form -->
+            {% if withdrawal.status == 'PENDING' %}
+            <div class="detail-card">
+                <div class="detail-header">
+                    <i class="fas fa-gavel"></i> Admin Action
+                </div>
+                <div class="detail-body">
+                    <form method="post" id="adminActionForm">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="radio" name="action" value="approve" checked> 
+                                <strong>Approve Withdrawal</strong>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="radio" name="action" value="reject"> 
+                                <strong>Reject Withdrawal</strong>
+                            </label>
+                        </div>
+                        
+                        <div id="rejectionReasonDiv" style="display: none;">
+                            <label>Rejection Reason:</label>
+                            <textarea name="rejection_reason" class="form-control" rows="3" placeholder="Please provide a reason for rejection..."></textarea>
+                            <small class="text-muted">This will be shown to the seller.</small>
+                        </div>
+                        
+                        <div class="form-group mt-3">
+                            <label>Admin Notes (Internal):</label>
+                            <textarea name="admin_notes" class="form-control" rows="2" placeholder="Internal notes for reference..."></textarea>
+                        </div>
+                        
+                        <div class="form-group mt-3">
+                            <button type="submit" class="btn-approve" id="submitBtn">
+                                <i class="fas fa-check"></i> Submit Decision
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% elif withdrawal.status == 'REJECTED' and withdrawal.rejection_reason %}
+            <div class="detail-card">
+                <div class="detail-header">
+                    <i class="fas fa-info-circle"></i> Rejection Information
+                </div>
+                <div class="detail-body">
+                    <div class="info-row">
+                        <div class="info-label">Reason:</div>
+                        <div class="info-value">{{ withdrawal.rejection_reason }}</div>
+                    </div>
+                    {% if withdrawal.admin_notes %}
+                    <div class="info-row">
+                        <div class="info-label">Admin Notes:</div>
+                        <div class="info-value">{{ withdrawal.admin_notes }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% elif withdrawal.status == 'COMPLETED' %}
+            <div class="detail-card">
+                <div class="detail-header">
+                    <i class="fas fa-check-circle"></i> Completion Information
+                </div>
+                <div class="detail-body">
+                    <div class="info-row">
+                        <div class="info-label">Payout ID:</div>
+                        <div class="info-value"><code>{{ withdrawal.razorpay_payout_id|default:"N/A" }}</code></div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Completed At:</div>
+                        <div class="info-value">{{ withdrawal.completed_at|date:"Y-m-d H:i:s" }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Back Button -->
+            <div class="detail-card">
+                <div class="detail-body text-center">
+                    <a href="{% url 'settlement:admin_withdrawal_requests' %}" class="btn btn-secondary btn-block">
+                        <i class="fas fa-arrow-left"></i> Back to Withdrawal Requests
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Show/hide rejection reason based on radio selection
+    const approveRadio = document.querySelector('input[value="approve"]');
+    const rejectRadio = document.querySelector('input[value="reject"]');
+    const rejectionDiv = document.getElementById('rejectionReasonDiv');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    if (approveRadio && rejectRadio) {
+        approveRadio.addEventListener('change', function() {
+            rejectionDiv.style.display = 'none';
+            submitBtn.className = 'btn-approve';
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> Approve Withdrawal';
+        });
+        
+        rejectRadio.addEventListener('change', function() {
+            rejectionDiv.style.display = 'block';
+            submitBtn.className = 'btn-reject';
+            submitBtn.innerHTML = '<i class="fas fa-times"></i> Reject Withdrawal';
+        });
+    }
+    
+    // Form validation for rejection
+    const form = document.getElementById('adminActionForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (rejectRadio && rejectRadio.checked) {
+                const rejectReason = document.querySelector('textarea[name="rejection_reason"]');
+                if (!rejectReason.value.trim()) {
+                    e.preventDefault();
+                    alert('Please provide a rejection reason.');
+                    rejectReason.focus();
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

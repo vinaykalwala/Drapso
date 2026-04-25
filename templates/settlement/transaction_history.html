@@ -1,0 +1,120 @@
+
+{% load static %}
+
+{% block title %}Transaction History - Drapso{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'settlement:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Transaction History</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Transaction History</h4>
+                    <small class="text-muted">Showing {{ transactions.count }} transactions</small>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <form method="get" class="form-inline">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <label class="input-group-text" for="typeFilter">Filter by Type</label>
+                                    </div>
+                                    <select name="type" id="typeFilter" class="form-control" onchange="this.form.submit()">
+                                        <option value="">All Transactions</option>
+                                        {% for type_code, type_label in transaction_types %}
+                                        <option value="{{ type_code }}" {% if current_filter == type_code %}selected{% endif %}>
+                                            {{ type_label }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if current_filter %}
+                                    <div class="input-group-append">
+                                        <a href="{% url 'settlement:transaction_history' %}" class="btn btn-outline-secondary">Clear</a>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th class="text-right">Amount</th>
+                                    <th class="text-right">Balance After</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tx in transactions %}
+                                <tr>
+                                    <td class="text-nowrap">{{ tx.created_at|date:"Y-m-d H:i:s" }}</td>
+                                    <td>
+                                        {% if tx.transaction_type == 'ESCROW_CREDIT' %}
+                                            <span class="badge badge-info">Escrow Credit</span>
+                                        {% elif tx.transaction_type == 'ESCROW_RELEASE' %}
+                                            <span class="badge badge-success">Escrow Release</span>
+                                        {% elif tx.transaction_type == 'WITHDRAWAL_HOLD' %}
+                                            <span class="badge badge-warning">Withdrawal Hold</span>
+                                        {% elif tx.transaction_type == 'WITHDRAWAL_COMPLETED' %}
+                                            <span class="badge badge-primary">Withdrawal Completed</span>
+                                        {% elif tx.transaction_type == 'WITHDRAWAL_REJECTED' %}
+                                            <span class="badge badge-danger">Withdrawal Rejected</span>
+                                        {% elif tx.transaction_type == 'REFUND' %}
+                                            <span class="badge badge-danger">Refund</span>
+                                        {% elif tx.transaction_type == 'PLATFORM_COMMISSION' %}
+                                            <span class="badge badge-secondary">Platform Commission</span>
+                                        {% else %}
+                                            <span class="badge badge-light border">{{ tx.get_transaction_type_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 300px;" title="{{ tx.description }}">
+                                            {{ tx.description }}
+                                        </div>
+                                    </td>
+                                    <td class="text-right font-weight-bold">
+                                        {% if tx.transaction_type == 'ESCROW_CREDIT' or tx.transaction_type == 'ESCROW_RELEASE' %}
+                                            <span class="text-success">+₹{{ tx.amount|floatformat:2 }}</span>
+                                        {% elif tx.transaction_type == 'WITHDRAWAL_HOLD' or tx.transaction_type == 'WITHDRAWAL_COMPLETED' %}
+                                            <span class="text-danger">-₹{{ tx.amount|floatformat:2 }}</span>
+                                        {% else %}
+                                            <span class="text-dark">₹{{ tx.amount|floatformat:2 }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-right text-muted">
+                                        ₹{{ tx.balance_after|floatformat:2 }}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <i class="fas fa-receipt fa-3x mb-3 d-block"></i>
+                                        <p class="mb-0">No transactions found for your account.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

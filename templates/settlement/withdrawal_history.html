@@ -1,0 +1,95 @@
+
+{% load static %}
+
+{% block title %}Withdrawal History - Drapso{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'settlement:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Withdrawal History</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Withdrawal History</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Request ID</th>
+                                    <th>Amount</th>
+                                    <th>Bank Account</th>
+                                    <th>NEFT Fee</th>
+                                    <th>Status</th>
+                                    <th>Requested Date</th>
+                                    <th>Approved Date</th>
+                                    <th>Completed Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for withdrawal in withdrawals %}
+                                <tr>
+                                    <td><code>{{ withdrawal.id|slice:":8" }}...</code></td>
+                                    <td class="font-weight-bold">₹{{ withdrawal.amount|floatformat:2 }}</td>
+                                    <td>
+                                        {{ withdrawal.bank_name }}<br>
+                                        <small class="text-muted">{{ withdrawal.account_number }}</small>
+                                    </td>
+                                    <td>₹{{ withdrawal.neft_fee|floatformat:2 }}</td>
+                                    <td>
+                                        {% if withdrawal.status == 'PENDING' %}
+                                            <span class="badge badge-warning">Pending Admin Approval</span>
+                                        {% elif withdrawal.status == 'APPROVED' %}
+                                            <span class="badge badge-info">Approved - Processing</span>
+                                        {% elif withdrawal.status == 'COMPLETED' %}
+                                            <span class="badge badge-success">Completed</span>
+                                        {% elif withdrawal.status == 'REJECTED' %}
+                                            <span class="badge badge-danger">Rejected</span>
+                                        {% elif withdrawal.status == 'CANCELLED' %}
+                                            <span class="badge badge-secondary">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ withdrawal.requested_at|date:"Y-m-d H:i" }}</td>
+                                    <td>{{ withdrawal.approved_at|date:"Y-m-d H:i"|default:"-" }}</td>
+                                    <td>{{ withdrawal.completed_at|date:"Y-m-d H:i"|default:"-" }}</td>
+                                </tr>
+                                {% if withdrawal.rejection_reason and withdrawal.status == 'REJECTED' %}
+                                <tr class="table-danger">
+                                    <td colspan="8">
+                                        <strong>Rejection Reason:</strong> {{ withdrawal.rejection_reason }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">
+                                        <i class="fas fa-inbox fa-2x text-muted mb-2 d-block"></i>
+                                        No withdrawal requests found
+                                        <div class="mt-2">
+                                            <a href="{% url 'settlement:withdrawal_request' %}" class="btn btn-primary btn-sm">
+                                                Request Withdrawal
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
