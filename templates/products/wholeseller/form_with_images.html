@@ -380,7 +380,9 @@
                                             {{ field.label }}
                                             {# Show red asterisk if field is required OR if it's one of the mandatory shipping dimensions #}
                                             {% if field.field.required or field.name == 'weight' or field.name == 'length' or field.name == 'breadth' or field.name == 'height' %}
+                                            {% if field.name != 'discount_percentage' %}
                                                 <span class="required-asterisk">*</span>
+                                            {% endif %}
                                             {% endif %}
                                         </label>
                                         {{ field }}

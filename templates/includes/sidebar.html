@@ -535,7 +535,10 @@ text-align:center;
     <i class="fa-solid fa-house"></i>
     Home
 </a>
-   
+ <a href="{% url 'settlement:dashboard' %}">
+    <i class="fa-solid fa-bag-shopping"></i>
+    My Earnings
+</a>  
  <a href="{% url 'orders:orders_dashboard' %}">
     <i class="fa-solid fa-bag-shopping"></i>
    Orders
@@ -549,7 +552,10 @@ text-align:center;
     <i class="fa-solid fa-envelope"></i>
     Contact Messages
 </a>
-
+   <a href="{% url 'accounts:shiprocket_all_addresses' %}">
+    <i class="fa-solid fa-envelope"></i>
+    Shiprocket Addresses
+</a>
 <a href="{% url 'wholesellers:admin_pending_kyc' %}">
     <i class="fa-solid fa-id-card"></i>
     KYC Approvals
@@ -579,6 +585,18 @@ text-align:center;
             {{ pending_refund_requests }}
         </span>
     {% endif %}
+</a>
+<a href="{% url 'accounts:bank_accounts' %}">
+    <i class="fa-solid fa-building-columns"></i>
+    Bank Details
+</a>
+<a href="{% url 'settlement:admin_withdrawal_requests' %}">
+    <i class="fa-solid fa-folder"></i>
+   Withdrawal Requests
+</a>
+<a href="{% url 'settlement:admin_platform_earnings' %}">
+    <i class="fa-solid fa-folder"></i>
+   Platform Earnings
 </a>
 <a href="{% url 'products:category_list' %}">
     <i class="fa-solid fa-folder"></i>

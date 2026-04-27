@@ -1,141 +1,555 @@
-
+{% extends "dashboard_base.html" %}
 {% load static %}
 
 {% block title %}Wallet Dashboard - Drapso{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <h2>My Wallet</h2>
-            <hr>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #eef2ff, #f8fafc);
+        min-height: 100vh;
+    }
+
+    .wallet-dashboard {
+        width: 100%;
+        padding: 20px clamp(16px, 2.5vw, 32px);
+        animation: fadeSlideUp 0.5s ease;
+    }
+
+    /* ===== HEADER ===== */
+    .wallet-header {
+        margin-bottom: clamp(24px, 5vw, 32px);
+    }
+
+    .wallet-header h2 {
+        font-size: clamp(28px, 6vw, 36px);
+        font-weight: 800;
+        background: linear-gradient(135deg, #1f2937, #4b5563);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: -0.02em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .wallet-header h2 i {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    /* ===== BALANCE CARDS ===== */
+    .balance-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: clamp(16px, 3vw, 24px);
+        margin-bottom: 32px;
+    }
+
+    .balance-card {
+        border-radius: clamp(16px, 4vw, 20px);
+        padding: clamp(20px, 5vw, 28px);
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .balance-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+    }
+
+    .balance-card i {
+        font-size: clamp(36px, 8vw, 48px);
+        opacity: 0.9;
+    }
+
+    .balance-info {
+        flex: 1;
+    }
+
+    .balance-info h5 {
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 8px;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .balance-info h2 {
+        font-size: clamp(26px, 5vw, 34px);
+        font-weight: 800;
+        margin-bottom: 6px;
+    }
+
+    .balance-info small {
+        font-size: 12px;
+        opacity: 0.8;
+    }
+
+    /* Custom gradient backgrounds */
+    .card-available {
+        background: linear-gradient(135deg, #38a169, #2f855a);
+    }
+    .card-escrow {
+        background: linear-gradient(135deg, #3182ce, #2b6cb0);
+    }
+    .card-pending {
+        background: linear-gradient(135deg, #d69e2e, #b7791f);
+    }
+    .card-total {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    /* ===== DETAIL & ACTION ROW ===== */
+    .info-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: clamp(16px, 3vw, 24px);
+        margin-bottom: 32px;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: clamp(16px, 4vw, 20px);
+        padding: clamp(20px, 4vw, 28px);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+        border: 1px solid #e5e7eb;
+    }
+
+    .info-card .card-header {
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .info-card .card-header i {
+        color: #667eea;
+        font-size: 20px;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 15px;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 500;
+        color: #4b5563;
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .text-muted-note {
+        font-size: 13px;
+        color: #6b7280;
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: center;
+        align-items: center;
+        margin-top: 20px;
+    }
+
+    .btn-withdraw {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        padding: 14px 28px;
+        border-radius: 14px;
+        color: white;
+        font-size: 16px;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 14px rgba(102, 126, 234, 0.25);
+    }
+
+    .btn-withdraw:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(102, 126, 234, 0.35);
+        color: white;
+    }
+
+    .btn-disabled {
+        background: #e5e7eb;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 14px;
+        color: #9ca3af;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: not-allowed;
+    }
+
+    .btn-history {
+        background: white;
+        border: 2px solid #e5e7eb;
+        padding: 14px 28px;
+        border-radius: 14px;
+        color: #4b5563;
+        font-size: 16px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-history:hover {
+        border-color: #667eea;
+        color: #667eea;
+        transform: translateY(-2px);
+    }
+
+    /* ===== TRANSACTIONS TABLE ===== */
+    .transactions-card {
+        background: white;
+        border-radius: clamp(16px, 4vw, 24px);
+        padding: clamp(20px, 4vw, 28px);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+        border: 1px solid #e5e7eb;
+    }
+
+    .transactions-card .card-header {
+        margin-bottom: 24px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .transactions-card .card-header i {
+        color: #667eea;
+    }
+
+    .wallet-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .wallet-table {
+        width: 100%;
+        min-width: 600px;
+        border-collapse: collapse;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .wallet-table thead {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .wallet-table th {
+        padding: 16px 20px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        color: #4b5563;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+
+    .wallet-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .wallet-table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .wallet-table tbody tr:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.03), rgba(118, 75, 162, 0.03));
+    }
+
+    .text-success {
+        color: #28a745;
+        font-weight: 600;
+    }
+
+    .text-danger {
+        color: #dc3545;
+        font-weight: 600;
+    }
+
+    .btn-link-all {
+        color: #667eea;
+        font-weight: 600;
+        text-decoration: none;
+        margin-top: 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-link-all:hover {
+        color: #5a2d8c;
+        text-decoration: underline;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-table {
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .empty-table i {
+        font-size: 40px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 12px;
+    }
+
+    .empty-table p {
+        color: #6b7280;
+        font-size: 15px;
+    }
+
+    /* ===== MOBILE CARD VIEW FOR TABLE ===== */
+    @media (max-width: 768px) {
+        .wallet-table {
+            min-width: 100%;
+        }
+        
+        .wallet-table thead {
+            display: none;
+        }
+        
+        .wallet-table tbody tr {
+            display: block;
+            margin-bottom: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            background: white;
+            padding: 16px;
+        }
+        
+        .wallet-table td {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: right;
+        }
+        
+        .wallet-table td:last-child {
+            border-bottom: none;
+        }
+        
+        .wallet-table td::before {
+            content: attr(data-label);
+            font-weight: 700;
+            color: #4b5563;
+            text-transform: uppercase;
+            font-size: 13px;
+            margin-right: 12px;
+        }
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeSlideUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+<div class="content">
+<div class="wallet-dashboard">
+    <!-- Header -->
+    <div class="wallet-header">
+        <h2><i class="fas fa-wallet"></i> My Wallet</h2>
+    </div>
+    
+    <!-- Balance Cards Grid -->
+    <div class="balance-grid">
+        <div class="balance-card card-available">
+            <i class="fas fa-coins"></i>
+            <div class="balance-info">
+                <h5>Available Balance</h5>
+                <h2>₹{{ wallet.available_balance|floatformat:2 }}</h2>
+                <small>Ready for withdrawal</small>
+            </div>
+        </div>
+        <div class="balance-card card-escrow">
+            <i class="fas fa-lock"></i>
+            <div class="balance-info">
+                <h5>In Escrow</h5>
+                <h2>₹{{ wallet.escrow_balance|floatformat:2 }}</h2>
+                <small>Available after delivery + 3 days</small>
+            </div>
+        </div>
+        <div class="balance-card card-pending">
+            <i class="fas fa-hourglass-half"></i>
+            <div class="balance-info">
+                <h5>Pending Withdrawal</h5>
+                <h2>₹{{ wallet.pending_withdrawal|floatformat:2 }}</h2>
+                <small>Awaiting admin approval</small>
+            </div>
+        </div>
+        <div class="balance-card card-total">
+            <i class="fas fa-chart-line"></i>
+            <div class="balance-info">
+                <h5>Total Earned</h5>
+                <h2>₹{{ wallet.total_credited|floatformat:2 }}</h2>
+                <small>Lifetime earnings</small>
+            </div>
         </div>
     </div>
     
-    <!-- Balance Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <h5 class="card-title">Available Balance</h5>
-                    <h2 class="card-text">₹{{ wallet.available_balance|floatformat:2 }}</h2>
-                    <small>Ready for withdrawal</small>
-                </div>
+    <!-- Withdrawal Info & Quick Actions Row -->
+    <div class="info-row">
+        <!-- Withdrawal Information Card -->
+        <div class="info-card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Withdrawal Information
+            </div>
+            <div class="info-item">
+                <span class="info-label">Minimum Withdrawal</span>
+                <span class="info-value">₹{{ minimum_withdrawal }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Weekly Limit</span>
+                <span class="info-value">₹{{ weekly_limit }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Withdrawn This Week</span>
+                <span class="info-value">₹{{ weekly_withdrawn|floatformat:2 }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Remaining This Week</span>
+                <span class="info-value">₹{{ weekly_limit|add:weekly_withdrawn|floatformat:2 }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">NEFT Fee</span>
+                <span class="info-value">₹{{ neft_fee.total|floatformat:2 }} (₹{{ neft_fee.fee }} + ₹{{ neft_fee.gst }} GST)</span>
+            </div>
+            <div class="text-muted-note">
+                <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                NEFT fees are paid by Drapso, not deducted from your withdrawal.
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-info">
-                <div class="card-body">
-                    <h5 class="card-title">In Escrow</h5>
-                    <h2 class="card-text">₹{{ wallet.escrow_balance|floatformat:2 }}</h2>
-                    <small>Will be available after delivery + 3 days</small>
-                </div>
+        
+        <!-- Quick Actions Card -->
+        <div class="info-card">
+            <div class="card-header">
+                <i class="fas fa-bolt"></i> Quick Actions
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-warning">
-                <div class="card-body">
-                    <h5 class="card-title">Pending Withdrawal</h5>
-                    <h2 class="card-text">₹{{ wallet.pending_withdrawal|floatformat:2 }}</h2>
-                    <small>Awaiting admin approval</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-secondary">
-                <div class="card-body">
-                    <h5 class="card-title">Total Earned</h5>
-                    <h2 class="card-text">₹{{ wallet.total_credited|floatformat:2 }}</h2>
-                    <small>Lifetime earnings</small>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Withdrawal Info -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Withdrawal Information</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Minimum Withdrawal:</strong> ₹{{ minimum_withdrawal }}</p>
-                    <p><strong>Weekly Limit:</strong> ₹{{ weekly_limit }}</p>
-                    <p><strong>Withdrawn This Week:</strong> ₹{{ weekly_withdrawn|floatformat:2 }}</p>
-                    <p><strong>Remaining This Week:</strong> ₹{{ weekly_limit|add:weekly_withdrawn|floatformat:2 }}</p>
-                    <p><strong>NEFT Fee:</strong> ₹{{ neft_fee.total|floatformat:2 }} (₹{{ neft_fee.fee }} + ₹{{ neft_fee.gst }} GST)</p>
-                    <p><small class="text-muted">Note: NEFT fees are paid by Drapso, not deducted from your withdrawal.</small></p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Quick Actions</h5>
-                </div>
-                <div class="card-body text-center">
-                    {% if wallet.available_balance >= minimum_withdrawal %}
-                        <a href="{% url 'settlement:withdrawal_request' %}" class="btn btn-primary btn-lg">
-                            <i class="fas fa-rupee-sign"></i> Request Withdrawal
-                        </a>
-                    {% else %}
-                        <button class="btn btn-secondary btn-lg" disabled>
-                            Minimum withdrawal ₹{{ minimum_withdrawal }}
-                        </button>
-                    {% endif %}
-                    <a href="{% url 'settlement:withdrawal_history' %}" class="btn btn-outline-info btn-lg ml-2">
-                        <i class="fas fa-history"></i> View History
+            <div class="action-buttons">
+                {% if wallet.available_balance >= minimum_withdrawal %}
+                    <a href="{% url 'settlement:withdrawal_request' %}" class="btn-withdraw">
+                        <i class="fas fa-rupee-sign"></i> Request Withdrawal
                     </a>
-                </div>
+                {% else %}
+                    <button class="btn-disabled" disabled>
+                        Minimum withdrawal ₹{{ minimum_withdrawal }}
+                    </button>
+                {% endif %}
+                <a href="{% url 'settlement:withdrawal_history' %}" class="btn-history">
+                    <i class="fas fa-history"></i> View History
+                </a>
             </div>
         </div>
     </div>
     
     <!-- Recent Transactions -->
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Recent Transactions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Type</th>
-                                    <th>Amount</th>
-                                    <th>Description</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for tx in recent_transactions %}
-                                <tr>
-                                    <td>{{ tx.created_at|date:"Y-m-d H:i" }}</td>
-                                    <td>{{ tx.get_transaction_type_display }}</td>
-                                    <td class="{% if tx.transaction_type == 'ESCROW_CREDIT' or tx.transaction_type == 'ESCROW_RELEASE' %}text-success{% else %}text-danger{% endif %}">
-                                        {% if tx.transaction_type == 'WITHDRAWAL_HOLD' or tx.transaction_type == 'WITHDRAWAL_COMPLETED' or tx.transaction_type == 'WITHDRAWAL_REJECTED' %}
-                                            -₹{{ tx.amount|floatformat:2 }}
-                                        {% else %}
-                                            +₹{{ tx.amount|floatformat:2 }}
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ tx.description|truncatechars:50 }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center">No transactions found</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <a href="{% url 'settlement:transaction_history' %}" class="btn btn-link">View All Transactions</a>
-                </div>
-            </div>
+    <div class="transactions-card">
+        <div class="card-header">
+            <i class="fas fa-list-ul"></i> Recent Transactions
         </div>
+        <div class="wallet-table-container">
+            <table class="wallet-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in recent_transactions %}
+                    <tr>
+                        <td data-label="Date">{{ tx.created_at|date:"Y-m-d H:i" }}</td>
+                        <td data-label="Type">{{ tx.get_transaction_type_display }}</td>
+                        <td data-label="Amount" class="{% if tx.transaction_type == 'ESCROW_CREDIT' or tx.transaction_type == 'ESCROW_RELEASE' %}text-success{% else %}text-danger{% endif %}">
+                            {% if tx.transaction_type == 'WITHDRAWAL_HOLD' or tx.transaction_type == 'WITHDRAWAL_COMPLETED' or tx.transaction_type == 'WITHDRAWAL_REJECTED' %}
+                                -₹{{ tx.amount|floatformat:2 }}
+                            {% else %}
+                                +₹{{ tx.amount|floatformat:2 }}
+                            {% endif %}
+                        </td>
+                        <td data-label="Description">{{ tx.description|truncatechars:50 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-table">
+                                <i class="fas fa-receipt"></i>
+                                <p>No transactions found</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <a href="{% url 'settlement:transaction_history' %}" class="btn-link-all">
+            View All Transactions <i class="fas fa-arrow-right"></i>
+        </a>
     </div>
+</div>
 </div>
 {% endblock %}

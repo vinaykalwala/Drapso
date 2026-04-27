@@ -42,28 +42,28 @@ class WholesellerProductForm(forms.ModelForm):
     weight = forms.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        required=False,
+        required=True,
         label="Weight (kg)",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'})
     )
     length = forms.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        required=False,
+        required=True,
         label="Length (cm)",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'})
     )
     breadth = forms.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        required=False,
+        required=True,
         label="Breadth (cm)",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'})
     )
     height = forms.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        required=False,
+        required=True,
         label="Height (cm)",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'})
     )
@@ -131,10 +131,10 @@ class WholesellerProductForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # Add required field indicators
-        self.fields['name'].label = "Product Name*"
-        self.fields['price'].label = "Price (₹)*"
-        self.fields['stock'].label = "Stock Quantity*"
-        self.fields['category'].label = "Category*"
+        self.fields['name'].label = "Product Name"
+        self.fields['price'].label = "Price (₹)"
+        self.fields['stock'].label = "Stock Quantity"
+        self.fields['category'].label = "Category"
 
         self.fields['category'].queryset = Category.objects.filter(is_active=True)
 
@@ -189,28 +189,28 @@ class WholesellerVariantForm(forms.ModelForm):
     weight = forms.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        required=False,
+        required=True,
         label="Weight (kg)",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'})
     )
     length = forms.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        required=False,
+        required=True,
         label="Length (cm)",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'})
     )
     breadth = forms.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        required=False,
+        required=True,
         label="Breadth (cm)",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'})
     )
     height = forms.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        required=False,
+        required=True,
         label="Height (cm)",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'})
     )
@@ -264,7 +264,7 @@ class WholesellerVariantForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Add required field indicators
-        self.fields['price'].label = "Price (₹)*"
+        self.fields['price'].label = "Price (₹)"
         self.fields['stock'].label = "Stock Quantity*"
 
     def clean_weight(self):
@@ -371,29 +371,29 @@ class ResellerOwnProductForm(forms.ModelForm):
     weight = forms.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        required=False,
-        label="Weight (kg)",
+        required=True,
+        label="Weight (kg) *",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
     )
     length = forms.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        required=False,
-        label="Length (cm)",
+        required=True,
+        label="Length (cm) *",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
     )
     breadth = forms.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        required=False,
-        label="Breadth (cm)",
+        required=True,
+        label="Breadth (cm) *",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
     )
     height = forms.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        required=False,
-        label="Height (cm)",
+        required=True,
+        label="Height (cm) *",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
     )
 
@@ -528,29 +528,29 @@ class ResellerVariantForm(forms.ModelForm):
     weight = forms.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        required=False,
-        label="Weight (kg)",
+        required=True,
+        label="Weight (kg) *",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
     )
     length = forms.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        required=False,
-        label="Length (cm)",
+        required=True,
+        label="Length (cm) *",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
     )
     breadth = forms.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        required=False,
-        label="Breadth (cm)",
+        required=True,
+        label="Breadth (cm) *",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
     )
     height = forms.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        required=False,
-        label="Height (cm)",
+        required=True,
+        label="Height (cm) *",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
     )
 
