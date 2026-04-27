@@ -52,10 +52,10 @@
         color: transparent;
     }
 
-    /* ===== BALANCE CARDS ===== */
+    /* ===== BALANCE CARDS (default: mobile flexible) ===== */
     .balance-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: clamp(16px, 3vw, 24px);
         margin-bottom: 32px;
     }
@@ -85,6 +85,7 @@
 
     .balance-info {
         flex: 1;
+        min-width: 0;   /* allow text to shrink */
     }
 
     .balance-info h5 {
@@ -94,6 +95,7 @@
         opacity: 0.9;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        white-space: nowrap;        /* prevent line break on larger screens */
     }
 
     .balance-info h2 {
@@ -105,9 +107,10 @@
     .balance-info small {
         font-size: 12px;
         opacity: 0.8;
+        display: block;
+        white-space: normal;        /* allow wrapping on mobile */
     }
 
-    /* Custom gradient backgrounds */
     .card-available {
         background: linear-gradient(135deg, #38a169, #2f855a);
     }
@@ -121,12 +124,45 @@
         background: linear-gradient(135deg, #667eea, #764ba2);
     }
 
+    /* ===== FORCE 4 COLUMNS AND ADJUST CARD INTERNALS FOR LAPTOP/DESKTOP ===== */
+    @media (min-width: 768px) {
+        .balance-grid {
+            grid-template-columns: repeat(4, 1fr);   /* fixed 4 equal columns */
+            gap: 16px;                                /* slightly tighter gap */
+        }
+
+        .balance-card {
+            padding: 18px 16px;          /* reduce padding */
+            gap: 12px;
+        }
+
+        .balance-card i {
+            font-size: 36px;             /* smaller icon */
+        }
+
+        .balance-info h5 {
+            font-size: 13px;             /* smaller heading */
+        }
+
+        .balance-info h2 {
+            font-size: 28px;             /* slightly smaller amount */
+        }
+
+        .balance-info small {
+            font-size: 11px;
+            white-space: nowrap;         /* keep on one line if possible */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+
     /* ===== DETAIL & ACTION ROW ===== */
     .info-row {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         gap: clamp(16px, 3vw, 24px);
         margin-bottom: 32px;
+        grid-auto-rows: 1fr;
     }
 
     .info-card {
@@ -135,6 +171,8 @@
         padding: clamp(20px, 4vw, 28px);
         box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
         border: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
     }
 
     .info-card .card-header {
@@ -145,6 +183,7 @@
         font-size: 18px;
         font-weight: 700;
         color: #1f2937;
+        flex-shrink: 0;
     }
 
     .info-card .card-header i {
@@ -178,73 +217,123 @@
     .text-muted-note {
         font-size: 13px;
         color: #6b7280;
-        margin-top: 16px;
+        margin-top: auto;
         display: flex;
         align-items: center;
         gap: 6px;
     }
 
-    .action-buttons {
-        display: flex;
-        flex-wrap: wrap;
+    /* ===== ACTION CARDS ===== */
+    .action-cards-fill {
+        flex: 1;
+        display: grid;
         gap: 16px;
-        justify-content: center;
-        align-items: center;
-        margin-top: 20px;
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
     }
 
-    .btn-withdraw {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        border: none;
-        padding: 14px 28px;
+    @media (min-width: 640px) {
+        .action-cards-fill {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr;
+        }
+    }
+
+    @media (min-height: 430px){
+        .content {
+            margin-top: 50px;
+        }
+    }
+
+    .action-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: clamp(16px, 5vw, 24px);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        text-decoration: none;
+        color: inherit;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.04);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .action-card:hover:not(.card-disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(102,126,234,0.12);
+        border-color: #c7d2fe;
+        background: linear-gradient(135deg, #ffffff, #faf9ff);
+    }
+
+    .action-card-icon {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
         border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
         color: white;
+        flex-shrink: 0;
+    }
+
+    .icon-withdraw {
+        background: linear-gradient(135deg, #38a169, #2f855a);
+        box-shadow: 0 6px 14px rgba(56,161,105,0.25);
+    }
+
+    .icon-history {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        box-shadow: 0 6px 14px rgba(99,102,241,0.25);
+    }
+
+    .icon-disabled {
+        background: #d1d5db;
+        box-shadow: none;
+        color: #9ca3af;
+    }
+
+    .action-card-text h5 {
         font-size: 16px;
         font-weight: 700;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        transition: all 0.3s ease;
-        box-shadow: 0 6px 14px rgba(102, 126, 234, 0.25);
+        color: #1f2937;
+        margin: 0 0 4px 0;
     }
 
-    .btn-withdraw:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 24px rgba(102, 126, 234, 0.35);
-        color: white;
+    .action-card-text p {
+        font-size: 13px;
+        color: #6b7280;
+        margin: 0;
+        line-height: 1.4;
     }
 
-    .btn-disabled {
-        background: #e5e7eb;
-        border: none;
-        padding: 14px 28px;
-        border-radius: 14px;
-        color: #9ca3af;
-        font-size: 16px;
-        font-weight: 600;
+    .card-disabled {
         cursor: not-allowed;
+        opacity: 0.8;
+        background: #f3f4f6;
+        border-color: #e5e7eb;
+        box-shadow: none;
+        pointer-events: none;
+    }
+    .card-disabled .action-card-text h5,
+    .card-disabled .action-card-text p {
+        color: #9ca3af;
     }
 
-    .btn-history {
-        background: white;
-        border: 2px solid #e5e7eb;
-        padding: 14px 28px;
-        border-radius: 14px;
-        color: #4b5563;
-        font-size: 16px;
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        transition: all 0.3s ease;
+    .card-withdraw {
+        border-left: 4px solid #38a169;
     }
-
-    .btn-history:hover {
-        border-color: #667eea;
-        color: #667eea;
-        transform: translateY(-2px);
+    .card-history {
+        border-left: 4px solid #6366f1;
+    }
+    .card-disabled {
+        border-left: 4px solid #d1d5db;
     }
 
     /* ===== TRANSACTIONS TABLE ===== */
@@ -270,25 +359,25 @@
         color: #667eea;
     }
 
-    .wallet-table-container {
+    .txn-table-container {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
 
-    .wallet-table {
+    .txn-table {
         width: 100%;
-        min-width: 600px;
+        min-width: 700px;
         border-collapse: collapse;
         font-family: 'Inter', sans-serif;
     }
 
-    .wallet-table thead {
+    .txn-table thead {
         background: linear-gradient(135deg, #f8fafc, #f1f5f9);
         border-bottom: 2px solid #e5e7eb;
     }
 
-    .wallet-table th {
-        padding: 16px 20px;
+    .txn-table th {
+        padding: 16px 18px;
         text-align: left;
         font-weight: 600;
         font-size: 13px;
@@ -298,18 +387,19 @@
         white-space: nowrap;
     }
 
-    .wallet-table td {
-        padding: 16px 20px;
+    .txn-table td {
+        padding: 16px 18px;
         border-bottom: 1px solid #f0f0f0;
         font-size: 14px;
         color: #374151;
+        vertical-align: middle;
     }
 
-    .wallet-table tbody tr {
+    .txn-table tbody tr {
         transition: all 0.3s ease;
     }
 
-    .wallet-table tbody tr:hover {
+    .txn-table tbody tr:hover {
         background: linear-gradient(135deg, rgba(102, 126, 234, 0.03), rgba(118, 75, 162, 0.03));
     }
 
@@ -339,73 +429,133 @@
         text-decoration: underline;
     }
 
-    /* ===== EMPTY STATE ===== */
-    .empty-table {
-        text-align: center;
-        padding: 40px 20px;
+    /* ===== BADGES ===== */
+    .txn-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
     }
 
-    .empty-table i {
-        font-size: 40px;
+    .badge-info-txn {
+        background: rgba(23, 162, 184, 0.1);
+        color: #17a2b8;
+        border: 1px solid rgba(23, 162, 184, 0.2);
+    }
+    .badge-success-txn {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+        border: 1px solid rgba(40, 167, 69, 0.2);
+    }
+    .badge-warning-txn {
+        background: rgba(255, 193, 7, 0.1);
+        color: #d39e00;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+    .badge-primary-txn {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+    .badge-danger-txn {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        border: 1px solid rgba(220, 53, 69, 0.2);
+    }
+    .badge-secondary-txn {
+        background: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+        border: 1px solid rgba(108, 117, 125, 0.2);
+    }
+    .badge-light-txn {
+        background: #f8f9fa;
+        color: #495057;
+        border: 1px solid #dee2e6;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state-txn {
+        text-align: center;
+        padding: 48px 20px;
+    }
+
+    .empty-state-txn i {
+        font-size: 48px;
         background: linear-gradient(135deg, #667eea, #764ba2);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
-        margin-bottom: 12px;
+        margin-bottom: 16px;
+        display: block;
     }
 
-    .empty-table p {
+    .empty-state-txn h5 {
+        color: #1f2937;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .empty-state-txn p {
         color: #6b7280;
-        font-size: 15px;
     }
 
-    /* ===== MOBILE CARD VIEW FOR TABLE ===== */
+    /* ===== MOBILE TABLE CARDS ===== */
     @media (max-width: 768px) {
-        .wallet-table {
+        .txn-table {
             min-width: 100%;
         }
-        
-        .wallet-table thead {
+
+        .txn-table thead {
             display: none;
         }
-        
-        .wallet-table tbody tr {
+
+        .txn-table tbody tr {
             display: block;
             margin-bottom: 16px;
             border: 1px solid #e5e7eb;
-            border-radius: 16px;
+            border-radius: 20px;
             background: white;
-            padding: 16px;
+            padding: 18px 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
-        
-        .wallet-table td {
+
+        .txn-table td {
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid #f0f0f0;
             text-align: right;
+            gap: 12px;
         }
-        
-        .wallet-table td:last-child {
+
+        .txn-table td:last-child {
             border-bottom: none;
         }
-        
-        .wallet-table td::before {
+
+        .txn-table td::before {
             content: attr(data-label);
             font-weight: 700;
             color: #4b5563;
             text-transform: uppercase;
             font-size: 13px;
-            margin-right: 12px;
+            margin-right: auto;
+            text-align: left;
         }
     }
 
-    /* ===== ANIMATIONS ===== */
     @keyframes fadeSlideUp {
         from { opacity: 0; transform: translateY(16px); }
         to { opacity: 1; transform: translateY(0); }
     }
 </style>
+
 <div class="content">
 <div class="wallet-dashboard">
     <!-- Header -->
@@ -487,18 +637,36 @@
             <div class="card-header">
                 <i class="fas fa-bolt"></i> Quick Actions
             </div>
-            <div class="action-buttons">
+            <div class="action-cards-fill">
                 {% if wallet.available_balance >= minimum_withdrawal %}
-                    <a href="{% url 'settlement:withdrawal_request' %}" class="btn-withdraw">
-                        <i class="fas fa-rupee-sign"></i> Request Withdrawal
-                    </a>
+                <a href="{% url 'settlement:withdrawal_request' %}" class="action-card card-withdraw">
+                    <div class="action-card-icon icon-withdraw">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <div class="action-card-text">
+                        <h5>Request Withdrawal</h5>
+                        <p>₹{{ wallet.available_balance|floatformat:2 }} available</p>
+                    </div>
+                </a>
                 {% else %}
-                    <button class="btn-disabled" disabled>
-                        Minimum withdrawal ₹{{ minimum_withdrawal }}
-                    </button>
+                <div class="action-card card-disabled">
+                    <div class="action-card-icon icon-disabled">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div class="action-card-text">
+                        <h5>Withdrawal Locked</h5>
+                        <p>Min. ₹{{ minimum_withdrawal }} required</p>
+                    </div>
+                </div>
                 {% endif %}
-                <a href="{% url 'settlement:withdrawal_history' %}" class="btn-history">
-                    <i class="fas fa-history"></i> View History
+                <a href="{% url 'settlement:withdrawal_history' %}" class="action-card card-history">
+                    <div class="action-card-icon icon-history">
+                        <i class="fas fa-clock-rotate-left"></i>
+                    </div>
+                    <div class="action-card-text">
+                        <h5>View History</h5>
+                        <p>Check all past withdrawals</p>
+                    </div>
                 </a>
             </div>
         </div>
@@ -509,8 +677,8 @@
         <div class="card-header">
             <i class="fas fa-list-ul"></i> Recent Transactions
         </div>
-        <div class="wallet-table-container">
-            <table class="wallet-table">
+        <div class="txn-table-container">
+            <table class="txn-table">
                 <thead>
                     <tr>
                         <th>Date</th>
@@ -523,7 +691,23 @@
                     {% for tx in recent_transactions %}
                     <tr>
                         <td data-label="Date">{{ tx.created_at|date:"Y-m-d H:i" }}</td>
-                        <td data-label="Type">{{ tx.get_transaction_type_display }}</td>
+                        <td data-label="Type">
+                            {% with tx_type=tx.transaction_type %}
+                            {% if tx_type == 'ESCROW_CREDIT' %}
+                                <span class="txn-badge badge-success-txn"><i class="fas fa-plus-circle"></i> Escrow Credit</span>
+                            {% elif tx_type == 'ESCROW_RELEASE' %}
+                                <span class="txn-badge badge-info-txn"><i class="fas fa-unlock"></i> Escrow Release</span>
+                            {% elif tx_type == 'WITHDRAWAL_HOLD' %}
+                                <span class="txn-badge badge-warning-txn"><i class="fas fa-hold"></i> Withdrawal Hold</span>
+                            {% elif tx_type == 'WITHDRAWAL_COMPLETED' %}
+                                <span class="txn-badge badge-primary-txn"><i class="fas fa-check-circle"></i> Withdrawal Completed</span>
+                            {% elif tx_type == 'WITHDRAWAL_REJECTED' %}
+                                <span class="txn-badge badge-danger-txn"><i class="fas fa-times-circle"></i> Withdrawal Rejected</span>
+                            {% else %}
+                                <span class="txn-badge badge-light-txn">{{ tx.get_transaction_type_display }}</span>
+                            {% endif %}
+                            {% endwith %}
+                        </td>
                         <td data-label="Amount" class="{% if tx.transaction_type == 'ESCROW_CREDIT' or tx.transaction_type == 'ESCROW_RELEASE' %}text-success{% else %}text-danger{% endif %}">
                             {% if tx.transaction_type == 'WITHDRAWAL_HOLD' or tx.transaction_type == 'WITHDRAWAL_COMPLETED' or tx.transaction_type == 'WITHDRAWAL_REJECTED' %}
                                 -₹{{ tx.amount|floatformat:2 }}
@@ -536,9 +720,10 @@
                     {% empty %}
                     <tr>
                         <td colspan="4">
-                            <div class="empty-table">
+                            <div class="empty-state-txn">
                                 <i class="fas fa-receipt"></i>
-                                <p>No transactions found</p>
+                                <h5>No transactions yet</h5>
+                                <p>Your recent activity will appear here.</p>
                             </div>
                         </td>
                     </tr>

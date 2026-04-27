@@ -1,64 +1,347 @@
-
+{% extends "dashboard_base.html" %}
 {% load static %}
 
+{% block content %}
 {% block title %}Request Withdrawal - Drapso{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Request Withdrawal</h4>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info">
-                        <strong>Available Balance:</strong> ₹{{ wallet.available_balance|floatformat:2 }}
-                    </div>
-                    
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        <div class="form-group">
-                            <label for="id_amount">Amount (Min: ₹{{ minimum_withdrawal }})</label>
-                            {{ form.amount }}
-                            {% if form.amount.errors %}
-                                <small class="text-danger">{{ form.amount.errors }}</small>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="id_bank_account_id">Select Bank Account</label>
-                            {{ form.bank_account_id }}
-                            {% if form.bank_account_id.errors %}
-                                <small class="text-danger">{{ form.bank_account_id.errors }}</small>
-                            {% endif %}
-                            <small class="form-text text-muted">
-                                <a href="{% url 'accounts:bank_accounts' %}" target="_blank">Add new bank account</a>
-                            </small>
-                        </div>
-                        
-                        <div class="alert alert-warning">
-                            <h6>Withdrawal Information:</h6>
-                            <ul class="mb-0">
-                                <li>All withdrawals are processed via <strong>NEFT</strong> only</li>
-                                <li>NEFT fee of <strong>₹{{ neft_fee.total|floatformat:2 }}</strong> (₹{{ neft_fee.fee }} + ₹{{ neft_fee.gst }} GST) is paid by Drapso</li>
-                                <li>Withdrawals require <strong>admin approval</strong> before processing</li>
-                                <li>Weekly withdrawal limit: <strong>₹50,000</strong></li>
-                                <li>Funds will be held until admin approval</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="form-group text-center">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-paper-plane"></i> Submit Withdrawal Request
-                            </button>
-                            <a href="{% url 'settlement:dashboard' %}" class="btn btn-secondary btn-lg">Cancel</a>
-                        </div>
-                    </form>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #eef2ff, #f8fafc);
+        min-height: 100vh;
+    }
+
+    .withdrawal-wrapper {
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px clamp(16px, 2.5vw, 24px);
+        animation: fadeSlideUp 0.5s ease;
+    }
+
+    /* ===== BACK BUTTON ===== */
+    .back-btn-wd {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: white;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 40px;
+        color: #4b5563;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        backdrop-filter: blur(4px);
+        margin-bottom: 20px;
+    }
+    .back-btn-wd i {
+        font-size: 14px;
+        color: #667eea;
+        transition: transform 0.2s ease;
+    }
+    .back-btn-wd:hover {
+        background: white;
+        border-color: #667eea;
+        color: #1f2937;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.12);
+        transform: translateX(-2px);
+    }
+    .back-btn-wd:hover i {
+        transform: translateX(-3px);
+        color: #764ba2;
+    }
+
+    /* ===== MAIN CARD ===== */
+    .withdrawal-card {
+        background: white;
+        border-radius: clamp(16px, 4vw, 24px);
+        padding: clamp(24px, 5vw, 36px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+    }
+
+    .withdrawal-card h4 {
+        font-size: clamp(24px, 6vw, 30px);
+        font-weight: 800;
+        background: linear-gradient(135deg, #1f2937, #4b5563);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: -0.02em;
+        margin-bottom: 24px;
+    }
+
+    /* ===== BALANCE ALERT (info style) ===== */
+    .balance-alert {
+        background: rgba(102, 126, 234, 0.08);
+        border-left: 4px solid #667eea;
+        border-radius: 14px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        color: #374151;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(102, 126, 234, 0.15);
+        font-weight: 600;
+    }
+    .balance-alert i {
+        color: #667eea;
+        font-size: 20px;
+    }
+
+    /* ===== FORM ELEMENTS ===== */
+    .form-group-wd {
+        margin-bottom: 24px;
+    }
+
+    .form-label-wd {
+        font-weight: 600;
+        font-size: 14px;
+        color: #374151;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-input-wd {
+        width: 100%;
+        padding: 14px 18px;
+        border: 2px solid #e5e7eb;
+        border-radius: 16px;
+        font-size: 15px;
+        font-family: 'Inter', sans-serif;
+        background: white;
+        transition: all 0.3s ease;
+        color: #1f2937;
+    }
+    .form-input-wd:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.12);
+    }
+    select.form-input-wd {
+        cursor: pointer;
+    }
+
+    .error-text {
+        color: #ef4444;
+        font-size: 13px;
+        margin-top: 6px;
+    }
+
+    .form-hint {
+        font-size: 13px;
+        color: #6b7280;
+        margin-top: 8px;
+    }
+    .form-hint a {
+        color: #667eea;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .form-hint a:hover {
+        text-decoration: underline;
+        color: #5a2d8c;
+    }
+
+    /* ===== INFO ALERT (warning style) ===== */
+    .info-list-card {
+        background: rgba(255, 193, 7, 0.06);
+        border-left: 4px solid #d39e00;
+        border-radius: 14px;
+        padding: 20px 24px;
+        margin-bottom: 28px;
+        border: 1px solid rgba(255, 193, 7, 0.15);
+    }
+    .info-list-card h6 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .info-list-card h6 i {
+        color: #d39e00;
+    }
+    .info-list-card ul {
+        list-style: none;
+        padding-left: 0;
+    }
+    .info-list-card li {
+        padding: 6px 0;
+        color: #4b5563;
+        font-size: 14px;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .info-list-card li i {
+        color: #d39e00;
+        font-size: 8px;
+        margin-top: 6px;
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn-group-wd {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 8px;
+    }
+
+    .btn-submit-wd {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        padding: 14px 28px;
+        border-radius: 14px;
+        color: white;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 14px rgba(102, 126, 234, 0.25);
+        font-family: 'Inter', sans-serif;
+    }
+    .btn-submit-wd:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(102, 126, 234, 0.35);
+    }
+
+    .btn-cancel-wd {
+        background: white;
+        border: 2px solid #e5e7eb;
+        padding: 14px 28px;
+        border-radius: 14px;
+        color: #4b5563;
+        font-size: 16px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+    .btn-cancel-wd:hover {
+        border-color: #667eea;
+        color: #667eea;
+        transform: translateY(-2px);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 640px) {
+        .withdrawal-wrapper {
+            padding: 20px 14px;
+        }
+        .btn-group-wd {
+            flex-direction: column;
+        }
+        .btn-submit-wd, .btn-cancel-wd {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @keyframes fadeSlideUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="content">
+<div class="withdrawal-wrapper">
+    <!-- Back Button -->
+    <a href="{% url 'settlement:dashboard' %}" class="back-btn-wd">
+        <i class="fas fa-arrow-left"></i> Back to Wallet
+    </a>
+
+    <div class="withdrawal-card">
+        <h4>Request Withdrawal</h4>
+
+        <!-- Available Balance Alert -->
+        <div class="balance-alert">
+            <i class="fas fa-wallet"></i>
+            Available Balance: <strong>₹{{ wallet.available_balance|floatformat:2 }}</strong>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <!-- Amount Field -->
+            <div class="form-group-wd">
+                <label class="form-label-wd" for="id_amount">Amount (Min: ₹{{ minimum_withdrawal }})</label>
+                {{ form.amount }}
+                {% if form.amount.errors %}
+                    <div class="error-text">{{ form.amount.errors }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Bank Account Field -->
+            <div class="form-group-wd">
+                <label class="form-label-wd" for="id_bank_account_id">Select Bank Account</label>
+                {{ form.bank_account_id }}
+                {% if form.bank_account_id.errors %}
+                    <div class="error-text">{{ form.bank_account_id.errors }}</div>
+                {% endif %}
+                <div class="form-hint">
+                    <a href="{% url 'accounts:bank_accounts' %}" target="_blank">
+                        <i class="fas fa-plus-circle"></i> Add new bank account
+                    </a>
                 </div>
             </div>
-        </div>
+
+            <!-- Withdrawal Information List -->
+            <div class="info-list-card">
+                <h6><i class="fas fa-info-circle"></i> Withdrawal Information</h6>
+                <ul>
+                    <li><i class="fas fa-circle"></i> All withdrawals are processed via <strong>NEFT</strong> only</li>
+                    <li><i class="fas fa-circle"></i> NEFT fee of <strong>₹{{ neft_fee.total|floatformat:2 }}</strong> (₹{{ neft_fee.fee }} + ₹{{ neft_fee.gst }} GST) is paid by Drapso</li>
+                    <li><i class="fas fa-circle"></i> Withdrawals require <strong>admin approval</strong> before processing</li>
+                    <li><i class="fas fa-circle"></i> Weekly withdrawal limit: <strong>₹50,000</strong></li>
+                    <li><i class="fas fa-circle"></i> Funds will be held until admin approval</li>
+                </ul>
+            </div>
+
+            <!-- Buttons -->
+            <div class="btn-group-wd">
+                <button type="submit" class="btn-submit-wd">
+                    <i class="fas fa-paper-plane"></i> Submit Withdrawal Request
+                </button>
+                <a href="{% url 'settlement:dashboard' %}" class="btn-cancel-wd">
+                    Cancel
+                </a>
+            </div>
+        </form>
     </div>
 </div>
+</div>
+
+<!-- Add form-control class to Django inputs -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.classList.add('form-input-wd');
+        });
+    });
+</script>
 {% endblock %}
