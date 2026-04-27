@@ -1,120 +1,452 @@
-
+{% extends "dashboard_base.html" %}
 {% load static %}
 
 {% block title %}Transaction History - Drapso{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'settlement:dashboard' %}">Dashboard</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Transaction History</li>
-                </ol>
-            </nav>
-        </div>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #eef2ff, #f8fafc);
+        min-height: 100vh;
+    }
+
+    .txn-history-wrapper {
+        width: 100%;
+        padding: 20px clamp(16px, 2.5vw, 32px);
+        animation: fadeSlideUp 0.5s ease;
+    }
+
+    /* ===== BACK BUTTON ===== */
+    .back-btn-txn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: white;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 40px;
+        color: #4b5563;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        backdrop-filter: blur(4px);
+        margin-bottom: 16px;
+    }
+    .back-btn-txn i {
+        font-size: 14px;
+        color: #667eea;
+        transition: transform 0.2s ease;
+    }
+    .back-btn-txn:hover {
+        background: white;
+        border-color: #667eea;
+        color: #1f2937;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.12);
+        transform: translateX(-2px);
+    }
+    .back-btn-txn:hover i {
+        transform: translateX(-3px);
+        color: #764ba2;
+    }
+
+    /* ===== BREADCRUMB ===== */
+    .txn-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        color: #6b7280;
+        flex-wrap: wrap;
+    }
+    .txn-breadcrumb a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .txn-breadcrumb a:hover {
+        text-decoration: underline;
+    }
+    .txn-breadcrumb .separator {
+        color: #9ca3af;
+    }
+
+    /* ===== MAIN CARD ===== */
+    .txn-main-card {
+        background: white;
+        border-radius: clamp(16px, 4vw, 24px);
+        padding: clamp(20px, 4vw, 32px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        border: 1px solid #e5e7eb;
+    }
+
+    /* ===== HEADER ROW ===== */
+    .txn-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .txn-card-header h4 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1f2937;
+        background: linear-gradient(135deg, #1f2937, #4b5563);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    .txn-count {
+        font-size: 13px;
+        color: #6b7280;
+        background: #f3f4f6;
+        padding: 6px 14px;
+        border-radius: 30px;
+    }
+
+    /* ===== FILTER BAR ===== */
+    .txn-filter-bar {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 28px;
+    }
+    .filter-label {
+        font-weight: 600;
+        font-size: 14px;
+        color: #4b5563;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .filter-select-txn {
+        padding: 12px 18px;
+        border: 2px solid #e5e7eb;
+        border-radius: 16px;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        background: white;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 200px;
+    }
+    .filter-select-txn:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    .clear-filter-btn {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 12px 18px;
+        font-weight: 600;
+        color: #4b5563;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .clear-filter-btn:hover {
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    /* ===== TABLE CONTAINER ===== */
+    .txn-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .txn-table {
+        width: 100%;
+        min-width: 700px;
+        border-collapse: collapse;
+        font-family: 'Inter', sans-serif;
+    }
+    .txn-table thead {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-bottom: 2px solid #e5e7eb;
+    }
+    .txn-table th {
+        padding: 16px 18px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        color: #4b5563;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+    .txn-table td {
+        padding: 16px 18px;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 14px;
+        color: #374151;
+        vertical-align: middle;
+    }
+    .txn-table tbody tr {
+        transition: all 0.3s ease;
+    }
+    .txn-table tbody tr:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.03), rgba(118, 75, 162, 0.03));
+    }
+
+    /* ===== BADGES ===== */
+    .txn-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+    .badge-info-txn {
+        background: rgba(23, 162, 184, 0.1);
+        color: #17a2b8;
+        border: 1px solid rgba(23, 162, 184, 0.2);
+    }
+    .badge-success-txn {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+        border: 1px solid rgba(40, 167, 69, 0.2);
+    }
+    .badge-warning-txn {
+        background: rgba(255, 193, 7, 0.1);
+        color: #d39e00;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+    .badge-primary-txn {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+    .badge-danger-txn {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        border: 1px solid rgba(220, 53, 69, 0.2);
+    }
+    .badge-secondary-txn {
+        background: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+        border: 1px solid rgba(108, 117, 125, 0.2);
+    }
+    .badge-light-txn {
+        background: #f8f9fa;
+        color: #495057;
+        border: 1px solid #dee2e6;
+    }
+
+    /* Amount styling */
+    .amount-credit {
+        color: #28a745;
+        font-weight: 700;
+    }
+    .amount-debit {
+        color: #dc3545;
+        font-weight: 700;
+    }
+    .amount-neutral {
+        color: #1f2937;
+        font-weight: 600;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state-txn {
+        text-align: center;
+        padding: 48px 20px;
+    }
+    .empty-state-txn i {
+        font-size: 48px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 16px;
+        display: block;
+    }
+    .empty-state-txn h5 {
+        color: #1f2937;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+    .empty-state-txn p {
+        color: #6b7280;
+    }
+
+    /* ===== MOBILE CARD VIEW ===== */
+    @media (max-width: 768px) {
+        .txn-table {
+            min-width: 100%;
+        }
+        .txn-table thead {
+            display: none;
+        }
+        .txn-table tbody tr {
+            display: block;
+            margin-bottom: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            background: white;
+            padding: 18px 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .txn-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: right;
+            gap: 12px;
+        }
+        .txn-table td:last-child {
+            border-bottom: none;
+        }
+        .txn-table td::before {
+            content: attr(data-label);
+            font-weight: 700;
+            color: #4b5563;
+            text-transform: uppercase;
+            font-size: 13px;
+            margin-right: auto;
+            text-align: left;
+        }
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeSlideUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+<div class="content">
+<div class="txn-history-wrapper">
+    <!-- Back Button -->
+    <a href="{% url 'settlement:dashboard' %}" class="back-btn-txn">
+        <i class="fas fa-arrow-left"></i> Back to Wallet
+    </a>
+
+    <!-- Breadcrumb -->
+    <div class="txn-breadcrumb">
+        <a href="{% url 'settlement:dashboard' %}">Dashboard</a>
+        <span class="separator">›</span>
+        <span class="current">Transaction History</span>
     </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">Transaction History</h4>
-                    <small class="text-muted">Showing {{ transactions.count }} transactions</small>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-4">
-                        <div class="col-md-8">
-                            <form method="get" class="form-inline">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <label class="input-group-text" for="typeFilter">Filter by Type</label>
-                                    </div>
-                                    <select name="type" id="typeFilter" class="form-control" onchange="this.form.submit()">
-                                        <option value="">All Transactions</option>
-                                        {% for type_code, type_label in transaction_types %}
-                                        <option value="{{ type_code }}" {% if current_filter == type_code %}selected{% endif %}>
-                                            {{ type_label }}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
-                                    {% if current_filter %}
-                                    <div class="input-group-append">
-                                        <a href="{% url 'settlement:transaction_history' %}" class="btn btn-outline-secondary">Clear</a>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+    <!-- Main Card -->
+    <div class="txn-main-card">
+        <div class="txn-card-header">
+            <h4>Transaction History</h4>
+            <span class="txn-count">{{ transactions.count }} transaction{{ transactions.count|pluralize }}</span>
+        </div>
 
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th>Date & Time</th>
-                                    <th>Type</th>
-                                    <th>Description</th>
-                                    <th class="text-right">Amount</th>
-                                    <th class="text-right">Balance After</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for tx in transactions %}
-                                <tr>
-                                    <td class="text-nowrap">{{ tx.created_at|date:"Y-m-d H:i:s" }}</td>
-                                    <td>
-                                        {% if tx.transaction_type == 'ESCROW_CREDIT' %}
-                                            <span class="badge badge-info">Escrow Credit</span>
-                                        {% elif tx.transaction_type == 'ESCROW_RELEASE' %}
-                                            <span class="badge badge-success">Escrow Release</span>
-                                        {% elif tx.transaction_type == 'WITHDRAWAL_HOLD' %}
-                                            <span class="badge badge-warning">Withdrawal Hold</span>
-                                        {% elif tx.transaction_type == 'WITHDRAWAL_COMPLETED' %}
-                                            <span class="badge badge-primary">Withdrawal Completed</span>
-                                        {% elif tx.transaction_type == 'WITHDRAWAL_REJECTED' %}
-                                            <span class="badge badge-danger">Withdrawal Rejected</span>
-                                        {% elif tx.transaction_type == 'REFUND' %}
-                                            <span class="badge badge-danger">Refund</span>
-                                        {% elif tx.transaction_type == 'PLATFORM_COMMISSION' %}
-                                            <span class="badge badge-secondary">Platform Commission</span>
-                                        {% else %}
-                                            <span class="badge badge-light border">{{ tx.get_transaction_type_display }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="text-truncate" style="max-width: 300px;" title="{{ tx.description }}">
-                                            {{ tx.description }}
-                                        </div>
-                                    </td>
-                                    <td class="text-right font-weight-bold">
-                                        {% if tx.transaction_type == 'ESCROW_CREDIT' or tx.transaction_type == 'ESCROW_RELEASE' %}
-                                            <span class="text-success">+₹{{ tx.amount|floatformat:2 }}</span>
-                                        {% elif tx.transaction_type == 'WITHDRAWAL_HOLD' or tx.transaction_type == 'WITHDRAWAL_COMPLETED' %}
-                                            <span class="text-danger">-₹{{ tx.amount|floatformat:2 }}</span>
-                                        {% else %}
-                                            <span class="text-dark">₹{{ tx.amount|floatformat:2 }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-right text-muted">
-                                        ₹{{ tx.balance_after|floatformat:2 }}
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="5" class="text-center py-5 text-muted">
-                                        <i class="fas fa-receipt fa-3x mb-3 d-block"></i>
-                                        <p class="mb-0">No transactions found for your account.</p>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+        <!-- Filter -->
+        <form method="get" class="txn-filter-bar">
+            <span class="filter-label">Filter by Type</span>
+            <select name="type" id="typeFilter" class="filter-select-txn" onchange="this.form.submit()">
+                <option value="">All Transactions</option>
+                {% for type_code, type_label in transaction_types %}
+                <option value="{{ type_code }}" {% if current_filter == type_code %}selected{% endif %}>
+                    {{ type_label }}
+                </option>
+                {% endfor %}
+            </select>
+            {% if current_filter %}
+                <a href="{% url 'settlement:transaction_history' %}" class="clear-filter-btn">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+            {% endif %}
+        </form>
+
+        <!-- Table -->
+        <div class="txn-table-container">
+            <table class="txn-table">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th class="text-right">Amount</th>
+                        <th class="text-right">Balance After</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in transactions %}
+                    <tr>
+                        <td data-label="Date & Time">{{ tx.created_at|date:"Y-m-d H:i:s" }}</td>
+                        <td data-label="Type">
+                            {% if tx.transaction_type == 'ESCROW_CREDIT' %}
+                                <span class="txn-badge badge-info-txn">Escrow Credit</span>
+                            {% elif tx.transaction_type == 'ESCROW_RELEASE' %}
+                                <span class="txn-badge badge-success-txn">Escrow Release</span>
+                            {% elif tx.transaction_type == 'WITHDRAWAL_HOLD' %}
+                                <span class="txn-badge badge-warning-txn">Withdrawal Hold</span>
+                            {% elif tx.transaction_type == 'WITHDRAWAL_COMPLETED' %}
+                                <span class="txn-badge badge-primary-txn">Withdrawal Completed</span>
+                            {% elif tx.transaction_type == 'WITHDRAWAL_REJECTED' %}
+                                <span class="txn-badge badge-danger-txn">Withdrawal Rejected</span>
+                            {% elif tx.transaction_type == 'REFUND' %}
+                                <span class="txn-badge badge-danger-txn">Refund</span>
+                            {% elif tx.transaction_type == 'PLATFORM_COMMISSION' %}
+                                <span class="txn-badge badge-secondary-txn">Platform Commission</span>
+                            {% else %}
+                                <span class="txn-badge badge-light-txn">{{ tx.get_transaction_type_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td data-label="Description">
+                            <div class="text-truncate" style="max-width: 220px;" title="{{ tx.description }}">
+                                {{ tx.description }}
+                            </div>
+                        </td>
+                        <td data-label="Amount" class="text-right">
+                            {% if tx.transaction_type == 'ESCROW_CREDIT' or tx.transaction_type == 'ESCROW_RELEASE' %}
+                                <span class="amount-credit">+₹{{ tx.amount|floatformat:2 }}</span>
+                            {% elif tx.transaction_type == 'WITHDRAWAL_HOLD' or tx.transaction_type == 'WITHDRAWAL_COMPLETED' %}
+                                <span class="amount-debit">-₹{{ tx.amount|floatformat:2 }}</span>
+                            {% else %}
+                                <span class="amount-neutral">₹{{ tx.amount|floatformat:2 }}</span>
+                            {% endif %}
+                        </td>
+                        <td data-label="Balance After" class="text-right">
+                            <span style="color: #6b7280; font-weight: 500;">₹{{ tx.balance_after|floatformat:2 }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state-txn">
+                                <i class="fas fa-receipt"></i>
+                                <h5>No transactions found</h5>
+                                <p>Your completed transactions will appear here.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
 </div>
 {% endblock %}
