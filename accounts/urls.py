@@ -57,5 +57,6 @@ urlpatterns = [
         shiprocket_all_addresses_view,
         name="shiprocket_all_addresses"
     ),
-   
+   path('admin/users/', views.admin_user_list, name='admin_user_list'),
+    path('admin/users/toggle/<int:user_id>/', views.toggle_user_status, name='toggle_user_status'),
 ]

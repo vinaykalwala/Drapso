@@ -1,0 +1,43 @@
+<h2>👥 Users List</h2>
+
+<table border="1" cellpadding="10" width="100%">
+    <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
+
+    {% for user in users %}
+    <tr>
+        <td>{{ user.id }}</td>
+        <td>{{ user.username }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.get_role_display }}</td>
+
+        <td>
+            {% if user.is_active %}
+                <span style="color:green;">Active</span>
+            {% else %}
+                <span style="color:red;">Blocked</span>
+            {% endif %}
+        </td>
+
+        <td>
+            {% if user.role != 'admin' %}
+                <a href="{% url 'accounts:toggle_user_status' user.id %}">
+                    {% if user.is_active %}
+                        ❌ Block
+                    {% else %}
+                        ✅ Unblock
+                    {% endif %}
+                </a>
+            {% else %}
+                🚫 Not Allowed
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
