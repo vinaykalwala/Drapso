@@ -1585,3 +1585,32 @@ def shiprocket_all_addresses_view(request):
     return render(request, "admin/shiprocket_all_addresses.html", {
         "addresses": formatted_data
     })
+
+
+
+def admin_user_list(request):
+    users = User.objects.all().order_by('-date_joined')
+
+    context = {
+        'users': users
+    }
+    return render(request, 'admin/user_list.html', context)
+
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib import messages
+
+def toggle_user_status(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+
+    # Prevent blocking admin (important safeguard)
+    if user.role == User.Role.ADMIN:
+        messages.error(request, "You cannot block an admin user.")
+        return redirect('admin_user_list')
+
+    user.is_active = not user.is_active
+    user.save()
+
+    status = "unblocked" if user.is_active else "blocked"
+    messages.success(request, f"User {user.username} has been {status}.")
+
+    return redirect('admin_user_list')
