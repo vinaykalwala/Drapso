@@ -1,210 +1,410 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Shiprocket Addresses</title>
+{% extends "dashboard_base.html" %}
+{% load static %}
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f6f8fa;
-            margin: 0;
-            padding: 20px;
+{% block content %}
+{% block title %}Shiprocket Pickup Addresses{% endblock %}
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #eef2ff, #f8fafc);
+        min-height: 100vh;
+    }
+
+    .pickup-addr-wrapper {
+        width: 100%;
+        padding: 20px clamp(16px, 2.5vw, 32px);
+        animation: fadeSlideUp 0.5s ease;
+    }
+
+    /* ===== BACK BUTTON ===== */
+    .back-btn-paddr {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: white;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 40px;
+        color: #4b5563;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        backdrop-filter: blur(4px);
+        margin-bottom: 20px;
+    }
+    .back-btn-paddr i {
+        font-size: 14px;
+        color: #667eea;
+        transition: transform 0.2s ease;
+    }
+    .back-btn-paddr:hover {
+        background: white;
+        border-color: #667eea;
+        color: #1f2937;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.12);
+        transform: translateX(-2px);
+    }
+    .back-btn-paddr:hover i {
+        transform: translateX(-3px);
+        color: #764ba2;
+    }
+
+    /* ===== MAIN CARD ===== */
+    .paddr-card {
+        background: white;
+        border-radius: clamp(16px, 4vw, 24px);
+        padding: clamp(20px, 4vw, 32px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+    }
+
+    .paddr-header h2 {
+        font-size: clamp(24px, 6vw, 32px);
+        font-weight: 800;
+        background: linear-gradient(135deg, #1f2937, #4b5563);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: -0.02em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 24px;
+    }
+
+    .paddr-header h2 i {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    /* ===== SEARCH & FILTER BAR ===== */
+    .paddr-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .search-box-paddr {
+        flex: 1;
+        min-width: 260px;
+        position: relative;
+    }
+    .search-box-paddr i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 15px;
+    }
+    .search-input-paddr {
+        width: 100%;
+        padding: 12px 16px 12px 42px;
+        border: 2px solid #e5e7eb;
+        border-radius: 14px;
+        font-size: 14px;
+        background: white;
+        transition: all 0.3s;
+    }
+    .search-input-paddr:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+    }
+
+    .filter-chips {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .filter-chip {
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 13px;
+        background: white;
+        border: 2px solid #e5e7eb;
+        color: #4b5563;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .filter-chip i {
+        font-size: 14px;
+    }
+    .filter-chip.active {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-color: transparent;
+        color: white;
+        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+    }
+    .filter-chip:hover:not(.active) {
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    /* ===== TABLE ===== */
+    .paddr-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .paddr-table {
+        width: 100%;
+        min-width: 1100px;
+        border-collapse: collapse;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .paddr-table thead {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .paddr-table th {
+        padding: 16px 18px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 12px;
+        color: #4b5563;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        white-space: nowrap;
+    }
+
+    .paddr-table td {
+        padding: 16px 18px;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 14px;
+        color: #374151;
+        vertical-align: middle;
+    }
+
+    .paddr-table tbody tr {
+        transition: all 0.3s ease;
+    }
+    .paddr-table tbody tr:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.03), rgba(118, 75, 162, 0.03));
+    }
+
+    /* ===== TYPE TAG ===== */
+    .type-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        gap: 6px;
+    }
+    .tag-wholeseller {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+        border: 1px solid rgba(40, 167, 69, 0.2);
+    }
+    .tag-reseller {
+        background: rgba(255, 152, 0, 0.1);
+        color: #f57c00;
+        border: 1px solid rgba(255, 152, 0, 0.2);
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state-paddr {
+        text-align: center;
+        padding: 48px 20px;
+    }
+    .empty-state-paddr i {
+        font-size: 48px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 16px;
+        display: block;
+    }
+    .empty-state-paddr h5 {
+        color: #1f2937;
+        font-weight: 700;
+    }
+
+    /* ===== MOBILE CARD VIEW ===== */
+    @media (max-width: 768px) {
+        .paddr-table {
+            min-width: 100%;
         }
-
-        h2 {
-            margin-bottom: 20px;
+        .paddr-table thead {
+            display: none;
         }
-
-        .container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        .paddr-table tbody tr {
+            display: block;
+            margin-bottom: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            background: white;
+            padding: 18px 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
-
-        .filters {
-            margin-bottom: 15px;
+        .paddr-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: right;
+            gap: 10px;
         }
-
-        .filters button {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-right: 10px;
-            background: #e0e0e0;
+        .paddr-table td:last-child {
+            border-bottom: none;
         }
-
-        .filters button.active {
-            background: #007bff;
-            color: #fff;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-        }
-
-        th, td {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
+        .paddr-table td::before {
+            content: attr(data-label);
+            font-weight: 700;
+            color: #4b5563;
+            text-transform: uppercase;
+            font-size: 12px;
+            margin-right: auto;
             text-align: left;
         }
+    }
 
-        th {
-            background: #fafafa;
-            font-weight: 600;
-        }
+    @keyframes fadeSlideUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
 
-        tr:hover {
-            background: #f9f9f9;
-        }
+<div class="content"> 
+<div class="pickup-addr-wrapper">
+    <!-- Back Button -->
+    <a href="javascript:history.back()" class="back-btn-paddr">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
 
-        .tag {
-            padding: 4px 8px;
-            border-radius: 5px;
-            font-size: 12px;
-            color: #fff;
-        }
+    <div class="paddr-card">
+        <div class="paddr-header">
+            <h2><i class="fas fa-map-marker-alt"></i> Shiprocket Pickup Addresses</h2>
+        </div>
 
-        .wholeseller {
-            background: #28a745;
-        }
+        <!-- Toolbar -->
+        <div class="paddr-toolbar">
+            <div class="search-box-paddr">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" class="search-input-paddr" placeholder="Search city, name, pincode...">
+            </div>
+            <div class="filter-chips">
+                <button class="filter-chip active" onclick="filterType('all')"><i class="fas fa-list"></i> All</button>
+                <button class="filter-chip" onclick="filterType('wholeseller')"><i class="fas fa-warehouse"></i> Wholesellers</button>
+                <button class="filter-chip" onclick="filterType('reseller')"><i class="fas fa-store-alt"></i> Resellers</button>
+            </div>
+        </div>
 
-        .reseller {
-            background: #ff9800;
-        }
-
-        .empty {
-            text-align: center;
-            padding: 20px;
-            color: #777;
-        }
-
-        .search-box {
-            margin-bottom: 10px;
-        }
-
-        .search-box input {
-            padding: 8px;
-            width: 250px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="container">
-
-    <h2>📦 Shiprocket Pickup Addresses</h2>
-
-    <!-- 🔍 Search -->
-    <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search city / name / pincode...">
+        <div class="paddr-table-container">
+            <table class="paddr-table" id="addressTable">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Address Name</th>
+                        <th>Complete Address</th>
+                        <th>Landmark</th>
+                        <th>Pincode</th>
+                        <th>City</th>
+                        <th>State</th>
+                        <th>Country</th>
+                        <th>Incharge</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for addr in addresses %}
+                    <tr data-type="{{ addr.type }}">
+                        <td data-label="Type">
+                            <span class="type-tag {% if addr.type == 'wholeseller' %}tag-wholeseller{% else %}tag-reseller{% endif %}">
+                                <i class="fas fa-{% if addr.type == 'wholeseller' %}box{% else %}tags{% endif %}"></i>
+                                {{ addr.type|title }}
+                            </span>
+                        </td>
+                        <td data-label="Address Name">{{ addr.address_name }}</td>
+                        <td data-label="Complete Address">{{ addr.complete_address }}</td>
+                        <td data-label="Landmark">{{ addr.landmark }}</td>
+                        <td data-label="Pincode">{{ addr.pincode }}</td>
+                        <td data-label="City">{{ addr.city }}</td>
+                        <td data-label="State">{{ addr.state }}</td>
+                        <td data-label="Country">{{ addr.country }}</td>
+                        <td data-label="Incharge">{{ addr.pickup_incharge }}</td>
+                        <td data-label="Phone">{{ addr.contact_phone }}</td>
+                        <td data-label="Email">{{ addr.email }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="11">
+                            <div class="empty-state-paddr">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <h5>No pickup addresses found</h5>
+                                <p style="color: #6b7280;">Shiprocket addresses will appear here.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-
-    <!-- 🔘 Filters -->
-    <div class="filters">
-        <button onclick="filterType('all')" class="active">All</button>
-        <button onclick="filterType('wholeseller')">Wholesellers</button>
-        <button onclick="filterType('reseller')">Resellers</button>
-    </div>
-
-    <!-- 📊 Table -->
-    <table id="addressTable">
-        <thead>
-            <tr>
-                <th>Type</th>
-                <th>Address Name</th>
-                <th>Complete Address</th>
-                <th>Landmark</th>
-                <th>Pincode</th>
-                <th>City</th>
-                <th>State</th>
-                <th>Country</th>
-                <th>Incharge</th>
-                <th>Phone</th>
-                <th>Email</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for addr in addresses %}
-            <tr data-type="{{ addr.type }}">
-                <td>
-                    <span class="tag {{ addr.type }}">
-                        {{ addr.type|title }}
-                    </span>
-                </td>
-                <td>{{ addr.address_name }}</td>
-                <td>{{ addr.complete_address }}</td>
-                <td>{{ addr.landmark }}</td>
-                <td>{{ addr.pincode }}</td>
-                <td>{{ addr.city }}</td>
-                <td>{{ addr.state }}</td>
-                <td>{{ addr.country }}</td>
-                <td>{{ addr.pickup_incharge }}</td>
-                <td>{{ addr.contact_phone }}</td>
-                <td>{{ addr.email }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="11" class="empty">
-                    No addresses found
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
+</div>
 </div>
 
-<!-- ⚙️ JS for filtering + search -->
+<!-- Preserved original JS logic -->
 <script>
     let currentFilter = "all";
 
     function filterType(type) {
         currentFilter = type;
 
-        let rows = document.querySelectorAll("#addressTable tbody tr");
-        let buttons = document.querySelectorAll(".filters button");
-
+        // Update active button style
+        let buttons = document.querySelectorAll(".filter-chip");
         buttons.forEach(btn => btn.classList.remove("active"));
         event.target.classList.add("active");
 
+        // Apply combined filter
+        applyFilters();
+    }
+
+    function applyFilters() {
+        let rows = document.querySelectorAll("#addressTable tbody tr[data-type]");
+        let searchValue = document.getElementById("searchInput").value.toLowerCase();
+
         rows.forEach(row => {
             let rowType = row.getAttribute("data-type");
+            let text = row.innerText.toLowerCase();
 
-            if (type === "all" || rowType === type) {
-                row.style.display = "";
-            } else {
-                row.style.display = "none";
-            }
+            let matchesSearch = searchValue === "" || text.includes(searchValue);
+            let matchesFilter = (currentFilter === "all" || rowType === currentFilter);
+
+            row.style.display = (matchesSearch && matchesFilter) ? "" : "none";
         });
     }
 
-    document.getElementById("searchInput").addEventListener("keyup", function () {
-        let value = this.value.toLowerCase();
-        let rows = document.querySelectorAll("#addressTable tbody tr");
-
-        rows.forEach(row => {
-            let text = row.innerText.toLowerCase();
-
-            let matchesSearch = text.includes(value);
-            let matchesFilter = (currentFilter === "all" || row.getAttribute("data-type") === currentFilter);
-
-            if (matchesSearch && matchesFilter) {
-                row.style.display = "";
-            } else {
-                row.style.display = "none";
-            }
-        });
-    });
+    document.getElementById("searchInput").addEventListener("keyup", applyFilters);
 </script>
-
-</body>
-</html>
+{% endblock %}

@@ -1,95 +1,490 @@
-
+{% extends "dashboard_base.html" %}
 {% load static %}
 
+{% block content %}
 {% block title %}Withdrawal History - Drapso{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'settlement:dashboard' %}">Dashboard</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Withdrawal History</li>
-                </ol>
-            </nav>
-        </div>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #eef2ff, #f8fafc);
+        min-height: 100vh;
+    }
+
+    .withdrawal-history-wrapper {
+        width: 100%;
+        padding: 20px clamp(16px, 2.5vw, 32px);
+        animation: fadeSlideUp 0.5s ease;
+    }
+
+    /* ===== BACK BUTTON ===== */
+    .back-btn-wh {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: white;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 40px;
+        color: #4b5563;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        backdrop-filter: blur(4px);
+        margin-bottom: 20px;
+    }
+    .back-btn-wh i {
+        font-size: 14px;
+        color: #667eea;
+        transition: transform 0.2s ease;
+    }
+    .back-btn-wh:hover {
+        background: white;
+        border-color: #667eea;
+        color: #1f2937;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.12);
+        transform: translateX(-2px);
+    }
+    .back-btn-wh:hover i {
+        transform: translateX(-3px);
+        color: #764ba2;
+    }
+
+    /* ===== BREADCRUMB ===== */
+    .breadcrumb-wh {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 24px;
+        font-size: 14px;
+        color: #6b7280;
+        flex-wrap: wrap;
+    }
+    .breadcrumb-wh a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .breadcrumb-wh a:hover {
+        text-decoration: underline;
+    }
+    .breadcrumb-wh .separator {
+        color: #9ca3af;
+    }
+
+    /* ===== SEARCH & FILTER BAR ===== */
+    .filter-bar-wh {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .search-box-wh {
+        flex: 1;
+        min-width: 260px;
+        position: relative;
+    }
+    .search-box-wh i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 15px;
+    }
+    .search-input-wh {
+        width: 100%;
+        padding: 12px 16px 12px 42px;
+        border: 2px solid #e5e7eb;
+        border-radius: 14px;
+        font-size: 14px;
+        background: white;
+        transition: all 0.3s;
+    }
+    .search-input-wh:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+    }
+    .filter-select-wh {
+        padding: 12px 18px;
+        border: 2px solid #e5e7eb;
+        border-radius: 14px;
+        font-size: 14px;
+        background: white;
+        color: #374151;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .filter-select-wh:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+    }
+    .reset-btn-wh {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 12px 20px;
+        font-weight: 600;
+        color: #4b5563;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .reset-btn-wh:hover {
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    /* ===== MAIN CARD ===== */
+    .wh-card {
+        background: white;
+        border-radius: clamp(16px, 4vw, 24px);
+        padding: clamp(20px, 4vw, 32px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+    }
+    .wh-card-header {
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .wh-card-header h4 {
+        font-size: 22px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1f2937, #4b5563);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    /* ===== TABLE CONTAINER ===== */
+    .wh-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .wh-table {
+        width: 100%;
+        min-width: 950px;
+        border-collapse: collapse;
+        font-family: 'Inter', sans-serif;
+    }
+    .wh-table thead {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-bottom: 2px solid #e5e7eb;
+    }
+    .wh-table th {
+        padding: 16px 18px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 12px;
+        color: #4b5563;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        white-space: nowrap;
+    }
+    .wh-table td {
+        padding: 16px 18px;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 14px;
+        color: #374151;
+        vertical-align: middle;
+    }
+    .wh-table tbody tr {
+        transition: all 0.3s ease;
+    }
+    .wh-table tbody tr:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.03), rgba(118, 75, 162, 0.03));
+    }
+
+    /* ===== STATUS BADGES ===== */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .badge-pending {
+        background: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .badge-approved {
+        background: rgba(59, 130, 246, 0.1);
+        color: #2563eb;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+    .badge-completed {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .badge-rejected {
+        background: rgba(220, 38, 38, 0.08);
+        color: #dc2626;
+        border: 1px solid rgba(220, 38, 38, 0.2);
+    }
+    .badge-cancelled {
+        background: rgba(107, 114, 128, 0.1);
+        color: #6b7280;
+        border: 1px solid rgba(107, 114, 128, 0.2);
+    }
+
+    .rejection-row {
+        background: rgba(220, 38, 38, 0.03);
+        border-left: 4px solid #dc2626;
+    }
+    .rejection-row td {
+        color: #dc2626;
+        font-weight: 500;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state-wh {
+        text-align: center;
+        padding: 48px 20px;
+    }
+    .empty-state-wh i {
+        font-size: 48px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 16px;
+        display: block;
+    }
+    .empty-state-wh h5 {
+        color: #1f2937;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+    .empty-btn {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        padding: 10px 18px;
+        border-radius: 12px;
+        color: white;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.2);
+    }
+    .empty-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        color: white;
+    }
+
+    /* ===== MOBILE CARD VIEW ===== */
+    @media (max-width: 768px) {
+        .wh-table {
+            min-width: 100%;
+        }
+        .wh-table thead {
+            display: none;
+        }
+        .wh-table tbody tr {
+            display: block;
+            margin-bottom: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            background: white;
+            padding: 18px 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .wh-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: right;
+            gap: 12px;
+        }
+        .wh-table td:last-child {
+            border-bottom: none;
+        }
+        .wh-table td::before {
+            content: attr(data-label);
+            font-weight: 700;
+            color: #4b5563;
+            text-transform: uppercase;
+            font-size: 12px;
+            margin-right: auto;
+            text-align: left;
+        }
+        .rejection-row {
+            border-left: none;
+            border-top: 2px solid #dc2626;
+        }
+    }
+
+    @keyframes fadeSlideUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="content">
+<div class="withdrawal-history-wrapper">
+    <!-- Back Button -->
+    <a href="{% url 'settlement:dashboard' %}" class="back-btn-wh">
+        <i class="fas fa-arrow-left"></i> Back to Wallet
+    </a>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-wh">
+        <a href="{% url 'settlement:dashboard' %}">Dashboard</a>
+        <span class="separator">›</span>
+        <span class="current">Withdrawal History</span>
     </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Withdrawal History</h4>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th>Request ID</th>
-                                    <th>Amount</th>
-                                    <th>Bank Account</th>
-                                    <th>NEFT Fee</th>
-                                    <th>Status</th>
-                                    <th>Requested Date</th>
-                                    <th>Approved Date</th>
-                                    <th>Completed Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for withdrawal in withdrawals %}
-                                <tr>
-                                    <td><code>{{ withdrawal.id|slice:":8" }}...</code></td>
-                                    <td class="font-weight-bold">₹{{ withdrawal.amount|floatformat:2 }}</td>
-                                    <td>
-                                        {{ withdrawal.bank_name }}<br>
-                                        <small class="text-muted">{{ withdrawal.account_number }}</small>
-                                    </td>
-                                    <td>₹{{ withdrawal.neft_fee|floatformat:2 }}</td>
-                                    <td>
-                                        {% if withdrawal.status == 'PENDING' %}
-                                            <span class="badge badge-warning">Pending Admin Approval</span>
-                                        {% elif withdrawal.status == 'APPROVED' %}
-                                            <span class="badge badge-info">Approved - Processing</span>
-                                        {% elif withdrawal.status == 'COMPLETED' %}
-                                            <span class="badge badge-success">Completed</span>
-                                        {% elif withdrawal.status == 'REJECTED' %}
-                                            <span class="badge badge-danger">Rejected</span>
-                                        {% elif withdrawal.status == 'CANCELLED' %}
-                                            <span class="badge badge-secondary">Cancelled</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ withdrawal.requested_at|date:"Y-m-d H:i" }}</td>
-                                    <td>{{ withdrawal.approved_at|date:"Y-m-d H:i"|default:"-" }}</td>
-                                    <td>{{ withdrawal.completed_at|date:"Y-m-d H:i"|default:"-" }}</td>
-                                </tr>
-                                {% if withdrawal.rejection_reason and withdrawal.status == 'REJECTED' %}
-                                <tr class="table-danger">
-                                    <td colspan="8">
-                                        <strong>Rejection Reason:</strong> {{ withdrawal.rejection_reason }}
-                                    </td>
-                                </tr>
-                                {% endif %}
-                                {% empty %}
-                                <tr>
-                                    <td colspan="8" class="text-center py-4">
-                                        <i class="fas fa-inbox fa-2x text-muted mb-2 d-block"></i>
-                                        No withdrawal requests found
-                                        <div class="mt-2">
-                                            <a href="{% url 'settlement:withdrawal_request' %}" class="btn btn-primary btn-sm">
-                                                Request Withdrawal
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+    <!-- Main Card -->
+    <div class="wh-card">
+        <div class="wh-card-header">
+            <h4><i class="fas fa-history"></i> Withdrawal History</h4>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar-wh">
+            <div class="search-box-wh">
+                <i class="fas fa-search"></i>
+                <input type="text" id="historySearch" class="search-input-wh" placeholder="Search by ID, bank, amount...">
             </div>
+            <select id="statusFilter" class="filter-select-wh">
+                <option value="ALL">All Statuses</option>
+                <option value="PENDING">Pending</option>
+                <option value="APPROVED">Approved</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="REJECTED">Rejected</option>
+                <option value="CANCELLED">Cancelled</option>
+            </select>
+            <button class="reset-btn-wh" onclick="resetFilters()">
+                <i class="fas fa-undo-alt"></i> Reset
+            </button>
+        </div>
+
+        <div class="wh-table-container">
+            <table class="wh-table" id="withdrawalTable">
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Amount</th>
+                        <th>Bank Account</th>
+                        <th>NEFT Fee</th>
+                        <th>Status</th>
+                        <th>Requested Date</th>
+                        <th>Approved Date</th>
+                        <th>Completed Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for withdrawal in withdrawals %}
+                    <tr data-status="{{ withdrawal.status }}">
+                        <td data-label="Request ID"><code>{{ withdrawal.id|slice:":8" }}...</code></td>
+                        <td data-label="Amount" style="font-weight:700;">₹{{ withdrawal.amount|floatformat:2 }}</td>
+                        <td data-label="Bank Account">
+                            {{ withdrawal.bank_name }}<br>
+                            <small style="color:#6b7280;">{{ withdrawal.account_number }}</small>
+                        </td>
+                        <td data-label="NEFT Fee">₹{{ withdrawal.neft_fee|floatformat:2 }}</td>
+                        <td data-label="Status">
+                            {% if withdrawal.status == 'PENDING' %}
+                                <span class="status-badge badge-pending">Pending Admin Approval</span>
+                            {% elif withdrawal.status == 'APPROVED' %}
+                                <span class="status-badge badge-approved">Approved - Processing</span>
+                            {% elif withdrawal.status == 'COMPLETED' %}
+                                <span class="status-badge badge-completed">Completed</span>
+                            {% elif withdrawal.status == 'REJECTED' %}
+                                <span class="status-badge badge-rejected">Rejected</span>
+                            {% elif withdrawal.status == 'CANCELLED' %}
+                                <span class="status-badge badge-cancelled">Cancelled</span>
+                            {% endif %}
+                        </td>
+                        <td data-label="Requested">{{ withdrawal.requested_at|date:"Y-m-d H:i" }}</td>
+                        <td data-label="Approved">{{ withdrawal.approved_at|date:"Y-m-d H:i"|default:"—" }}</td>
+                        <td data-label="Completed">{{ withdrawal.completed_at|date:"Y-m-d H:i"|default:"—" }}</td>
+                    </tr>
+                    {% if withdrawal.rejection_reason and withdrawal.status == 'REJECTED' %}
+                    <tr class="rejection-row" data-status="{{ withdrawal.status }}">
+                        <td colspan="8" data-label="Rejection Reason">
+                            <strong>Rejection Reason:</strong> {{ withdrawal.rejection_reason }}
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state-wh">
+                                <i class="fas fa-inbox"></i>
+                                <h5>No withdrawal requests found</h5>
+                                <a href="{% url 'settlement:withdrawal_request' %}" class="empty-btn">
+                                    <i class="fas fa-plus"></i> Request Withdrawal
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('historySearch');
+        const statusFilter = document.getElementById('statusFilter');
+        const table = document.getElementById('withdrawalTable');
+        const rows = table.querySelectorAll('tbody tr[data-status]');
+
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const selectedStatus = statusFilter.value;
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const status = row.getAttribute('data-status');
+                const matchesSearch = searchTerm === '' || text.includes(searchTerm);
+                const matchesStatus = selectedStatus === 'ALL' || status === selectedStatus;
+                row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+            });
+        }
+
+        searchInput.addEventListener('keyup', filterTable);
+        statusFilter.addEventListener('change', filterTable);
+
+        window.resetFilters = function() {
+            searchInput.value = '';
+            statusFilter.value = 'ALL';
+            filterTable();
+        };
+    });
+</script>
 {% endblock %}
