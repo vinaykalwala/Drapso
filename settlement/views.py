@@ -187,7 +187,10 @@ def admin_withdrawal_detail(request, withdrawal_id):
 @login_required
 @user_passes_test(is_admin)
 def admin_settlement_report(request):
-    """Admin view for settlement reports"""
+    """Admin view for settlement reports with CSV export"""
+    from django.http import HttpResponse
+    import csv
+    
     form = DateRangeForm(request.GET or None)
     
     settlements = OrderSettlement.objects.select_related('order').all()
@@ -204,7 +207,58 @@ def admin_settlement_report(request):
         total_drapso_commission=Sum('drapso_commission'),
         total_wholeseller=Sum('wholeseller_amount'),
         total_reseller=Sum('reseller_amount'),
+        total_neft_cost=Sum('neft_settlement_cost'),
     )
+    
+    # Check for CSV export
+    if request.GET.get('export') == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="settlement_report.csv"'
+        
+        writer = csv.writer(response)
+        
+        # Write headers
+        writer.writerow([
+            'Order ID', 
+            'Shiprocket ID',
+            'Date', 
+            'Order Total', 
+            'Delivery Charges', 
+            'Razorpay Fee',
+            'Drapso Commission', 
+            'NEFT Cost', 
+            'Wholeseller Amount',
+            'Reseller Amount', 
+            'Status',
+            'Created At'
+        ])
+        
+        # Write data rows with null handling
+        for settlement in settlements:
+            # Handle date formatting safely
+            created_at_date = ""
+            created_at_datetime = ""
+            
+            if settlement.created_at:
+                created_at_date = settlement.created_at.strftime('%Y-%m-%d')
+                created_at_datetime = settlement.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            
+            writer.writerow([
+                settlement.order.order_id if settlement.order else '',
+                settlement.order.shiprocket_order_id if settlement.order and settlement.order.shiprocket_order_id else '',
+                created_at_date,
+                float(settlement.order_total) if settlement.order_total else 0,
+                float(settlement.delivery_charges) if settlement.delivery_charges else 0,
+                float(settlement.razorpay_fee) if settlement.razorpay_fee else 0,
+                float(settlement.drapso_commission) if settlement.drapso_commission else 0,
+                float(settlement.neft_settlement_cost) if settlement.neft_settlement_cost else 0,
+                float(settlement.wholeseller_amount) if settlement.wholeseller_amount else 0,
+                float(settlement.reseller_amount) if settlement.reseller_amount else 0,
+                settlement.status if settlement.status else '',
+                created_at_datetime,
+            ])
+        
+        return response
     
     context = {
         'form': form,
@@ -213,8 +267,7 @@ def admin_settlement_report(request):
     }
     
     return render(request, 'settlement/admin/settlement_report.html', context)
-
-
+    
 @login_required
 def api_wallet_balance(request):
     """API endpoint for wallet balance"""
