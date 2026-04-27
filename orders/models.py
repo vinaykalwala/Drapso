@@ -189,7 +189,7 @@ class Order(models.Model):
                 print(f"Error updating settlement after manual cost change: {e}")
 
     def __str__(self):
-        return f"{self.order_id} - {self.customer_name}"
+        return f"{self.order_id} - {self.customer_name} -{self.order_status}"
 
     # Helper Logic Methods
     def can_cancel(self):

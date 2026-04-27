@@ -1,0 +1,591 @@
+
+{% load static %}
+
+{% block title %}Admin Analytics - Superuser Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-card { transition: transform 0.2s, box-shadow 0.2s; }
+    .dashboard-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+    .stat-number { font-size: 2rem; font-weight: bold; line-height: 1.2; }
+    .tab-active { background-color: #3b82f6; color: white; }
+    .tab-inactive { background-color: #e5e7eb; color: #4b5563; }
+    .tab-inactive:hover { background-color: #d1d5db; }
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .admin-badge { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .tooltip-icon { cursor: help; border-bottom: 1px dotted #999; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-7xl">
+    <!-- Admin Header -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Admin Analytics Dashboard</h1>
+                <p class="text-gray-600 mt-2">Complete platform overview and insights</p>
+            </div>
+            <div class="admin-badge text-white px-4 py-2 rounded-lg">
+                <i class="fas fa-crown mr-2"></i>Superuser Access
+            </div>
+        </div>
+    </div>
+
+    <!-- Period Selector -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div class="flex flex-wrap gap-4 items-center justify-between">
+            <div class="flex gap-2">
+                <button onclick="changePeriod('daily')" class="period-btn px-4 py-2 rounded-lg transition bg-gray-200 text-gray-700">Daily</button>
+                <button onclick="changePeriod('weekly')" class="period-btn px-4 py-2 rounded-lg transition bg-gray-200 text-gray-700">Weekly</button>
+                <button onclick="changePeriod('monthly')" class="period-btn px-4 py-2 rounded-lg transition bg-blue-600 text-white">Monthly</button>
+                <button onclick="changePeriod('quarterly')" class="period-btn px-4 py-2 rounded-lg transition bg-gray-200 text-gray-700">Quarterly</button>
+                <button onclick="changePeriod('yearly')" class="period-btn px-4 py-2 rounded-lg transition bg-gray-200 text-gray-700">Yearly</button>
+            </div>
+            <div class="flex gap-4">
+                <div class="flex items-center gap-2">
+                    <label class="text-sm font-medium">Custom:</label>
+                    <input type="date" id="custom_start" class="border rounded-lg px-3 py-1">
+                    <span>to</span>
+                    <input type="date" id="custom_end" class="border rounded-lg px-3 py-1">
+                    <button onclick="applyCustomRange()" class="bg-gray-600 text-white px-4 py-1 rounded-lg hover:bg-gray-700">Apply</button>
+                </div>
+                <button onclick="exportData()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"><i class="fas fa-download"></i> Export</button>
+                <button onclick="refreshData()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"><i class="fas fa-sync-alt"></i> Refresh</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Tabs -->
+    <div class="mb-6 overflow-x-auto">
+        <div class="flex gap-2 border-b border-gray-200 min-w-max">
+            <button onclick="switchTab('overview')" class="tab-btn px-6 py-3 rounded-t-lg font-medium transition tab-active"><i class="fas fa-chart-line mr-2"></i>Platform Overview</button>
+            <button onclick="switchTab('wholesellers')" class="tab-btn px-6 py-3 rounded-t-lg font-medium transition tab-inactive"><i class="fas fa-warehouse mr-2"></i>Wholesellers</button>
+            <button onclick="switchTab('resellers')" class="tab-btn px-6 py-3 rounded-t-lg font-medium transition tab-inactive"><i class="fas fa-store mr-2"></i>Resellers</button>
+            <button onclick="switchTab('stores')" class="tab-btn px-6 py-3 rounded-t-lg font-medium transition tab-inactive"><i class="fas fa-shopping-cart mr-2"></i>Stores</button>
+            <button onclick="switchTab('kyc')" class="tab-btn px-6 py-3 rounded-t-lg font-medium transition tab-inactive"><i class="fas fa-id-card mr-2"></i>KYC Verification</button>
+            <button onclick="switchTab('products')" class="tab-btn px-6 py-3 rounded-t-lg font-medium transition tab-inactive"><i class="fas fa-tag mr-2"></i>Products</button>
+            <button onclick="switchTab('top-products')" class="tab-btn px-6 py-3 rounded-t-lg font-medium transition tab-inactive"><i class="fas fa-trophy mr-2"></i>Top Selling</button>
+            <button onclick="switchTab('settlements')" class="tab-btn px-6 py-3 rounded-t-lg font-medium transition tab-inactive"><i class="fas fa-hand-holding-usd mr-2"></i>Platform Settlements</button>
+            <button onclick="switchTab('withdrawals')" class="tab-btn px-6 py-3 rounded-t-lg font-medium transition tab-inactive"><i class="fas fa-money-bill-wave mr-2"></i>Withdrawals</button>
+            <button onclick="switchTab('platform-profit')" class="tab-btn px-6 py-3 rounded-t-lg font-medium transition tab-inactive"><i class="fas fa-chart-pie mr-2"></i>Platform Profit</button>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div id="tabContent">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6"><div class="skeleton h-4 w-24 mb-2"></div><div class="skeleton h-8 w-32"></div></div>
+            <div class="bg-white rounded-lg shadow-md p-6"><div class="skeleton h-4 w-24 mb-2"></div><div class="skeleton h-8 w-32"></div></div>
+            <div class="bg-white rounded-lg shadow-md p-6"><div class="skeleton h-4 w-24 mb-2"></div><div class="skeleton h-8 w-32"></div></div>
+            <div class="bg-white rounded-lg shadow-md p-6"><div class="skeleton h-4 w-24 mb-2"></div><div class="skeleton h-8 w-32"></div></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let currentPeriod = 'monthly';
+    let currentTab = 'overview';
+    let customStart = null;
+    let customEnd = null;
+    let charts = {};
+
+    function getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, 10) === ('csrftoken' + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(10));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function changePeriod(period) {
+        currentPeriod = period;
+        customStart = null;
+        customEnd = null;
+        document.querySelectorAll('.period-btn').forEach(btn => {
+            btn.classList.remove('bg-blue-600', 'text-white');
+            btn.classList.add('bg-gray-200', 'text-gray-700');
+        });
+        event.target.classList.remove('bg-gray-200', 'text-gray-700');
+        event.target.classList.add('bg-blue-600', 'text-white');
+        document.getElementById('custom_start').value = '';
+        document.getElementById('custom_end').value = '';
+        loadTabContent();
+    }
+
+    function applyCustomRange() {
+        const start = document.getElementById('custom_start').value;
+        const end = document.getElementById('custom_end').value;
+        if (start && end) {
+            customStart = start;
+            customEnd = end;
+            currentPeriod = 'custom';
+            loadTabContent();
+        } else {
+            alert('Please select both start and end dates');
+        }
+    }
+
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('tab-active');
+            btn.classList.add('tab-inactive');
+        });
+        event.target.classList.remove('tab-inactive');
+        event.target.classList.add('tab-active');
+        loadTabContent();
+    }
+
+    function refreshData() { loadTabContent(); }
+
+    function exportData() {
+        let url = `/analytics/export/?type=revenue&period=${currentPeriod}`;
+        if (customStart && customEnd) url += `&start_date=${customStart}&end_date=${customEnd}`;
+        window.open(url, '_blank');
+    }
+
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(value);
+    }
+
+    function formatNumber(value) {
+        return new Intl.NumberFormat('en-IN').format(value);
+    }
+
+    function buildApiUrl(endpoint) {
+        let url = `/analytics/${endpoint}/`;
+        const params = new URLSearchParams();
+        if (currentPeriod !== 'custom') params.append('period', currentPeriod);
+        if (customStart && customEnd) { params.append('start_date', customStart); params.append('end_date', customEnd); }
+        const qs = params.toString();
+        if (qs) url += `?${qs}`;
+        return url;
+    }
+
+    function getEndpointForTab() {
+        const endpoints = {
+            'overview': 'dashboard-summary', 'wholesellers': 'user-growth', 'resellers': 'user-growth',
+            'stores': 'store-performance', 'kyc': 'user-growth', 'products': 'product-performance',
+            'top-products': 'top-products', 'settlements': 'settlements', 'withdrawals': 'settlements',
+            'platform-profit': 'profit'
+        };
+        return endpoints[currentTab];
+    }
+
+    async function loadTabContent() {
+        try {
+            const endpoint = getEndpointForTab();
+            const url = buildApiUrl(endpoint);
+            const response = await fetch(url, { 
+                method: 'GET', 
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }, 
+                credentials: 'same-origin' 
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            
+            if (currentTab === 'overview') renderAdminOverview(data);
+            else if (currentTab === 'wholesellers') renderAdminWholesellers(data);
+            else if (currentTab === 'resellers') renderAdminResellers(data);
+            else if (currentTab === 'stores') renderAdminStores(data);
+            else if (currentTab === 'kyc') renderAdminKYC(data);
+            else if (currentTab === 'products') renderAdminProducts(data);
+            else if (currentTab === 'top-products') renderAdminTopProducts(data);
+            else if (currentTab === 'settlements') renderAdminSettlements(data);
+            else if (currentTab === 'withdrawals') renderAdminWithdrawals(data);
+            else if (currentTab === 'platform-profit') renderAdminProfit(data);
+            
+        } catch (error) {
+            document.getElementById('tabContent').innerHTML = `<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Error: ${error.message}</div>`;
+        }
+    }
+
+    function renderAdminOverview(data) {
+        const revenue = data.revenue || {};
+        const settlements = data.settlements || {};
+        const userGrowth = data.user_growth || {};
+        
+        const html = `
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-lg p-6">
+                    <p class="text-sm opacity-90">Total Revenue</p>
+                    <p class="text-3xl font-bold">${formatCurrency(revenue.total_revenue || 0)}</p>
+                    <p class="text-xs">↑ ${revenue.revenue_growth || 0}% from last period</p>
+                </div>
+                <div class="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow-lg p-6">
+                    <p class="text-sm opacity-90">Platform Commission</p>
+                    <p class="text-3xl font-bold">${formatCurrency(revenue.platform_commission || 0)}</p>
+                    <p class="text-xs">5% of all sales</p>
+                </div>
+                <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg shadow-lg p-6">
+                    <p class="text-sm opacity-90">Verified Wholesellers</p>
+                    <p class="text-3xl font-bold">${userGrowth.verified_wholesellers || 0}</p>
+                    <p class="text-xs tooltip-icon" title="KYC Approved + Inventory Verified">✓ Fully verified</p>
+                </div>
+                <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg shadow-lg p-6">
+                    <p class="text-sm opacity-90">Verified Resellers</p>
+                    <p class="text-3xl font-bold">${userGrowth.verified_resellers || 0}</p>
+                    <p class="text-xs tooltip-icon" title="Has active store with payment completed">✓ Active store owners</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="bg-white rounded-lg shadow-lg p-6"><h3 class="text-xl font-semibold mb-4">Revenue Trend</h3><canvas id="revenueChart" height="250"></canvas></div>
+                <div class="bg-white rounded-lg shadow-lg p-6"><h3 class="text-xl font-semibold mb-4">User Growth Trend</h3><canvas id="userGrowthChart" height="250"></canvas></div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold mb-3">💰 Settlement Summary</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between"><span>Settled:</span><span class="font-bold text-green-600">${formatCurrency(settlements.settlements?.total_settled_amount || 0)}</span></div>
+                        <div class="flex justify-between"><span>In Escrow:</span><span class="font-bold text-yellow-600">${formatCurrency(settlements.settlements?.total_escrow_amount || 0)}</span></div>
+                        <div class="flex justify-between"><span>Settlement Rate:</span><span class="font-bold">${settlements.settlements?.settlement_rate || 0}%</span></div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold mb-3">👥 User Verification Status</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between"><span>KYC Completed:</span><span class="font-bold">${userGrowth.kyced_wholesellers || 0}</span></div>
+                        <div class="flex justify-between"><span>Pending KYC:</span><span class="font-bold text-orange-600">${(userGrowth.total_wholesellers || 0) - (userGrowth.kyced_wholesellers || 0)}</span></div>
+                        <div class="flex justify-between"><span>Wholeseller Verification Rate:</span><span class="font-bold">${((userGrowth.verified_wholesellers || 0) / (userGrowth.total_wholesellers || 1) * 100).toFixed(1)}%</span></div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold mb-3">🏪 Store Stats</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between"><span>Total Stores:</span><span class="font-bold">${userGrowth.total_stores || 0}</span></div>
+                        <div class="flex justify-between"><span>Active Stores:</span><span class="font-bold text-green-600">${(data.store_performance?.summary?.active_stores) || 0}</span></div>
+                        <div class="flex justify-between"><span>Store Growth:</span><span class="font-bold">+${userGrowth.store_growth || 0}%</span></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('tabContent').innerHTML = html;
+        
+        if (revenue.data_points) {
+            const labels = revenue.data_points.map(p => p.date || p.month || p.year);
+            const values = revenue.data_points.map(p => p.revenue);
+            new Chart(document.getElementById('revenueChart'), { type: 'line', data: { labels: labels, datasets: [{ label: 'Revenue', data: values, borderColor: '#3b82f6', fill: true }] }, options: { responsive: true } });
+        }
+        if (userGrowth.data_points) {
+            const labels = userGrowth.data_points.map(p => p.date || p.month || p.year);
+            const values = userGrowth.data_points.map(p => p.total);
+            new Chart(document.getElementById('userGrowthChart'), { type: 'bar', data: { labels: labels, datasets: [{ label: 'New Users', data: values, backgroundColor: '#10b981' }] }, options: { responsive: true } });
+        }
+    }
+
+    function renderAdminWholesellers(data) {
+        const verificationRate = ((data.verified_wholesellers || 0) / (data.total_wholesellers || 1) * 100).toFixed(1);
+        const kycRate = ((data.kyced_wholesellers || 0) / (data.total_wholesellers || 1) * 100).toFixed(1);
+        
+        const html = `
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-2xl font-bold mb-6">Wholeseller Analytics</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-blue-50 p-4 rounded">
+                        <p class="text-gray-600">Total Wholesellers</p>
+                        <p class="text-3xl font-bold text-blue-600">${data.total_wholesellers || 0}</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded">
+                        <p class="text-gray-600">Fully Verified</p>
+                        <p class="text-3xl font-bold text-green-600">${data.verified_wholesellers || 0}</p>
+                        <p class="text-xs text-gray-500">${verificationRate}% of total</p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded">
+                        <p class="text-gray-600">KYC Completed</p>
+                        <p class="text-3xl font-bold text-yellow-600">${data.kyced_wholesellers || 0}</p>
+                        <p class="text-xs text-gray-500">${kycRate}% of total</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded">
+                        <p class="text-gray-600">Pending Inventory</p>
+                        <p class="text-3xl font-bold text-purple-600">${(data.kyced_wholesellers || 0) - (data.verified_wholesellers || 0)}</p>
+                        <p class="text-xs text-gray-500">KYC done, inventory pending</p>
+                    </div>
+                </div>
+                <div class="mt-4 p-4 bg-gray-50 rounded-lg mb-6">
+                    <h4 class="font-semibold text-sm mb-2">📋 Wholeseller Verification Criteria:</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                        <div class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>KYC Status = 'approved'</div>
+                        <div class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Inventory is_verified = True</div>
+                        <div class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>Both required for verified status</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div><h4 class="font-semibold mb-3">Wholeseller Growth Trend</h4><canvas id="wholesellerChart" height="250"></canvas></div>
+                    <div><h4 class="font-semibold mb-3">Verification Status Distribution</h4><canvas id="verificationChart" height="250"></canvas></div>
+                </div>
+            </div>
+        `;
+        document.getElementById('tabContent').innerHTML = html;
+        
+        if (data.data_points) {
+            new Chart(document.getElementById('wholesellerChart'), { type: 'line', data: { labels: data.data_points.map(p => p.date || p.month), datasets: [{ label: 'New Wholesellers', data: data.data_points.map(p => p.wholesellers || 0), borderColor: '#3b82f6' }] } });
+        }
+        
+        new Chart(document.getElementById('verificationChart'), { type: 'doughnut', data: { labels: ['Fully Verified', 'KYC Only', 'Not Verified'], datasets: [{ data: [data.verified_wholesellers || 0, (data.kyced_wholesellers || 0) - (data.verified_wholesellers || 0), (data.total_wholesellers || 0) - (data.kyced_wholesellers || 0)], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }] } });
+    }
+
+    function renderAdminResellers(data) {
+        const verificationRate = ((data.verified_resellers || 0) / (data.total_resellers || 1) * 100).toFixed(1);
+        
+        const html = `
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-2xl font-bold mb-6">Reseller Analytics</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-blue-50 p-4 rounded">
+                        <p class="text-gray-600">Total Resellers</p>
+                        <p class="text-3xl font-bold text-blue-600">${data.total_resellers || 0}</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded">
+                        <p class="text-gray-600">Verified Resellers</p>
+                        <p class="text-3xl font-bold text-green-600">${data.verified_resellers || 0}</p>
+                        <p class="text-xs text-gray-500">${verificationRate}% of total</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded">
+                        <p class="text-gray-600">Total Stores</p>
+                        <p class="text-3xl font-bold text-purple-600">${data.total_stores || 0}</p>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded">
+                        <p class="text-gray-600">Active Stores</p>
+                        <p class="text-3xl font-bold text-orange-600">${data.active_stores || 0}</p>
+                        <p class="text-xs text-gray-500">With payment completed</p>
+                    </div>
+                </div>
+                <div class="mt-4 p-4 bg-gray-50 rounded-lg mb-6">
+                    <h4 class="font-semibold text-sm mb-2">📋 Reseller Verification Criteria:</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                        <div class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Has at least one store</div>
+                        <div class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Store status = 'active'</div>
+                        <div class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Store payment_status = True</div>
+                    </div>
+                </div>
+                <div><h4 class="font-semibold mb-3">Reseller Growth Trend</h4><canvas id="resellerChart" height="250"></canvas></div>
+            </div>
+        `;
+        document.getElementById('tabContent').innerHTML = html;
+        
+        if (data.data_points) {
+            new Chart(document.getElementById('resellerChart'), { type: 'line', data: { labels: data.data_points.map(p => p.date || p.month), datasets: [{ label: 'New Resellers', data: data.data_points.map(p => p.resellers || 0), borderColor: '#22c55e', fill: true }] } });
+        }
+    }
+
+    function renderAdminStores(data) {
+        const stores = data.store_performance || [];
+        const summary = data.summary || {};
+        
+        const html = `
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-2xl font-bold mb-6">Store Performance Analytics</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-indigo-50 p-4 rounded">
+                        <p class="text-gray-600">Total Stores</p>
+                        <p class="text-2xl font-bold">${summary.total_stores || 0}</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded">
+                        <p class="text-gray-600">Active (Verified)</p>
+                        <p class="text-2xl font-bold text-green-600">${summary.active_stores || 0}</p>
+                        <p class="text-xs text-gray-500">Status active + payment complete</p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded">
+                        <p class="text-gray-600">Pending Payment</p>
+                        <p class="text-2xl font-bold text-yellow-600">${summary.pending_payment_stores || 0}</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded">
+                        <p class="text-gray-600">Expired/Suspended</p>
+                        <p class="text-2xl font-bold text-red-600">${(summary.expired_stores || 0) + (summary.inactive_stores || 0)}</p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Store Name</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Revenue</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Orders</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Products</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${stores.slice(0,15).map(s => `
+                                <tr class="hover:bg-gray-50">
+                                    <td class="border px-4 py-2 text-sm">${s.store_name || '-'}</td>
+                                    <td class="border px-4 py-2">
+                                        <span class="px-2 py-1 text-xs rounded-full ${s.status === 'active' ? 'bg-green-100 text-green-800' : s.status === 'expired' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}">
+                                            ${s.status}
+                                        </span>
+                                    </td>
+                                    <td class="border px-4 py-2 text-sm">${s.payment_status ? '✅ Paid' : '❌ Pending'}</td>
+                                    <td class="border px-4 py-2 text-sm text-green-600">${formatCurrency(s.total_revenue)}</td>
+                                    <td class="border px-4 py-2 text-sm">${s.total_orders}</td>
+                                    <td class="border px-4 py-2 text-sm">${s.total_products}</td>
+                                 </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+        document.getElementById('tabContent').innerHTML = html;
+    }
+
+    function renderAdminKYC(data) {
+        const rate = ((data.kyced_wholesellers || 0) / (data.total_wholesellers || 1) * 100).toFixed(1);
+        const verifiedRate = ((data.verified_wholesellers || 0) / (data.total_wholesellers || 1) * 100).toFixed(1);
+        
+        const html = `
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-2xl font-bold mb-6">KYC & Verification Management</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-yellow-50 p-4 rounded">
+                        <p class="text-gray-600">KYC Completed</p>
+                        <p class="text-3xl font-bold text-yellow-600">${data.kyced_wholesellers || 0}</p>
+                        <p class="text-xs text-gray-500">${rate}% completion rate</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded">
+                        <p class="text-gray-600">Fully Verified</p>
+                        <p class="text-3xl font-bold text-green-600">${data.verified_wholesellers || 0}</p>
+                        <p class="text-xs text-gray-500">${verifiedRate}% fully onboarded</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded">
+                        <p class="text-gray-600">Pending Review</p>
+                        <p class="text-3xl font-bold text-red-600">${(data.total_wholesellers || 0) - (data.kyced_wholesellers || 0)}</p>
+                        <p class="text-xs text-gray-500">Need KYC submission</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-gray-100 p-4 rounded">
+                        <h4 class="font-semibold mb-2">KYC Completion Progress</h4>
+                        <div class="w-full bg-gray-300 rounded-full h-6">
+                            <div class="bg-yellow-600 h-6 rounded-full text-center text-white text-sm leading-6" style="width: ${rate}%">${rate}%</div>
+                        </div>
+                        <p class="text-center mt-2 text-sm">${data.kyced_wholesellers || 0} out of ${data.total_wholesellers || 0} wholesellers have completed KYC</p>
+                    </div>
+                    <div class="bg-gray-100 p-4 rounded">
+                        <h4 class="font-semibold mb-2">Full Verification Progress</h4>
+                        <div class="w-full bg-gray-300 rounded-full h-6">
+                            <div class="bg-green-600 h-6 rounded-full text-center text-white text-sm leading-6" style="width: ${verifiedRate}%">${verifiedRate}%</div>
+                        </div>
+                        <p class="text-center mt-2 text-sm">${data.verified_wholesellers || 0} out of ${data.total_wholesellers || 0} fully verified (KYC + Inventory)</p>
+                    </div>
+                </div>
+                <div class="mt-6 p-4 bg-blue-50 rounded">
+                    <h4 class="font-semibold text-sm">ℹ️ Verification Process:</h4>
+                    <p class="text-xs text-gray-600 mt-1">Step 1: Wholeseller submits KYC documents → Status 'pending'</p>
+                    <p class="text-xs text-gray-600">Step 2: Admin approves KYC → Status 'approved' (KYC Completed)</p>
+                    <p class="text-xs text-gray-600">Step 3: Wholeseller completes inventory verification → is_verified = True (Fully Verified)</p>
+                </div>
+            </div>
+        `;
+        document.getElementById('tabContent').innerHTML = html;
+    }
+
+    function renderAdminProducts(data) {
+        const html = `
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-2xl font-bold mb-6">Product Catalog Analytics</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-blue-50 p-4 rounded"><p class="text-gray-600">Wholeseller Products</p><p class="text-2xl font-bold">${formatNumber(data.wholeseller_products?.total || 0)}</p></div>
+                    <div class="bg-green-50 p-4 rounded"><p class="text-gray-600">Reseller Products</p><p class="text-2xl font-bold">${formatNumber(data.reseller_products?.total || 0)}</p></div>
+                    <div class="bg-purple-50 p-4 rounded"><p class="text-gray-600">Total Variants</p><p class="text-2xl font-bold">${formatNumber(data.variants?.total || 0)}</p></div>
+                    <div class="bg-orange-50 p-4 rounded"><p class="text-gray-600">Low Stock Alerts</p><p class="text-2xl font-bold text-red-600">${data.reseller_products?.low_stock || 0}</p></div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div><h4 class="font-semibold">Product Type Distribution</h4><canvas id="productTypeChart" height="200"></canvas></div>
+                    <div><h4 class="font-semibold">Stock Health</h4><canvas id="stockHealthChart" height="200"></canvas></div>
+                </div>
+            </div>
+        `;
+        document.getElementById('tabContent').innerHTML = html;
+        new Chart(document.getElementById('productTypeChart'), { type: 'pie', data: { labels: ['Imported', 'Own'], datasets: [{ data: [data.reseller_products?.imported || 0, data.reseller_products?.own || 0], backgroundColor: ['#3b82f6', '#22c55e'] }] } });
+        new Chart(document.getElementById('stockHealthChart'), { type: 'doughnut', data: { labels: ['Healthy', 'Low Stock', 'Out of Stock'], datasets: [{ data: [(data.reseller_products?.active || 0) - (data.reseller_products?.low_stock || 0), data.reseller_products?.low_stock || 0, data.reseller_products?.out_of_stock || 0], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }] } });
+    }
+
+    function renderAdminTopProducts(data) {
+        const products = data.products || [];
+        const totalRevenue = products.reduce((s, p) => s + (p.total_revenue || 0), 0);
+        
+        const html = `
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-2xl font-bold mb-6">🏆 Platform-Wide Top Selling Products</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 rounded"><p class="text-sm">Total Units Sold</p><p class="text-2xl font-bold">${formatNumber(data.total_products_sold || 0)}</p></div>
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-4 rounded"><p class="text-sm">Top Product</p><p class="text-lg font-bold">${products[0]?.product_name || 'N/A'}</p><p class="text-xs">${products[0]?.sales_percentage || 0}% of sales</p></div>
+                    <div class="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-4 rounded"><p class="text-sm">Total Revenue</p><p class="text-2xl font-bold">${formatCurrency(totalRevenue)}</p></div>
+                </div>
+                <div class="overflow-x-auto"><table class="min-w-full"><thead class="bg-gray-50"><tr><th>#</th><th>Product</th><th>SKU</th><th>Source</th><th>Quantity</th><th>Revenue</th><th>%</th></tr></thead><tbody>${products.slice(0,20).map(p => `<tr><td class="border px-4 py-2">${p.rank === 1 ? '🥇' : p.rank === 2 ? '🥈' : p.rank === 3 ? '🥉' : `#${p.rank}`}</td><td class="border px-4 py-2">${p.product_name}</td><td class="border px-4 py-2 font-mono text-xs">${p.sku}</td><td class="border px-4 py-2"><span class="px-2 py-1 text-xs rounded-full ${p.source_type === 'imported' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">${p.source_type}</span></td><td class="border px-4 py-2 font-bold">${p.total_quantity_sold}</td><td class="border px-4 py-2 text-green-600">${formatCurrency(p.total_revenue)}</td><td class="border px-4 py-2"><div class="flex items-center"><div class="w-16 bg-gray-200 rounded-full h-2"><div class="bg-blue-500 h-2 rounded-full" style="width: ${p.sales_percentage}%"></div></div><span class="ml-2 text-xs">${p.sales_percentage}%</span></div></td></tr>`).join('')}</tbody></table></div>
+            </div>
+        `;
+        document.getElementById('tabContent').innerHTML = html;
+    }
+
+    function renderAdminSettlements(data) {
+        const html = `
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-2xl font-bold mb-6">Platform Settlement Analytics</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-green-50 p-4 rounded"><p>Settled Amount</p><p class="text-2xl font-bold text-green-600">${formatCurrency(data.settlements?.total_settled_amount || 0)}</p><p class="text-xs">${data.settlements?.total_released || 0} settlements</p></div>
+                    <div class="bg-yellow-50 p-4 rounded"><p>In Escrow</p><p class="text-2xl font-bold text-yellow-600">${formatCurrency(data.settlements?.total_escrow_amount || 0)}</p><p class="text-xs">${data.settlements?.total_in_escrow || 0} pending</p></div>
+                    <div class="bg-blue-50 p-4 rounded"><p>Settlement Rate</p><p class="text-2xl font-bold text-blue-600">${data.settlements?.settlement_rate || 0}%</p></div>
+                    <div class="bg-purple-50 p-4 rounded"><p>Avg Settlement Days</p><p class="text-2xl font-bold text-purple-600">${data.settlements?.average_settlement_days || 0} days</p><p class="text-xs">3-day buffer + processing</p></div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded"><h4 class="font-semibold mb-3">Fee Breakdown</h4><div class="grid grid-cols-2 md:grid-cols-4 gap-4"><div><p class="text-sm text-gray-600">Razorpay Fee</p><p class="font-bold">${formatCurrency(data.fee_breakdown?.total_razorpay_fee || 0)}</p><p class="text-xs">2% + GST</p></div><div><p class="text-sm text-gray-600">Drapso Commission</p><p class="font-bold">${formatCurrency(data.fee_breakdown?.total_drapso_commission || 0)}</p><p class="text-xs">5% of sales</p></div><div><p class="text-sm text-gray-600">NEFT Cost</p><p class="font-bold">${formatCurrency(data.fee_breakdown?.total_neft_cost || 0)}</p><p class="text-xs">₹5 per payout</p></div><div><p class="text-sm text-gray-600">Delivery Charges</p><p class="font-bold">${formatCurrency(data.fee_breakdown?.total_delivery_charges || 0)}</p></div></div></div>
+            </div>
+        `;
+        document.getElementById('tabContent').innerHTML = html;
+    }
+
+    function renderAdminWithdrawals(data) {
+        const html = `
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-2xl font-bold mb-6">Withdrawal Management</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-blue-50 p-4 rounded"><p>Total Requested</p><p class="text-2xl font-bold">${formatCurrency(data.withdrawal_stats?.total_requested || 0)}</p><p class="text-xs">${data.withdrawal_stats?.request_count || 0} requests</p></div>
+                    <div class="bg-green-50 p-4 rounded"><p>Completed</p><p class="text-2xl font-bold text-green-600">${formatCurrency(data.withdrawal_stats?.total_completed || 0)}</p><p class="text-xs">${data.withdrawal_stats?.completed_count || 0} payouts sent</p></div>
+                    <div class="bg-yellow-50 p-4 rounded"><p>Pending Approval</p><p class="text-2xl font-bold text-yellow-600">${formatCurrency(data.withdrawal_stats?.total_pending || 0)}</p><p class="text-xs">${data.withdrawal_stats?.pending_count || 0} requests</p></div>
+                    <div class="bg-purple-50 p-4 rounded"><p>Completion Rate</p><p class="text-2xl font-bold">${data.withdrawal_stats?.completion_rate || 0}%</p></div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded"><h4 class="font-semibold">NEFT Payout Settings</h4><div class="grid grid-cols-3 gap-4 mt-2"><div>Fee per Payout: ₹${data.neft_fee_structure?.fee || 2}</div><div>GST (18%): ₹${data.neft_fee_structure?.gst || 0.36}</div><div>Total Cost: ₹${data.neft_fee_structure?.total || 2.36}</div></div><p class="text-xs text-gray-500 mt-2">Minimum withdrawal: ₹100 | Weekly limit: ₹50,000</p></div>
+            </div>
+        `;
+        document.getElementById('tabContent').innerHTML = html;
+    }
+
+    function renderAdminProfit(data) {
+        const html = `
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-2xl font-bold mb-6">📈 Platform Profit Analytics</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-lg"><p class="text-sm">Total Platform Income</p><p class="text-3xl font-bold">${formatCurrency(data.platform_profit?.total_platform_income || 0)}</p><p class="text-xs">from commissions and fees</p></div>
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-600 text-white p-6 rounded-lg"><p class="text-sm">Profit Margin</p><p class="text-3xl font-bold">${data.platform_profit?.profit_margin || 0}%</p><p class="text-xs">of total revenue</p></div>
+                    <div class="bg-gradient-to-r from-purple-500 to-pink-600 text-white p-6 rounded-lg"><p class="text-sm">Seller Payouts</p><p class="text-3xl font-bold">${formatCurrency(data.seller_payouts?.total_seller_payout || 0)}</p><p class="text-xs">distributed to sellers</p></div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 p-4 rounded"><h4 class="font-semibold mb-3">Revenue Sources</h4><canvas id="revenueSourceChart" height="200"></canvas></div>
+                    <div class="bg-gray-50 p-4 rounded"><h4 class="font-semibold mb-3">Profit Trend</h4><canvas id="profitTrendChart" height="200"></canvas></div>
+                </div>
+            </div>
+        `;
+        document.getElementById('tabContent').innerHTML = html;
+        
+        if (data.platform_profit) {
+            new Chart(document.getElementById('revenueSourceChart'), { type: 'pie', data: { labels: ['Drapso Commission', 'Razorpay Fees', 'NEFT Fees'], datasets: [{ data: [data.platform_profit.total_commission || 0, data.platform_profit.total_razorpay_fees || 0, data.platform_profit.total_neft_fees || 0], backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6'] }] } });
+        }
+        if (data.profit_trend && data.profit_trend.length > 0) {
+            new Chart(document.getElementById('profitTrendChart'), { type: 'line', data: { labels: data.profit_trend.map(p => p.month), datasets: [{ label: 'Platform Profit', data: data.profit_trend.map(p => p.profit), borderColor: '#8b5cf6', fill: true }] } });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { loadTabContent(); });
+</script>
+{% endblock %}

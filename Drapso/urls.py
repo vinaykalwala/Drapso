@@ -16,6 +16,7 @@ urlpatterns = [
     path('thememanager/',include('theme_manager.urls')),
     path('orders/',include('orders.urls')),
     path('settlement/',include('settlement.urls')),
+    path('analytics/', include('analytics.urls')),  
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
     path('terms/', views.terms, name='terms'),
     path('about/', views.about, name='about'),

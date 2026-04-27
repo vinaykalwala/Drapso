@@ -46,7 +46,7 @@ class WholesellerInventory(models.Model):
     )
     # Status
     is_kyc_submitted = models.BooleanField(default=False)
-    is_verified = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=True)
     
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
