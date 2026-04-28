@@ -1,6 +1,7 @@
 # analytics/urls.py
 from django.urls import path
 from . import views
+from .views import *
 
 urlpatterns = [
     # Dashboard views
@@ -22,4 +23,5 @@ urlpatterns = [
     path('profit/', views.profit_analytics, name='profit_analytics'),  # Add this line
     path('available-periods/', views.available_periods, name='available_periods'),
     path('export/', views.export_analytics, name='export_analytics'),
+    path('sales-dashboard/', complete_sales_dashboard, name='sales_dashboard'),
 ]

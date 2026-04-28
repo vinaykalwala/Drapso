@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sales and Financial Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<h1>📊 Sales and Financial Analytics Dashboard</h1>
+
+<!-- ================= FILTER SECTION ================= -->
+<h2>Filter Sales Data</h2>
+
+<form method="get">
+    <label>Start Date:</label>
+    <input type="date" name="start_date">
+
+    <label>End Date:</label>
+    <input type="date" name="end_date">
+
+    <label>Select Time Period:</label>
+    <select name="filter">
+        <option value="day">Daily Analysis</option>
+        <option value="month">Monthly Analysis</option>
+        <option value="year">Yearly Analysis</option>
+    </select>
+
+    <button type="submit">Apply Filters</button>
+</form>
+
+<hr>
+
+<!-- ================= CORE SALES METRICS ================= -->
+<h2>Overall Sales Performance</h2>
+
+<p><strong>Total Sales Amount:</strong> ₹{{ total_sales }}</p>
+<p><strong>Total Number of Orders:</strong> {{ total_orders }}</p>
+<p><strong>Average Order Value:</strong> ₹{{ avg_order }}</p>
+
+<p>
+<strong>Sales Growth Percentage:</strong>
+<span style="color:{% if growth > 0 %}green{% else %}red{% endif %}">
+    {{ growth }}%
+</span>
+</p>
+
+<hr>
+
+<!-- ================= FINANCIAL METRICS ================= -->
+<h2>Financial Breakdown</h2>
+
+{% if request.user.role == 'reseller' %}
+    <p><strong>Total Profit Earned by You (Reseller):</strong> ₹{{ reseller_profit }}</p>
+{% endif %}
+
+{% if request.user.role == 'wholeseller' %}
+    <p><strong>Total Earnings for You (Wholeseller):</strong> ₹{{ wholeseller_earnings }}</p>
+{% endif %}
+
+{% if request.user.role == 'admin' or request.user.is_superuser %}
+    <p><strong>Total Platform Commission Earned:</strong> ₹{{ platform_revenue }}</p>
+{% endif %}
+
+<p><strong>Total Shipping Charges:</strong> ₹{{ total_shipping }}</p>
+<p><strong>Number of Loss-Making Orders:</strong> {{ loss_orders }}</p>
+
+<hr>
+
+<!-- ================= ORDER STATUS ================= -->
+<h2>Order Status Distribution</h2>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Order Status</th>
+        <th>Number of Orders</th>
+    </tr>
+    {% for s in status_data %}
+    <tr>
+        <td>{{ s.order_status }}</td>
+        <td>{{ s.count }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<hr>
+
+<!-- ================= PAYMENT STATUS ================= -->
+<h2>Payment Status Distribution</h2>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Payment Status</th>
+        <th>Number of Orders</th>
+    </tr>
+    {% for p in payment_data %}
+    <tr>
+        <td>{{ p.payment_status }}</td>
+        <td>{{ p.count }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<hr>
+
+<!-- ================= TOP RESELLERS (ADMIN ONLY) ================= -->
+{% if request.user.role == 'admin' or request.user.is_superuser %}
+<h2>Top Performing Resellers</h2>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Reseller Name</th>
+        <th>Total Sales Amount</th>
+    </tr>
+    {% for r in reseller_data %}
+    <tr>
+        <td>{{ r.reseller__username }}</td>
+        <td>₹{{ r.total }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
+
+<hr>
+
+<!-- ================= TOP PRODUCTS ================= -->
+<h2>Top Selling Products</h2>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Product Name</th>
+        <th>Total Quantity Sold</th>
+        <th>Total Revenue Generated</th>
+    </tr>
+    {% for p in top_products %}
+    <tr>
+        <td>{{ p.product__name }}</td>
+        <td>{{ p.qty }}</td>
+        <td>₹{{ p.revenue }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<hr>
+
+<!-- ================= PEAK HOURS ================= -->
+<h2>Peak Order Times</h2>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Hour of the Day</th>
+        <th>Number of Orders</th>
+    </tr>
+    {% for h in peak_hours %}
+    <tr>
+        <td>{{ h.hour }}:00</td>
+        <td>{{ h.count }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<hr>
+
+<!-- ================= SALES TREND CHART ================= -->
+<h2>Sales Trend Over Time</h2>
+
+<canvas id="salesChart"></canvas>
+
+<script>
+const labels = [
+{% for d in sales_data %}
+    "{{ d.period|date:'Y-m-d' }}",
+{% endfor %}
+];
+
+const data = [
+{% for d in sales_data %}
+    {{ d.total_sales|default:0 }},
+{% endfor %}
+];
+
+new Chart(document.getElementById('salesChart'), {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Total Sales Amount Over Time',
+            data: data
+        }]
+    }
+});
+</script>
+
+</body>
+</html>

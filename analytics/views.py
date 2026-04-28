@@ -561,3 +561,134 @@ def dashboard_redirect(request):
     else:
         # Customer role - no access
         return JsonResponse({'error': 'Access denied'}, status=403)
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum, Count, Avg
+from django.db.models.functions import TruncDay, TruncMonth, TruncYear, ExtractHour
+
+from orders.models import Order
+from settlement.services import DrapsoSettlementService
+
+
+@login_required
+def complete_sales_dashboard(request):
+    user = request.user
+
+    # ---------------- ROLE FILTER ----------------
+    if user.is_superuser or user.role == 'admin':
+        orders = Order.objects.all()
+
+    elif user.role == 'reseller':
+        orders = Order.objects.filter(reseller=user)
+
+    elif user.role == 'wholeseller':
+        orders = Order.objects.filter(wholeseller=user)
+
+    else:
+        orders = Order.objects.none()
+
+    # Only successful payments
+    orders = orders.filter(payment_status='success')
+
+    # ---------------- DATE FILTER ----------------
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    filter_type = request.GET.get('filter', 'month')
+
+    if start_date and end_date:
+        orders = orders.filter(created_at__date__range=[start_date, end_date])
+
+    # ---------------- GROUPING ----------------
+    if filter_type == 'day':
+        grouped = orders.annotate(period=TruncDay('created_at'))
+    elif filter_type == 'year':
+        grouped = orders.annotate(period=TruncYear('created_at'))
+    else:
+        grouped = orders.annotate(period=TruncMonth('created_at'))
+
+    sales_data = grouped.values('period').annotate(
+        total_sales=Sum('total_amount'),
+        total_orders=Count('id'),
+        avg_order=Avg('total_amount')
+    ).order_by('period')
+
+    # ---------------- SETTLEMENT CALCULATIONS ----------------
+    total_reseller_profit = 0
+    total_wholeseller_earnings = 0
+    platform_revenue = 0
+    total_shipping = 0
+    loss_orders = 0
+
+    for order in orders:
+        data = DrapsoSettlementService.calculate_settlement(order)
+
+        reseller_amt = data['sellers_payout']['reseller']['amount']
+        wholeseller_amt = data['sellers_payout']['wholeseller']['amount']
+
+        total_reseller_profit += reseller_amt
+        total_wholeseller_earnings += wholeseller_amt
+        platform_revenue += data['deductions']['drapso_commission']
+        total_shipping += data['delivery_charges']
+
+        if reseller_amt <= 0:
+            loss_orders += 1
+
+    # ---------------- BASIC METRICS ----------------
+    total_sales = orders.aggregate(total=Sum('total_amount'))['total'] or 0
+    total_orders = orders.count()
+    avg_order = orders.aggregate(avg=Avg('total_amount'))['avg'] or 0
+
+    # ---------------- GROWTH ----------------
+    growth = 0
+    if len(sales_data) > 1:
+        current = sales_data[len(sales_data)-1]['total_sales'] or 0
+        previous = sales_data[len(sales_data)-2]['total_sales'] or 0
+        if previous:
+            growth = ((current - previous) / previous) * 100
+
+    # ---------------- STATUS ----------------
+    status_data = orders.values('order_status').annotate(count=Count('id'))
+
+    # ---------------- PAYMENT ----------------
+    payment_data = orders.values('payment_status').annotate(count=Count('id'))
+
+    # ---------------- TOP RESELLERS (ADMIN ONLY) ----------------
+    reseller_data = []
+    if user.role == 'admin' or user.is_superuser:
+        reseller_data = orders.values('reseller__username').annotate(
+            total=Sum('total_amount')
+        ).order_by('-total')[:5]
+
+    # ---------------- TOP PRODUCTS ----------------
+    top_products = orders.values('product__name').annotate(
+        revenue=Sum('total_amount'),
+        qty=Sum('quantity')
+    ).order_by('-revenue')[:5]
+
+    # ---------------- PEAK HOURS ----------------
+    peak_hours = orders.annotate(hour=ExtractHour('created_at')).values('hour').annotate(
+        count=Count('id')
+    ).order_by('-count')
+
+    context = {
+        'sales_data': sales_data,
+        'total_sales': total_sales,
+        'total_orders': total_orders,
+        'avg_order': avg_order,
+        'growth': round(growth, 2),
+
+        'reseller_profit': round(total_reseller_profit, 2),
+        'wholeseller_earnings': round(total_wholeseller_earnings, 2),
+        'platform_revenue': round(platform_revenue, 2),
+        'total_shipping': round(total_shipping, 2),
+        'loss_orders': loss_orders,
+
+        'status_data': status_data,
+        'payment_data': payment_data,
+        'reseller_data': reseller_data,
+        'top_products': top_products,
+        'peak_hours': peak_hours,
+    }
+
+    return render(request, 'analytics/full_sales_dashboard.html', context)
