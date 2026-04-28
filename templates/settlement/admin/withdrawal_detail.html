@@ -1,388 +1,1033 @@
+{% extends "dashboard_base.html" %}
 
 {% load static %}
 
-{% block title %}Withdrawal Request Details - Admin{% endblock %}
-
-{% block extrastyle %}
-<style>
-    .detail-card {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
-        overflow: hidden;
-    }
-    .detail-header {
-        background: #f8f9fa;
-        padding: 15px 20px;
-        border-bottom: 1px solid #e9ecef;
-        font-weight: 600;
-        font-size: 16px;
-    }
-    .detail-body {
-        padding: 20px;
-    }
-    .info-row {
-        display: flex;
-        padding: 8px 0;
-        border-bottom: 1px solid #f0f0f0;
-    }
-    .info-label {
-        width: 180px;
-        font-weight: 600;
-        color: #495057;
-    }
-    .info-value {
-        flex: 1;
-        color: #212529;
-    }
-    .badge-pending {
-        background: #ffc107;
-        color: #856404;
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-    .badge-approved {
-        background: #17a2b8;
-        color: white;
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-    .badge-completed {
-        background: #28a745;
-        color: white;
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-    .badge-rejected {
-        background: #dc3545;
-        color: white;
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-    .action-form {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 8px;
-        margin-top: 20px;
-    }
-    .btn-approve {
-        background: #28a745;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-weight: 600;
-    }
-    .btn-reject {
-        background: #dc3545;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-weight: 600;
-    }
-    .btn-approve:hover, .btn-reject:hover {
-        opacity: 0.9;
-    }
-    .rejection-reason {
-        margin-top: 15px;
-        display: none;
-    }
-    .rejection-reason.show {
-        display: block;
-    }
-    textarea {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ced4da;
-        border-radius: 5px;
-        margin-top: 10px;
-    }
-</style>
-{% endblock %}
+{% block title %}Withdrawal Details | Admin{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'settlement:admin_withdrawal_requests' %}">Withdrawal Requests</a></li>
-                </ol>
-            </nav>
+<style>
+    /* ============================================
+       PROFESSIONAL CLEAN MODERN DESIGN
+       Premium Blue Header · Responsive Mobile Layout
+       No Visible Scrollbars · Smooth Scrolling
+    ============================================ */
+    
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    :root {
+        --primary: #2563eb;
+        --primary-light: #3b82f6;
+        --primary-dark: #1d4ed8;
+        --primary-soft: #eff6ff;
+        --success: #10b981;
+        --success-light: #ecfdf5;
+        --warning: #f59e0b;
+        --warning-light: #fffbeb;
+        --danger: #ef4444;
+        --danger-light: #fef2f2;
+        --gray-50: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-300: #cbd5e1;
+        --gray-400: #94a3b8;
+        --gray-500: #64748b;
+        --gray-600: #475569;
+        --gray-700: #334155;
+        --gray-800: #1e293b;
+        --gray-900: #0f172a;
+        --white: #ffffff;
+        --border: #eef2f6;
+    }
+    
+    body {
+        background: var(--gray-50);
+    }
+    
+    /* Hide scrollbar but keep functionality */
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    
+    /* ============================================
+       PREMIUM BLUE TOP SECTION
+    ============================================ */
+    .hero-premium {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
+        padding: 32px 48px 56px 48px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-premium::before {
+        content: '';
+        position: absolute;
+        top: -40%;
+        right: -15%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    
+    .hero-premium::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    
+    .hero-premium .hero-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+    }
+    
+    /* Breadcrumb */
+    .breadcrumb-premium {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+    }
+    
+    .breadcrumb-premium a {
+        color: rgba(255,255,255,0.75);
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .breadcrumb-premium a:hover {
+        color: white;
+        text-decoration: none;
+    }
+    
+    .breadcrumb-premium span {
+        color: rgba(255,255,255,0.4);
+        font-size: 0.7rem;
+    }
+    
+    .breadcrumb-premium .current {
+        color: white;
+        font-weight: 600;
+    }
+    
+    /* Hero Flex */
+    .hero-flex-premium {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 36px;
+    }
+    
+    .hero-title-premium h1 {
+        color: white;
+        font-size: 1.9rem;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        letter-spacing: -0.3px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    
+    .hero-title-premium h1 i {
+        font-size: 1.7rem;
+        opacity: 0.95;
+    }
+    
+    .hero-title-premium p {
+        color: rgba(255,255,255,0.75);
+        margin: 0;
+        font-size: 0.85rem;
+    }
+    
+    .request-badge-premium {
+        background: rgba(255,255,255,0.12);
+        backdrop-filter: blur(10px);
+        padding: 8px 24px;
+        border-radius: 50px;
+        font-family: 'SF Mono', monospace;
+        color: white;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    /* Premium Stats Cards - Glassmorphism */
+    .stats-grid-premium {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+    }
+    
+    .stat-card-glass {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(16px);
+        padding: 18px 32px;
+        border-radius: 24px;
+        border: 1px solid rgba(255,255,255,0.25);
+        transition: all 0.3s ease;
+        min-width: 180px;
+    }
+    
+    .stat-card-glass:hover {
+        background: rgba(255,255,255,0.15);
+        transform: translateY(-3px);
+        border-color: rgba(255,255,255,0.35);
+    }
+    
+    .stat-label-glass {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: rgba(255,255,255,0.7);
+        margin-bottom: 8px;
+    }
+    
+    .stat-value-glass {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: white;
+        line-height: 1.2;
+    }
+    
+    .stat-value-glass small {
+        font-size: 0.8rem;
+        font-weight: 400;
+        opacity: 0.8;
+    }
+    
+    /* ============================================
+       MAIN CONTENT
+    ============================================ */
+    .main-content-wrapper {
+        max-width: 1400px;
+        margin: -28px auto 0;
+        padding: 0 28px 48px 28px;
+        position: relative;
+        z-index: 3;
+    }
+    
+    .two-column-flex {
+        display: flex;
+        gap: 28px;
+        align-items: flex-start;
+    }
+    
+    /* LEFT COLUMN - SCROLLABLE (no visible scrollbar) */
+    .left-scrollable {
+        flex: 1;
+        min-width: 0;
+        overflow-y: auto;
+        padding-right: 8px;
+    }
+    .left-scrollable {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    .left-scrollable::-webkit-scrollbar {
+        display: none;
+    }
+    
+    /* RIGHT COLUMN - FIXED */
+    .right-fixed {
+        width: 400px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 24px;
+        align-self: flex-start;
+    }
+    
+    /* ============================================
+       MODERN CARDS
+    ============================================ */
+    .card-modern {
+        background: var(--white);
+        border-radius: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        margin-bottom: 24px;
+        transition: all 0.25s ease;
+    }
+    
+    .card-modern:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    }
+    
+    .card-modern:last-child {
+        margin-bottom: 0;
+    }
+    
+    .card-header-premium {
+        padding: 18px 24px;
+        background: var(--white);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+    }
+    
+    .card-header-premium::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        border-radius: 0 4px 4px 0;
+    }
+    
+    .card-header-premium i {
+        font-size: 1.2rem;
+        color: var(--primary);
+        background: var(--primary-soft);
+        padding: 10px;
+        border-radius: 14px;
+    }
+    
+    .card-header-premium h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--gray-800);
+    }
+    
+    .card-header-premium p {
+        margin: 4px 0 0 0;
+        font-size: 0.65rem;
+        color: var(--gray-500);
+    }
+    
+    .card-body-premium {
+        padding: 20px 24px;
+    }
+    
+    /* Info Rows - Desktop: side by side, Mobile: stacked */
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .info-value {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--gray-800);
+        text-align: right;
+    }
+    
+    .info-value.amount {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--success);
+    }
+    
+    .info-value code {
+        background: var(--gray-100);
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-family: monospace;
+    }
+    
+    /* Stats Grid in Right Column - 4 cards */
+    .stats-4-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .stat-card-mini {
+        background: linear-gradient(135deg, var(--gray-50), var(--white));
+        border-radius: 16px;
+        padding: 14px 12px;
+        text-align: center;
+        border: 1px solid var(--border);
+        transition: all 0.2s;
+    }
+    
+    .stat-card-mini:hover {
+        border-color: var(--primary-light);
+        transform: translateY(-2px);
+    }
+    
+    .stat-mini-label {
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--gray-500);
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-mini-value {
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--gray-800);
+    }
+    
+    /* Action Card */
+    .action-card {
+        background: var(--white);
+        border-radius: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+    
+    .action-header-gradient {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        padding: 20px 24px;
+        color: white;
+    }
+    
+    .action-header-gradient h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .action-header-gradient p {
+        margin: 8px 0 0 0;
+        font-size: 0.7rem;
+        opacity: 0.85;
+    }
+    
+    .action-body {
+        padding: 24px;
+    }
+    
+    /* Decision Buttons */
+    .decision-group {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    
+    .decision-btn {
+        flex: 1;
+        padding: 12px;
+        border-radius: 16px;
+        border: 2px solid var(--gray-200);
+        background: var(--white);
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: var(--gray-600);
+    }
+    
+    .decision-btn.active-approve {
+        background: var(--success);
+        border-color: var(--success);
+        color: white;
+    }
+    
+    .decision-btn.active-reject {
+        background: var(--danger);
+        border-color: var(--danger);
+        color: white;
+    }
+    
+    /* Form */
+    .form-field {
+        margin-bottom: 20px;
+    }
+    
+    .form-field label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--gray-500);
+        margin-bottom: 8px;
+        display: block;
+        letter-spacing: 0.5px;
+    }
+    
+    .form-field textarea {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1.5px solid var(--gray-200);
+        border-radius: 14px;
+        font-size: 0.85rem;
+        font-family: inherit;
+        resize: vertical;
+        transition: all 0.2s;
+    }
+    
+    .form-field textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+    }
+    
+    .submit-action-btn {
+        width: 100%;
+        padding: 14px;
+        border-radius: 16px;
+        border: none;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.25s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .submit-action-btn.approve {
+        background: var(--success);
+        color: white;
+    }
+    
+    .submit-action-btn.reject {
+        background: var(--danger);
+        color: white;
+    }
+    
+    .submit-action-btn:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.05);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Info Alert */
+    .info-alert-modern {
+        background: var(--primary-soft);
+        border-radius: 16px;
+        padding: 16px 20px;
+        border-left: 4px solid var(--primary);
+    }
+    
+    .info-alert-modern.rejected {
+        background: var(--danger-light);
+        border-left-color: var(--danger);
+    }
+    
+    .info-alert-modern.completed {
+        background: var(--success-light);
+        border-left-color: var(--success);
+    }
+    
+    /* Back Link */
+    .back-link-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--gray-500);
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+    
+    .back-link-modern:hover {
+        color: var(--primary);
+        text-decoration: none;
+    }
+    
+    /* ============================================
+       MOBILE RESPONSIVE
+    ============================================ */
+    @media (max-width: 1000px) {
+        .two-column-flex {
+            flex-direction: column;
+        }
+        .right-fixed {
+            width: 100%;
+            position: static;
+        }
+        .left-scrollable {
+            max-height: none;
+            overflow-y: visible;
+        }
+        .hero-premium {
+            padding: 24px 24px 40px 24px;
+        }
+        .main-content-wrapper {
+            padding: 0 20px 40px 20px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        /* Mobile: Labels above values (stacked) */
+        .info-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+        .info-value {
+            text-align: left;
+        }
+        
+        .hero-flex-premium {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .hero-title-premium h1 {
+            font-size: 1.4rem;
+        }
+        .stats-grid-premium {
+            gap: 12px;
+        }
+        .stat-card-glass {
+            padding: 12px 20px;
+            min-width: calc(50% - 6px);
+            flex: 1;
+        }
+        .stat-value-glass {
+            font-size: 1.2rem;
+        }
+        .decision-group {
+            flex-direction: column;
+            gap: 10px;
+        }
+        .card-header-premium,
+        .card-body-premium {
+            padding: 16px 20px;
+        }
+        .stats-4-grid {
+            gap: 10px;
+        }
+    }
+    
+    @media (max-width: 500px) {
+        .stats-grid-premium {
+            flex-direction: column;
+        }
+        .stat-card-glass {
+            width: 100%;
+        }
+        .stats-4-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    
+    /* Animation */
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .card-modern, .action-card, .stat-card-glass {
+        animation: fadeUp 0.35s ease-out forwards;
+    }
+    @media (max-width: 768px) {
+
+    .main-content-wrapper {
+        padding: 0 14px 30px 14px;   /* reduce side padding */
+    }
+
+    .two-column-flex {
+        flex-direction: column;
+        align-items: center;   /* 🔥 CENTER EVERYTHING */
+    }
+
+    .left-scrollable,
+    .right-fixed {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .card-modern,
+    .action-card {
+        width: 100%;
+    }
+
+}
+</style>
+
+<div class="content">
+    <!-- PREMIUM BLUE TOP SECTION -->
+    <div class="hero-premium">
+        <div class="hero-container">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb-premium">
+                <a href="{% url 'settlement:admin_withdrawal_requests' %}">
+                    <i class="fas fa-arrow-left"></i> Withdrawal Requests
+                </a>
+                <span>/</span>
+                <span class="current">Request Details</span>
+            </div>
+            
+            <!-- Hero Flex -->
+            <div class="hero-flex-premium">
+                <div class="hero-title-premium">
+                    <h1>
+                        <i class="fas fa-money-bill-wave"></i>
+                        Withdrawal Request
+                    </h1>
+                    <p>Review and manage seller payout request</p>
+                </div>
+                <div class="request-badge-premium">
+                    <i class="fas fa-hashtag"></i> {{ withdrawal.id|slice:":8" }}
+                </div>
+            </div>
+            
+            <!-- Premium Stats Cards - Glassmorphism -->
+            <div class="stats-grid-premium">
+                <div class="stat-card-glass">
+                    <div class="stat-label-glass">AMOUNT REQUESTED</div>
+                    <div class="stat-value-glass">₹{{ withdrawal.amount|floatformat:2 }}</div>
+                </div>
+                <div class="stat-card-glass">
+                    <div class="stat-label-glass">CURRENT STATUS</div>
+                    <div class="stat-value-glass">
+                        {% if withdrawal.status == 'PENDING' %}
+                            <span style="color: #fbbf24;">Pending</span>
+                        {% elif withdrawal.status == 'APPROVED' %}
+                            <span style="color: #34d399;">Approved</span>
+                        {% elif withdrawal.status == 'COMPLETED' %}
+                            <span style="color: #34d399;">Completed</span>
+                        {% elif withdrawal.status == 'REJECTED' %}
+                            <span style="color: #f87171;">Rejected</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="stat-card-glass">
+                    <div class="stat-label-glass">REQUESTED ON</div>
+                    <div class="stat-value-glass">{{ withdrawal.requested_at|date:"d M Y" }} <small>{{ withdrawal.requested_at|date:"h:i A" }}</small></div>
+                </div>
+            </div>
         </div>
     </div>
-
-    <div class="row">
-        <div class="col-md-8">
-            <!-- Seller Information Card -->
-            <div class="detail-card">
-                <div class="detail-header">
-                    <i class="fas fa-user"></i> Seller Information
+    
+    <!-- MAIN CONTENT -->
+    <div class="main-content-wrapper">
+        <div class="two-column-flex">
+            
+            <!-- LEFT COLUMN - SCROLLABLE (no visible scrollbar) -->
+            <div class="left-scrollable hide-scrollbar">
+                <!-- Bank Details Card -->
+                <div class="card-modern">
+                    <div class="card-header-premium">
+                        <i class="fas fa-university"></i>
+                        <div>
+                            <h3>Bank Account Details</h3>
+                            <p>Destination account information</p>
+                        </div>
+                    </div>
+                    <div class="card-body-premium">
+                        <div class="info-row">
+                            <span class="info-label">Account Holder</span>
+                            <span class="info-value">{{ withdrawal.account_holder_name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Bank Name</span>
+                            <span class="info-value">{{ withdrawal.bank_name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Account Number</span>
+                            <span class="info-value"><code>{{ withdrawal.account_number }}</code></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">IFSC Code</span>
+                            <span class="info-value"><code>{{ withdrawal.ifsc_code }}</code></span>
+                        </div>
+                        {% if withdrawal.upi_id %}
+                        <div class="info-row">
+                            <span class="info-label">UPI ID</span>
+                            <span class="info-value">{{ withdrawal.upi_id }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="detail-body">
-                    <div class="info-row">
-                        <div class="info-label">Username:</div>
-                        <div class="info-value">{{ withdrawal.wallet.user.username }}</div>
+                
+                <!-- Transaction Breakdown Card -->
+                <div class="card-modern">
+                    <div class="card-header-premium">
+                        <i class="fas fa-chart-line"></i>
+                        <div>
+                            <h3>Transaction Breakdown</h3>
+                            <p>Fee and amount details</p>
+                        </div>
                     </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">Role:</div>
-                        <div class="info-value">{{ withdrawal.wallet.user.get_role_display }}</div>
+                    <div class="card-body-premium">
+                        <div class="info-row">
+                            <span class="info-label">Withdrawal Amount</span>
+                            <span class="info-value amount">₹{{ withdrawal.amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">NEFT Fee</span>
+                            <span class="info-value" style="color: var(--warning);">+ ₹{{ withdrawal.neft_fee|floatformat:2 }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Fee Bearer</span>
+                            <span class="info-value">Drapso Platform</span>
+                        </div>
+                        {% if withdrawal.razorpay_payout_id %}
+                        <div class="info-row">
+                            <span class="info-label">Payout Reference</span>
+                            <span class="info-value"><code>{{ withdrawal.razorpay_payout_id }}</code></span>
+                        </div>
+                        {% endif %}
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">Email:</div>
-                        <div class="info-value">{{ withdrawal.wallet.user.email }}</div>
+                </div>
+                
+                <!-- Seller Information Card -->
+                <div class="card-modern">
+                    <div class="card-header-premium">
+                        <i class="fas fa-user-circle"></i>
+                        <div>
+                            <h3>Seller Information</h3>
+                            <p>Account owner details</p>
+                        </div>
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">Phone:</div>
-                        <div class="info-value">{{ withdrawal.wallet.user.phone }}</div>
+                    <div class="card-body-premium">
+                        <div class="info-row">
+                            <span class="info-label">Username</span>
+                            <span class="info-value">{{ withdrawal.wallet.user.username }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Full Name</span>
+                            <span class="info-value">{{ withdrawal.wallet.user.get_full_name|default:"—" }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Email Address</span>
+                            <span class="info-value">{{ withdrawal.wallet.user.email }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Phone Number</span>
+                            <span class="info-value">{{ withdrawal.wallet.user.phone|default:"—" }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Role</span>
+                            <span class="info-value">{{ withdrawal.wallet.user.get_role_display }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Withdrawal Details Card -->
-            <div class="detail-card">
-                <div class="detail-header">
-                    <i class="fas fa-money-bill-wave"></i> Withdrawal Details
+            
+            <!-- RIGHT COLUMN - FIXED (4 cards) -->
+            <div class="right-fixed">
+                <!-- Statistics Summary - 4 Cards Grid -->
+                <div class="card-modern">
+                    <div class="card-header-premium">
+                        <i class="fas fa-chart-pie"></i>
+                        <div>
+                            <h3>Seller Financial Summary</h3>
+                            <p>Current wallet statistics</p>
+                        </div>
+                    </div>
+                    <div class="card-body-premium">
+                        <div class="stats-4-grid">
+                            <div class="stat-card-mini">
+                                <div class="stat-mini-label">Total Earned</div>
+                                <div class="stat-mini-value" style="color: var(--success);">₹{{ withdrawal.wallet.total_credited|floatformat:0 }}</div>
+                            </div>
+                            <div class="stat-card-mini">
+                                <div class="stat-mini-label">Total Withdrawn</div>
+                                <div class="stat-mini-value" style="color: var(--warning);">₹{{ withdrawal.wallet.total_withdrawn|floatformat:0 }}</div>
+                            </div>
+                            <div class="stat-card-mini">
+                                <div class="stat-mini-label">Available Balance</div>
+                                <div class="stat-mini-value" style="color: var(--primary);">₹{{ withdrawal.wallet.available_balance|floatformat:0 }}</div>
+                            </div>
+                            <div class="stat-card-mini">
+                                <div class="stat-mini-label">Pending Withdrawal</div>
+                                <div class="stat-mini-value" style="color: var(--danger);">₹{{ withdrawal.wallet.pending_withdrawal|floatformat:0 }}</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="detail-body">
-                    <div class="info-row">
-                        <div class="info-label">Request ID:</div>
-                        <div class="info-value"><code>{{ withdrawal.id }}</code></div>
+                
+                <!-- Admin Action Card -->
+                {% if withdrawal.status == 'PENDING' %}
+                <div class="action-card">
+                    <div class="action-header-gradient">
+                        <h3><i class="fas fa-gavel"></i> Admin Decision Required</h3>
+                        <p>Review this request and take action</p>
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">Amount:</div>
-                        <div class="info-value"><strong style="color: #28a745; font-size: 18px;">₹{{ withdrawal.amount|floatformat:2 }}</strong></div>
+                    <div class="action-body">
+                        <form method="post" id="adminActionForm">
+                            {% csrf_token %}
+                            
+                            <div class="decision-group" id="decisionGroup">
+                                <button type="button" class="decision-btn" data-action="approve" id="approveBtn">
+                                    <i class="fas fa-check-circle"></i> Approve
+                                </button>
+                                <button type="button" class="decision-btn" data-action="reject" id="rejectBtn">
+                                    <i class="fas fa-times-circle"></i> Reject
+                                </button>
+                            </div>
+                            <input type="hidden" name="action" id="actionInput" value="approve">
+                            
+                            <div id="rejectionSection" style="display: none;">
+                                <div class="form-field">
+                                    <label><i class="fas fa-comment-dots"></i> Rejection Reason <span style="color: var(--danger);">*</span></label>
+                                    <textarea name="rejection_reason" rows="3" placeholder="Please explain why this withdrawal request is being rejected..."></textarea>
+                                    <small style="display: block; margin-top: 6px; font-size: 0.65rem; color: var(--gray-400);">
+                                        <i class="fas fa-info-circle"></i> This will be shown to the seller
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <div class="form-field">
+                                <label><i class="fas fa-lock"></i> Internal Admin Notes</label>
+                                <textarea name="admin_notes" rows="2" placeholder="Private notes for your reference..."></textarea>
+                            </div>
+                            
+                            <button type="submit" class="submit-action-btn approve" id="submitActionBtn">
+                                <i class="fas fa-check-circle"></i> Approve Withdrawal
+                            </button>
+                        </form>
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">NEFT Fee:</div>
-                        <div class="info-value">₹{{ withdrawal.neft_fee|floatformat:2 }} (paid by Drapso)</div>
+                </div>
+                {% elif withdrawal.status == 'APPROVED' %}
+                <div class="action-card">
+                    <div class="action-header-gradient" style="background: linear-gradient(135deg, var(--success), #059669);">
+                        <h3><i class="fas fa-check-circle"></i> Request Approved</h3>
+                        <p>This withdrawal has been approved</p>
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">Status:</div>
-                        <div class="info-value">
-                            {% if withdrawal.status == 'PENDING' %}
-                                <span class="badge-pending">Pending Admin Approval</span>
-                            {% elif withdrawal.status == 'APPROVED' %}
-                                <span class="badge-approved">Approved - Processing</span>
-                            {% elif withdrawal.status == 'COMPLETED' %}
-                                <span class="badge-completed">Completed</span>
-                            {% elif withdrawal.status == 'REJECTED' %}
-                                <span class="badge-rejected">Rejected</span>
+                    <div class="action-body">
+                        <div class="info-alert-modern">
+                            <p><strong>✓ Approval Confirmed</strong> This withdrawal has been approved and is being processed.</p>
+                            {% if withdrawal.approved_at %}
+                            <p style="margin-top: 10px; font-size: 0.75rem;">Approved on: {{ withdrawal.approved_at|date:"F d, Y · h:i A" }}</p>
                             {% endif %}
                         </div>
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">Requested At:</div>
-                        <div class="info-value">{{ withdrawal.requested_at|date:"Y-m-d H:i:s" }}</div>
-                    </div>
-                    {% if withdrawal.approved_at %}
-                    <div class="info-row">
-                        <div class="info-label">Approved At:</div>
-                        <div class="info-value">{{ withdrawal.approved_at|date:"Y-m-d H:i:s" }}</div>
-                    </div>
-                    {% endif %}
-                    {% if withdrawal.completed_at %}
-                    <div class="info-row">
-                        <div class="info-label">Completed At:</div>
-                        <div class="info-value">{{ withdrawal.completed_at|date:"Y-m-d H:i:s" }}</div>
-                    </div>
-                    {% endif %}
-                    {% if withdrawal.razorpay_payout_id %}
-                    <div class="info-row">
-                        <div class="info-label">Razorpay Payout ID:</div>
-                        <div class="info-value"><code>{{ withdrawal.razorpay_payout_id }}</code></div>
-                    </div>
-                    {% endif %}
                 </div>
-            </div>
-
-            <!-- Bank Account Details Card -->
-            <div class="detail-card">
-                <div class="detail-header">
-                    <i class="fas fa-university"></i> Bank Account Details
-                </div>
-                <div class="detail-body">
-                    <div class="info-row">
-                        <div class="info-label">Account Holder:</div>
-                        <div class="info-value">{{ withdrawal.account_holder_name }}</div>
+                {% elif withdrawal.status == 'COMPLETED' %}
+                <div class="action-card">
+                    <div class="action-header-gradient" style="background: linear-gradient(135deg, var(--success), #059669);">
+                        <h3><i class="fas fa-circle-check"></i> Payout Completed</h3>
+                        <p>Funds have been transferred</p>
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">Bank Name:</div>
-                        <div class="info-value">{{ withdrawal.bank_name }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Account Number:</div>
-                        <div class="info-value">{{ withdrawal.account_number }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">IFSC Code:</div>
-                        <div class="info-value">{{ withdrawal.ifsc_code }}</div>
-                    </div>
-                    {% if withdrawal.upi_id %}
-                    <div class="info-row">
-                        <div class="info-label">UPI ID:</div>
-                        <div class="info-value">{{ withdrawal.upi_id }}</div>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <!-- Seller Statistics Card -->
-            <div class="detail-card">
-                <div class="detail-header">
-                    <i class="fas fa-chart-line"></i> Seller Statistics
-                </div>
-                <div class="detail-body">
-                    <div class="info-row">
-                        <div class="info-label">Total Earned:</div>
-                        <div class="info-value">₹{{ withdrawal.wallet.total_credited|floatformat:2 }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Total Withdrawn:</div>
-                        <div class="info-value">₹{{ withdrawal.wallet.total_withdrawn|floatformat:2 }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Available Balance:</div>
-                        <div class="info-value">₹{{ withdrawal.wallet.available_balance|floatformat:2 }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Pending Withdrawal:</div>
-                        <div class="info-value">₹{{ withdrawal.wallet.pending_withdrawal|floatformat:2 }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Admin Action Form -->
-            {% if withdrawal.status == 'PENDING' %}
-            <div class="detail-card">
-                <div class="detail-header">
-                    <i class="fas fa-gavel"></i> Admin Action
-                </div>
-                <div class="detail-body">
-                    <form method="post" id="adminActionForm">
-                        {% csrf_token %}
-                        
-                        <div class="form-group">
-                            <label>
-                                <input type="radio" name="action" value="approve" checked> 
-                                <strong>Approve Withdrawal</strong>
-                            </label>
+                    <div class="action-body">
+                        <div class="info-alert-modern completed">
+                            <p><strong>✅ Payout Successful</strong> Funds transferred to seller's bank account.</p>
+                            {% if withdrawal.completed_at %}
+                            <p style="margin-top: 10px; font-size: 0.75rem;">Completed on: {{ withdrawal.completed_at|date:"F d, Y · h:i A" }}</p>
+                            {% endif %}
+                            {% if withdrawal.razorpay_payout_id %}
+                            <p style="margin-top: 10px; font-size: 0.7rem;"><strong>TX ID:</strong> {{ withdrawal.razorpay_payout_id }}</p>
+                            {% endif %}
                         </div>
-                        <div class="form-group">
-                            <label>
-                                <input type="radio" name="action" value="reject"> 
-                                <strong>Reject Withdrawal</strong>
-                            </label>
-                        </div>
-                        
-                        <div id="rejectionReasonDiv" style="display: none;">
-                            <label>Rejection Reason:</label>
-                            <textarea name="rejection_reason" class="form-control" rows="3" placeholder="Please provide a reason for rejection..."></textarea>
-                            <small class="text-muted">This will be shown to the seller.</small>
-                        </div>
-                        
-                        <div class="form-group mt-3">
-                            <label>Admin Notes (Internal):</label>
-                            <textarea name="admin_notes" class="form-control" rows="2" placeholder="Internal notes for reference..."></textarea>
-                        </div>
-                        
-                        <div class="form-group mt-3">
-                            <button type="submit" class="btn-approve" id="submitBtn">
-                                <i class="fas fa-check"></i> Submit Decision
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            {% elif withdrawal.status == 'REJECTED' and withdrawal.rejection_reason %}
-            <div class="detail-card">
-                <div class="detail-header">
-                    <i class="fas fa-info-circle"></i> Rejection Information
-                </div>
-                <div class="detail-body">
-                    <div class="info-row">
-                        <div class="info-label">Reason:</div>
-                        <div class="info-value">{{ withdrawal.rejection_reason }}</div>
-                    </div>
-                    {% if withdrawal.admin_notes %}
-                    <div class="info-row">
-                        <div class="info-label">Admin Notes:</div>
-                        <div class="info-value">{{ withdrawal.admin_notes }}</div>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            {% elif withdrawal.status == 'COMPLETED' %}
-            <div class="detail-card">
-                <div class="detail-header">
-                    <i class="fas fa-check-circle"></i> Completion Information
-                </div>
-                <div class="detail-body">
-                    <div class="info-row">
-                        <div class="info-label">Payout ID:</div>
-                        <div class="info-value"><code>{{ withdrawal.razorpay_payout_id|default:"N/A" }}</code></div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Completed At:</div>
-                        <div class="info-value">{{ withdrawal.completed_at|date:"Y-m-d H:i:s" }}</div>
                     </div>
                 </div>
-            </div>
-            {% endif %}
-            
-            <!-- Back Button -->
-            <div class="detail-card">
-                <div class="detail-body text-center">
-                    <a href="{% url 'settlement:admin_withdrawal_requests' %}" class="btn btn-secondary btn-block">
-                        <i class="fas fa-arrow-left"></i> Back to Withdrawal Requests
-                    </a>
+                {% elif withdrawal.status == 'REJECTED' %}
+                <div class="action-card">
+                    <div class="action-header-gradient" style="background: linear-gradient(135deg, var(--danger), #dc2626);">
+                        <h3><i class="fas fa-times-circle"></i> Request Rejected</h3>
+                        <p>This withdrawal was declined</p>
+                    </div>
+                    <div class="action-body">
+                        <div class="info-alert-modern rejected">
+                            <p><strong>❌ Rejection Details</strong></p>
+                            <p style="margin-top: 8px;"><strong>Reason:</strong> {{ withdrawal.rejection_reason }}</p>
+                            {% if withdrawal.admin_notes %}
+                            <p style="margin-top: 8px; font-size: 0.75rem;"><strong>Internal Notes:</strong> {{ withdrawal.admin_notes }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
+                {% endif %}
+                
+                <!-- Back Link -->
+                <a href="{% url 'settlement:admin_withdrawal_requests' %}" class="back-link-modern">
+                    <i class="fas fa-arrow-left"></i> Back to withdrawal requests
+                </a>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Show/hide rejection reason based on radio selection
-    const approveRadio = document.querySelector('input[value="approve"]');
-    const rejectRadio = document.querySelector('input[value="reject"]');
-    const rejectionDiv = document.getElementById('rejectionReasonDiv');
-    const submitBtn = document.getElementById('submitBtn');
+    // Decision toggle functionality
+    const approveBtn = document.getElementById('approveBtn');
+    const rejectBtn = document.getElementById('rejectBtn');
+    const rejectionSection = document.getElementById('rejectionSection');
+    const actionInput = document.getElementById('actionInput');
+    const submitBtn = document.getElementById('submitActionBtn');
     
-    if (approveRadio && rejectRadio) {
-        approveRadio.addEventListener('change', function() {
-            rejectionDiv.style.display = 'none';
-            submitBtn.className = 'btn-approve';
-            submitBtn.innerHTML = '<i class="fas fa-check"></i> Approve Withdrawal';
-        });
+    if (approveBtn && rejectBtn) {
+        function setApprove() {
+            approveBtn.classList.add('active-approve');
+            rejectBtn.classList.remove('active-reject');
+            actionInput.value = 'approve';
+            if (rejectionSection) rejectionSection.style.display = 'none';
+            submitBtn.className = 'submit-action-btn approve';
+            submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Approve Withdrawal';
+        }
         
-        rejectRadio.addEventListener('change', function() {
-            rejectionDiv.style.display = 'block';
-            submitBtn.className = 'btn-reject';
-            submitBtn.innerHTML = '<i class="fas fa-times"></i> Reject Withdrawal';
-        });
+        function setReject() {
+            rejectBtn.classList.add('active-reject');
+            approveBtn.classList.remove('active-approve');
+            actionInput.value = 'reject';
+            if (rejectionSection) rejectionSection.style.display = 'block';
+            submitBtn.className = 'submit-action-btn reject';
+            submitBtn.innerHTML = '<i class="fas fa-times-circle"></i> Reject Withdrawal';
+        }
+        
+        approveBtn.addEventListener('click', setApprove);
+        rejectBtn.addEventListener('click', setReject);
+        setApprove();
     }
     
-    // Form validation for rejection
+    // Form validation
     const form = document.getElementById('adminActionForm');
     if (form) {
         form.addEventListener('submit', function(e) {
-            if (rejectRadio && rejectRadio.checked) {
+            const action = actionInput.value;
+            if (action === 'reject') {
                 const rejectReason = document.querySelector('textarea[name="rejection_reason"]');
                 if (!rejectReason.value.trim()) {
                     e.preventDefault();

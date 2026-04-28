@@ -1,142 +1,766 @@
+{% extends "dashboard_base.html" %}
 
 {% load static %}
 
 {% block title %}Platform Earnings | Drapso Admin{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="h4 font-weight-bold">Platform Earnings & Financials</h2>
-        <div class="text-right">
-            <span class="badge badge-dark p-2">Total Orders: {{ total_orders }}</span>
-        </div>
-    </div>
-    <hr>
-
-    <div class="card mb-4 shadow-sm border-0 bg-light">
-        <div class="card-body">
-            <form method="get" class="form-inline d-flex justify-content-center">
-                <div class="form-group mr-3">
-                    <label class="mr-2 font-weight-bold">{{ form.start_date.label }}:</label>
-                    {{ form.start_date }}
-                </div>
-                <div class="form-group mr-3">
-                    <label class="mr-2 font-weight-bold">{{ form.end_date.label }}:</label>
-                    {{ form.end_date }}
-                </div>
-                <button type="submit" class="btn btn-primary px-4 shadow-sm">Generate Report</button>
-                <a href="{% url 'settlement:admin_platform_earnings' %}" class="btn btn-outline-secondary ml-2">Reset</a>
-            </form>
-        </div>
-    </div>
-
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card bg-success text-white shadow border-0">
-                <div class="card-body">
-                    <h6 class="text-uppercase small font-weight-bold opacity-75">Drapso Commission</h6>
-                    <h3 class="font-weight-bold">₹{{ stats.gross_commission|floatformat:2 }}</h3>
-                    <small>Flat 5% Platform Earnings</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card bg-warning text-dark shadow border-0">
-                <div class="card-body">
-                    <h6 class="text-uppercase small font-weight-bold opacity-75">Total Shipping</h6>
-                    <h3 class="font-weight-bold">₹{{ stats.total_shipping|floatformat:2 }}</h3>
-                    <small>Collected for Logistics</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card bg-danger text-white shadow border-0">
-                <div class="card-body">
-                    <h6 class="text-uppercase small font-weight-bold opacity-75">Gateway Fees</h6>
-                    <h3 class="font-weight-bold">₹{{ stats.gateway_fees_paid|floatformat:2 }}</h3>
-                    <small>Paid to Razorpay (2% + GST)</small>
-                </div>
-            </div>
-        </div>
-
-        
-    </div>
-
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card border-0 shadow-sm bg-white">
-                <div class="card-body d-flex justify-content-between align-items-center py-2">
-                    <span class="text-muted font-weight-bold text-uppercase small">Gross Transaction Value (GTV):</span>
-                    <h5 class="mb-0 font-weight-bold">₹{{ stats.total_revenue|floatformat:2 }}</h5>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card shadow border-0 overflow-hidden">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
-            <h5 class="mb-0">Order-wise Financial Breakdown</h5>
-            <button class="btn btn-sm btn-outline-light px-3" onclick="window.print()">
-                <i class="fas fa-print mr-1"></i> Print Report
-            </button>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light text-muted">
-                    <tr>
-                        <th class="border-0">Date</th>
-                        <th class="border-0">Order ID</th>
-                        <th class="border-0 text-right">Order Value</th>
-                        <th class="border-0 text-success text-right">5% Commission</th>
-                        <th class="border-0 text-warning text-right">Shipping</th>
-                        <th class="border-0 text-danger text-right">Gateway Fee</th>
-                        <th class="border-0 text-right">NEFT Buffer</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for s in settlements %}
-                    <tr>
-                        <td class="text-muted">{{ s.created_at|date:"d M Y" }}</td>
-                        <td>
-                            <span class="badge badge-light text-dark border px-2 py-1">
-                                {{ s.order.order_id }}
-                            </span>
-                        </td>
-                        <td class="text-right font-weight-bold">₹{{ s.order_total }}</td>
-                        <td class="text-right text-success font-weight-bold">₹{{ s.drapso_commission }}</td>
-                        <td class="text-right text-warning">₹{{ s.delivery_charges }}</td>
-                        <td class="text-right text-danger">₹{{ s.razorpay_fee }}</td>
-                        <td class="text-right text-muted small">₹{{ s.neft_settlement_cost }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center py-5 text-muted">
-                            <p class="mb-0">No settlement records found for this period.</p>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
 <style>
-    /* Admin UI Enhancements */
-    .card h3 { font-size: 1.75rem; margin-top: 5px; }
-    .table thead th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05rem; }
-    .table td { vertical-align: middle !important; font-size: 0.9rem; }
-    .opacity-75 { opacity: 0.75; }
+    .earnings-container {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto; 
+}
     
+    /* Main Title */
+    .earnings-main-title {
+        margin-bottom: 28px;
+    }
+    
+    .earnings-main-title h1 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        margin: 0 0 6px 0;
+        background: linear-gradient(135deg, #1e293b, #4f46e5);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: inline-block;
+    }
+    
+    .earnings-main-title p {
+        color: #64748b;
+        font-size: 0.85rem;
+        margin: 0;
+    }
+    
+    /* Stats Row - 3 Cards */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-bottom: 28px;
+    }
+    
+    /* Card Styles - Original Colors */
+    .stat-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        transition: all 0.3s ease;
+        border: 1px solid #eef2ff;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+    }
+    
+    /* Commission Card - Green */
+    .card-commission .card-top {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    .card-commission .card-icon {
+        background: #d1fae5;
+        color: #10b981;
+    }
+    .card-commission .card-info {
+        color: #10b981;
+    }
+    
+    /* Shipping Card - Orange/Yellow */
+    .card-shipping .card-top {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+    .card-shipping .card-icon {
+        background: #fef3c7;
+        color: #f59e0b;
+    }
+    .card-shipping .card-info {
+        color: #f59e0b;
+    }
+    
+    /* Gateway Card - Red */
+    .card-gateway .card-top {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+    .card-gateway .card-icon {
+        background: #fee2e2;
+        color: #ef4444;
+    }
+    .card-gateway .card-info {
+        color: #ef4444;
+    }
+    
+    .card-top {
+        padding: 20px 20px 16px 20px;
+    }
+    
+    .stat-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 10px;
+        display: block;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 6px;
+    }
+    
+    .stat-sub {
+        font-size: 0.7rem;
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .card-bottom {
+        padding: 14px 20px;
+        background: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #f1f5f9;
+    }
+    
+    .card-info {
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    
+    .card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    /* Filter Section */
+    .filter-section {
+        background: white;
+        border-radius: 20px;
+        padding: 20px 24px;
+        margin-bottom: 28px;
+        border: 1px solid #eef2ff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    
+    .filter-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f1f5f9;
+    }
+    
+    .filter-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 0.85rem;
+    }
+    
+    .filter-title i {
+        color: #4f46e5;
+    }
+    
+    .order-count {
+        background: #eef2ff;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #4f46e5;
+    }
+    
+    .filter-form {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    
+    .filter-fields {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    
+    .filter-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .filter-field label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .filter-field input {
+        border: 1px solid #e2e8f0;
+        padding: 8px 14px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+        background: white;
+    }
+    
+    .filter-field input:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px #eef2ff;
+    }
+    
+    .filter-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        color: white;
+        border: none;
+        padding: 8px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(79,70,229,0.3);
+    }
+    
+    .btn-outline {
+        background: white;
+        border: 1px solid #e2e8f0;
+        padding: 8px 20px;
+        border-radius: 12px;
+        font-weight: 500;
+        font-size: 0.8rem;
+        color: #64748b;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-outline:hover {
+        border-color: #4f46e5;
+        color: #4f46e5;
+        text-decoration: none;
+    }
+    
+    /* GTV Card - Beautiful Blue Theme */
+    .gtv-beautiful {
+        background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%);
+        border-radius:20px 20px 0 0;
+        padding: 24px 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .gtv-beautiful::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        right: -10%;
+        width: 250px;
+        height: 250px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .gtv-beautiful::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -5%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .gtv-left {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .gtv-icon-circle {
+        width: 65px;
+        height: 65px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        backdrop-filter: blur(10px);
+    }
+    
+    .gtv-text h3 {
+        margin: 0;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .gtv-text h1 {
+        margin: 5px 0 0 0;
+        font-size: 1rem;
+        font-weight: 500;
+        color: rgba(255,255,255,0.9);
+    }
+    
+    .gtv-amount {
+        position: relative;
+        z-index: 1;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: white;
+        letter-spacing: 1px;
+    }
+    
+    .gtv-amount small {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-right: 4px;
+    }
+    
+    /* Table Card - Fully Responsive */
+    .table-card {
+        background: white;
+        border-radius:0 0 20px 20px;
+        overflow: hidden;
+        border: 1px solid #eef2ff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    
+    .table-header {
+        padding: 18px 24px;
+        border-bottom: 2px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        background: white;
+    }
+    
+    .table-header h5 {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .print-btn {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 6px 16px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: #64748b;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .print-btn:hover {
+        background: #eef2ff;
+        border-color: #c7d2fe;
+        color: #4f46e5;
+    }
+    
+    /* Responsive Table */
+    .table-responsive-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .earnings-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 800px;
+    }
+    
+    .earnings-table th {
+        padding: 14px 16px;
+        text-align: left;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        background: #fafcff;
+        border-bottom: 1px solid #eef2ff;
+    }
+    
+    .earnings-table td {
+        padding: 14px 16px;
+        font-size: 0.85rem;
+        color: #334155;
+        border-bottom: 1px solid #f8fafc;
+    }
+    
+    .earnings-table tbody tr:hover {
+        background: #fafcff;
+    }
+    
+    .text-right {
+        text-align: right;
+    }
+    
+    .order-id-badge {
+        background: #f1f5f9;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #475569;
+        display: inline-block;
+        font-family: monospace;
+    }
+    
+    .text-success {
+        color: #10b981;
+        font-weight: 700;
+    }
+    
+    .text-warning {
+        color: #f59e0b;
+        font-weight: 700;
+    }
+    
+    .text-danger {
+        color: #ef4444;
+        font-weight: 700;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 50px;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: #cbd5e1;
+        margin-bottom: 12px;
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 1024px) {
+        .earnings-container {
+            padding: 20px;
+        }
+        
+        .stats-row {
+            gap: 20px;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .earnings-container {
+            padding: 16px;
+        }
+        
+        .stats-row {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        
+        .filter-form {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .filter-fields {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .filter-field {
+            width: 100%;
+        }
+        
+        .filter-field input {
+            width: 100%;
+        }
+        
+        .filter-buttons {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .btn-primary,
+        .btn-outline {
+            text-align: center;
+            width: 100%;
+        }
+        
+        .gtv-beautiful {
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .gtv-left {
+            flex-direction: column;
+        }
+        
+        .gtv-amount {
+            font-size: 1.8rem;
+        }
+        
+        .table-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .earnings-main-title h1 {
+            font-size: 1.3rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .earnings-container {
+            padding: 12px;
+        }
+        
+        .stat-value {
+            font-size: 1.3rem;
+        }
+        
+        .gtv-icon-circle {
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+        }
+        
+        .gtv-amount {
+            font-size: 1.5rem;
+        }
+    }
+    
+    /* Print Styles */
     @media print {
-        .btn, form, .badge-dark { display: none !important; }
-        .card { border: 1px solid #ddd !important; shadow: none !important; }
-        .bg-success, .bg-warning, .bg-danger, .bg-info, .bg-primary {
-            background-color: transparent !important;
-            color: black !important;
+        .filter-section,
+        .print-btn,
+        .btn-outline,
+        .btn-primary {
+            display: none !important;
+        }
+        
+        .stat-card,
+        .gtv-beautiful,
+        .table-card {
+            break-inside: avoid;
+            box-shadow: none;
+            border: 1px solid #ddd;
+        }
+    }
+      @media (max-width: 900px) {
+        .content{
+            margin-top: 60px;
         }
     }
 </style>
+
+<div class="content">
+    <div class="earnings-container">
+        <!-- Main Title -->
+        <div class="earnings-main-title">
+            <h1>
+                <i class="fas fa-chart-line" style="background: none; -webkit-text-fill-color: #4f46e5;"></i>
+                Platform Earnings & Financials
+            </h1>
+            <p>Track your platform revenue, commissions, and financial metrics</p>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="filter-header">
+                <div class="filter-title">
+                    <i class="fas fa-sliders-h"></i>
+                    <span>Filter Reports</span>
+                </div>
+                <div class="order-count">
+                    <i class="fas fa-shopping-cart"></i> Total Orders: {{ total_orders }}
+                </div>
+            </div>
+            <form method="get" class="filter-form">
+                <div class="filter-fields">
+                    <div class="filter-field">
+                        <label><i class="far fa-calendar-alt"></i> Start Date</label>
+                        {{ form.start_date }}
+                    </div>
+                    <div class="filter-field">
+                        <label><i class="far fa-calendar-check"></i> End Date</label>
+                        {{ form.end_date }}
+                    </div>
+                </div>
+                <div class="filter-buttons">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-chart-bar"></i> Generate Report
+                    </button>
+                    <a href="{% url 'settlement:admin_platform_earnings' %}" class="btn-outline">
+                        <i class="fas fa-sync-alt"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- 3 Cards Row - Original Colors -->
+        <div class="stats-row">
+            <!-- Commission Card - Green -->
+            <div class="stat-card card-commission">
+                <div class="card-top">
+                    <span class="stat-label">Drapso Commission</span>
+                    <div class="stat-value">₹{{ stats.gross_commission|floatformat:2 }}</div>
+                    <div class="stat-sub">Platform Earnings</div>
+                </div>
+                <div class="card-bottom">
+                    <span class="card-info">Flat 5% Commission</span>
+                    <div class="card-icon">
+                        <i class="fas fa-percent"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping Card - Orange -->
+            <div class="stat-card card-shipping">
+                <div class="card-top">
+                    <span class="stat-label">Total Shipping</span>
+                    <div class="stat-value">₹{{ stats.total_shipping|floatformat:2 }}</div>
+                    <div class="stat-sub">Logistics Collection</div>
+                </div>
+                <div class="card-bottom">
+                    <span class="card-info">Collected for Delivery</span>
+                    <div class="card-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gateway Card - Red -->
+            <div class="stat-card card-gateway">
+                <div class="card-top">
+                    <span class="stat-label">Gateway Fees</span>
+                    <div class="stat-value">₹{{ stats.gateway_fees_paid|floatformat:2 }}</div>
+                    <div class="stat-sub">Payment Processing</div>
+                </div>
+                <div class="card-bottom">
+                    <span class="card-info">Razorpay (2% + GST)</span>
+                    <div class="card-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Beautiful GTV Card - Blue Theme -->
+        <div class="gtv-beautiful">
+            <div class="gtv-left">
+                <div class="gtv-icon-circle">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="gtv-text">
+                    <h3>Gross Transaction Value</h3>
+                    <h1>Total Revenue Generated</h1>
+                </div>
+            </div>
+            <div class="gtv-amount">
+                <small>₹</small>{{ stats.total_revenue|floatformat:2 }}
+            </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="table-card">
+            <div class="table-header">
+                <h5>
+                    <i class="fas fa-receipt"></i>
+                    Order-wise Financial Breakdown
+                </h5>
+                <button class="print-btn" onclick="window.print()">
+                    <i class="fas fa-print"></i> Print Report
+                </button>
+            </div>
+            <div class="table-responsive-wrapper">
+                <table class="earnings-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Order ID</th>
+                            <th class="text-right">Order Value</th>
+                            <th class="text-right">5% Commission</th>
+                            <th class="text-right">Shipping</th>
+                            <th class="text-right">Gateway Fee</th>
+                            <th class="text-right">NEFT Buffer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in settlements %}
+                        <tr>
+                            <td style="color: #64748b;">{{ s.created_at|date:"d M Y" }}</td>
+                            <td>
+                                <span class="order-id-badge">
+                                    {{ s.order.order_id }}
+                                </span>
+                            </td>
+                            <td class="text-right font-weight-bold">₹{{ s.order_total }}</td>
+                            <td class="text-right text-success font-weight-bold">₹{{ s.drapso_commission }}</td>
+                            <td class="text-right text-warning">₹{{ s.delivery_charges }}</td>
+                            <td class="text-right text-danger">₹{{ s.razorpay_fee }}</td>
+                            <td class="text-right text-muted small">₹{{ s.neft_settlement_cost }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p>No settlement records found for this period.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

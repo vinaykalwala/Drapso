@@ -429,6 +429,18 @@
     }
 
 }
+/* ===== REQUIRED FIELD STAR ===== */
+.drapso-label.required::after {
+    content: " *";
+    color: var(--drapso-orange);
+    font-weight: 800;
+    margin-left: 2px;
+}
+
+/* Optional: make required labels slightly stronger */
+.drapso-label.required {
+    color: var(--drapso-dark);
+}
 </style>
 
 <div class="drapso-checkout-root">
@@ -472,8 +484,9 @@
                         <div class="drapso-form-grid">
                             {% for field in form %}
                                 <div class="drapso-field {% if field.name == 'customer_name' or field.name == 'customer_email' or field.name == 'customer_phone' or field.name == 'shipping_address' %}drapso-form-full{% endif %}">
-                                    <label class="drapso-label">{{ field.label }}</label>
-                                    {{ field }}
+<label class="drapso-label {% if field.field.required %}required{% endif %}">
+    {{ field.label }}
+</label>                                    {{ field }}
                                     {% if field.errors %}
                                         <small class="drapso-text-danger">{{ field.errors|striptags }}</small>
                                     {% endif %}

@@ -547,7 +547,7 @@ white-space:nowrap;
             <thead>
                 <tr>
                     <th>Product</th>
-                    <th>Price</th>
+                    <!-- <th>Price</th> -->
                     <th>Current Status</th>
                     <th>Will Restore As</th>
                 </tr>
@@ -561,12 +561,12 @@ white-space:nowrap;
                             {{ product.name }}
                         </div>
                     </td>
-                    <td data-label="Price">
+                    <!-- <td data-label="Price">
                         <div class="product-price">
                             ₹{{ product.price }}
                             <small>INR</small>
                         </div>
-                    </td>
+                    </td> -->
                     <td data-label="Current Status">
                         <span class="badge-custom {% if product.is_published %}badge-success{% else %}badge-secondary{% endif %}">
                             <i class="fas {% if product.is_published %}fa-check-circle{% else %}fa-clock{% endif %}"></i>

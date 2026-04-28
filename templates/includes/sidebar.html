@@ -535,9 +535,12 @@ text-align:center;
     <i class="fa-solid fa-house"></i>
     Home
 </a>
+ <a href="{% url 'analytics_dashboard' %}">
+    <i class="fas fa-chart-bar"></i>
+    Analytics
+</a>
  <a href="{% url 'settlement:dashboard' %}">
-    <i class="fa-solid fa-bag-shopping"></i>
-    My Earnings
+ <i class="fa-solid fa-wallet"></i>    My Earnings
 </a>  
  <a href="{% url 'orders:orders_dashboard' %}">
     <i class="fa-solid fa-bag-shopping"></i>
@@ -548,10 +551,10 @@ text-align:center;
     {% if request.user.role == "admin" %}
   
 
-   <a href="{% url 'contact_list' %}">
-    <i class="fa-solid fa-envelope"></i>
-    Contact Messages
+   <a href="{% url 'settlement:admin_settlement_report' %}">
+<i class="fa-solid fa-file-lines"></i>   Settlement Report
 </a>
+
    <a href="{% url 'accounts:shiprocket_all_addresses' %}">
     <i class="fa-solid fa-envelope"></i>
     Shiprocket Addresses
@@ -591,11 +594,17 @@ text-align:center;
     Bank Details
 </a>
 <a href="{% url 'settlement:admin_withdrawal_requests' %}">
-    <i class="fa-solid fa-folder"></i>
-   Withdrawal Requests
+    <i class="fa-solid fa-money-bill-transfer"></i>
+    Withdrawal Requests
+
+    {% if pending_withdrawal_requests > 0 %}
+        <span class="menu-badge">
+            {{ pending_withdrawal_requests }}
+        </span>
+    {% endif %}
 </a>
 <a href="{% url 'settlement:admin_platform_earnings' %}">
-    <i class="fa-solid fa-folder"></i>
+   <i class="fa-solid fa-chart-line"></i>
    Platform Earnings
 </a>
 <a href="{% url 'products:category_list' %}">
@@ -617,7 +626,14 @@ text-align:center;
     <i class="fa-solid fa-palette"></i>
     Themes
 </a>
-   
+    <a href="{% url 'contact_list' %}">
+    <i class="fa-solid fa-envelope"></i>
+    Contact Messages
+</a>  
+<a href="{% url 'accounts:admin_user_list' %}">
+    <i class="fa-solid fa-users"></i>
+    Users
+</a>
 
     
     {% endif %}
@@ -636,9 +652,15 @@ text-align:center;
     <i class="fa-solid fa-boxes-stacked"></i>
   Wholeseller products
 </a>
-<a href="{% url 'orders:wholeseller_orders'  %}">
-    <i class="fa-solid fa-cart-shopping"></i>
-   Incoming Orders
+<a href="{% url 'orders:wholeseller_orders' %}">
+    <i class="fa-solid fa-box"></i>
+    Incoming Orders
+
+    {% if pending_wholeseller_orders > 0 %}
+        <span class="menu-badge">
+            {{ pending_wholeseller_orders }}
+        </span>
+    {% endif %}
 </a>
 </a>
     <a href="{% url 'products:low_stock_alerts' %}">
@@ -679,6 +701,12 @@ text-align:center;
 <a href="{% url 'orders:reseller_orders' store.id %}">
     <i class="fa-solid fa-cart-shopping"></i>
     Incoming Orders
+
+    {% if pending_reseller_orders > 0 %}
+        <span class="menu-badge">
+            {{ pending_reseller_orders }}
+        </span>
+    {% endif %}
 </a>
 <a href="{% url 'products:price_notifications' store.id %}" class="menu-link">
 

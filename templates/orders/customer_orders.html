@@ -112,7 +112,6 @@
 }
 
 .search-wrapper input {
-    
     padding: 12px 18px 12px 100px;
     border-radius: 50px;
     border: 1.5px solid var(--border);
@@ -174,7 +173,7 @@
     gap: 24px;
 }
 
-/* ===== MODERN CARD DESIGN - INCREASED FONT SIZES ===== */
+/* ===== MODERN CARD DESIGN ===== */
 .order-card {
     background: var(--white);
     border-radius: var(--radius);
@@ -274,7 +273,7 @@
     overflow: hidden;
 }
 
-/* Status Badges Row - INCREASED FONT */
+/* Status Badges Row */
 .status-badges {
     display: flex;
     gap: 10px;
@@ -311,7 +310,7 @@
     color: var(--orange-dark);
 }
 
-/* Details Grid - INCREASED FONT */
+/* Details Grid */
 .details-grid {
     background: var(--bg);
     border-radius: var(--radius-sm);
@@ -345,10 +344,11 @@
     word-break: break-all;
 }
 
-/* Action Buttons - INCREASED FONT */
+/* Action Buttons */
 .action-buttons {
     display: flex;
     gap: 12px;
+    margin-bottom: 12px;
 }
 
 .btn-action {
@@ -397,6 +397,159 @@
     box-shadow: none !important;
 }
 
+/* Refund Info Strip */
+.refund-strip {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #fef3c7;
+    border-radius: 12px;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.refund-view-btn {
+    background: #4f46e5;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.refund-view-btn:hover {
+    background: #4338ca;
+    transform: translateY(-1px);
+}
+
+/* ===== MODAL POPUP STYLES ===== */
+.refund-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.refund-modal-overlay.active {
+    display: flex;
+}
+
+.refund-modal {
+    background: white;
+    width: 90%;
+    max-width: 450px;
+    border-radius: 24px;
+    overflow: hidden;
+    animation: modalFadeIn 0.3s ease-out;
+    box-shadow: var(--shadow-xl);
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.refund-modal-header {
+    background: linear-gradient(135deg, #f59e0b, #ea580c);
+    padding: 20px 24px;
+    color: white;
+}
+
+.refund-modal-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.refund-modal-header p {
+    margin: 8px 0 0 0;
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+.refund-modal-body {
+    padding: 24px;
+}
+
+.refund-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.refund-detail-row:last-child {
+    border-bottom: none;
+}
+
+.refund-detail-label {
+    font-weight: 700;
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.refund-detail-value {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 0.85rem;
+    text-align: right;
+    word-break: break-word;
+    max-width: 60%;
+}
+
+.refund-proof-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #3b82f6;
+    text-decoration: none;
+    font-size: 0.75rem;
+    margin-top: 8px;
+}
+
+.refund-proof-link:hover {
+    text-decoration: underline;
+}
+
+.refund-modal-close {
+    width: 100%;
+    padding: 12px;
+    border-radius: 40px;
+    background: #f1f5f9;
+    border: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 16px;
+}
+
+.refund-modal-close:hover {
+    background: #e2e8f0;
+}
+
 /* Empty State */
 .empty-state {
     text-align: center;
@@ -438,14 +591,12 @@
         align-items: stretch;
     }
     
-    
-    
-    .search-wrapper {
-        flex: 2;
+    .search-wrapper, .filter-wrapper {
+        width: 100%;
     }
     
-    .filter-wrapper {
-        flex: 1;
+    .search-filter-group {
+        flex-direction: column;
     }
 }
 
@@ -457,12 +608,6 @@
     .orders-title {
         font-size: 28px;
     }
-    
-    .search-filter-group {
-        flex-direction: column;
-       
-    }
-    
     
     .orders-grid {
         grid-template-columns: 1fr;
@@ -481,69 +626,35 @@
         font-size: 15px;
     }
     
-    .status-badge {
-        font-size: 11px;
-        padding: 4px 12px;
-    }
-    
-    .detail-item {
-        font-size: 12px;
-    }
-    
-    .btn-action {
-        font-size: 12px;
-        padding: 10px 12px;
+    .action-buttons {
+        flex-direction: column;
     }
 }
-@media (max-width: 480px) {
 
+@media (max-width: 480px) {
     .details-grid {
         padding: 10px;
     }
-
+    
     .detail-item {
-        flex-direction: column;     /* 🔥 make column */
-        align-items: flex-start;    /* left align */
-        gap: 4px;
-        font-size: 12px;
-    }
-
-    .detail-item i {
-        display: none; /* optional: hide icons for space */
-    }
-
-    .detail-item strong {
-        display: block;
-        font-size: 11px;
-        color: #94a3b8;
-    }
-
-    .detail-item span {
-        display: block;
-        font-size: 12px;
-        color: #0f172a;
-        word-break: break-word;   /* 🔥 prevent overflow */
-    }
-}
-@media (max-width: 480px) {
-    .action-buttons {
         flex-direction: column;
-        gap: 8px;
+        align-items: flex-start;
+        gap: 4px;
     }
     
-   
-    
-    .details-grid {
-        padding: 10px 12px;
+    .detail-item i {
+        display: none;
     }
     
-    .product-row {
-        gap: 10px;
+    .refund-detail-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
     }
     
-    .product-image {
-        width: 48px;
-        height: 48px;
+    .refund-detail-value {
+        text-align: left;
+        max-width: 100%;
     }
 }
 
@@ -713,7 +824,7 @@
                         <i class="fas fa-clock"></i> Awaiting Dispatch
                     </button>
                     {% endif %}
-                    
+
                     {% if order.local.can_cancel and order.local.order_status != 'cancelled' %}
                     <a href="{% url 'orders:cancel_order' order.local.order_id %}" class="btn-action btn-cancel">
                         <i class="fas fa-times-circle"></i> Cancel Order
@@ -728,12 +839,24 @@
                     </button>
                     {% endif %}
                 </div>
-                
-                <!-- Refund Info if available -->
+
+                <!-- ===== REFUND SECTION WITH POPUP BUTTON ===== -->
                 {% with refund=order.local.refunds.first %}
-                {% if refund and refund.status != 'completed' %}
-                <div style="margin-top: 12px; padding: 8px 12px; background: #fef3c7; border-radius: 12px; font-size: 12px;">
-                    <i class="fas fa-undo-alt"></i> Refund {{ refund.get_status_display }} - ₹{{ refund.refund_amount }}
+                {% if refund %}
+                <div class="refund-strip">
+                    <div>
+                        <i class="fas fa-undo-alt"></i>
+                        Refund {{ refund.get_status_display }} - ₹{{ refund.refund_amount }}
+                    </div>
+                    <button class="refund-view-btn" onclick="openRefundModal(
+                        '{{ refund.get_status_display|default:"Pending" }}',
+                        '{{ refund.refund_amount }}',
+                        '{{ refund.transaction_id|default:"" }}',
+                        '{{ refund.admin_notes|default:""|escapejs }}',
+                        '{% if refund.transfer_proof %}{{ refund.transfer_proof.url }}{% endif %}'
+                    )">
+                        <i class="fas fa-eye"></i> View
+                    </button>
                 </div>
                 {% endif %}
                 {% endwith %}
@@ -750,8 +873,45 @@
     </div>
 </div>
 
-<!-- Search + Filter Dropdown Script -->
+<!-- ===== REFUND MODAL POPUP ===== -->
+<div id="refundModal" class="refund-modal-overlay">
+    <div class="refund-modal">
+        <div class="refund-modal-header">
+            <h3><i class="fas fa-undo-alt"></i> Refund Details</h3>
+            <p>View your refund information</p>
+        </div>
+        <div class="refund-modal-body">
+            <div class="refund-detail-row">
+                <span class="refund-detail-label">Status</span>
+                <span class="refund-detail-value" id="modalRefundStatus">-</span>
+            </div>
+            <div class="refund-detail-row">
+                <span class="refund-detail-label">Amount</span>
+                <span class="refund-detail-value" id="modalRefundAmount">-</span>
+            </div>
+            <div class="refund-detail-row" id="transactionIdRow" style="display: none;">
+                <span class="refund-detail-label">Transaction ID</span>
+                <span class="refund-detail-value"><code id="modalTransactionId">-</code></span>
+            </div>
+            <div class="refund-detail-row" id="adminNotesRow" style="display: none;">
+                <span class="refund-detail-label">Admin Notes</span>
+                <span class="refund-detail-value" id="modalAdminNotes">-</span>
+            </div>
+            <div id="proofLinkRow" style="display: none; margin-top: 8px;">
+                <a href="#" id="modalProofLink" target="_blank" class="refund-proof-link">
+                    <i class="fas fa-file-pdf"></i> View Transfer Proof
+                </a>
+            </div>
+            <button class="refund-modal-close" onclick="closeRefundModal()">
+                <i class="fas fa-times"></i> Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Search + Filter + Modal Script -->
 <script>
+// Search and Filter functionality
 const searchInput = document.getElementById('searchInput');
 const statusFilter = document.getElementById('statusFilter');
 const ordersGrid = document.getElementById('ordersGrid');
@@ -806,11 +966,71 @@ function filterOrders() {
 }
 
 // Event listeners
-searchInput.addEventListener('input', filterOrders);
-statusFilter.addEventListener('change', filterOrders);
+if (searchInput) searchInput.addEventListener('input', filterOrders);
+if (statusFilter) statusFilter.addEventListener('change', filterOrders);
+if (searchInput && statusFilter) filterOrders();
 
-// Initial filter
-filterOrders();
+// ===== REFUND MODAL FUNCTIONALITY =====
+function openRefundModal(status, amount, transactionId, adminNotes, proofUrl) {
+    // Set status with badge styling
+    let statusHtml = '';
+    if (status.toLowerCase().includes('complete')) {
+        statusHtml = '<span style="background: #d1fae5; color: #065f46; padding: 4px 12px; border-radius: 30px; font-size: 12px;">' + status + '</span>';
+    } else if (status.toLowerCase().includes('pending')) {
+        statusHtml = '<span style="background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 30px; font-size: 12px;">' + status + '</span>';
+    } else if (status.toLowerCase().includes('reject')) {
+        statusHtml = '<span style="background: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 30px; font-size: 12px;">' + status + '</span>';
+    } else {
+        statusHtml = '<span style="background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 30px; font-size: 12px;">' + status + '</span>';
+    }
+    
+    document.getElementById('modalRefundStatus').innerHTML = statusHtml;
+    document.getElementById('modalRefundAmount').innerHTML = '₹' + amount;
+    
+    // Transaction ID
+    if (transactionId && transactionId !== 'None' && transactionId !== '') {
+        document.getElementById('modalTransactionId').innerHTML = transactionId;
+        document.getElementById('transactionIdRow').style.display = 'flex';
+    } else {
+        document.getElementById('transactionIdRow').style.display = 'none';
+    }
+    
+    // Admin Notes
+    if (adminNotes && adminNotes !== 'None' && adminNotes !== '') {
+        document.getElementById('modalAdminNotes').innerHTML = adminNotes;
+        document.getElementById('adminNotesRow').style.display = 'flex';
+    } else {
+        document.getElementById('adminNotesRow').style.display = 'none';
+    }
+    
+    // Transfer Proof Link
+    if (proofUrl && proofUrl !== 'None' && proofUrl !== '') {
+        document.getElementById('modalProofLink').href = proofUrl;
+        document.getElementById('proofLinkRow').style.display = 'block';
+    } else {
+        document.getElementById('proofLinkRow').style.display = 'none';
+    }
+    
+    document.getElementById('refundModal').style.display = 'flex';
+}
+
+function closeRefundModal() {
+    document.getElementById('refundModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+document.getElementById('refundModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeRefundModal();
+    }
+});
+
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.getElementById('refundModal').style.display === 'flex') {
+        closeRefundModal();
+    }
+});
 </script>
 
 {% endblock %}

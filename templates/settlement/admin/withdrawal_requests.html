@@ -1,93 +1,673 @@
+{% extends "dashboard_base.html" %}
 
 {% load static %}
 
-{% block title %}Withdrawal Requests - Admin{% endblock %}
+{% block title %}Withdrawal Requests | Admin{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <h2>Withdrawal Requests</h2>
-            <hr>
-        </div>
-    </div>
+<style>
+    /* ============================================
+       PROFESSIONAL MODERN DESIGN
+       Blue table headers · Larger fonts · Attractive UI
+       Each filter button: different light background + thick border
+       All filter buttons in ONE LINE (flex wrap with single row on desktop)
+    ============================================ */
     
-    <!-- Filters -->
-    <div class="row mb-3">
-        <div class="col-md-12">
-            <div class="btn-group">
-                <a href="?status=" class="btn {% if not status_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">All</a>
-                {% for status_code, status_label in status_choices %}
-                    <a href="?status={{ status_code }}" class="btn {% if status_filter == status_code %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                        {{ status_label }}
-                    </a>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
+    * {
+        box-sizing: border-box;
+    }
     
-    <!-- Withdrawals Table -->
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Seller</th>
-                                    <th>Amount</th>
-                                    <th>Bank Account</th>
-                                    <th>NEFT Fee</th>
-                                    <th>Status</th>
-                                    <th>Requested</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for withdrawal in withdrawals %}
-                                <tr>
-                                    <td><code>{{ withdrawal.id|slice:":8" }}...</code></td>
-                                    <td>
-                                        <strong>{{ withdrawal.wallet.user.username }}</strong><br>
-                                        <small>{{ withdrawal.wallet.user.get_role_display }}</small><br>
-                                        <small>{{ withdrawal.wallet.user.email }}</small>
-                                    </td>
-                                    <td class="text-success font-weight-bold">₹{{ withdrawal.amount|floatformat:2 }}</td>
-                                    <td>
-                                        {{ withdrawal.bank_name }}<br>
-                                        {{ withdrawal.account_number }}<br>
-                                        <small>IFSC: {{ withdrawal.ifsc_code }}</small>
-                                    </td>
-                                    <td>₹{{ withdrawal.neft_fee|floatformat:2 }}</td>
-                                    <td>
-                                        {% if withdrawal.status == 'PENDING' %}
-                                            <span class="badge badge-warning">Pending</span>
-                                        {% elif withdrawal.status == 'APPROVED' %}
-                                            <span class="badge badge-info">Approved</span>
-                                        {% elif withdrawal.status == 'COMPLETED' %}
-                                            <span class="badge badge-success">Completed</span>
-                                        {% elif withdrawal.status == 'REJECTED' %}
-                                            <span class="badge badge-danger">Rejected</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ withdrawal.requested_at|date:"Y-m-d H:i" }}</td>
-                                    <td>
-                                        <a href="{% url 'settlement:admin_withdrawal_detail' withdrawal.id %}" class="btn btn-sm btn-primary">
-                                            View & Act
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="8" class="text-center">No withdrawal requests found</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+    .wr-content {
+        padding: 0;
+        background: transparent;
+        margin: 24px 20px;
+    }
+    
+    /* Main Card - Clean white with soft shadow */
+    .withdrawal-card {
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+        border: 1px solid #eef2f8;
+        overflow: hidden;
+        transition: box-shadow 0.25s ease;
+    }
+    
+    .withdrawal-card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    }
+    
+    /* Header section */
+    .card-header-slim {
+        padding: 22px 30px 18px 30px;
+        background: #ffffff;
+        border-bottom: 1px solid #eef2f8;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 18px;
+    }
+    
+    .title-section h2 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: #1a2c3e;
+        margin: 0 0 6px 0;
+        letter-spacing: -0.3px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .title-section h2 i {
+        color: #2563eb;
+        font-size: 1.6rem;
+        font-weight: 500;
+    }
+    
+    .title-section p {
+        font-size: 0.85rem;
+        color: #8ba0b8;
+        margin: 4px 0 0 0;
+        font-weight: 470;
+    }
+    
+    /* Total stats pill - elegant */
+    .total-stats {
+        background: #f0f6fe;
+        padding: 10px 24px;
+        border-radius: 48px;
+        font-size: 0.9rem;
+        font-weight: 550;
+        color: #1e4a76;
+        border: 1px solid #dcebf8;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .total-stats i {
+        color: #2563eb;
+        font-size: 0.95rem;
+    }
+    
+    .total-stats span {
+        font-weight: 750;
+        color: #1e40af;
+        margin-left: 5px;
+        font-size: 1.05rem;
+    }
+    
+    /* Filter strip - SINGLE LINE (flex-wrap: wrap but will be single line on desktop) */
+    .filter-strip {
+        padding: 16px 30px 0 30px;
+        background: #ffffff;
+        border-bottom: 1px solid #eef2f8;
+    }
+    
+    .filter-wrapper {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        padding-bottom: 16px;
+        align-items: center;
+    }
+    
+    /* EACH BUTTON: DIFFERENT LIGHT BACKGROUND + THICK BORDER */
+    .filter-btn {
+        padding: 9px 14px;
+        border-radius: 48px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        letter-spacing: 0.3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border-width: 2px;
+        border-style: solid;
+        cursor: pointer;
+    }
+    
+    /* Individual button styles - distinct light backgrounds & thick borders */
+    .filter-btn-all {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #334155;
+    }
+    .filter-btn-all i { color: #64748b; }
+    
+    .filter-btn-pending {
+        background: #fffbeb;
+        border-color: #fde68a;
+        color: #b45309;
+    }
+    .filter-btn-pending i { color: #d97706; }
+    
+    .filter-btn-approved {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+        color: #1e40af;
+    }
+    .filter-btn-approved i { color: #2563eb; }
+    
+    .filter-btn-completed {
+        background: #ecfdf5;
+        border-color: #a7f3d0;
+        color: #065f46;
+    }
+    .filter-btn-completed i { color: #059669; }
+    
+    .filter-btn-rejected {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #b91c1c;
+    }
+    .filter-btn-rejected i { color: #dc2626; }
+    
+    /* Hover effects - all have same hover (slightly darker border) */
+    .filter-btn-all:hover {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+        transform: translateY(-2px);
+        text-decoration: none;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .filter-btn-pending:hover {
+        background: #fef3c7;
+        border-color: #fbbf24;
+        transform: translateY(-2px);
+        text-decoration: none;
+        box-shadow: 0 4px 10px rgba(245,158,11,0.1);
+    }
+    .filter-btn-approved:hover {
+        background: #dbeafe;
+        border-color: #93c5fd;
+        transform: translateY(-2px);
+        text-decoration: none;
+        box-shadow: 0 4px 10px rgba(59,130,246,0.1);
+    }
+    .filter-btn-completed:hover {
+        background: #d1fae5;
+        border-color: #6ee7b7;
+        transform: translateY(-2px);
+        text-decoration: none;
+        box-shadow: 0 4px 10px rgba(16,185,129,0.1);
+    }
+    .filter-btn-rejected:hover {
+        background: #fee2e2;
+        border-color: #fca5a5;
+        transform: translateY(-2px);
+        text-decoration: none;
+        box-shadow: 0 4px 10px rgba(239,68,68,0.1);
+    }
+    
+    /* Active state - all buttons get solid consistent active style */
+    .filter-btn.active {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        border-color: #1e3a8a;
+        color: white;
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+        transform: translateY(-1px);
+    }
+    .filter-btn.active i {
+        color: white;
+    }
+    
+    /* Table container */
+    .table-studio {
+        width: 100%;
+        max-width: 100%;
+        max-height: 540px;
+        overflow-y: auto;
+        overflow-x: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #b9d0f0 #eef3fc;
+    }
+    
+    .table-studio::-webkit-scrollbar {
+        width: 7px;
+        height: 7px;
+    }
+    
+    .table-studio::-webkit-scrollbar-track {
+        background: #eef3fc;
+        border-radius: 10px;
+    }
+    
+    .table-studio::-webkit-scrollbar-thumb {
+        background: #aec3e0;
+        border-radius: 10px;
+    }
+    
+    .table-studio::-webkit-scrollbar-thumb:hover {
+        background: #7b9bd0;
+    }
+    
+    /* Table - Blue header theme */
+    .data-table-compact {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        min-width: 1200px;
+    }
+    
+    .data-table-compact th {
+        text-align: left;
+        padding: 16px 22px;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: #ffffff;
+        border-bottom: none;
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .data-table-compact th i {
+        margin-right: 8px;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .data-table-compact td {
+        padding: 16px 22px;
+        border-bottom: 1px solid #eff3f8;
+        color: #2c3e50;
+        vertical-align: middle;
+        white-space: nowrap;
+        font-size: 0.9rem;
+        background-color: #ffffff;
+        transition: background 0.2s ease;
+    }
+    
+    .data-table-compact tr:hover td {
+        background-color: #fafdff;
+    }
+    
+    /* Subtle column dividers for cleanliness */
+    .data-table-compact td {
+        border-right: 1px solid #f0f4fa;
+    }
+    
+    .data-table-compact th {
+        border-right: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    
+    .data-table-compact td:last-child,
+    .data-table-compact th:last-child {
+        border-right: none;
+    }
+    
+    /* ID badge */
+    .id-badge {
+        font-family: 'SF Mono', 'Fira Code', monospace;
+        font-weight: 650;
+        font-size: 0.82rem;
+        background: #eff6ff;
+        color: #1e40af;
+        padding: 5px 14px;
+        border-radius: 30px;
+        display: inline-block;
+        letter-spacing: -0.1px;
+        border: 1px solid #dbeafe;
+    }
+    
+    /* Seller info */
+    .seller-compact {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .seller-name {
+        font-weight: 700;
+        color: #1f2a44;
+        font-size: 0.95rem;
+    }
+    .seller-email {
+        font-size: 0.75rem;
+        color: #7c8fa8;
+        font-weight: 470;
+    }
+    
+    /* Amount styling */
+    .amount-strong {
+        font-weight: 750;
+        color: #0f7b4a;
+        font-size: 1rem;
+    }
+    
+    /* Bank details */
+    .bank-line {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 8px;
+    }
+    .bank-name {
+        font-weight: 650;
+        color: #2c4b6c;
+        font-size: 0.87rem;
+        background: #f7fafd;
+        padding: 3px 10px;
+        border-radius: 18px;
+    }
+    .bank-number {
+        font-family: monospace;
+        font-size: 0.78rem;
+        color: #556e88;
+        background: #f8fafd;
+        padding: 3px 10px;
+        border-radius: 14px;
+    }
+    
+    /* Fee */
+    .fee-amount {
+        font-weight: 700;
+        color: #c2410c;
+        font-size: 0.9rem;
+    }
+    
+    /* Status badges */
+    .status-badge-new {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 15px;
+        border-radius: 40px;
+        font-size: 0.75rem;
+        font-weight: 650;
+        width: fit-content;
+    }
+    .status-pending {
+        background: #fffbeb;
+        color: #b45309;
+        border: 1px solid #fde68a;
+    }
+    .status-approved {
+        background: #eff6ff;
+        color: #1e40af;
+        border: 1px solid #bfdbfe;
+    }
+    .status-completed {
+        background: #ecfdf5;
+        color: #0f7b4a;
+        border: 1px solid #a7f3d0;
+    }
+    .status-rejected {
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+    }
+    
+    /* Date */
+    .date-clean {
+        font-size: 0.8rem;
+        color: #5c6f87;
+        white-space: nowrap;
+        font-weight: 500;
+        letter-spacing: 0.2px;
+        line-height: 1.4;
+    }
+    
+    .date-clean small {
+        font-size: 0.7rem;
+        color: #8ba0b8;
+    }
+    
+    /* Action button */
+    .view-link {
+        background: #eff6ff;
+        color: #2563eb;
+        padding: 7px 20px;
+        border-radius: 32px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.25s ease;
+        border: 1px solid #dbeafe;
+    }
+    .view-link:hover {
+        background: #2563eb;
+        color: white;
+        border-color: #2563eb;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(37, 99, 235, 0.2);
+        text-decoration: none;
+    }
+    
+    /* Empty state */
+    .empty-state-modern {
+        text-align: center;
+        padding: 70px 24px;
+        background: #ffffff;
+    }
+    .empty-state-modern i {
+        font-size: 3.2rem;
+        color: #cbdbe6;
+        margin-bottom: 16px;
+        opacity: 0.7;
+    }
+    .empty-state-modern p {
+        color: #7c8da6;
+        font-weight: 530;
+        font-size: 0.95rem;
+        margin: 0 0 6px 0;
+    }
+    .empty-state-modern small {
+        color: #a1b2c8;
+        font-size: 0.75rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1100px) {
+        .filter-wrapper {
+            gap: 10px;
+        }
+        .filter-btn {
+            padding: 7px 18px;
+            font-size: 0.78rem;
+            gap: 6px;
+        }
+    }
+    
+    @media (max-width: 1000px) {
+        .wr-content {
+            margin: 18px 22px;
+        }
+        .card-header-slim {
+            padding: 18px 24px 14px 24px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .title-section h2 {
+            font-size: 1.5rem;
+        }
+        .filter-strip {
+            padding: 12px 24px 0 24px;
+        }
+        .filter-wrapper {
+            gap: 10px;
+        }
+        .filter-btn {
+            padding: 6px 16px;
+            font-size: 0.75rem;
+        }
+        .data-table-compact th,
+        .data-table-compact td {
+            padding: 14px 18px;
+            font-size: 0.85rem;
+        }
+    }
+    
+    @media (max-width: 900px) {
+        .filter-wrapper {
+            flex-wrap: wrap;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .wr-content {
+            margin: 12px 16px;
+        }
+        .bank-line {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+        .content {
+            margin-top: 70px;
+        }
+        .total-stats {
+            font-size: 0.8rem;
+            padding: 6px 16px;
+        }
+        .data-table-compact {
+            font-size: 0.82rem;
+        }
+    }
+    
+    /* Table rounded corners */
+    .data-table-compact tr:last-child td:first-child {
+        border-bottom-left-radius: 20px;
+    }
+    
+    .data-table-compact tr:last-child td:last-child {
+        border-bottom-right-radius: 20px;
+    }
+    
+    /* icon sizing */
+    .fa, .fas, .far {
+        font-size: 0.8rem;
+    }
+    
+    th .fa, th .fas, th .far {
+        font-size: 0.75rem;
+    }
+</style>
+
+<div class="content">
+    <div class="wr-content">
+        <!-- Premium card design -->
+        <div class="withdrawal-card">
+            <!-- Header -->
+            <div class="card-header-slim">
+                <div class="title-section">
+                    <h2>
+                       
+                        Withdrawal Requests
+                    </h2>
+                    <p><i class="fas fa-shield-heart"></i> Secure & instant payout management</p>
                 </div>
+                <div class="total-stats">
+                    <i class="fas fa-chart-line"></i> 
+                    Total · <span>{{ withdrawals|length }}</span> requests
+                </div>
+            </div>
+            
+            <!-- Filter buttons - all in one line with distinct light backgrounds + thick borders -->
+            <div class="filter-strip">
+                <div class="filter-wrapper">
+                    <a href="?status=" class="filter-btn filter-btn-all {% if not status_filter %}active{% endif %}">
+                        <i class="fas fa-grid-2"></i> All
+                    </a>
+                    {% for status_code, status_label in status_choices %}
+                        <a href="?status={{ status_code }}" class="filter-btn 
+                            {% if status_code == 'PENDING' %}filter-btn-pending
+                            {% elif status_code == 'APPROVED' %}filter-btn-approved
+                            {% elif status_code == 'COMPLETED' %}filter-btn-completed
+                            {% elif status_code == 'REJECTED' %}filter-btn-rejected
+                            {% endif %} 
+                            {% if status_filter == status_code %}active{% endif %}">
+                            {% if status_code == 'PENDING' %}
+                                <i class="fas fa-hourglass-half"></i>
+                            {% elif status_code == 'APPROVED' %}
+                                <i class="fas fa-check-circle"></i>
+                            {% elif status_code == 'COMPLETED' %}
+                                <i class="fas fa-circle-check"></i>
+                            {% elif status_code == 'REJECTED' %}
+                                <i class="fas fa-circle-xmark"></i>
+                            {% endif %}
+                            {{ status_label }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Table with blue header -->
+            <div class="table-studio">
+                <table class="data-table-compact">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag"></i> Req. ID</th>
+                            <th><i class="fas fa-user-astronaut"></i> Seller</th>
+                            <th><i class="fas fa-indian-rupee-sign"></i> Amount</th>
+                            <th><i class="fas fa-building-columns"></i> Bank Details</th>
+                            <th><i class="fas fa-wallet"></i> NEFT Fee</th>
+                            <th><i class="fas fa-signal"></i> Status</th>
+                            <th><i class="fas fa-calendar-alt"></i> Requested</th>
+                            <th><i class="fas fa-bolt"></i> Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for withdrawal in withdrawals %}
+                        <tr>
+                            <td><span class="id-badge">{{ withdrawal.id|slice:":8" }}</span></td>
+                            <td>
+                                <div class="seller-compact">
+                                    <span class="seller-name">{{ withdrawal.wallet.user.username }}</span>
+                                    <span class="seller-email">{{ withdrawal.wallet.user.email }}</span>
+                                </div>
+                            </td>
+                            <td class="amount-strong">₹{{ withdrawal.amount|floatformat:2 }}</td>
+                            <td>
+                                <div class="bank-line">
+                                    <span class="bank-name">{{ withdrawal.bank_name }}</span>
+                                    <span class="bank-number">{{ withdrawal.account_number }}</span>
+                                </div>
+                            </td>
+                            <td class="fee-amount">₹{{ withdrawal.neft_fee|floatformat:2 }}</td>
+                            <td>
+                                {% if withdrawal.status == 'PENDING' %}
+                                    <span class="status-badge-new status-pending"><i class="fas fa-clock"></i> Pending</span>
+                                {% elif withdrawal.status == 'APPROVED' %}
+                                    <span class="status-badge-new status-approved"><i class="fas fa-thumbs-up"></i> Approved</span>
+                                {% elif withdrawal.status == 'COMPLETED' %}
+                                    <span class="status-badge-new status-completed"><i class="fas fa-check-circle"></i> Completed</span>
+                                {% elif withdrawal.status == 'REJECTED' %}
+                                    <span class="status-badge-new status-rejected"><i class="fas fa-times-circle"></i> Rejected</span>
+                                {% endif %}
+                            </td>
+                            <td class="date-clean">
+                                {{ withdrawal.requested_at|date:"d M Y" }}<br>
+                                <small>{{ withdrawal.requested_at|date:"h:i A" }}</small>
+                            </td>
+                            <td>
+                                <a href="{% url 'settlement:admin_withdrawal_detail' withdrawal.id %}" class="view-link">
+                                    <i class="fas fa-arrow-right"></i> Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="empty-state-modern">
+                                <i class="fas fa-inbox"></i>
+                                <p>✨ No withdrawal requests found</p>
+                                <small>Try a different filter or check back later</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
