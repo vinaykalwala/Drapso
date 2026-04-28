@@ -205,6 +205,36 @@ class WholesellerProduct(models.Model):
         # Calculate discounted price
         self.discounted_price = self.calculate_discounted_price()
         
+        # Track price and discount changes BEFORE save
+        if self.pk:
+            old_instance = WholesellerProduct.objects.filter(pk=self.pk).first()
+            if old_instance:
+                self._stock_changed = old_instance.stock != self.stock
+                self._old_stock = old_instance.stock
+                self._price_changed = old_instance.price != self.price
+                self._discount_changed = old_instance.discount_percentage != self.discount_percentage
+                
+                # Track old values for signal
+                if self._price_changed:
+                    self._old_price = old_instance.price
+                if self._discount_changed:
+                    self._old_discount = old_instance.discount_percentage
+            else:
+                self._stock_changed = False
+                self._price_changed = False
+                self._discount_changed = False
+        else:
+            self._stock_changed = False
+            self._price_changed = False
+            self._discount_changed = False
+        
+        # Handle price change tracking for previous_price field
+        if self.pk:
+            old_price = WholesellerProduct.objects.filter(pk=self.pk).values_list('price', flat=True).first()
+            if old_price is not None and old_price != self.price:
+                self.previous_price = old_price
+                self.price_updated_at = timezone.now()
+        
         # Generate proper SKU if it's a temporary one or empty
         if not self.sku or (self.sku and 'TEMP' in self.sku):
             self.sku = self.generate_sku()
@@ -212,27 +242,6 @@ class WholesellerProduct(models.Model):
         # Set default HSN code if not set
         if not self.hsn_code or self.hsn_code == '0000':
             self.hsn_code = '0000'
-        
-        # Track stock changes before save
-        if self.pk:
-            old_instance = WholesellerProduct.objects.filter(pk=self.pk).first()
-            if old_instance:
-                self._stock_changed = old_instance.stock != self.stock
-                self._old_stock = old_instance.stock
-                self._discount_changed = old_instance.discount_percentage != self.discount_percentage
-            else:
-                self._stock_changed = False
-                self._discount_changed = False
-        else:
-            self._stock_changed = False
-            self._discount_changed = False
-        
-        # Handle price change tracking
-        if self.pk:
-            old_price = WholesellerProduct.objects.filter(pk=self.pk).values_list('price', flat=True).first()
-            if old_price is not None and old_price != self.price:
-                self.previous_price = old_price
-                self.price_updated_at = timezone.now()
         
         if not self.slug:
             base_slug = slugify(self.name)
@@ -244,81 +253,34 @@ class WholesellerProduct(models.Model):
         
         super().save(*args, **kwargs)
         
-        # AFTER save - sync to all resellers if stock or discount changed
-        if getattr(self, '_stock_changed', False) or getattr(self, '_discount_changed', False):
-            self._sync_to_resellers()
+        # AFTER save - sync stock to resellers (price/discount handled by signal)
+        if getattr(self, '_stock_changed', False):
+            self._sync_stock_to_resellers()
     
-    def _sync_to_resellers(self):
-        """Automatically sync stock and discount to all reseller imports"""
+    def _sync_stock_to_resellers(self):
+        """Sync ONLY stock changes to resellers (not price/discount)"""
         affected_reseller_products = ResellerProduct.objects.filter(
             source_product=self,
             source_type='imported',
             is_active=True
         ).select_related('reseller', 'store')
         
-        # Bulk update for better performance
         for reseller_product in affected_reseller_products:
-            update_fields = ['updated_at']
-            
-            if getattr(self, '_stock_changed', False):
-                reseller_product.stock = self.stock
-                update_fields.append('stock')
-            
-            if getattr(self, '_discount_changed', False):
-                reseller_product.discount_percentage = self.discount_percentage
-                
-                # Recalculate selling price based on effective price
-                source_effective_price = self.get_effective_price()
-                reseller_product.selling_price = source_effective_price + reseller_product.margin_rupees
-                
-                # Recalculate discounted price for reseller
-                if self.discount_percentage > 0:
-                    discount_amount = (reseller_product.selling_price * self.discount_percentage) / 100
-                    reseller_product.discounted_price = reseller_product.selling_price - discount_amount
-                else:
-                    reseller_product.discounted_price = reseller_product.selling_price
-                
-                update_fields.extend(['discount_percentage', 'selling_price', 'discounted_price'])
-            
-            reseller_product.save(update_fields=update_fields)
+            reseller_product.stock = self.stock
+            reseller_product.save(update_fields=['stock', 'updated_at'])
         
-        # Also sync variants
+        # Also sync variants stock
         for reseller_product in affected_reseller_products:
             for variant in reseller_product.variants.filter(source_variant__isnull=False):
                 if variant.source_variant:
-                    variant_update_fields = ['updated_at']
-                    
-                    if getattr(self, '_stock_changed', False):
-                        variant.stock = variant.source_variant.stock
-                        variant_update_fields.append('stock')
-                    
-                    if getattr(self, '_discount_changed', False):
-                        variant.discount_percentage = variant.source_variant.discount_percentage
-                        
-                        # Recalculate selling price based on effective price
-                        variant_effective_price = variant.source_variant.get_effective_price()
-                        variant.selling_price = variant_effective_price + variant.margin_rupees
-                        
-                        # Recalculate discounted price
-                        if variant.discount_percentage > 0:
-                            discount_amount = (variant.selling_price * variant.discount_percentage) / 100
-                            variant.discounted_price = variant.selling_price - discount_amount
-                        else:
-                            variant.discounted_price = variant.selling_price
-                        
-                        variant_update_fields.extend(['discount_percentage', 'selling_price', 'discounted_price'])
-                    
-                    variant.save(update_fields=variant_update_fields)
+                    variant.stock = variant.source_variant.stock
+                    variant.save(update_fields=['stock', 'updated_at'])
         
-        # Create notifications for critical changes
-        if getattr(self, '_stock_changed', False):
-            if self.stock == 0 and affected_reseller_products.exists():
-                self._create_stock_out_notifications(affected_reseller_products)
-            elif self.stock <= self.threshold_limit and getattr(self, '_old_stock', 0) > self.threshold_limit:
-                self._create_low_stock_notifications(affected_reseller_products)
-        
-        if getattr(self, '_discount_changed', False) and self.discount_percentage > 0:
-            self._create_discount_notifications(affected_reseller_products)
+        # Create notifications for critical stock changes
+        if self.stock == 0 and affected_reseller_products.exists():
+            self._create_stock_out_notifications(affected_reseller_products)
+        elif self.stock <= self.threshold_limit and getattr(self, '_old_stock', 0) > self.threshold_limit:
+            self._create_low_stock_notifications(affected_reseller_products)
     
     def _create_stock_out_notifications(self, reseller_products):
         """Create notifications for stock out"""
@@ -348,21 +310,6 @@ class WholesellerProduct(models.Model):
                 old_selling_price=rp.selling_price,
                 new_selling_price=rp.selling_price,
                 message=f"⚠️ '{self.name}' stock is low ({self.stock} units remaining). Consider updating your inventory."
-            )
-    
-    def _create_discount_notifications(self, reseller_products):
-        """Create notifications for new discounts"""
-        for rp in reseller_products:
-            PriceChangeNotification.objects.create(
-                reseller=rp.reseller,
-                store=rp.store,
-                reseller_product=rp,
-                notification_type='product_price_decrease',
-                old_price=self.previous_price or self.price,
-                new_price=self.price,
-                old_selling_price=rp.selling_price,
-                new_selling_price=rp.selling_price,
-                message=f"🎉 '{self.name}' now has {self.discount_percentage}% discount! Your new cost: ₹{self.get_effective_price()}"
             )
     
     def has_price_changed(self):
@@ -502,12 +449,20 @@ class WholesellerProductVariant(models.Model):
             if old_instance:
                 self._stock_changed = old_instance.stock != self.stock
                 self._old_stock = old_instance.stock
+                self._price_changed = old_instance.price != self.price
                 self._discount_changed = old_instance.discount_percentage != self.discount_percentage
+                
+                if self._price_changed:
+                    self._old_price = old_instance.price
+                if self._discount_changed:
+                    self._old_discount = old_instance.discount_percentage
             else:
                 self._stock_changed = False
+                self._price_changed = False
                 self._discount_changed = False
         else:
             self._stock_changed = False
+            self._price_changed = False
             self._discount_changed = False
         
         # Handle price change tracking
@@ -538,12 +493,12 @@ class WholesellerProductVariant(models.Model):
         
         super().save(*args, **kwargs)
         
-        # AFTER save - sync variant to all resellers if stock or discount changed
-        if getattr(self, '_stock_changed', False) or getattr(self, '_discount_changed', False):
-            self._sync_to_resellers()
+        # AFTER save - sync stock to resellers (price/discount handled by signal)
+        if getattr(self, '_stock_changed', False):
+            self._sync_stock_to_resellers()
     
-    def _sync_to_resellers(self):
-        """Automatically sync variant stock and discount to all reseller imports"""
+    def _sync_stock_to_resellers(self):
+        """Sync ONLY stock changes to resellers"""
         affected_reseller_variants = ResellerProductVariant.objects.filter(
             source_variant=self,
             product__is_active=True,
@@ -551,32 +506,11 @@ class WholesellerProductVariant(models.Model):
         ).select_related('product')
         
         for reseller_variant in affected_reseller_variants:
-            update_fields = ['updated_at']
-            
-            if getattr(self, '_stock_changed', False):
-                reseller_variant.stock = self.stock
-                update_fields.append('stock')
-            
-            if getattr(self, '_discount_changed', False):
-                reseller_variant.discount_percentage = self.discount_percentage
-                
-                # Recalculate selling price based on effective price
-                variant_effective_price = self.get_effective_price()
-                reseller_variant.selling_price = variant_effective_price + reseller_variant.margin_rupees
-                
-                # Recalculate discounted price
-                if self.discount_percentage > 0:
-                    discount_amount = (reseller_variant.selling_price * self.discount_percentage) / 100
-                    reseller_variant.discounted_price = reseller_variant.selling_price - discount_amount
-                else:
-                    reseller_variant.discounted_price = reseller_variant.selling_price
-                
-                update_fields.extend(['discount_percentage', 'selling_price', 'discounted_price'])
-            
-            reseller_variant.save(update_fields=update_fields)
+            reseller_variant.stock = self.stock
+            reseller_variant.save(update_fields=['stock', 'updated_at'])
         
         # Create notifications for critical stock changes
-        if getattr(self, '_stock_changed', False) and self.stock == 0 and affected_reseller_variants.exists():
+        if self.stock == 0 and affected_reseller_variants.exists():
             self._create_variant_stock_out_notifications(affected_reseller_variants)
     
     def _create_variant_stock_out_notifications(self, reseller_variants):
@@ -781,166 +715,129 @@ class ResellerProduct(models.Model):
                 self.save(update_fields=['stock', 'updated_at'])
     
     def save(self, *args, **kwargs):
+        # ================= SLUG =================
+        if not self.slug:
+            base_slug = slugify(self.name)
+            self.slug = base_slug
+            counter = 1
 
-    # ================= SLUG =================
-            if not self.slug:
-                base_slug = slugify(self.name)
-                self.slug = base_slug
-                counter = 1
+            while ResellerProduct.objects.filter(
+                store=self.store,
+                slug=self.slug
+            ).exists():
+                self.slug = f"{base_slug}-{counter}"
+                counter += 1
 
-                while ResellerProduct.objects.filter(
-                    store=self.store,
-                    slug=self.slug
-                ).exists():
+        # ================= IMPORTED PRODUCT =================
+        if self.source_type == 'imported' and self.source_product:
+            is_new = self.pk is None
 
-                    self.slug = f"{base_slug}-{counter}"
-                    counter += 1
+            # STOCK SYNC
+            self.stock = self.source_product.stock
 
+            # SKU + HSN SYNC
+            if self.source_product.sku:
+                self.sku = self.source_product.sku
 
-            # ================= IMPORTED PRODUCT =================
-            if self.source_type == 'imported' and self.source_product:
+            if self.source_product.hsn_code:
+                self.hsn_code = self.source_product.hsn_code
 
-                is_new = self.pk is None
+            # SOURCE EFFECTIVE PRICE (after discount)
+            source_effective_price = self.source_product.get_effective_price()
 
-                # STOCK SYNC
-                self.stock = self.source_product.stock
+            # ================= PRICE CHANGE CHECK =================
+            # ONLY check wholeseller change (NOT margin change)
+            if not is_new:
+                old_source_price = self.last_known_source_price
+                new_source_price = source_effective_price
 
-                # SKU + HSN SYNC
-                if self.source_product.sku:
-                    self.sku = self.source_product.sku
+                if old_source_price is not None:
+                    difference = abs(
+                        Decimal(new_source_price) -
+                        Decimal(old_source_price)
+                    )
 
-                if self.source_product.hsn_code:
-                    self.hsn_code = self.source_product.hsn_code
+                    if difference > Decimal('0.01'):
+                        if new_source_price > old_source_price:
+                            self.price_status = 'price_increased'
+                        else:
+                            self.price_status = 'price_decreased'
 
+                        self.price_change_notified_at = timezone.now()
 
-                # SOURCE EFFECTIVE PRICE (after discount)
-                source_effective_price = self.source_product.get_effective_price()
+            # ================= PRICE SYNC =================
+            self.source_price = self.source_product.price
 
-                # ================= PRICE CHANGE CHECK =================
-                # ONLY check wholeseller change (NOT margin change)
+            # selling price = discounted source price + margin
+            self.selling_price = (
+                source_effective_price +
+                Decimal(self.margin_rupees or 0)
+            )
 
-                if not is_new:
+            # ================= DISCOUNT CALC =================
+            self.discount_percentage = self.source_product.discount_percentage
 
-                    old_source_price = self.last_known_source_price
-                    new_source_price = source_effective_price
-
-                    if old_source_price is not None:
-
-                        difference = abs(
-                            Decimal(new_source_price) -
-                            Decimal(old_source_price)
-                        )
-
-                        if difference > Decimal('0.01'):
-
-                            if new_source_price > old_source_price:
-                                self.price_status = 'price_increased'
-                            else:
-                                self.price_status = 'price_decreased'
-
-                            self.price_change_notified_at = timezone.now()
-
-
-                # ================= PRICE SYNC =================
-
-                self.source_price = self.source_product.price
-
-                # selling price = discounted source price + margin
-                self.selling_price = (
-                    source_effective_price +
-                    Decimal(self.margin_rupees or 0)
+            if self.discount_percentage > 0:
+                discount_amount = (
+                    self.selling_price *
+                    Decimal(self.discount_percentage) / 100
                 )
-
-
-                # ================= DISCOUNT CALC =================
-
-                self.discount_percentage = self.source_product.discount_percentage
-
-                if self.discount_percentage > 0:
-
-                    discount_amount = (
-                        self.selling_price *
-                        Decimal(self.discount_percentage) / 100
-                    )
-
-                    self.discounted_price = (
-                        self.selling_price - discount_amount
-                    )
-
-                else:
-
-                    self.discounted_price = self.selling_price
-
-
-                # ================= ATTRIBUTE SYNC =================
-
-                self.brand = self.source_product.brand
-                self.model_name = self.source_product.model_name
-                self.size = self.source_product.size
-                self.color = self.source_product.color
-                self.material = self.source_product.material
-                self.gender = self.source_product.gender
-                self.attributes = self.source_product.attributes
-                self.specification = self.source_product.specification
-
-                self.threshold_limit = self.source_product.threshold_limit
-
-
-                # ================= SHIPPING SYNC =================
-
-                self.weight = self.source_product.weight
-                self.length = self.source_product.length
-                self.breadth = self.source_product.breadth
-                self.height = self.source_product.height
-
-                self.is_shippable = self.source_product.is_shippable
-
-
-                # ================= RETURN POLICY =================
-
-                self.is_returnable = self.source_product.is_returnable
-                self.return_window_days = self.source_product.return_window_days
-
-                self.is_replaceable = self.source_product.is_replaceable
-                self.replacement_window_days = self.source_product.replacement_window_days
-
-
-                # ================= INITIAL STATE =================
-
-                if is_new:
-
-                    self.price_status = 'up_to_date'
-
-                    self.last_known_source_price = source_effective_price
-
-
-            # ================= OWN PRODUCT =================
-
+                self.discounted_price = (
+                    self.selling_price - discount_amount
+                )
             else:
+                self.discounted_price = self.selling_price
 
-                self.source_price = 0
+            # ================= ATTRIBUTE SYNC =================
+            self.brand = self.source_product.brand
+            self.model_name = self.source_product.model_name
+            self.size = self.source_product.size
+            self.color = self.source_product.color
+            self.material = self.source_product.material
+            self.gender = self.source_product.gender
+            self.attributes = self.source_product.attributes
+            self.specification = self.source_product.specification
 
-                if not self.sku or 'TEMP' in str(self.sku):
+            self.threshold_limit = self.source_product.threshold_limit
 
-                    self.sku = self.generate_reseller_sku()
+            # ================= SHIPPING SYNC =================
+            self.weight = self.source_product.weight
+            self.length = self.source_product.length
+            self.breadth = self.source_product.breadth
+            self.height = self.source_product.height
 
-                if not self.hsn_code:
+            self.is_shippable = self.source_product.is_shippable
 
-                    self.hsn_code = '0000'
+            # ================= RETURN POLICY =================
+            self.is_returnable = self.source_product.is_returnable
+            self.return_window_days = self.source_product.return_window_days
 
+            self.is_replaceable = self.source_product.is_replaceable
+            self.replacement_window_days = self.source_product.replacement_window_days
 
-                if not self.selling_price:
+            # ================= INITIAL STATE =================
+            if is_new:
+                self.price_status = 'up_to_date'
+                self.last_known_source_price = source_effective_price
 
-                    raise ValueError("Selling price required")
+        # ================= OWN PRODUCT =================
+        else:
+            self.source_price = 0
 
+            if not self.sku or 'TEMP' in str(self.sku):
+                self.sku = self.generate_reseller_sku()
 
-                # calculate discount
-                self.discounted_price = self.calculate_discounted_price()
+            if not self.hsn_code:
+                self.hsn_code = '0000'
 
+            if not self.selling_price:
+                raise ValueError("Selling price required")
 
-            # ================= SAVE =================
+            # calculate discount
+            self.discounted_price = self.calculate_discounted_price()
 
-            super().save(*args, **kwargs)
+        # ================= SAVE =================
+        super().save(*args, **kwargs)
 
     def has_price_change_pending(self):
         return self.price_status in ['price_increased', 'price_decreased']
@@ -1255,3 +1152,4 @@ class PriceChangeNotification(models.Model):
     
     def __str__(self):
         return f"Price change for {self.reseller_product.name} - {self.created_at}"
+
