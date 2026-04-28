@@ -529,6 +529,29 @@ def reseller_import_product(request, store_id, product_id):
                 # Apply margin on the discounted price
                 return float(price) + float(margin)
 
+            # ================= COPY MAIN IMAGE =================
+            from django.core.files.base import ContentFile
+            import os
+            
+            main_image = None
+            if source_product.main_image and source_product.main_image.name:
+                try:
+                    # Get the source image path
+                    source_image_path = source_product.main_image.path
+                    if os.path.exists(source_image_path):
+                        # Read the file content
+                        with open(source_image_path, 'rb') as f:
+                            image_content = f.read()
+                        
+                        # Create new filename for reseller
+                        file_extension = os.path.splitext(source_image_path)[1]
+                        file_name = f"reseller_{request.user.id}_store_{store.id}_product_{source_product.id}_main_{timezone.now().timestamp()}{file_extension}"
+                        
+                        # Save to Django storage using ContentFile
+                        main_image = ContentFile(image_content, name=file_name)
+                except Exception as e:
+                    print(f"Error copying main image: {e}")
+
             # ================= PRODUCT CREATE =================
             product = ResellerProduct.objects.create(
                 reseller=request.user,
@@ -578,9 +601,12 @@ def reseller_import_product(request, store_id, product_id):
                 is_replaceable=source_product.is_replaceable,
                 replacement_window_days=source_product.replacement_window_days,
 
-                main_image=source_product.main_image,
                 is_published=False,
             )
+            
+            # Save the main image separately (after product is created)
+            if main_image:
+                product.main_image.save(main_image.name, main_image, save=True)
 
             # Recalculate discounted price if product has discount
             if product.discount_percentage > 0:
@@ -588,18 +614,46 @@ def reseller_import_product(request, store_id, product_id):
                 product.discounted_price = product.selling_price - discount_amount
                 product.save(update_fields=['discounted_price'])
 
-            # ================= PRODUCT IMAGES =================
-            for img in source_product.additional_images.all():
-                ResellerProductImage.objects.create(
-                    product=product,
-                    image=img.image,
-                    alt_text=img.alt_text,
-                    order=img.order
-                )
+            # ================= COPY PRODUCT ADDITIONAL IMAGES =================
+            for idx, img in enumerate(source_product.additional_images.all()):
+                try:
+                    if img.image and img.image.name:
+                        source_img_path = img.image.path
+                        if os.path.exists(source_img_path):
+                            with open(source_img_path, 'rb') as f:
+                                image_content = f.read()
+                            
+                            file_extension = os.path.splitext(source_img_path)[1]
+                            file_name = f"reseller_{request.user.id}_store_{store.id}_product_{source_product.id}_additional_{idx}_{timezone.now().timestamp()}{file_extension}"
+                            new_image = ContentFile(image_content, name=file_name)
+                            
+                            reseller_image = ResellerProductImage.objects.create(
+                                product=product,
+                                alt_text=img.alt_text,
+                                order=img.order
+                            )
+                            reseller_image.image.save(new_image.name, new_image, save=True)
+                except Exception as e:
+                    print(f"Error copying additional image {idx}: {e}")
 
             # ================= VARIANTS =================
-            for sv in source_product.variants.all():
+            for vidx, sv in enumerate(source_product.variants.all()):
                 variant_effective_price = sv.get_effective_price()
+                
+                # Copy variant main image
+                variant_image = None
+                if sv.main_image and sv.main_image.name:
+                    try:
+                        source_var_img_path = sv.main_image.path
+                        if os.path.exists(source_var_img_path):
+                            with open(source_var_img_path, 'rb') as f:
+                                image_content = f.read()
+                            
+                            file_extension = os.path.splitext(source_var_img_path)[1]
+                            file_name = f"reseller_{request.user.id}_store_{store.id}_variant_{sv.id}_main_{timezone.now().timestamp()}{file_extension}"
+                            variant_image = ContentFile(image_content, name=file_name)
+                    except Exception as e:
+                        print(f"Error copying variant main image: {e}")
                 
                 variant = ResellerProductVariant.objects.create(
                     product=product,
@@ -634,6 +688,10 @@ def reseller_import_product(request, store_id, product_id):
                     is_replaceable=sv.is_replaceable,
                     replacement_window_days=sv.replacement_window_days,
                 )
+                
+                # Save variant main image
+                if variant_image:
+                    variant.main_image.save(variant_image.name, variant_image, save=True)
 
                 # Calculate discounted price for variant
                 if variant.discount_percentage > 0:
@@ -641,17 +699,27 @@ def reseller_import_product(request, store_id, product_id):
                     variant.discounted_price = variant.selling_price - discount_amount
                     variant.save(update_fields=['discounted_price'])
 
-                if sv.main_image:
-                    variant.main_image = sv.main_image
-                    variant.save()
-
-                for simg in sv.additional_images.all():
-                    ResellerVariantImage.objects.create(
-                        variant=variant,
-                        image=simg.image,
-                        alt_text=simg.alt_text,
-                        order=simg.order
-                    )
+                # ================= COPY VARIANT ADDITIONAL IMAGES =================
+                for img_idx, simg in enumerate(sv.additional_images.all()):
+                    try:
+                        if simg.image and simg.image.name:
+                            source_var_img_path = simg.image.path
+                            if os.path.exists(source_var_img_path):
+                                with open(source_var_img_path, 'rb') as f:
+                                    image_content = f.read()
+                                
+                                file_extension = os.path.splitext(source_var_img_path)[1]
+                                file_name = f"reseller_{request.user.id}_store_{store.id}_variant_{sv.id}_additional_{img_idx}_{timezone.now().timestamp()}{file_extension}"
+                                new_image = ContentFile(image_content, name=file_name)
+                                
+                                reseller_variant_image = ResellerVariantImage.objects.create(
+                                    variant=variant,
+                                    alt_text=simg.alt_text,
+                                    order=simg.order
+                                )
+                                reseller_variant_image.image.save(new_image.name, new_image, save=True)
+                    except Exception as e:
+                        print(f"Error copying variant additional image {img_idx}: {e}")
 
             messages.success(request, f'✅ Imported "{product.name}" with margin ₹{margin}')
             if source_product.discount_percentage > 0:
@@ -667,7 +735,7 @@ def reseller_import_product(request, store_id, product_id):
         'source_product': source_product,
         'store': store,
     })
-
+    
 @login_required
 @user_passes_test(is_reseller)
 def reseller_product_toggle_publish(request, store_id, product_id):
