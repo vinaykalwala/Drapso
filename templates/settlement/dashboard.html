@@ -21,6 +21,10 @@
         min-height: 100vh;
     }
 
+    .content {
+        margin-top: 0 !important;
+    }
+
     .wallet-dashboard {
         width: 100%;
         padding: 20px clamp(16px, 2.5vw, 32px);
@@ -127,8 +131,7 @@
     /* ===== FORCE 4 COLUMNS AND ADJUST CARD INTERNALS FOR LAPTOP/DESKTOP ===== */
     @media (min-width: 768px) {
         .balance-grid {
-            grid-template-columns: repeat(4, 1fr);   /* fixed 4 equal columns */
-            gap: 16px;                                /* slightly tighter gap */
+            grid-template-columns: repeat(2, 1fr);
         }
 
         .balance-card {
@@ -153,6 +156,11 @@
             white-space: nowrap;         /* keep on one line if possible */
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .content {
+            padding-top: 20px;
+            margin-top: 40px;
         }
     }
 
@@ -234,13 +242,18 @@
 
     @media (min-width: 640px) {
         .action-cards-fill {
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr ;
             grid-template-rows: 1fr;
+        }
+        .content {
+            margin-top: 40px;
+            padding-top: 20px;
         }
     }
 
     @media (min-height: 430px){
         .content {
+            padding-top: 20px;
             margin-top: 50px;
         }
     }

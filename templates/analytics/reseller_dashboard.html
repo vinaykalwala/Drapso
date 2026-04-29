@@ -1,95 +1,479 @@
-
+{% extends "dashboard_base.html" %}
 {% load static %}
 
-{% block title %}Reseller Analytics - My Store Dashboard{% endblock %}
-
-{% block extra_css %}
-<style>
-    .dashboard-card { transition: transform 0.2s, box-shadow 0.2s; }
-    .dashboard-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
-    .stat-number { font-size: 2rem; font-weight: bold; line-height: 1.2; }
-    .tab-active { background-color: #3b82f6; color: white; }
-    .tab-inactive { background-color: #e5e7eb; color: #4b5563; }
-    .tab-inactive:hover { background-color: #d1d5db; }
-    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
-    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-    .reseller-badge { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="container mx-auto px-4 py-8 max-w-7xl">
-    <div class="mb-8">
-        <div class="flex justify-between items-center">
+<style>
+    /* ============================================
+       Professional Dashboard CSS – from reference
+       ============================================ */
+    .content {
+        padding: 10px 24px;
+        background: #f8fafc;
+    }
+
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Grid Layout */
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 -10px;
+    }
+    .col {
+        padding: 0 10px;
+        flex: 1;
+        min-width: 0;
+    }
+    .col-2 { flex: 2; }
+    .col-3 { flex: 3; }
+    .col-4 { flex: 4; }
+
+    /* Cards */
+    .stat-card {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s;
+        height: calc(100% - 20px);
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+
+    .chart-card {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+        height: calc(100% - 20px);
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        background: #f8fafc;
+        border-radius: 16px;
+        color: #94a3b8;
+    }
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+    .empty-state p {
+        font-size: 14px;
+        margin: 0;
+    }
+
+    /* Icons */
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+    }
+
+    /* Tabs */
+    .tabs {
+        display: flex;
+        gap: 8px;
+        border-bottom: 2px solid #e2e8f0;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+    .tab-btn {
+        padding: 10px 24px;
+        border-radius: 12px 12px 0 0;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        background: transparent;
+    }
+    .tab-active {
+        background: #4f46e5;
+        color: white;
+    }
+    .tab-inactive {
+        background: #f1f5f9;
+        color: #475569;
+    }
+    .tab-inactive:hover { background: #e2e8f0; }
+
+    /* Period Buttons */
+    .period-group {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .period-btn {
+        padding: 6px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+    }
+    .period-active {
+        background: #4f46e5;
+        color: white;
+    }
+    .period-inactive {
+        background: #f1f5f9;
+        color: #475569;
+    }
+    .period-inactive:hover { background: #e2e8f0; }
+
+    /* Progress Bar */
+    .progress-bar {
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4f46e5, #7c3aed);
+        border-radius: 10px;
+        transition: width 0.5s;
+    }
+
+    /* Badges */
+    .badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-block;
+    }
+    .badge-green { background: #dcfce7; color: #16a34a; }
+    .badge-blue { background: #dbeafe; color: #2563eb; }
+    .badge-amber { background: #fef3c7; color: #d97706; }
+    .badge-red { background: #fee2e2; color: #dc2626; }
+    .badge-purple { background: #f3e8ff; color: #9333ea; }
+
+    /* Table */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow-x: auto;
+        display: block;
+    }
+    .data-table th {
+        text-align: left;
+        padding: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .data-table td {
+        padding: 12px;
+        font-size: 13px;
+        color: #334155;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .data-table tr:hover { background: #f8fafc; }
+
+    /* Filter Box */
+    .filter-box {
+        background: white;
+        border-radius: 16px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        border: 1px solid #e2e8f0;
+    }
+
+    /* Buttons */
+    .btn-primary {
+        background: #4f46e5;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-primary:hover { background: #4338ca; transform: translateY(-1px); }
+
+    .btn-secondary {
+        background: #f1f5f9;
+        color: #475569;
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-secondary:hover { background: #e2e8f0; }
+
+    /* Gauge Grid */
+    .gauge-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0;
+        text-align: center;
+        position: relative;
+    }
+    .gauge-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 15px 10px;
+        position: relative;
+    }
+    .gauge-item:nth-child(odd)::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 15%;
+        height: 70%;
+        width: 1px;
+        background: linear-gradient(180deg, transparent, #e2e8f0, transparent);
+    }
+    .gauge-item:nth-child(1)::before,
+    .gauge-item:nth-child(2)::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 15%;
+        width: 70%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+    }
+    .gauge-item canvas {
+        max-width: 130px;
+        height: auto;
+    }
+
+    /* Bigger Pie Charts */
+    .big-chart canvas {
+        min-height: 320px !important;
+        max-height: 320px !important;
+    }
+
+    /* Skeleton */
+    .skeleton {
+        background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        border-radius: 8px;
+    }
+    @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .content { padding: 16px; }
+        .row { margin: 0 -8px; }
+        .col { padding: 0 8px; }
+    }
+
+    @media (max-width: 992px) {
+        .col, .col-2, .col-3, .col-4 { flex: 1 1 100%; }
+    }
+
+    @media (max-width: 768px) {
+        .content { padding: 12px; }
+        .stat-card, .chart-card { padding: 16px; }
+        .tabs { gap: 4px; }
+        .tab-btn { padding: 8px 16px; font-size: 12px; }
+        .filter-box { padding: 12px; }
+        .filter-box .flex-between {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+        .period-group {
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .period-group .period-btn {
+            flex: 1;
+            text-align: center;
+            min-width: 70px;
+        }
+        .filter-box .flex {
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .gauge-item canvas { max-width: 100px; }
+        .big-chart canvas { min-height: 250px !important; }
+    }
+
+    @media (max-width: 480px) {
+        .period-group .period-btn { min-width: 60px; padding: 6px 10px; font-size: 11px; }
+        .gauge-item canvas { max-width: 80px; }
+    }
+
+    /* Utility */
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .mb-1 { margin-bottom: 4px; }
+    .mb-2 { margin-bottom: 8px; }
+    .mb-3 { margin-bottom: 12px; }
+    .mb-4 { margin-bottom: 16px; }
+    .mt-1 { margin-top: 4px; }
+    .mt-2 { margin-top: 8px; }
+    .mt-3 { margin-top: 12px; }
+    .mt-4 { margin-top: 16px; }
+    .flex { display: flex; }
+    .flex-wrap { flex-wrap: wrap; }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; }
+    .flex-center { display: flex; justify-content: center; align-items: center; }
+    .gap-1 { gap: 4px; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .w-100 { width: 100%; }
+    canvas { max-width: 100%; }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
+</style>
+
+<div class="content">
+    <div class="dashboard-container">
+
+        <!-- Header -->
+        <div class="flex-between mb-4" style="flex-wrap: wrap; gap: 16px;">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900">My Reseller Dashboard</h1>
-                <p class="text-gray-600 mt-2">Track your store sales, commissions, and performance</p>
+                <h1 style="font-size: 28px; font-weight: 700; color: #1e293b;">My Reseller Dashboard</h1>
+                <p style="color: #64748b; margin-top: 4px;">Track your store sales, commissions, and performance</p>
             </div>
-            <div class="reseller-badge text-white px-4 py-2 rounded-lg"><i class="fas fa-store mr-2"></i>Reseller Portal</div>
+            <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 10px 24px; border-radius: 16px;">
+                <i class="fas fa-store" style="color: white;"></i>
+                <span style="color: white; font-weight: 500; margin-left: 8px;">Reseller Portal</span>
+            </div>
         </div>
-    </div>
 
-    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
-        <div class="flex flex-wrap gap-4 items-center justify-between">
-            <div class="flex gap-2">
-                <button onclick="changePeriod('daily')" class="period-btn px-4 py-2 rounded-lg bg-gray-200">Daily</button>
-                <button onclick="changePeriod('weekly')" class="period-btn px-4 py-2 rounded-lg bg-gray-200">Weekly</button>
-                <button onclick="changePeriod('monthly')" class="period-btn px-4 py-2 rounded-lg bg-blue-600 text-white">Monthly</button>
-                <button onclick="changePeriod('yearly')" class="period-btn px-4 py-2 rounded-lg bg-gray-200">Yearly</button>
-            </div>
-            <div class="flex gap-4">
-                <div class="flex items-center gap-2">
-                    <input type="date" id="custom_start" class="border rounded-lg px-3 py-1">
-                    <span>to</span>
-                    <input type="date" id="custom_end" class="border rounded-lg px-3 py-1">
-                    <button onclick="applyCustomRange()" class="bg-gray-600 text-white px-4 py-1 rounded-lg">Apply</button>
+        <!-- Filters -->
+        <div class="filter-box">
+            <div class="flex-between" style="flex-wrap: wrap; gap: 16px;">
+                <div class="period-group">
+                    <button onclick="changePeriod('daily')" class="period-btn period-inactive">Daily</button>
+                    <button onclick="changePeriod('weekly')" class="period-btn period-inactive">Weekly</button>
+                    <button onclick="changePeriod('monthly')" class="period-btn period-active">Monthly</button>
+                    <button onclick="changePeriod('yearly')" class="period-btn period-inactive">Yearly</button>
                 </div>
-                <button onclick="refreshData()" class="bg-blue-600 text-white px-4 py-2 rounded-lg"><i class="fas fa-sync-alt"></i> Refresh</button>
+                <div class="flex" style="gap: 12px; flex-wrap: wrap; align-items: center;">
+                    <div class="flex" style="gap: 8px; align-items: center; background: #f8fafc; padding: 5px 12px; border-radius: 12px; flex-wrap: wrap;">
+                        <i class="fas fa-calendar-alt" style="color: #94a3b8;"></i>
+                        <input type="date" id="custom_start" style="border: none; background: transparent; padding: 6px; outline: none;">
+                        <span>→</span>
+                        <input type="date" id="custom_end" style="border: none; background: transparent; padding: 6px; outline: none;">
+                        <button onclick="applyCustomRange()" style="background: #334155; color: white; padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer;">Apply</button>
+                    </div>
+                    <button onclick="refreshData()" class="btn-primary"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="mb-6 overflow-x-auto">
-        <div class="flex gap-2 border-b border-gray-200 min-w-max">
-            <button onclick="switchTab('overview')" class="tab-btn px-6 py-3 rounded-t-lg font-medium tab-active"><i class="fas fa-chart-line mr-2"></i>My Overview</button>
-            <button onclick="switchTab('stores')" class="tab-btn px-6 py-3 rounded-t-lg font-medium tab-inactive"><i class="fas fa-store mr-2"></i>My Stores</button>
-            <button onclick="switchTab('products')" class="tab-btn px-6 py-3 rounded-t-lg font-medium tab-inactive"><i class="fas fa-tag mr-2"></i>My Products</button>
-            <button onclick="switchTab('sales')" class="tab-btn px-6 py-3 rounded-t-lg font-medium tab-inactive"><i class="fas fa-chart-bar mr-2"></i>My Sales</button>
-            <button onclick="switchTab('commissions')" class="tab-btn px-6 py-3 rounded-t-lg font-medium tab-inactive"><i class="fas fa-percent mr-2"></i>Commissions</button>
-            <button onclick="switchTab('settlements')" class="tab-btn px-6 py-3 rounded-t-lg font-medium tab-inactive"><i class="fas fa-hand-holding-usd mr-2"></i>My Earnings</button>
+        <!-- Tabs -->
+        <div class="tabs">
+            <button onclick="switchTab('overview')" class="tab-btn tab-active"><i class="fas fa-chart-line"></i> My Overview</button>
+            <button onclick="switchTab('stores')" class="tab-btn tab-inactive"><i class="fas fa-store"></i> My Stores</button>
+            <button onclick="switchTab('products')" class="tab-btn tab-inactive"><i class="fas fa-tag"></i> My Products</button>
+            <button onclick="switchTab('sales')" class="tab-btn tab-inactive"><i class="fas fa-chart-bar"></i> My Sales</button>
+            <button onclick="switchTab('commissions')" class="tab-btn tab-inactive"><i class="fas fa-percent"></i> Commissions</button>
+            <button onclick="switchTab('settlements')" class="tab-btn tab-inactive"><i class="fas fa-hand-holding-usd"></i> My Earnings</button>
         </div>
-    </div>
 
-    <div id="tabContent">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <div class="bg-white rounded-lg shadow-md p-6"><div class="skeleton h-4 w-24 mb-2"></div><div class="skeleton h-8 w-32"></div></div>
-            <div class="bg-white rounded-lg shadow-md p-6"><div class="skeleton h-4 w-24 mb-2"></div><div class="skeleton h-8 w-32"></div></div>
-            <div class="bg-white rounded-lg shadow-md p-6"><div class="skeleton h-4 w-24 mb-2"></div><div class="skeleton h-8 w-32"></div></div>
-            <div class="bg-white rounded-lg shadow-md p-6"><div class="skeleton h-4 w-24 mb-2"></div><div class="skeleton h-8 w-32"></div></div>
+        <!-- Dynamic Content -->
+        <div id="tabContent">
+            <div class="row">
+                <div class="col"><div class="stat-card"><div class="skeleton" style="height: 100px;"></div></div></div>
+                <div class="col"><div class="stat-card"><div class="skeleton" style="height: 100px;"></div></div></div>
+                <div class="col"><div class="stat-card"><div class="skeleton" style="height: 100px;"></div></div></div>
+                <div class="col"><div class="stat-card"><div class="skeleton" style="height: 100px;"></div></div></div>
+            </div>
         </div>
+
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
     let currentPeriod = 'monthly';
     let currentTab = 'overview';
     let customStart = null;
     let customEnd = null;
+    let charts = {};
 
-    function getCSRFToken() {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, 10) === ('csrftoken' + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(10));
-                    break;
-                }
-            }
+    function destroyCharts() {
+        Object.values(charts).forEach(chart => { if (chart) chart.destroy(); });
+        charts = {};
+    }
+
+    function drawGauge(canvasId, percent, color, label) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const container = canvas.parentElement;
+        const size = Math.min(container?.offsetWidth || 140, 140);
+        canvas.width = size;
+        canvas.height = size;
+        const centerX = size/2;
+        const centerY = size - 18;
+        const radius = (size/2) - 12;
+
+        ctx.clearRect(0, 0, size, size);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, Math.PI, 2 * Math.PI);
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 10;
+        ctx.stroke();
+
+        const endAngle = Math.PI + (Math.min(Math.max(percent, 0), 100) / 100) * Math.PI;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, Math.PI, endAngle);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 10;
+        ctx.stroke();
+
+        ctx.fillStyle = '#1e293b';
+        ctx.font = `bold ${Math.floor(size/6)}px system-ui`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${Math.round(percent)}%`, centerX, centerY - 5);
+
+        if (label) {
+            ctx.fillStyle = '#64748b';
+            ctx.font = `${Math.floor(size/12)}px system-ui`;
+            ctx.fillText(label, centerX, centerY + 12);
         }
-        return cookieValue;
+    }
+
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(value || 0);
+    }
+
+    function formatNumber(value) {
+        return new Intl.NumberFormat('en-IN').format(value || 0);
+    }
+
+    function formatCompact(value) {
+        if (value >= 10000000) return (value / 10000000).toFixed(1) + 'Cr';
+        if (value >= 100000) return (value / 100000).toFixed(1) + 'L';
+        if (value >= 1000) return (value / 1000).toFixed(1) + 'K';
+        return value.toString();
     }
 
     function changePeriod(period) {
@@ -97,11 +481,11 @@
         customStart = null;
         customEnd = null;
         document.querySelectorAll('.period-btn').forEach(btn => {
-            btn.classList.remove('bg-blue-600', 'text-white');
-            btn.classList.add('bg-gray-200', 'text-gray-700');
+            btn.classList.remove('period-active');
+            btn.classList.add('period-inactive');
         });
-        event.target.classList.remove('bg-gray-200', 'text-gray-700');
-        event.target.classList.add('bg-blue-600', 'text-white');
+        event.target.classList.remove('period-inactive');
+        event.target.classList.add('period-active');
         document.getElementById('custom_start').value = '';
         document.getElementById('custom_end').value = '';
         loadTabContent();
@@ -133,170 +517,663 @@
 
     function refreshData() { loadTabContent(); }
 
-    function formatCurrency(value) {
-        return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(value);
-    }
-
-    function formatNumber(value) {
-        return new Intl.NumberFormat('en-IN').format(value);
-    }
-
     function buildApiUrl(endpoint) {
         let url = `/analytics/${endpoint}/`;
         const params = new URLSearchParams();
         if (currentPeriod !== 'custom') params.append('period', currentPeriod);
-        if (customStart && customEnd) { params.append('start_date', customStart); params.append('end_date', customEnd); }
+        if (customStart && customEnd) {
+            params.append('start_date', customStart);
+            params.append('end_date', customEnd);
+        }
         const qs = params.toString();
         if (qs) url += `?${qs}`;
         return url;
     }
 
     function getEndpointForTab() {
-        const endpoints = {
+        return {
             'overview': 'dashboard-summary',
             'stores': 'store-performance',
             'products': 'product-performance',
             'sales': 'top-products',
             'commissions': 'settlements',
             'settlements': 'settlements'
-        };
-        return endpoints[currentTab];
+        }[currentTab];
     }
 
     async function loadTabContent() {
         try {
             const endpoint = getEndpointForTab();
             const url = buildApiUrl(endpoint);
-            const response = await fetch(url, { method: 'GET', headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin'
+            });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
-            
+            destroyCharts();
+
             if (currentTab === 'overview') renderResellerOverview(data);
             else if (currentTab === 'stores') renderResellerStores(data);
             else if (currentTab === 'products') renderResellerProducts(data);
             else if (currentTab === 'sales') renderResellerSales(data);
             else if (currentTab === 'commissions') renderResellerCommissions(data);
             else if (currentTab === 'settlements') renderResellerSettlements(data);
-            
         } catch (error) {
-            document.getElementById('tabContent').innerHTML = `<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Error: ${error.message}</div>`;
+            document.getElementById('tabContent').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error: ${error.message}</p></div>`;
         }
     }
 
+    // ==================== OVERVIEW (with all charts) ====================
     function renderResellerOverview(data) {
         const revenue = data.revenue || {};
         const settlements = data.settlements || {};
-        const products = data.product_performance || {};
-        
-        const html = `
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                <div class="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow-lg p-6"><p class="text-sm">My Store Revenue</p><p class="text-2xl font-bold">${formatCurrency(revenue.total_revenue || 0)}</p><p class="text-xs">↑ ${revenue.revenue_growth || 0}% growth</p></div>
-                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-lg p-6"><p class="text-sm">My Commission</p><p class="text-2xl font-bold">${formatCurrency(revenue.reseller_payout || 0)}</p><p class="text-xs">From ${revenue.order_count || 0} orders</p></div>
-                <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg shadow-lg p-6"><p class="text-sm">Products Sold</p><p class="text-2xl font-bold">${formatNumber(revenue.total_quantity || 0)}</p><p class="text-xs">units this period</p></div>
-                <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg shadow-lg p-6"><p class="text-sm">Wallet Balance</p><p class="text-2xl font-bold">${formatCurrency(settlements.wallet_balance?.available || 0)}</p><p class="text-xs">Ready for withdrawal</p></div>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <div class="bg-white rounded-lg shadow-lg p-6"><h3 class="text-lg font-semibold mb-4">My Sales Trend</h3><canvas id="salesChart" height="250"></canvas></div>
-                <div class="bg-white rounded-lg shadow-lg p-6"><h3 class="text-lg font-semibold mb-4">My Best Sellers</h3><div id="bestSellersList" class="space-y-2"></div></div>
-            </div>
-            <div class="bg-white rounded-lg shadow-lg p-6"><h3 class="text-lg font-semibold mb-4">My Store Performance</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="bg-green-50 p-4 rounded"><p class="text-sm">Avg Order Value</p><p class="text-xl font-bold">${formatCurrency(revenue.avg_order_value || 0)}</p></div><div class="bg-blue-50 p-4 rounded"><p class="text-sm">Total Orders</p><p class="text-xl font-bold">${revenue.order_count || 0}</p></div><div class="bg-purple-50 p-4 rounded"><p class="text-sm">Customer Satisfaction</p><p class="text-xl font-bold">${Math.floor(Math.random() * 20 + 80)}%</p></div></div></div>
-        `;
-        document.getElementById('tabContent').innerHTML = html;
-        
-        if (revenue.data_points) {
-            new Chart(document.getElementById('salesChart'), { type: 'line', data: { labels: revenue.data_points.map(p => p.date || p.month), datasets: [{ label: 'Sales Revenue', data: revenue.data_points.map(p => p.revenue), borderColor: '#22c55e', fill: true }] } });
-        }
-        
         const topProducts = data.top_products?.products || [];
-        document.getElementById('bestSellersList').innerHTML = topProducts.slice(0,5).map(p => `<div class="flex justify-between items-center border-b pb-2"><span>${p.product_name}</span><span class="font-bold">${p.total_quantity_sold} sold</span><span class="text-green-600">${formatCurrency(p.total_revenue)}</span></div>`).join('') || '<p class="text-gray-500">Start selling to see your top products!</p>';
-    }
 
-    function renderResellerStores(data) {
-        const stores = data.store_performance || [];
+        const totalRev = revenue.total_revenue || 0;
+        const payout = revenue.reseller_payout || 0;
+        const commission = totalRev * 0.05;        // estimated 5% platform commission
+        const gateway = totalRev * 0.02;           // estimated 2% gateway fee
+        const settled = settlements.total_settled_amount || 0;
+        const escrow = settlements.total_escrow_amount || 0;
+        const settlePercent = (settled + escrow) > 0 ? (settled / (settled + escrow)) * 100 : 0;
+        const payoutPercent = totalRev > 0 ? (payout / totalRev) * 100 : 0;
+        const growthPercent = Math.min(Math.abs(revenue.revenue_growth || 0), 100);
+        const walletBalance = settlements.wallet_balance?.available || 0;
+        const orderCount = revenue.order_count || 0;
+
+        const hasData = totalRev > 0 || payout > 0 || topProducts.length > 0 || walletBalance > 0;
+
+        if (!hasData && (!revenue.data_points || revenue.data_points.length === 0)) {
+            document.getElementById('tabContent').innerHTML = `
+                <div class="empty-state" style="margin: 40px 0;">
+                    <i class="fas fa-inbox"></i>
+                    <p>No data available for the selected period</p>
+                    <p style="font-size: 12px; margin-top: 8px;">Try changing the date range or period</p>
+                </div>`;
+            return;
+        }
+
         const html = `
-            <div class="bg-white rounded-lg shadow-lg p-6">
-                <h3 class="text-2xl font-bold mb-6">My Stores</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    <div class="bg-indigo-50 p-4 rounded"><p>Total Stores</p><p class="text-2xl font-bold">${stores.length || 1}</p></div>
-                    <div class="bg-green-50 p-4 rounded"><p>Active Stores</p><p class="text-2xl font-bold">${stores.filter(s => s.status === 'active').length}</p></div>
-                    <div class="bg-blue-50 p-4 rounded"><p>Total Products</p><p class="text-2xl font-bold">${stores.reduce((sum, s) => sum + s.total_products, 0)}</p></div>
-                </div>
-                ${stores.map(store => `
-                    <div class="border rounded-lg p-4 mb-4">
-                        <div class="flex justify-between items-start">
-                            <div><h4 class="text-xl font-semibold">${store.store_name}</h4><p class="text-gray-600">Plan: ${store.subscription_plan || 'No Plan'}</p></div>
-                            <span class="px-3 py-1 rounded-full text-sm ${store.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${store.status}</span>
+            <!-- Row 1: 4 Stats Cards -->
+            <div class="row">
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white;">
+                        <div class="flex-between" style="margin-bottom: 12px;">
+                            <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white;"><i class="fas fa-chart-line"></i></div>
                         </div>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                            <div><p class="text-sm text-gray-600">Revenue</p><p class="font-bold">${formatCurrency(store.total_revenue)}</p></div>
-                            <div><p class="text-sm text-gray-600">Orders</p><p class="font-bold">${store.total_orders}</p></div>
-                            <div><p class="text-sm text-gray-600">Products</p><p class="font-bold">${store.total_products}</p></div>
-                            <div><p class="text-sm text-gray-600">Visitors</p><p class="font-bold">${formatNumber(store.total_visitors)}</p></div>
+                        <p style="font-size: 13px; opacity: 0.9;">My Store Revenue</p>
+                        <p style="font-size: 26px; font-weight: 700;">${formatCurrency(totalRev)}</p>
+                        <p style="font-size: 11px; opacity: 0.8; margin-top: 8px;">From ${formatNumber(orderCount)} orders</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;">
+                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white; margin-bottom: 12px;"><i class="fas fa-wallet"></i></div>
+                        <p style="font-size: 13px; opacity: 0.9;">My Payout</p>
+                        <p style="font-size: 26px; font-weight: 700;">${formatCurrency(payout)}</p>
+                        <p style="font-size: 11px; opacity: 0.8; margin-top: 8px;">After ${formatCurrency(commission)} commission</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white;">
+                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white; margin-bottom: 12px;"><i class="fas fa-box"></i></div>
+                        <p style="font-size: 13px; opacity: 0.9;">Products Sold</p>
+                        <p style="font-size: 26px; font-weight: 700;">${formatNumber(revenue.total_quantity || 0)}</p>
+                        <p style="font-size: 11px; opacity: 0.8; margin-top: 8px;">units this period</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white; margin-bottom: 12px;"><i class="fas fa-coins"></i></div>
+                        <p style="font-size: 13px; opacity: 0.9;">Wallet Balance</p>
+                        <p style="font-size: 26px; font-weight: 700;">${formatCurrency(walletBalance)}</p>
+                        <p style="font-size: 11px; opacity: 0.8; margin-top: 8px;">Available for withdrawal</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2: Revenue Trend (Enhanced) + Revenue Pie Chart -->
+            <div class="row">
+                <div class="col-2">
+                    <div class="chart-card big-chart">
+                        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;"><i class="fas fa-chart-line" style="color: #4f46e5;"></i> Revenue Trend</h3>
+                        <canvas id="revenueChart" style="height: 320px; width: 100%;"></canvas>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="chart-card big-chart">
+                        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;"><i class="fas fa-chart-pie" style="color: #4f46e5;"></i> Revenue Distribution</h3>
+                        <canvas id="revenuePie" style="height: 280px; width: 100%;"></canvas>
+                        <div class="progress-bar mt-3"><div class="progress-fill" style="width: ${settlePercent}%"></div></div>
+                        <p style="font-size: 11px; color: #64748b; text-align: center; margin-top: 8px;">Settlement Progress: ${Math.round(settlePercent)}%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 3: Expense Donut + 4 Gauges -->
+            <div class="row">
+                <div class="col">
+                    <div class="chart-card big-chart">
+                        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;"><i class="fas fa-chart-donut" style="color: #4f46e5;"></i> Expense Breakdown</h3>
+                        <canvas id="expenseDonut" style="height: 280px; width: 100%;"></canvas>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="chart-card">
+                        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;"><i class="fas fa-tachometer-alt" style="color: #4f46e5;"></i> Key Metrics</h3>
+                        <div class="gauge-grid">
+                            <div class="gauge-item">
+                                <canvas id="gaugeSettle" style="height: 110px; width: 110px;"></canvas>
+                                <p style="font-size: 11px; margin-top: 8px; font-weight: 500;">Settlement</p>
+                            </div>
+                            <div class="gauge-item">
+                                <canvas id="gaugePayout" style="height: 110px; width: 110px;"></canvas>
+                                <p style="font-size: 11px; margin-top: 8px; font-weight: 500;">Payout Ratio</p>
+                            </div>
+                            <div class="gauge-item">
+                                <canvas id="gaugeCommission" style="height: 110px; width: 110px;"></canvas>
+                                <p style="font-size: 11px; margin-top: 8px; font-weight: 500;">Commission</p>
+                            </div>
+                            <div class="gauge-item">
+                                <canvas id="gaugeGrowth" style="height: 110px; width: 110px;"></canvas>
+                                <p style="font-size: 11px; margin-top: 8px; font-weight: 500;">Growth Rate</p>
+                            </div>
                         </div>
                     </div>
-                `).join('')}
-            </div>
-        `;
-        document.getElementById('tabContent').innerHTML = html;
-    }
-
-    function renderResellerProducts(data) {
-        const products = data.reseller_products || {};
-        const html = `
-            <div class="bg-white rounded-lg shadow-lg p-6">
-                <h3 class="text-2xl font-bold mb-6">My Product Inventory</h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <div class="bg-blue-50 p-4 rounded"><p>Total Products</p><p class="text-2xl font-bold">${products.total || 0}</p></div>
-                    <div class="bg-green-50 p-4 rounded"><p>Active</p><p class="text-2xl font-bold">${products.active || 0}</p></div>
-                    <div class="bg-purple-50 p-4 rounded"><p>Published</p><p class="text-2xl font-bold">${products.published || 0}</p></div>
-                    <div class="bg-orange-50 p-4 rounded"><p>Imported</p><p class="text-2xl font-bold">${products.imported || 0}</p></div>
                 </div>
-                <div class="bg-yellow-50 p-4 rounded"><h4 class="font-semibold">💡 Grow Your Store</h4><p>Add more products to increase sales! Stores with 50+ products see 3x more orders.</p></div>
+            </div>
+
+            <!-- Row 4: Top Products + Settlement Status -->
+            <div class="row">
+                <div class="col">
+                    <div class="chart-card">
+                        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;"><i class="fas fa-trophy" style="color: #eab308;"></i> Top Selling Products</h3>
+                        <div id="topProductsList"></div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="chart-card">
+                        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;"><i class="fas fa-clock" style="color: #4f46e5;"></i> Settlement Status</h3>
+                        <div class="row" style="margin-bottom: 16px;">
+                            <div class="col"><div style="background: #f0fdf4; padding: 12px; border-radius: 12px; text-align: center;"><p style="font-size: 11px; color: #64748b;">Settled</p><p style="font-size: 18px; font-weight: 700; color: #16a34a;">${formatCurrency(settled)}</p></div></div>
+                            <div class="col"><div style="background: #fffbeb; padding: 12px; border-radius: 12px; text-align: center;"><p style="font-size: 11px; color: #64748b;">In Escrow</p><p style="font-size: 18px; font-weight: 700; color: #d97706;">${formatCurrency(escrow)}</p></div></div>
+                        </div>
+                        <div style="background: #f8fafc; padding: 12px; border-radius: 12px;">
+                            <p style="font-size: 12px; color: #64748b;"><i class="fas fa-info-circle"></i> Next settlement: ${new Date(Date.now()+3*24*60*60*1000).toLocaleDateString()}</p>
+                        </div>
+                        <div class="progress-bar mt-3"><div class="progress-fill" style="width: ${settlePercent}%"></div></div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('tabContent').innerHTML = html;
+
+        // ========== ENHANCED REVENUE TREND CHART ==========
+        if (revenue.data_points && revenue.data_points.length > 0) {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            const labels = revenue.data_points.map(p => p.date || p.month);
+            const values = revenue.data_points.map(p => p.revenue || 0);
+
+            // Create gradient fill
+            const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+            gradient.addColorStop(0, 'rgba(79, 70, 229, 0.25)');
+            gradient.addColorStop(1, 'rgba(79, 70, 229, 0.0)');
+
+            charts.revenueChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Revenue',
+                        data: values,
+                        borderColor: '#4f46e5',
+                        backgroundColor: gradient,
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#4f46e5',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 7,
+                        pointHoverBackgroundColor: '#4f46e5',
+                        pointHoverBorderColor: '#ffffff',
+                        pointHoverBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#e2e8f0',
+                            borderColor: '#4f46e5',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            displayColors: false,
+                            callbacks: {
+                                label: (ctx) => `Revenue: ₹${ctx.raw.toLocaleString('en-IN')}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(0,0,0,0.03)' },
+                            ticks: { color: '#64748b', font: { size: 11 } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.04)' },
+                            ticks: {
+                                color: '#64748b',
+                                font: { size: 11 },
+                                callback: v => '₹' + (v >= 1000 ? (v/1000).toFixed(1)+'K' : v)
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Revenue Pie Chart (Payout, Commission, Gateway)
+        if (payout > 0 || commission > 0 || gateway > 0) {
+            charts.revenuePie = new Chart(document.getElementById('revenuePie'), {
+                type: 'pie',
+                data: {
+                    labels: ['Your Payout', 'Commission (5%)', 'Gateway (2%)'],
+                    datasets: [{ data: [payout, commission, gateway], backgroundColor: ['#22c55e', '#4f46e5', '#f59e0b'], borderWidth: 0 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }
+                }
+            });
+        }
+
+        // Expense Donut Chart
+        if (commission > 0 || gateway > 0 || payout > 0) {
+            charts.expenseDonut = new Chart(document.getElementById('expenseDonut'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Commission', 'Gateway Fees', 'Your Payout'],
+                    datasets: [{ data: [commission, gateway, payout], backgroundColor: ['#4f46e5', '#f59e0b', '#22c55e'], borderWidth: 0, cutout: '55%' }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }
+                }
+            });
+        }
+
+        // Gauges
+        setTimeout(() => {
+            drawGauge('gaugeSettle', settlePercent, '#22c55e', 'Settled');
+            drawGauge('gaugePayout', payoutPercent, '#8b5cf6', 'of Revenue');
+            drawGauge('gaugeCommission', 5, '#4f46e5', 'Platform Fee');
+            drawGauge('gaugeGrowth', growthPercent, growthPercent >= 0 ? '#22c55e' : '#ef4444', 'Growth Rate');
+        }, 100);
+
+        // Top Products List
+        const topList = document.getElementById('topProductsList');
+        topList.innerHTML = topProducts.slice(0,5).map((p, i) => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8fafc; border-radius: 12px; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="width: 24px; height: 24px; background: #4f46e5; color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">${i+1}</span>
+                    <span style="font-weight: 500;">${p.product_name}</span>
+                </div>
+                <div class="text-right">
+                    <span style="font-weight: 700;">${formatNumber(p.total_quantity_sold)} sold</span>
+                    <span style="color: #16a34a; margin-left: 12px; font-weight: 600;">${formatCurrency(p.total_revenue)}</span>
+                </div>
+            </div>
+        `).join('') || '<div class="empty-state"><i class="fas fa-box-open"></i><p>No products sold yet</p></div>';
+    }
+
+    // ==================== STORES (REDESIGNED) ====================
+    function renderResellerStores(data) {
+        const stores = data.store_performance || [];
+        const totalStores = stores.length;
+        const activeStores = stores.filter(s => s.status === 'active').length;
+        const totalProductsAll = stores.reduce((sum, s) => sum + s.total_products, 0);
+
+        const html = `
+            <div class="row mb-4">
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4f46e5, #6366f1); color: white;">
+                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white; margin-bottom: 12px;"><i class="fas fa-store-alt"></i></div>
+                        <p style="font-size: 13px; opacity: 0.9;">Total Stores</p>
+                        <p style="font-size: 28px; font-weight: 700;">${totalStores}</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white;">
+                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white; margin-bottom: 12px;"><i class="fas fa-check-circle"></i></div>
+                        <p style="font-size: 13px; opacity: 0.9;">Active Stores</p>
+                        <p style="font-size: 28px; font-weight: 700;">${activeStores}</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white; margin-bottom: 12px;"><i class="fas fa-boxes"></i></div>
+                        <p style="font-size: 13px; opacity: 0.9;">Total Products</p>
+                        <p style="font-size: 28px; font-weight: 700;">${totalProductsAll}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 20px;"><i class="fas fa-store" style="color: #4f46e5;"></i> Store Details</h3>
+                ${stores.length === 0 ? '<div class="empty-state"><i class="fas fa-store-slash"></i><p>No stores found.</p></div>' : ''}
+                <div style="display: grid; gap: 16px;">
+                    ${stores.map(store => `
+                        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; transition: all 0.2s; cursor: default;">
+                            <div class="flex-between" style="margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                                <div>
+                                    <h4 style="font-weight: 700; font-size: 16px; color: #1e293b;">${store.store_name}</h4>
+                                    <span class="badge ${store.status === 'active' ? 'badge-green' : 'badge-red'}">${store.status}</span>
+                                </div>
+                                <div style="text-align: right;">
+                                    <p style="font-size: 12px; color: #64748b;">Revenue</p>
+                                    <p style="font-size: 18px; font-weight: 700; color: #16a34a;">${formatCurrency(store.total_revenue)}</p>
+                                </div>
+                            </div>
+                            <div class="row" style="text-align: center;">
+                                <div class="col">
+                                    <p style="font-size: 12px; color: #64748b;">Orders</p>
+                                    <p style="font-weight: 700; font-size: 16px;">${formatNumber(store.total_orders)}</p>
+                                </div>
+                                <div class="col">
+                                    <p style="font-size: 12px; color: #64748b;">Products</p>
+                                    <p style="font-weight: 700; font-size: 16px;">${formatNumber(store.total_products)}</p>
+                                </div>
+                                <div class="col">
+                                    <p style="font-size: 12px; color: #64748b;">Visitors</p>
+                                    <p style="font-weight: 700; font-size: 16px;">${formatNumber(store.total_visitors)}</p>
+                                </div>
+                            </div>
+                            <div class="progress-bar mt-3">
+                                <div class="progress-fill" style="width: ${Math.min(100, (store.total_orders / (store.total_products || 1)) * 10)}%"></div>
+                            </div>
+                            <p style="font-size: 11px; color: #64748b; margin-top: 6px;">Activity indicator</p>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         `;
         document.getElementById('tabContent').innerHTML = html;
     }
 
+    // ==================== PRODUCTS (REDESIGNED) ====================
+    function renderResellerProducts(data) {
+        const p = data.reseller_products || {};
+        const total = p.total || 0;
+        const active = p.active || 0;
+        const published = p.published || 0;
+        const imported = p.imported || 0;
+
+        const html = `
+            <div class="row mb-4">
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4f46e5, #4338ca); color: white; text-align: center;">
+                        <i class="fas fa-cubes" style="font-size: 2rem; margin-bottom: 12px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Total Products</p>
+                        <p style="font-size: 30px; font-weight: 800;">${total}</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white; text-align: center;">
+                        <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 12px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Active</p>
+                        <p style="font-size: 30px; font-weight: 800;">${active}</p>
+                        <div class="progress-bar" style="background: rgba(255,255,255,0.3); margin-top: 10px;">
+                            <div class="progress-fill" style="width: ${total ? (active/total*100) : 0}%; background: white;"></div>
+                        </div>
+                        <p style="font-size: 11px; margin-top: 4px;">${total ? Math.round(active/total*100) : 0}% of total</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; text-align: center;">
+                        <i class="fas fa-globe" style="font-size: 2rem; margin-bottom: 12px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Published</p>
+                        <p style="font-size: 30px; font-weight: 800;">${published}</p>
+                        <div class="progress-bar" style="background: rgba(255,255,255,0.3); margin-top: 10px;">
+                            <div class="progress-fill" style="width: ${total ? (published/total*100) : 0}%; background: white;"></div>
+                        </div>
+                        <p style="font-size: 11px; margin-top: 4px;">${total ? Math.round(published/total*100) : 0}% of total</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; text-align: center;">
+                        <i class="fas fa-file-import" style="font-size: 2rem; margin-bottom: 12px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Imported</p>
+                        <p style="font-size: 30px; font-weight: 800;">${imported}</p>
+                        <div class="progress-bar" style="background: rgba(255,255,255,0.3); margin-top: 10px;">
+                            <div class="progress-fill" style="width: ${total ? (imported/total*100) : 0}%; background: white;"></div>
+                        </div>
+                        <p style="font-size: 11px; margin-top: 4px;">${total ? Math.round(imported/total*100) : 0}% of total</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div style="background: #fef3c7; border-radius: 14px; padding: 20px; border-left: 4px solid #d97706; display: flex; gap: 16px; align-items: center;">
+                    <i class="fas fa-lightbulb" style="font-size: 2rem; color: #d97706;"></i>
+                    <div>
+                        <strong style="font-size: 16px;">💡 Grow Your Store</strong>
+                        <p style="margin-top: 4px;">Add more products to increase sales! Stores with 50+ products see 3x more orders.</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('tabContent').innerHTML = html;
+    }
+
+    // ==================== SALES (REDESIGNED, CHARTS UNCHANGED) ====================
     function renderResellerSales(data) {
         const products = data.products || [];
+        const totalRev = products.reduce((s, p) => s + (p.total_revenue || 0), 0);
+        const totalUnits = products.reduce((s, p) => s + (p.total_quantity_sold || 0), 0);
+
+        if (products.length === 0) {
+            document.getElementById('tabContent').innerHTML = `<div class="empty-state" style="margin: 40px 0;"><i class="fas fa-chart-line"></i><p>No sales data available</p></div>`;
+            return;
+        }
+
         const html = `
-            <div class="bg-white rounded-lg shadow-lg p-6">
-                <h3 class="text-2xl font-bold mb-6">My Sales Performance</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 rounded"><p>Units Sold</p><p class="text-2xl font-bold">${formatNumber(data.total_products_sold || 0)}</p></div>
-                    <div class="bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-4 rounded"><p>Top Product</p><p class="text-sm font-bold">${products[0]?.product_name || 'N/A'}</p></div>
-                    <div class="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-4 rounded"><p>Revenue</p><p class="text-2xl font-bold">${formatCurrency(products.reduce((s, p) => s + p.total_revenue, 0))}</p></div>
+            <div class="row mb-4">
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #ec4899, #db2777); color: white;">
+                        <i class="fas fa-rupee-sign" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Total Revenue</p>
+                        <p style="font-size: 26px; font-weight: 700;">${formatCurrency(totalRev)}</p>
+                    </div>
                 </div>
-                <div class="overflow-x-auto"><table class="min-w-full"><thead class="bg-gray-50"><tr><th>Product</th><th>Sold</th><th>Revenue</th><th>Margin</th></tr></thead><tbody>${products.slice(0,10).map(p => `<tr><td class="border px-4 py-2">${p.product_name}</td><td class="border px-4 py-2 font-bold">${p.total_quantity_sold}</td><td class="border px-4 py-2 text-green-600">${formatCurrency(p.total_revenue)}</td><td class="border px-4 py-2">${p.sales_percentage}% of sales</td></tr>`).join('')}</tbody></table></div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;">
+                        <i class="fas fa-boxes" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Total Units Sold</p>
+                        <p style="font-size: 26px; font-weight: 700;">${formatNumber(totalUnits)}</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white;">
+                        <i class="fas fa-trophy" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Best Seller</p>
+                        <p style="font-size: 18px; font-weight: 600;">${products[0]?.product_name || 'N/A'}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-2">
+                    <div class="chart-card big-chart">
+                        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;"><i class="fas fa-chart-bar" style="color: #4f46e5;"></i> Sales Performance Chart</h3>
+                        <canvas id="salesChart" style="height: 320px; width: 100%;"></canvas>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="chart-card big-chart">
+                        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;"><i class="fas fa-chart-pie" style="color: #4f46e5;"></i> Sales Distribution</h3>
+                        <canvas id="salesPieChart" style="height: 280px; width: 100%;"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;"><i class="fas fa-list-ol" style="color: #4f46e5;"></i> Product-wise Sales Breakdown</h3>
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead><tr><th>Rank</th><th>Product</th><th class="text-right">Sold</th><th class="text-right">Revenue</th><th>Share</th></tr></thead>
+                        <tbody>${products.slice(0,10).map(p => `<tr><td style="font-weight: 700;">#${p.rank}</td><td>${p.product_name}</td><td class="text-right font-bold">${formatNumber(p.total_quantity_sold)}</td><td class="text-right" style="color: #16a34a; font-weight: 600;">${formatCurrency(p.total_revenue)}</td><td class="text-right"><div style="display: flex; align-items: center; gap: 8px;"><div class="progress-bar" style="flex:1;"><div class="progress-fill" style="width: ${p.sales_percentage}%"></div></div><span style="font-size: 12px;">${p.sales_percentage}%</span></div></td></tr>`).join('')}</tbody>
+                    </table>
+                </div>
             </div>
         `;
         document.getElementById('tabContent').innerHTML = html;
+
+        // Sales Bar Chart
+        charts.salesChart = new Chart(document.getElementById('salesChart'), {
+            type: 'bar',
+            data: {
+                labels: products.slice(0,7).map(p => p.product_name.length > 15 ? p.product_name.slice(0,12)+'...' : p.product_name),
+                datasets: [{ label: 'Revenue', data: products.slice(0,7).map(p => p.total_revenue), backgroundColor: '#4f46e5', borderRadius: 8 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { callback: v => '₹' + formatCompact(v) } } }
+            }
+        });
+
+        // Sales Pie Chart
+        charts.salesPieChart = new Chart(document.getElementById('salesPieChart'), {
+            type: 'pie',
+            data: {
+                labels: products.slice(0,5).map(p => p.product_name.length > 20 ? p.product_name.slice(0,17)+'...' : p.product_name),
+                datasets: [{ data: products.slice(0,5).map(p => p.total_revenue), backgroundColor: ['#4f46e5','#8b5cf6','#ec4899','#f59e0b','#22c55e'], borderWidth: 0 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }
+            }
+        });
     }
 
+    // ==================== COMMISSIONS (REDESIGNED) ====================
     function renderResellerCommissions(data) {
+        const s = data.settlements || {};
+        const totalCommission = s.total_settled_amount || 0;
+        const totalReleased = s.total_released || 1;
+        const avgCommission = totalReleased > 0 ? totalCommission / totalReleased : 0;
+
         const html = `
-            <div class="bg-white rounded-lg shadow-lg p-6">
-                <h3 class="text-2xl font-bold mb-6">My Commission Breakdown</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div class="bg-green-50 p-6 rounded-lg text-center"><p class="text-gray-600">Total Commission Earned</p><p class="text-3xl font-bold text-green-600">${formatCurrency(data.settlements?.total_settled_amount || 0)}</p><p class="text-sm">From reseller margin</p></div>
-                    <div class="bg-blue-50 p-6 rounded-lg text-center"><p class="text-gray-600">Average Commission per Order</p><p class="text-3xl font-bold text-blue-600">${formatCurrency((data.settlements?.total_settled_amount || 0) / (data.settlements?.total_released || 1))}</p><p class="text-sm">per successful sale</p></div>
+            <div class="row mb-4">
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #16a34a, #15803d); color: white; text-align: center;">
+                        <i class="fas fa-coins" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="font-size: 14px; opacity: 0.9;">Total Commission Earned</p>
+                        <p style="font-size: 28px; font-weight: 800;">${formatCurrency(totalCommission)}</p>
+                        <p style="font-size: 12px; margin-top: 8px;">From reseller margin</p>
+                    </div>
                 </div>
-                <div class="bg-gray-50 p-4 rounded"><h4 class="font-semibold">How Commission Works</h4><p>You earn margin on every product sold. Imported products give you markup over wholeseller price. Own products give you full profit minus platform fees.</p></div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; text-align: center;">
+                        <i class="fas fa-calculator" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="font-size: 14px; opacity: 0.9;">Avg Commission / Order</p>
+                        <p style="font-size: 28px; font-weight: 800;">${formatCurrency(avgCommission)}</p>
+                        <p style="font-size: 12px; margin-top: 8px;">Per successful sale</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div style="background: #f1f5f9; border-radius: 14px; padding: 20px; display: flex; gap: 16px; align-items: center;">
+                    <i class="fas fa-info-circle" style="font-size: 2rem; color: #2563eb;"></i>
+                    <div>
+                        <strong style="font-size: 16px;">How Commission Works</strong>
+                        <p style="margin-top: 4px;">You earn margin on every product sold. Imported products give you markup over wholeseller price. Own products give you full profit minus platform fees.</p>
+                    </div>
+                </div>
             </div>
         `;
         document.getElementById('tabContent').innerHTML = html;
     }
 
+    // ==================== SETTLEMENTS (REDESIGNED) ====================
     function renderResellerSettlements(data) {
+        const w = data.wallet_balance || {};
+        const s = data.settlements || {};
+        const settled = s.total_settled_amount || 0;
+        const escrow = s.total_escrow_amount || 0;
+        const pendingWithdrawal = w.pending_withdrawal || 0;
+        const totalInvolved = settled + escrow + pendingWithdrawal;
+        const settlePercent = totalInvolved > 0 ? (settled / totalInvolved) * 100 : 0;
+        const available = w.available || 0;
+
         const html = `
-            <div class="bg-white rounded-lg shadow-lg p-6">
-                <h3 class="text-2xl font-bold mb-6">My Earnings & Withdrawals</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-green-50 p-6 rounded-lg text-center"><p>Total Earned</p><p class="text-3xl font-bold text-green-600">${formatCurrency(data.settlements?.total_settled_amount || 0)}</p></div>
-                    <div class="bg-yellow-50 p-6 rounded-lg text-center"><p>In Escrow</p><p class="text-3xl font-bold text-yellow-600">${formatCurrency(data.settlements?.total_escrow_amount || 0)}</p><p class="text-sm">3-day buffer period</p></div>
-                    <div class="bg-blue-50 p-6 rounded-lg text-center"><p>Available to Withdraw</p><p class="text-3xl font-bold text-blue-600">${formatCurrency(data.wallet_balance?.available || 0)}</p></div>
+            <div class="row mb-4">
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #16a34a, #15803d); color: white; text-align: center;">
+                        <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Total Earned</p>
+                        <p style="font-size: 26px; font-weight: 700;">${formatCurrency(settled)}</p>
+                    </div>
                 </div>
-                ${data.wallet_balance ? `<div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg"><h4 class="font-semibold">💰 My Wallet</h4><div class="grid grid-cols-3 gap-4 mt-4"><div><p class="text-sm">Available</p><p class="text-xl font-bold">${formatCurrency(data.wallet_balance.available)}</p></div><div><p class="text-sm">In Escrow</p><p class="text-xl font-bold">${formatCurrency(data.wallet_balance.escrow)}</p></div><div><p class="text-sm">Pending</p><p class="text-xl font-bold">${formatCurrency(data.wallet_balance.pending_withdrawal)}</p></div></div><button class="mt-4 bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100" onclick="alert('Withdrawal feature coming soon')">Request Withdrawal</button></div>` : ''}
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #d97706, #b45309); color: white; text-align: center;">
+                        <i class="fas fa-hourglass-half" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">In Escrow</p>
+                        <p style="font-size: 26px; font-weight: 700;">${formatCurrency(escrow)}</p>
+                        <p style="font-size: 11px; margin-top: 4px;">3-day buffer</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; text-align: center;">
+                        <i class="fas fa-wallet" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Available to Withdraw</p>
+                        <p style="font-size: 26px; font-weight: 700;">${formatCurrency(available)}</p>
+                    </div>
+                </div>
+            </div>
+            ${w.available !== undefined ? `
+            <div class="chart-card" style="margin-bottom: 16px;">
+                <div style="background: linear-gradient(135deg, #4f46e5, #7c3aed); border-radius: 16px; padding: 24px; color: white;">
+                    <h4 style="color: white; font-size: 18px; margin-bottom: 20px;">💰 My Wallet</h4>
+                    <div class="row" style="text-align: center;">
+                        <div class="col">
+                            <p style="font-size: 12px; opacity: 0.8;">Available</p>
+                            <p style="font-size: 22px; font-weight: 700;">${formatCurrency(w.available)}</p>
+                        </div>
+                        <div class="col">
+                            <p style="font-size: 12px; opacity: 0.8;">In Escrow</p>
+                            <p style="font-size: 22px; font-weight: 700;">${formatCurrency(w.escrow)}</p>
+                        </div>
+                        <div class="col">
+                            <p style="font-size: 12px; opacity: 0.8;">Pending</p>
+                            <p style="font-size: 22px; font-weight: 700;">${formatCurrency(pendingWithdrawal)}</p>
+                        </div>
+                    </div>
+                    <button class="btn-secondary mt-3" onclick="alert('Withdrawal feature coming soon')" style="background: white; color: #4f46e5; border: none; font-weight: 600;">
+                        <i class="fas fa-arrow-up"></i> Request Withdrawal
+                    </button>
+                </div>
+            </div>
+            ` : ''}
+            <div class="chart-card">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;"><i class="fas fa-tachometer-alt" style="color: #4f46e5;"></i> Settlement Progress</h3>
+                <div class="progress-bar" style="height: 8px;">
+                    <div class="progress-fill" style="width: ${settlePercent}%"></div>
+                </div>
+                <p style="font-size: 12px; color: #64748b; text-align: center; margin-top: 8px;">${Math.round(settlePercent)}% of your funds are settled</p>
             </div>
         `;
         document.getElementById('tabContent').innerHTML = html;

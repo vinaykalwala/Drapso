@@ -209,6 +209,21 @@ def admin_settlement_report(request):
         total_reseller=Sum('reseller_amount'),
         total_neft_cost=Sum('neft_settlement_cost'),
     )
+    def format_k(value):
+        try:
+            value = float(value or 0)
+            if value >= 1000:
+                return f"{value/1000:.1f}".rstrip('0').rstrip('.') + "K"
+            return str(int(value))
+        except:
+            return value
+
+    # ✅ Calculate net to sellers
+    net_to_sellers = (total_settled.get('total_wholeseller') or 0) + (total_settled.get('total_reseller') or 0)
+
+    # ✅ Add formatted values
+    total_settled['total_order_value_short'] = format_k(total_settled.get('total_order_value'))
+    total_settled['net_to_sellers_short'] = format_k(net_to_sellers)
     
     # Check for CSV export
     if request.GET.get('export') == 'csv':
