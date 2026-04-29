@@ -3,552 +3,525 @@
 
 {% block content %}
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+    :root {
+        --primary: #4f46e5;
+        --primary-light: #6366f1;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #3b82f6;
+        --bg: #f8fafc;
+        --shadow: 0 4px 16px rgba(0,0,0,0.06);
+        --radius: 24px;
     }
 
-    body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background: linear-gradient(135deg, #eef2ff, #f8fafc);
-        min-height: 100vh;
+    .content {
+        background: var(--bg);
+        padding: 10px;
+        /* min-height: 100vh; */
     }
 
-    .report-dashboard {
-        width: 100%;
-        padding: 20px clamp(16px, 2.5vw, 32px);
-        animation: fadeSlideUp 0.5s ease;
+    .report-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        animation: fadeInUp 0.6s ease;
     }
 
-    /* Header */
-    .report-header {
+    /* Hero Title */
+    .hero {
         margin-bottom: 24px;
     }
-    .report-header h1 {
-        font-size: clamp(24px, 6vw, 36px);
+    .hero h1 {
+        font-size: clamp(28px, 6vw, 40px);
         font-weight: 800;
-        background: linear-gradient(135deg, #1f2937, #4b5563);
+        background: linear-gradient(135deg, #1e293b 0%, #4f46e5 80%);
         -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         background-clip: text;
-        color: transparent;
-        letter-spacing: -0.02em;
-    }
-
-    /* Summary Cards */
-    .summary-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-    .summary-card {
-        background: white;
-        border-radius: 20px;
-        padding: 20px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.04);
-        border: 1px solid #e5e7eb;
-        border-left: 5px solid;
-        transition: transform 0.2s;
-    }
-    .summary-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-    }
-    .summary-card.primary { border-left-color: #667eea; }
-    .summary-card.success { border-left-color: #38a169; }
-    .summary-card.warning { border-left-color: #d69e2e; }
-    .summary-card.danger { border-left-color: #e53e3e; }
-    .summary-card.info { border-left-color: #3182ce; }
-
-    .summary-card h3 {
-        font-size: 13px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #6b7280;
-        margin-bottom: 12px;
-    }
-    .summary-card .amount {
-        font-size: 28px;
-        font-weight: 800;
-        color: #1f2937;
         margin: 0;
+        letter-spacing: -0.5px;
+    }
+    .hero p {
+        color: #64748b;
+        font-size: 15px;
+        margin-top: 6px;
     }
 
-    /* Filter Form */
-    .filter-bar {
+    /* Filter Card (floating) */
+    .filter-card {
         background: white;
-        border-radius: 20px;
+        border-radius: var(--radius);
         padding: 16px 24px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.04);
         border: 1px solid #e5e7eb;
         display: flex;
         flex-wrap: wrap;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
         gap: 16px;
-        margin-bottom: 24px;
+        margin-bottom: 28px;
+        backdrop-filter: blur(10px);
+        background: rgba(255,255,255,0.9);
     }
-    .filter-group {
+    .filter-form {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
     }
-    .filter-group label {
+    .filter-form label {
         font-weight: 600;
-        font-size: 13px;
-        color: #374151;
+        font-size: 14px;
+        color: #334155;
     }
     .filter-input {
-        padding: 10px 14px;
-        border: 2px solid #e5e7eb;
+        padding: 10px 16px;
+        border: 2px solid #e2e8f0;
         border-radius: 14px;
-        font-size: 14px;
+        font-size: 15px;
         background: white;
         transition: 0.3s;
-        font-family: 'Inter', sans-serif;
+        min-width: 160px;
     }
     .filter-input:focus {
         outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
-    }
-    .btn-apply {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        border: none;
-        padding: 10px 24px;
-        border-radius: 14px;
-        color: white;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.3s;
-        box-shadow: 0 4px 10px rgba(102,126,234,0.2);
-    }
-    .btn-apply:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 8px 18px rgba(102,126,234,0.3);
-    }
-    .action-buttons {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-    .btn-export {
-        background: linear-gradient(135deg, #38a169, #2f855a);
-        border: none;
-        padding: 10px 24px;
-        border-radius: 14px;
-        color: white;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.3s;
-        box-shadow: 0 4px 10px rgba(56,161,105,0.2);
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-    .btn-export:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 8px 18px rgba(56,161,105,0.3);
-        color: white;
-    }
-    .btn-clear {
-        background: white;
-        border: 2px solid #e5e7eb;
-        padding: 10px 24px;
-        border-radius: 14px;
-        color: #dc3545;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.3s;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-    .btn-clear:hover {
-        border-color: #dc3545;
-        background: #fff5f5;
-        color: #dc3545;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
     }
 
-    /* Table Container */
-    .table-card {
-        background: white;
-        border-radius: 24px;
-        padding: 24px;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.05);
-        border: 1px solid #e5e7eb;
-        overflow-x: auto;
-    }
-    .table-card h3 {
-        font-size: 20px;
+    .btn {
+        padding: 10px 22px;
+        border: none;
+        border-radius: 14px;
         font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 20px;
-    }
-
-    .settlement-table {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 1100px;
-    }
-    .settlement-table thead {
-        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-        border-bottom: 2px solid #e5e7eb;
-    }
-    .settlement-table th {
-        padding: 16px 18px;
-        font-weight: 600;
-        font-size: 12px;
-        color: #4b5563;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        white-space: nowrap;
-        text-align: left;
-    }
-    .settlement-table td {
-        padding: 16px 18px;
-        border-bottom: 1px solid #f0f0f0;
         font-size: 14px;
-        color: #374151;
-        vertical-align: middle;
-    }
-    .settlement-table tbody tr {
-        transition: 0.2s;
-    }
-    .settlement-table tbody tr:hover {
-        background: rgba(102,126,234,0.03);
-    }
-
-    /* Badges */
-    .badge-escrow {
+        cursor: pointer;
         display: inline-flex;
         align-items: center;
-        padding: 4px 12px;
-        border-radius: 30px;
-        background: rgba(214, 158, 46, 0.1);
-        color: #b7791f;
-        border: 1px solid rgba(214,158,46,0.3);
-        font-weight: 600;
-        font-size: 12px;
+        gap: 8px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        text-decoration: none;
     }
-    .badge-released {
-        background: rgba(56, 161, 105, 0.1);
-        color: #2f855a;
-        border: 1px solid rgba(56,161,105,0.3);
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary), #7c3aed);
+        color: white;
+        box-shadow: 0 4px 12px rgba(79,70,229,0.25);
     }
-    .badge-cancelled {
-        background: rgba(220, 53, 69, 0.1);
-        color: #dc3545;
-        border: 1px solid rgba(220,53,69,0.3);
+    .btn-outline {
+        background: white;
+        border: 2px solid #e2e8f0;
+        color: var(--danger);
+    }
+    .btn-outline:hover { border-color: var(--danger); background: #fff5f5; }
+
+    /* Summary Grid */
+.summary-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+/* Card */
+.summary-item {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid #f1f5f9;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.summary-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.08);
+}
+
+/* Icon */
+.summary-item .icon {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2.5rem;
+    opacity: 0.08;
+    pointer-events: none;
+}
+
+/* Label */
+.summary-item .label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #64748b;
+    margin-bottom: 6px;
+}
+
+/* Value */
+.summary-item .value {
+    font-size: clamp(22px, 3vw, 30px);
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+    word-break: break-word;
+}
+
+/* Color Variants */
+.summary-item.primary .value { color: #4f46e5; }
+.summary-item.success .value { color: #059669; }
+.summary-item.warning .value { color: #d97706; }
+.summary-item.danger  .value { color: #dc2626; }
+.summary-item.info    .value { color: #2563eb; }
+
+/* Tablet adjustments */
+@media (max-width: 1024px) {
+    .summary-item {
+        padding: 18px;
     }
 
-    .order-link {
-        color: #667eea;
-        font-weight: 600;
+    .summary-item .value {
+        font-size: 24px;
+    }
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+    .summary-row {
+        gap: 12px;
+    }
+
+    .summary-item {
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .summary-item .value {
+        font-size: 20px;
+    }
+
+    .summary-item .icon {
+        font-size: 2rem;
+        right: 12px;
+    }
+}
+
+    /* Settlement Cards Grid */
+    .settlement-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 16px;
+    }
+    .settlement-card {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: var(--shadow);
+        border: 1px solid #f1f5f9;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .settlement-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    }
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .order-id {
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--primary);
         text-decoration: none;
-        transition: 0.2s;
     }
-    .order-link:hover {
-        color: #5a2d8c;
-        text-decoration: underline;
-    }
-    .shiprocket-link {
+    .order-id:hover { text-decoration: underline; }
+    .sr-badge {
         background: #ff5722;
         color: white;
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 600;
-        text-decoration: none;
-        margin-left: 8px;
-        transition: 0.2s;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+    .card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 15px;
+    }
+    .card-row .metric-label {
+        color: #64748b;
+        font-weight: 500;
+    }
+    .card-row .metric-value {
+        font-weight: 700;
+    }
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 13px;
         display: inline-flex;
         align-items: center;
         gap: 4px;
     }
-    .shiprocket-link:hover {
-        background: #e64a19;
-        color: white;
+    .badge-escrow { background: #fef3c7; color: #b45309; }
+    .badge-released { background: #dcfce7; color: #065f46; }
+    .badge-cancelled { background: #fee2e2; color: #991b1b; }
+
+    /* Hidden Table for export (kept out of view) */
+    .export-table {
+        display: none;
     }
 
-    .no-data {
+    /* Empty state */
+    .empty-state {
+        grid-column: 1 / -1;
+        background: white;
+        border-radius: 20px;
+        padding: 60px;
         text-align: center;
-        padding: 40px;
-        color: #6b7280;
+        color: #94a3b8;
+        border: 1px solid #e2e8f0;
     }
-
-    .text-success { color: #38a169; }
-    .text-danger { color: #e53e3e; }
-    .text-warning { color: #d69e2e; }
-    .text-info { color: #3182ce; }
-    .text-muted { color: #6b7280; }
 
     /* Responsive */
     @media (max-width: 768px) {
-        .content {
-            margin-top: 50px;
-        }
-        .filter-bar {
+        .filter-card {
             flex-direction: column;
             align-items: stretch;
         }
-        .action-buttons {
+        .filter-form {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .btn {
+            width: 100%;
             justify-content: center;
         }
-        .settlement-table {
-            min-width: 100%;
-        }
-        /* mobile card view */
-        .settlement-table thead {
-            display: none;
-        }
-        .settlement-table tbody tr {
-            display: block;
-            margin-bottom: 16px;
-            border: 1px solid #e5e7eb;
-            border-radius: 16px;
-            background: white;
-            padding: 16px;
-        }
-        .settlement-table td {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
-            text-align: right;
-        }
-        .settlement-table td::before {
-            content: attr(data-label);
-            font-weight: 600;
-            color: #4b5563;
-            text-transform: uppercase;
-            font-size: 12px;
-            margin-right: 12px;
-            text-align: left;
+        .settlement-grid {
+            grid-template-columns: 1fr;
         }
     }
 
-    @media (max-width: 820px) {
-        .content {
-            margin-top: 50px;
-        }
-    }
-    @keyframes fadeSlideUp {
-        from { opacity: 0; transform: translateY(16px); }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
     }
 </style>
 
 <div class="content">
-<div class="report-dashboard">
-    <div class="report-header">
+<div class="report-container">
+    <!-- Hero -->
+    <div class="hero">
         <h1>Settlement Report</h1>
+        <p>Track all financial settlements for resellers & wholesellers</p>
     </div>
 
-    <!-- Filter Bar -->
-    <div class="filter-bar">
-        <div class="filter-group">
-            <form method="get" id="filterForm" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0;">
-                <label for="start_date">From Date:</label>
-                <input type="date" name="start_date" id="start_date" class="filter-input" value="{{ form.start_date.value|default:'' }}">
-                
-                <label for="end_date">To Date:</label>
-                <input type="date" name="end_date" id="end_date" class="filter-input" value="{{ form.end_date.value|default:'' }}">
-                
-                <button type="submit" class="btn-apply">Apply Filter</button>
-            </form>
-        </div>
-
-        <div class="action-buttons">
-            <button type="button" class="btn-export" onclick="exportToCSV()">
-                📥 Export to CSV
-            </button>
-            
+    <!-- Filter Card -->
+    <div class="filter-card">
+        <form method="get" class="filter-form" id="filterForm">
+            <label for="start_date">From</label>
+            <input type="date" name="start_date" id="start_date" class="filter-input" value="{{ form.start_date.value|default:'' }}">
+            <label for="end_date">To</label>
+            <input type="date" name="end_date" id="end_date" class="filter-input" value="{{ form.end_date.value|default:'' }}">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Apply</button>
+        </form>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button onclick="exportToCSV()" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 12px rgba(16,185,129,0.25);"><i class="fas fa-download"></i> Export CSV</button>
             {% if request.GET.start_date or request.GET.end_date %}
-                <a href="{% url 'settlement:admin_settlement_report' %}" class="btn-clear">
-                    ✖ Clear Filter
-                </a>
+                <a href="{% url 'settlement:admin_settlement_report' %}" class="btn btn-outline"><i class="fas fa-times"></i> Clear</a>
             {% endif %}
         </div>
     </div>
 
     <!-- Summary Cards -->
-    <div class="summary-grid">
-        <div class="summary-card primary">
-            <h3>Total Order Value</h3>
-            <p class="amount">₹{{ summary.total_order_value|default:0|floatformat:2 }}</p>
+    <div class="summary-row">
+        <div class="summary-item primary">
+            <i class="fas fa-shopping-cart icon"></i>
+            <div class="label">Total Order Value</div>
+            <div class="value">₹{{ summary.total_order_value_short }}</div>
         </div>
-        <div class="summary-card danger">
-            <h3>Razorpay Fees</h3>
-            <p class="amount">₹{{ summary.total_razorpay_fee|default:0|floatformat:2 }}</p>
+        <div class="summary-item danger">
+            <i class="fas fa-receipt icon"></i>
+            <div class="label">Razorpay Fees</div>
+            <div class="value">₹{{ summary.total_razorpay_fee|default:0|floatformat:2 }}</div>
         </div>
-        <div class="summary-card warning">
-            <h3>Drapso Commission</h3>
-            <p class="amount">₹{{ summary.total_drapso_commission|default:0|floatformat:2 }}</p>
+        <div class="summary-item warning">
+            <i class="fas fa-percent icon"></i>
+            <div class="label">Drapso Commission</div>
+            <div class="value">₹{{ summary.total_drapso_commission|default:0|floatformat:2 }}</div>
         </div>
-        <div class="summary-card success">
-            <h3>Net to Sellers</h3>
-            <p class="amount">₹{{ summary.total_wholeseller|default:0|add:summary.total_reseller|default:0|floatformat:2 }}</p>
+        <div class="summary-item success">
+            <i class="fas fa-hand-holding-usd icon"></i>
+            <div class="label">Net to Sellers</div>
+            <div class="value">₹{{ summary.net_to_sellers_short }}</div>
         </div>
-        <div class="summary-card info">
-            <h3>Total NEFT Cost</h3>
-            <p class="amount">₹{{ summary.total_neft_cost|default:0|floatformat:2 }}</p>
+        <div class="summary-item info">
+            <i class="fas fa-university icon"></i>
+            <div class="label">NEFT Cost</div>
+            <div class="value">₹{{ summary.total_neft_cost|default:0|floatformat:2 }}</div>
         </div>
     </div>
 
     <!-- Additional Summary Cards -->
-    <div class="summary-grid">
-        <div class="summary-card primary">
-            <h3>Total to Wholesellers</h3>
-            <p class="amount">₹{{ summary.total_wholeseller|default:0|floatformat:2 }}</p>
+    <div class="summary-row">
+        <div class="summary-item primary">
+            <i class="fas fa-industry icon"></i>
+            <div class="label">To Wholesellers</div>
+            <div class="value">₹{{ summary.total_wholeseller|default:0|floatformat:2 }}</div>
         </div>
-        <div class="summary-card success">
-            <h3>Total to Resellers</h3>
-            <p class="amount">₹{{ summary.total_reseller|default:0|floatformat:2 }}</p>
+        <div class="summary-item success">
+            <i class="fas fa-store-alt icon"></i>
+            <div class="label">To Resellers</div>
+            <div class="value">₹{{ summary.total_reseller|default:0|floatformat:2 }}</div>
         </div>
     </div>
 
-    <!-- Settlements Table -->
-    <div class="table-card">
-        <h3>Order Settlements</h3>
-        <div class="table-responsive">
-            <table class="settlement-table" id="settlementTable">
-                <thead>
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Shiprocket ID</th>
-                        <th>Date</th>
-                        <th>Order Total</th>
-                        <th>Delivery Charges</th>
-                        <th>Razorpay Fee</th>
-                        <th>Drapso Commission</th>
-                        <th>NEFT Cost</th>
-                        <th>Wholeseller</th>
-                        <th>Reseller</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for settlement in settlements %}
-                    <tr>
-                        <td data-label="Order ID" style="white-space: nowrap;">
-                            {% if settlement.order.shiprocket_order_id %}
-                                <a href="{% url 'orders:shiprocket_order_detail' settlement.order.shiprocket_order_id %}" 
-                                   class="order-link"
-                                   target="_blank">
-                                    {{ settlement.order.order_id }}
-                                </a>
-                                <a href="{% url 'orders:shiprocket_order_detail' settlement.order.shiprocket_order_id %}" 
-                                   class="shiprocket-link"
-                                   target="_blank"
-                                   title="View on Shiprocket">
-                                    🚚 SR
-                                </a>
-                            {% else %}
-                                <span class="text-muted">{{ settlement.order.order_id }}</span>
-                                <span class="text-muted" style="font-size: 11px;">(No SR ID)</span>
-                            {% endif %}
-                        </td>
-                        <td data-label="Shiprocket ID">
-                            {% if settlement.order.shiprocket_order_id %}
-                                <code>{{ settlement.order.shiprocket_order_id }}</code>
-                            {% else %}
-                                <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                        <td data-label="Date" style="white-space: nowrap;">{{ settlement.created_at|date:"Y-m-d"|default:"-" }}</td>
-                        <td data-label="Order Total" class="text-info">₹{{ settlement.order_total|default:0|floatformat:2 }}</td>
-                        <td data-label="Delivery Charges">₹{{ settlement.delivery_charges|default:0|floatformat:2 }}</td>
-                        <td data-label="Razorpay Fee" class="text-danger">₹{{ settlement.razorpay_fee|default:0|floatformat:2 }}</td>
-                        <td data-label="Drapso Commission" class="text-warning">₹{{ settlement.drapso_commission|default:0|floatformat:2 }}</td>
-                        <td data-label="NEFT Cost">₹{{ settlement.neft_settlement_cost|default:0|floatformat:2 }}</td>
-                        <td data-label="Wholeseller" class="text-success">₹{{ settlement.wholeseller_amount|default:0|floatformat:2 }}</td>
-                        <td data-label="Reseller" class="text-success">₹{{ settlement.reseller_amount|default:0|floatformat:2 }}</td>
-                        <td data-label="Status">
-                            {% if settlement.status == 'IN_ESCROW' %}
-                                <span class="badge badge-escrow">In Escrow</span>
-                            {% elif settlement.status == 'RELEASED' %}
-                                <span class="badge badge-released">Released</span>
-                            {% elif settlement.status == 'CANCELLED' %}
-                                <span class="badge badge-cancelled">Cancelled</span>
-                            {% else %}
-                                {{ settlement.status }}
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="11" class="no-data">
-                            No settlement records found for the selected date range.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <!-- Settlement Cards (visible UI) -->
+    <div class="settlement-grid" id="settlementCards">
+        {% for settlement in settlements %}
+        <div class="settlement-card">
+            <div class="card-header">
+                <div>
+                    <a href="
+                        {% if settlement.order.shiprocket_order_id %}
+                            {% url 'orders:shiprocket_order_detail' settlement.order.shiprocket_order_id %}
+                        {% else %}#{% endif %}" class="order-id" target="_blank">
+                        {{ settlement.order.order_id }}
+                    </a>
+                    {% if settlement.order.shiprocket_order_id %}
+                        <span class="sr-badge">🚚 SR</span>
+                    {% endif %}
+                </div>
+                <div>
+                    {% if settlement.status == 'IN_ESCROW' %}
+                        <span class="status-badge badge-escrow">⏳ Escrow</span>
+                    {% elif settlement.status == 'RELEASED' %}
+                        <span class="status-badge badge-released">✅ Released</span>
+                    {% elif settlement.status == 'CANCELLED' %}
+                        <span class="status-badge badge-cancelled">❌ Cancelled</span>
+                    {% else %}
+                        <span class="status-badge">{{ settlement.status }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-row">
+                <span class="metric-label">Date</span>
+                <span class="metric-value">{{ settlement.created_at|date:"Y-m-d" }}</span>
+            </div>
+            <div class="card-row">
+                <span class="metric-label">Order Total</span>
+                <span class="metric-value" style="color:#2563eb;">₹{{ settlement.order_total|default:0|floatformat:2 }}</span>
+            </div>
+            <div class="card-row">
+                <span class="metric-label">Delivery Charges</span>
+                <span class="metric-value">₹{{ settlement.delivery_charges|default:0|floatformat:2 }}</span>
+            </div>
+            <div class="card-row">
+                <span class="metric-label">Razorpay Fee</span>
+                <span class="metric-value" style="color:#dc2626;">₹{{ settlement.razorpay_fee|default:0|floatformat:2 }}</span>
+            </div>
+            <div class="card-row">
+                <span class="metric-label">Drapso Comm.</span>
+                <span class="metric-value" style="color:#d97706;">₹{{ settlement.drapso_commission|default:0|floatformat:2 }}</span>
+            </div>
+            <div class="card-row">
+                <span class="metric-label">NEFT Cost</span>
+                <span class="metric-value">₹{{ settlement.neft_settlement_cost|default:0|floatformat:2 }}</span>
+            </div>
+            <div class="card-row">
+                <span class="metric-label">Wholeseller</span>
+                <span class="metric-value" style="color:#059669;">₹{{ settlement.wholeseller_amount|default:0|floatformat:2 }}</span>
+            </div>
+            <div class="card-row">
+                <span class="metric-label">Reseller</span>
+                <span class="metric-value" style="color:#059669;">₹{{ settlement.reseller_amount|default:0|floatformat:2 }}</span>
+            </div>
         </div>
-
-        {% if settlements %}
-        <div style="margin-top: 15px; text-align: right;">
-            <small class="text-muted">Total Records: {{ settlements.count }}</small>
+        {% empty %}
+        <div class="empty-state">
+            <i class="fas fa-inbox" style="font-size:40px; opacity:0.2;"></i>
+            <p style="margin-top: 12px;">No settlement records found for the selected dates.</p>
         </div>
-        {% endif %}
+        {% endfor %}
     </div>
+
+    <!-- Hidden full table (for CSV export, visually hidden) -->
+    <table class="export-table" id="settlementTable">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Shiprocket ID</th>
+                <th>Date</th>
+                <th>Order Total</th>
+                <th>Delivery Charges</th>
+                <th>Razorpay Fee</th>
+                <th>Drapso Commission</th>
+                <th>NEFT Cost</th>
+                <th>Wholeseller</th>
+                <th>Reseller</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for settlement in settlements %}
+            <tr>
+                <td>{{ settlement.order.order_id }}</td>
+                <td>{{ settlement.order.shiprocket_order_id|default:'' }}</td>
+                <td>{{ settlement.created_at|date:"Y-m-d" }}</td>
+                <td>{{ settlement.order_total|floatformat:2 }}</td>
+                <td>{{ settlement.delivery_charges|floatformat:2 }}</td>
+                <td>{{ settlement.razorpay_fee|floatformat:2 }}</td>
+                <td>{{ settlement.drapso_commission|floatformat:2 }}</td>
+                <td>{{ settlement.neft_settlement_cost|floatformat:2 }}</td>
+                <td>{{ settlement.wholeseller_amount|floatformat:2 }}</td>
+                <td>{{ settlement.reseller_amount|floatformat:2 }}</td>
+                <td>{{ settlement.status }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 </div>
+
 <script>
 function exportToCSV() {
     const table = document.getElementById('settlementTable');
     const rows = table.querySelectorAll('tr');
-    
     let csvContent = "";
-    
+    // Header
     const headers = [];
     const headerCells = rows[0].querySelectorAll('th');
-    for (let cell of headerCells) {
-        headers.push(cell.innerText.trim());
-    }
+    for (let cell of headerCells) headers.push(cell.innerText.trim());
     csvContent += headers.join(',') + "\n";
-    
+    // Rows
     for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        const cells = row.querySelectorAll('td');
-        const rowData = [];
-        
+        const cells = rows[i].querySelectorAll('td');
+        const row = [];
         for (let cell of cells) {
             let text = cell.innerText.trim();
-            
-            if (!text || text === 'None' || text === 'null' || text === '#') {
-                text = '';
-            }
-            
-            text = text.replace(/₹/g, '').replace(/,/g, '');
-            text = text.replace(/\s+/g, ' ').trim();
-            
-            if (text.includes(' ') || text.includes('\n')) {
-                text = `"${text}"`;
-            }
-            
-            rowData.push(text);
+            text = text.replace(/₹/g, '').replace(/,/g, '').replace(/\s+/g, ' ').trim();
+            if (!text || text === 'None' || text === 'null') text = '';
+            if (text.includes(' ') || text.includes('\n')) text = `"${text}"`;
+            row.push(text);
         }
-        csvContent += rowData.join(',') + "\n";
+        csvContent += row.join(',') + "\n";
     }
-    
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    
     const now = new Date();
-    const timestamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}`;
-    
+    const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}`;
     link.setAttribute('href', url);
-    link.setAttribute('download', `settlement_report_${timestamp}.csv`);
-    link.style.visibility = 'hidden';
-    
+    link.setAttribute('download', `settlement_report_${ts}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
