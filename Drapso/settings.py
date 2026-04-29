@@ -77,7 +77,6 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'accounts.context_processors.user_profile_data',
                 'resellers.context_processors.store_context',
-                "products.context_processors.reseller_store",
                 "orders.context_processors.dynamic_base_template",
             ],
         },
