@@ -13,9 +13,7 @@ class Command(BaseCommand):
         )
     
     def handle(self, *args, **options):
-        self.stdout.write("=" * 50)
-        self.stdout.write(self.style.MIGRATE_HEADING("Processing Eligible Settlements"))
-        self.stdout.write("=" * 50)
+        
         
         if options['dry_run']:
             self.stdout.write(self.style.WARNING("DRY RUN MODE - No changes will be made\n"))
@@ -41,12 +39,8 @@ class Command(BaseCommand):
             # Call the updated service method
             result = DrapsoSettlementService.release_eligible_settlements()
             
-            # Print Summary
-            self.stdout.write(f"\n✅ Released: {result['released_count']} orders")
-            self.stdout.write(f"❌ Failed: {result['failed_count']} orders")
             
             pending_count = result['total_processed'] - result['released_count'] - result['failed_count']
-            self.stdout.write(f"⏳ Pending: {pending_count} orders")
             
             # Detailed breakdown
             for res in result['results']:
@@ -57,4 +51,4 @@ class Command(BaseCommand):
                 elif res['status'] == 'pending':
                     self.stdout.write(self.style.WARNING(f"  ⏳ {res['order_id']} - {res['reason']}"))
         
-        self.stdout.write("\n" + "=" * 50)
+        

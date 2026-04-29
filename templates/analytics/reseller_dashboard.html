@@ -168,6 +168,8 @@
     .data-table {
         width: 100%;
         border-collapse: collapse;
+        overflow-x: auto;
+        display: block;
     }
     .data-table th {
         text-align: left;
@@ -839,57 +841,144 @@
         `).join('') || '<div class="empty-state"><i class="fas fa-box-open"></i><p>No products sold yet</p></div>';
     }
 
-    // ==================== STORES ====================
+    // ==================== STORES (REDESIGNED) ====================
     function renderResellerStores(data) {
         const stores = data.store_performance || [];
+        const totalStores = stores.length;
+        const activeStores = stores.filter(s => s.status === 'active').length;
+        const totalProductsAll = stores.reduce((sum, s) => sum + s.total_products, 0);
+
         const html = `
-            <div class="chart-card">
-                <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">My Stores</h3>
-                <div class="row mb-4">
-                    <div class="col"><div class="stat-card"><p class="label">Total Stores</p><div class="value">${stores.length || 1}</div></div></div>
-                    <div class="col"><div class="stat-card"><p class="label">Active Stores</p><div class="value">${stores.filter(s => s.status === 'active').length}</div></div></div>
-                    <div class="col"><div class="stat-card"><p class="label">Total Products</p><div class="value">${stores.reduce((sum,s) => sum + s.total_products, 0)}</div></div></div>
-                </div>
-                ${stores.map(store => `
-                    <div style="border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; margin-bottom: 16px;">
-                        <div class="flex-between" style="margin-bottom: 12px;">
-                            <h4 style="font-weight: 700;">${store.store_name}</h4>
-                            <span class="badge ${store.status === 'active' ? 'badge-green' : 'badge-red'}">${store.status}</span>
-                        </div>
-                        <div class="row">
-                            <div class="col"><p class="label">Revenue</p><p class="font-bold">${formatCurrency(store.total_revenue)}</p></div>
-                            <div class="col"><p class="label">Orders</p><p class="font-bold">${store.total_orders}</p></div>
-                            <div class="col"><p class="label">Products</p><p class="font-bold">${store.total_products}</p></div>
-                            <div class="col"><p class="label">Visitors</p><p class="font-bold">${formatNumber(store.total_visitors)}</p></div>
-                        </div>
+            <div class="row mb-4">
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4f46e5, #6366f1); color: white;">
+                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white; margin-bottom: 12px;"><i class="fas fa-store-alt"></i></div>
+                        <p style="font-size: 13px; opacity: 0.9;">Total Stores</p>
+                        <p style="font-size: 28px; font-weight: 700;">${totalStores}</p>
                     </div>
-                `).join('')}
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white;">
+                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white; margin-bottom: 12px;"><i class="fas fa-check-circle"></i></div>
+                        <p style="font-size: 13px; opacity: 0.9;">Active Stores</p>
+                        <p style="font-size: 28px; font-weight: 700;">${activeStores}</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white; margin-bottom: 12px;"><i class="fas fa-boxes"></i></div>
+                        <p style="font-size: 13px; opacity: 0.9;">Total Products</p>
+                        <p style="font-size: 28px; font-weight: 700;">${totalProductsAll}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 20px;"><i class="fas fa-store" style="color: #4f46e5;"></i> Store Details</h3>
+                ${stores.length === 0 ? '<div class="empty-state"><i class="fas fa-store-slash"></i><p>No stores found.</p></div>' : ''}
+                <div style="display: grid; gap: 16px;">
+                    ${stores.map(store => `
+                        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; transition: all 0.2s; cursor: default;">
+                            <div class="flex-between" style="margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                                <div>
+                                    <h4 style="font-weight: 700; font-size: 16px; color: #1e293b;">${store.store_name}</h4>
+                                    <span class="badge ${store.status === 'active' ? 'badge-green' : 'badge-red'}">${store.status}</span>
+                                </div>
+                                <div style="text-align: right;">
+                                    <p style="font-size: 12px; color: #64748b;">Revenue</p>
+                                    <p style="font-size: 18px; font-weight: 700; color: #16a34a;">${formatCurrency(store.total_revenue)}</p>
+                                </div>
+                            </div>
+                            <div class="row" style="text-align: center;">
+                                <div class="col">
+                                    <p style="font-size: 12px; color: #64748b;">Orders</p>
+                                    <p style="font-weight: 700; font-size: 16px;">${formatNumber(store.total_orders)}</p>
+                                </div>
+                                <div class="col">
+                                    <p style="font-size: 12px; color: #64748b;">Products</p>
+                                    <p style="font-weight: 700; font-size: 16px;">${formatNumber(store.total_products)}</p>
+                                </div>
+                                <div class="col">
+                                    <p style="font-size: 12px; color: #64748b;">Visitors</p>
+                                    <p style="font-weight: 700; font-size: 16px;">${formatNumber(store.total_visitors)}</p>
+                                </div>
+                            </div>
+                            <div class="progress-bar mt-3">
+                                <div class="progress-fill" style="width: ${Math.min(100, (store.total_orders / (store.total_products || 1)) * 10)}%"></div>
+                            </div>
+                            <p style="font-size: 11px; color: #64748b; margin-top: 6px;">Activity indicator</p>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         `;
         document.getElementById('tabContent').innerHTML = html;
     }
 
-    // ==================== PRODUCTS ====================
+    // ==================== PRODUCTS (REDESIGNED) ====================
     function renderResellerProducts(data) {
         const p = data.reseller_products || {};
+        const total = p.total || 0;
+        const active = p.active || 0;
+        const published = p.published || 0;
+        const imported = p.imported || 0;
+
         const html = `
-            <div class="chart-card">
-                <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">My Product Inventory</h3>
-                <div class="row mb-4">
-                    <div class="col"><div class="stat-card"><p class="label">Total</p><div class="value">${p.total || 0}</div></div></div>
-                    <div class="col"><div class="stat-card"><p class="label">Active</p><div class="value">${p.active || 0}</div></div></div>
-                    <div class="col"><div class="stat-card"><p class="label">Published</p><div class="value">${p.published || 0}</div></div></div>
-                    <div class="col"><div class="stat-card"><p class="label">Imported</p><div class="value">${p.imported || 0}</div></div></div>
+            <div class="row mb-4">
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4f46e5, #4338ca); color: white; text-align: center;">
+                        <i class="fas fa-cubes" style="font-size: 2rem; margin-bottom: 12px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Total Products</p>
+                        <p style="font-size: 30px; font-weight: 800;">${total}</p>
+                    </div>
                 </div>
-                <div style="background: #fef3c7; border-radius: 14px; padding: 16px; border-left: 4px solid #d97706;">
-                    <strong>💡 Grow Your Store</strong><p>Add more products to increase sales! Stores with 50+ products see 3x more orders.</p>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white; text-align: center;">
+                        <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 12px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Active</p>
+                        <p style="font-size: 30px; font-weight: 800;">${active}</p>
+                        <div class="progress-bar" style="background: rgba(255,255,255,0.3); margin-top: 10px;">
+                            <div class="progress-fill" style="width: ${total ? (active/total*100) : 0}%; background: white;"></div>
+                        </div>
+                        <p style="font-size: 11px; margin-top: 4px;">${total ? Math.round(active/total*100) : 0}% of total</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; text-align: center;">
+                        <i class="fas fa-globe" style="font-size: 2rem; margin-bottom: 12px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Published</p>
+                        <p style="font-size: 30px; font-weight: 800;">${published}</p>
+                        <div class="progress-bar" style="background: rgba(255,255,255,0.3); margin-top: 10px;">
+                            <div class="progress-fill" style="width: ${total ? (published/total*100) : 0}%; background: white;"></div>
+                        </div>
+                        <p style="font-size: 11px; margin-top: 4px;">${total ? Math.round(published/total*100) : 0}% of total</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; text-align: center;">
+                        <i class="fas fa-file-import" style="font-size: 2rem; margin-bottom: 12px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Imported</p>
+                        <p style="font-size: 30px; font-weight: 800;">${imported}</p>
+                        <div class="progress-bar" style="background: rgba(255,255,255,0.3); margin-top: 10px;">
+                            <div class="progress-fill" style="width: ${total ? (imported/total*100) : 0}%; background: white;"></div>
+                        </div>
+                        <p style="font-size: 11px; margin-top: 4px;">${total ? Math.round(imported/total*100) : 0}% of total</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div style="background: #fef3c7; border-radius: 14px; padding: 20px; border-left: 4px solid #d97706; display: flex; gap: 16px; align-items: center;">
+                    <i class="fas fa-lightbulb" style="font-size: 2rem; color: #d97706;"></i>
+                    <div>
+                        <strong style="font-size: 16px;">💡 Grow Your Store</strong>
+                        <p style="margin-top: 4px;">Add more products to increase sales! Stores with 50+ products see 3x more orders.</p>
+                    </div>
                 </div>
             </div>
         `;
         document.getElementById('tabContent').innerHTML = html;
     }
 
-    // ==================== SALES (with bar + pie charts) ====================
+    // ==================== SALES (REDESIGNED, CHARTS UNCHANGED) ====================
     function renderResellerSales(data) {
         const products = data.products || [];
         const totalRev = products.reduce((s, p) => s + (p.total_revenue || 0), 0);
@@ -901,10 +990,28 @@
         }
 
         const html = `
-            <div class="row">
-                <div class="col"><div class="stat-card" style="background: linear-gradient(135deg, #ec4899, #db2777); color: white;"><p>Total Revenue</p><div class="value">${formatCurrency(totalRev)}</div></div></div>
-                <div class="col"><div class="stat-card" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;"><p>Total Units Sold</p><div class="value">${formatNumber(totalUnits)}</div></div></div>
-                <div class="col"><div class="stat-card" style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white;"><p>Best Seller</p><div class="value" style="font-size: 18px;">${products[0]?.product_name || 'N/A'}</div></div></div>
+            <div class="row mb-4">
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #ec4899, #db2777); color: white;">
+                        <i class="fas fa-rupee-sign" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Total Revenue</p>
+                        <p style="font-size: 26px; font-weight: 700;">${formatCurrency(totalRev)}</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;">
+                        <i class="fas fa-boxes" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Total Units Sold</p>
+                        <p style="font-size: 26px; font-weight: 700;">${formatNumber(totalUnits)}</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white;">
+                        <i class="fas fa-trophy" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Best Seller</p>
+                        <p style="font-size: 18px; font-weight: 600;">${products[0]?.product_name || 'N/A'}</p>
+                    </div>
+                </div>
             </div>
             <div class="row">
                 <div class="col-2">
@@ -921,11 +1028,13 @@
                 </div>
             </div>
             <div class="chart-card">
-                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Product-wise Sales Breakdown</h3>
-                <table class="data-table">
-                    <thead><tr><th>Rank</th><th>Product</th><th class="text-right">Sold</th><th class="text-right">Revenue</th><th>Share</th></tr></thead>
-                    <tbody>${products.slice(0,10).map(p => `<tr><td style="font-weight: 700;">#${p.rank}</td><td>${p.product_name}</td><td class="text-right font-bold">${formatNumber(p.total_quantity_sold)}</td><td class="text-right" style="color: #16a34a; font-weight: 600;">${formatCurrency(p.total_revenue)}</td><td class="text-right"><div class="progress-bar" style="width: 100px;"><div class="progress-fill" style="width: ${p.sales_percentage}%"></div></div><span class="ml-2">${p.sales_percentage}%</span></td></tr>`).join('')}</tbody>
-                </table>
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;"><i class="fas fa-list-ol" style="color: #4f46e5;"></i> Product-wise Sales Breakdown</h3>
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead><tr><th>Rank</th><th>Product</th><th class="text-right">Sold</th><th class="text-right">Revenue</th><th>Share</th></tr></thead>
+                        <tbody>${products.slice(0,10).map(p => `<tr><td style="font-weight: 700;">#${p.rank}</td><td>${p.product_name}</td><td class="text-right font-bold">${formatNumber(p.total_quantity_sold)}</td><td class="text-right" style="color: #16a34a; font-weight: 600;">${formatCurrency(p.total_revenue)}</td><td class="text-right"><div style="display: flex; align-items: center; gap: 8px;"><div class="progress-bar" style="flex:1;"><div class="progress-fill" style="width: ${p.sales_percentage}%"></div></div><span style="font-size: 12px;">${p.sales_percentage}%</span></div></td></tr>`).join('')}</tbody>
+                    </table>
+                </div>
             </div>
         `;
         document.getElementById('tabContent').innerHTML = html;
@@ -960,52 +1069,111 @@
         });
     }
 
-    // ==================== COMMISSIONS ====================
+    // ==================== COMMISSIONS (REDESIGNED) ====================
     function renderResellerCommissions(data) {
         const s = data.settlements || {};
+        const totalCommission = s.total_settled_amount || 0;
+        const totalReleased = s.total_released || 1;
+        const avgCommission = totalReleased > 0 ? totalCommission / totalReleased : 0;
+
         const html = `
-            <div class="chart-card">
-                <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">My Commission Breakdown</h3>
-                <div class="row mb-4">
-                    <div class="col"><div class="stat-card text-center"><p class="label">Total Commission Earned</p><div class="value" style="color: #16a34a;">${formatCurrency(s.total_settled_amount || 0)}</div><p class="text-sm">From reseller margin</p></div></div>
-                    <div class="col"><div class="stat-card text-center"><p class="label">Avg Commission per Order</p><div class="value" style="color: #2563eb;">${formatCurrency((s.total_settled_amount||0)/(s.total_released||1))}</div><p class="text-sm">per successful sale</p></div></div>
+            <div class="row mb-4">
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #16a34a, #15803d); color: white; text-align: center;">
+                        <i class="fas fa-coins" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="font-size: 14px; opacity: 0.9;">Total Commission Earned</p>
+                        <p style="font-size: 28px; font-weight: 800;">${formatCurrency(totalCommission)}</p>
+                        <p style="font-size: 12px; margin-top: 8px;">From reseller margin</p>
+                    </div>
                 </div>
-                <div style="background: #f1f5f9; border-radius: 14px; padding: 16px;">
-                    <strong>How Commission Works</strong><p>You earn margin on every product sold. Imported products give you markup over wholeseller price. Own products give you full profit minus platform fees.</p>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; text-align: center;">
+                        <i class="fas fa-calculator" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="font-size: 14px; opacity: 0.9;">Avg Commission / Order</p>
+                        <p style="font-size: 28px; font-weight: 800;">${formatCurrency(avgCommission)}</p>
+                        <p style="font-size: 12px; margin-top: 8px;">Per successful sale</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div style="background: #f1f5f9; border-radius: 14px; padding: 20px; display: flex; gap: 16px; align-items: center;">
+                    <i class="fas fa-info-circle" style="font-size: 2rem; color: #2563eb;"></i>
+                    <div>
+                        <strong style="font-size: 16px;">How Commission Works</strong>
+                        <p style="margin-top: 4px;">You earn margin on every product sold. Imported products give you markup over wholeseller price. Own products give you full profit minus platform fees.</p>
+                    </div>
                 </div>
             </div>
         `;
         document.getElementById('tabContent').innerHTML = html;
     }
 
-    // ==================== SETTLEMENTS ====================
+    // ==================== SETTLEMENTS (REDESIGNED) ====================
     function renderResellerSettlements(data) {
         const w = data.wallet_balance || {};
         const s = data.settlements || {};
         const settled = s.total_settled_amount || 0;
         const escrow = s.total_escrow_amount || 0;
-        const settlePercent = (settled + escrow) > 0 ? (settled / (settled + escrow)) * 100 : 0;
+        const pendingWithdrawal = w.pending_withdrawal || 0;
+        const totalInvolved = settled + escrow + pendingWithdrawal;
+        const settlePercent = totalInvolved > 0 ? (settled / totalInvolved) * 100 : 0;
+        const available = w.available || 0;
 
         const html = `
-            <div class="chart-card">
-                <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">My Earnings & Withdrawals</h3>
-                <div class="row mb-4">
-                    <div class="col"><div class="stat-card text-center" style="background: #f0fdf4;"><p class="label">Total Earned</p><div class="value" style="color: #16a34a;">${formatCurrency(settled)}</div></div></div>
-                    <div class="col"><div class="stat-card text-center" style="background: #fffbeb;"><p class="label">In Escrow</p><div class="value" style="color: #d97706;">${formatCurrency(escrow)}</div><p class="text-sm">3-day buffer</p></div></div>
-                    <div class="col"><div class="stat-card text-center" style="background: #eff6ff;"><p class="label">Available to Withdraw</p><div class="value" style="color: #2563eb;">${formatCurrency(w.available || 0)}</div></div></div>
-                </div>
-                ${w ? `
-                <div style="background: linear-gradient(135deg, #4f46e5, #7c3aed); border-radius: 16px; padding: 20px; color: white;">
-                    <h4 style="color: white;">💰 My Wallet</h4>
-                    <div class="row mt-3">
-                        <div class="col"><p>Available</p><p class="text-xl font-bold">${formatCurrency(w.available)}</p></div>
-                        <div class="col"><p>In Escrow</p><p class="text-xl font-bold">${formatCurrency(w.escrow)}</p></div>
-                        <div class="col"><p>Pending</p><p class="text-xl font-bold">${formatCurrency(w.pending_withdrawal)}</p></div>
+            <div class="row mb-4">
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #16a34a, #15803d); color: white; text-align: center;">
+                        <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Total Earned</p>
+                        <p style="font-size: 26px; font-weight: 700;">${formatCurrency(settled)}</p>
                     </div>
-                    <button class="btn-secondary mt-3" onclick="alert('Withdrawal feature coming soon')">Request Withdrawal</button>
-                </div>` : ''}
-                <div class="progress-bar mt-3"><div class="progress-fill" style="width: ${settlePercent}%"></div></div>
-                <p style="font-size: 12px; color: #64748b; text-align: center; margin-top: 8px;">Settlement Progress: ${Math.round(settlePercent)}%</p>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #d97706, #b45309); color: white; text-align: center;">
+                        <i class="fas fa-hourglass-half" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">In Escrow</p>
+                        <p style="font-size: 26px; font-weight: 700;">${formatCurrency(escrow)}</p>
+                        <p style="font-size: 11px; margin-top: 4px;">3-day buffer</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; text-align: center;">
+                        <i class="fas fa-wallet" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Available to Withdraw</p>
+                        <p style="font-size: 26px; font-weight: 700;">${formatCurrency(available)}</p>
+                    </div>
+                </div>
+            </div>
+            ${w.available !== undefined ? `
+            <div class="chart-card" style="margin-bottom: 16px;">
+                <div style="background: linear-gradient(135deg, #4f46e5, #7c3aed); border-radius: 16px; padding: 24px; color: white;">
+                    <h4 style="color: white; font-size: 18px; margin-bottom: 20px;">💰 My Wallet</h4>
+                    <div class="row" style="text-align: center;">
+                        <div class="col">
+                            <p style="font-size: 12px; opacity: 0.8;">Available</p>
+                            <p style="font-size: 22px; font-weight: 700;">${formatCurrency(w.available)}</p>
+                        </div>
+                        <div class="col">
+                            <p style="font-size: 12px; opacity: 0.8;">In Escrow</p>
+                            <p style="font-size: 22px; font-weight: 700;">${formatCurrency(w.escrow)}</p>
+                        </div>
+                        <div class="col">
+                            <p style="font-size: 12px; opacity: 0.8;">Pending</p>
+                            <p style="font-size: 22px; font-weight: 700;">${formatCurrency(pendingWithdrawal)}</p>
+                        </div>
+                    </div>
+                    <button class="btn-secondary mt-3" onclick="alert('Withdrawal feature coming soon')" style="background: white; color: #4f46e5; border: none; font-weight: 600;">
+                        <i class="fas fa-arrow-up"></i> Request Withdrawal
+                    </button>
+                </div>
+            </div>
+            ` : ''}
+            <div class="chart-card">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;"><i class="fas fa-tachometer-alt" style="color: #4f46e5;"></i> Settlement Progress</h3>
+                <div class="progress-bar" style="height: 8px;">
+                    <div class="progress-fill" style="width: ${settlePercent}%"></div>
+                </div>
+                <p style="font-size: 12px; color: #64748b; text-align: center; margin-top: 8px;">${Math.round(settlePercent)}% of your funds are settled</p>
             </div>
         `;
         document.getElementById('tabContent').innerHTML = html;
