@@ -18,7 +18,14 @@
             <span id="currentDate"></span>
         </div>
     </div>
-
+    {% if messages %}
+    <div id="alertBox" style="margin-bottom:15px; padding:12px 40px 12px 12px; border-radius:8px; background:#e2e5fe; color:#1d21ff; font-weight:600; position:relative;">
+        {% for message in messages %}
+            {{ message }}
+        {% endfor %}
+        <span onclick="document.getElementById('alertBox').style.display='none'" style="position:absolute; right:12px; top:8px; cursor:pointer; font-size:18px; font-weight:bold;">×</span>
+    </div>
+    {% endif %}
     <!-- WELCOME CARD -->
     <div class="welcome-card 
     {% if user.role == 'admin' %}admin-bg{% endif %}">
@@ -526,7 +533,9 @@
         flex-wrap: wrap;
         /* 🔥 IMPORTANT */
         gap: 10px;
+        margin-bottom: 15px;
     }
+
 
     .dashboard-title-section {
         flex: 1;

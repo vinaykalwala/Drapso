@@ -606,12 +606,12 @@
 <div class="card-grid">
 {% for account in accounts %}
 <div class="bank-card {% if account.is_primary and account.is_verified %}primary{% endif %}">
-    <div class="card-header">
+        <div class="card-header">
         <div class="card-top">
             <div class="bank-info">
                 <div class="bank-name">
                     {{ account.bank_name }}
-                    {% if account.is_primary and account.is_verified %}
+                    {% if account.is_primary %}
                         <span class="badge badge-primary">★ Primary</span>
                     {% endif %}
                     {% if not account.is_verified %}
