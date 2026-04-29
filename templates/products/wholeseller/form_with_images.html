@@ -345,7 +345,11 @@
 
                         <!-- SUBCATEGORY (optional) -->
                         <div class="form-group">
-                            <label><i class="fas fa-tag"></i> Subcategory</label>
+                            <label><i class="fas fa-tag"></i> Subcategory
+                                                                {% if form.category.field.required %}<span class="required-asterisk">*</span>{% endif %}
+
+                            </label>
+                            
                             {{ form.subcategory }}
                         </div>
 
@@ -371,7 +375,7 @@
                                             {% elif field.name == "description" %}
                                                 <i class="fas fa-align-left"></i>
                                             {% elif field.name == "price" %}
-                                                <i class="fas fa-dollar-sign"></i>
+                                                   <i class="fas fa-rupee-sign"></i>
                                             {% elif field.name == "stock" %}
                                                 <i class="fas fa-boxes"></i>
                                             {% else %}
@@ -449,7 +453,9 @@
                                 <!-- Alt text & Order -->
                                 <div class="row g-3">
                                     <div class="col-12 col-md-6">
-                                        <label class="small fw-semibold mb-1">Alt text</label>
+                                        <label class="small fw-semibold mb-1">Alt text *
+                                            
+                                        </label>
                                         {{ f.alt_text }}
                                     </div>
                                     <div class="col-12 col-md-6">
@@ -585,7 +591,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
-                            <label class="small fw-semibold mb-1">Alt text</label>
+                            <label class="small fw-semibold mb-1">Alt text *</label>
                             <input type="text" name="${prefix}-${formCount}-alt_text" class="form-control">
                         </div>
                         <div class="col-12 col-md-6">

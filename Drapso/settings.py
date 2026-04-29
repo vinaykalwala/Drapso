@@ -77,7 +77,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'accounts.context_processors.user_profile_data',
                 'resellers.context_processors.store_context',
-                "orders.context_processors.dynamic_base_template",
+                'general.context_processors.global_settings',
             ],
         },
     },
@@ -92,7 +92,7 @@ WSGI_APPLICATION = 'Drapso.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'db2.sqlite3',
     }
 }
 
@@ -176,4 +176,9 @@ SHIPROCKET_EMAIL = 'dandugulamanojkumar@gmail.com'
 SHIPROCKET_PASSWORD = 'rGe&NvTK@Xw9e@n&Ltbul1bTL8CIBKiE'
 SHIPROCKET_BASE_URL = 'https://apiv2.shiprocket.in/v1/external'
 SHIPROCKET_WEBHOOK_SECRET = ''
+
+
+
+# settings.py
+MAIN_DOMAIN = "http://127.0.0.1:8000"
 
