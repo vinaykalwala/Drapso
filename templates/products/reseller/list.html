@@ -888,10 +888,10 @@
         {% for product in products %}
         <div class="product-card" data-product-id="{{ product.id }}">
             
-            {% if product.has_price_change_pending %}
+            <!-- {% if product.has_price_change_pending %}
                 <div class="product-price-badge"><i class="fas fa-exclamation-circle"></i> Price Change Pending</div>
             {% endif %}
-            
+             -->
            
             
             {% if product.source_type != 'imported' %}
@@ -1044,7 +1044,7 @@
 
 {% if product.source_type == 'imported' %}
 
-Cost: ₹{{ product.source_product.discounted_price|default:product.source_price|floatformat:2 }}
+Cost: ₹{{ product.source_price|default:product.source_price|floatformat:2 }}
 
 | Margin: ₹{{ product.margin_rupees|floatformat:2 }}
 

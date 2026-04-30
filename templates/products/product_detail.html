@@ -1004,7 +1004,7 @@
                 Source Price
             </span>
               <span class="pd-price-item-value">
-            ₹{{ product.source_product.discounted_price|floatformat:2 }}
+            ₹{{ product.source_price|floatformat:2 }}
         </span>
         </div>
 
@@ -1342,7 +1342,7 @@
 
         <!-- wholeseller discounted price (before margin) -->
 
-        ₹{{ variant.source_variant.discounted_price|floatformat:2 }}
+        ₹{{ variant.source_price|floatformat:2 }}
 
         <span style="
             text-decoration: line-through;
@@ -1359,7 +1359,7 @@
 
     {% else %}
 
-        ₹{{ variant.source_variant.discounted_price|floatformat:2 }}
+        ₹{{ variant.source_price|floatformat:2 }}
 
     {% endif %}
 
