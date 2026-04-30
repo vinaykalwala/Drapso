@@ -224,6 +224,8 @@ def admin_settlement_report(request):
     # ✅ Add formatted values
     total_settled['total_order_value_short'] = format_k(total_settled.get('total_order_value'))
     total_settled['net_to_sellers_short'] = format_k(net_to_sellers)
+    # ✅ NEW: To Resellers
+    total_settled['total_reseller_short'] = format_k(total_settled.get('total_reseller'))
     
     # Check for CSV export
     if request.GET.get('export') == 'csv':
