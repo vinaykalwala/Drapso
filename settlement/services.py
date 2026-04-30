@@ -6,6 +6,13 @@ from django.db import transaction
 from datetime import timedelta
 import razorpay
 from django.conf import settings
+import logging
+import re
+from requests.auth import HTTPBasicAuth
+import requests
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 class DrapsoSettlementService:
     """
@@ -327,8 +334,8 @@ class DrapsoSettlementService:
 class WithdrawalService:
     """Handles withdrawal requests with admin approval - NEFT only"""
     
-    MINIMUM_WITHDRAWAL_AMOUNT = 100
-    WEEKLY_WITHDRAWAL_LIMIT = 50000
+    MINIMUM_WITHDRAWAL_AMOUNT = 1000
+    WEEKLY_WITHDRAWAL_LIMIT = 10000
     
     @classmethod
     def get_neft_payout_fee(cls):
@@ -442,98 +449,138 @@ class WithdrawalService:
         withdrawal.reject(reason, admin_user)
         return withdrawal
     
-    # settlement/services.py - Modified for testing
-
     @classmethod
-    def process_approved_payouts(cls, test_mode=True):
-        """
-        Process approved withdrawals
-        Set test_mode=True to simulate payouts without Razorpay
-        """
-        from .models import WithdrawalRequest, WalletTransaction
-        from accounts.models import User
-        from django.utils import timezone
+    def process_approved_payouts(cls, test_mode=False):
+        from .models import WithdrawalRequest
         
         approved_withdrawals = WithdrawalRequest.objects.filter(status='APPROVED')
         results = []
         
+        if not test_mode and not getattr(settings, 'RAZORPAYX_ACCOUNT_NUMBER', None):
+            error_msg = "RAZORPAYX_ACCOUNT_NUMBER is not configured in settings"
+            logger.error(error_msg)
+            return [{'error': error_msg, 'status': 'failed'}]
+        
+        # Setup authentication for direct requests
+        auth = HTTPBasicAuth(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+        base_url = "https://api.razorpay.com/v1"
+        
         for withdrawal in approved_withdrawals:
             try:
+                if withdrawal.razorpay_payout_id:
+                    results.append({
+                        'withdrawal_id': str(withdrawal.id),
+                        'status': 'skipped',
+                        'reason': 'Already processed'
+                    })
+                    continue
+                
                 if test_mode:
-                    # TEST MODE: Just mark as completed without actual payout
                     withdrawal.razorpay_payout_id = f"TEST_{withdrawal.id}"
-                    withdrawal.complete()
-                    
-                    # Log the test payout
-                    print(f"[TEST MODE] Payout would be sent: ₹{withdrawal.amount} to {withdrawal.bank_name}")
-                    
+                    withdrawal.status = "COMPLETED"
+                    withdrawal.save(update_fields=["razorpay_payout_id", "status"])
                     results.append({
                         'withdrawal_id': str(withdrawal.id),
                         'status': 'completed',
-                        'payout_id': withdrawal.razorpay_payout_id,
-                        'mode': 'TEST_MODE',
-                        'fee_paid': withdrawal.neft_fee
+                        'mode': 'test'
                     })
-                else:
-                    # REAL MODE: Call Razorpay API (only works if RazorpayX is enabled)
-                    import razorpay
-                    from django.conf import settings
+                    continue
+                
+                # Prepare data
+                amount_paisa = int(round(float(withdrawal.amount) * 100))
+                phone = str(withdrawal.wallet.user.phone)[-10:] if withdrawal.wallet.user.phone else "9999999999"
+                email = withdrawal.wallet.user.email or f"user{withdrawal.wallet.user.id}@example.com"
+                
+                # Step 1: Create Contact (if not exists)
+                if not withdrawal.razorpay_contact_id:
+                    contact_data = {
+                        "name": withdrawal.account_holder_name[:100],
+                        "email": email[:100],
+                        "contact": "91" + phone,
+                        "type": "vendor",
+                        "reference_id": str(withdrawal.wallet.user.id)
+                    }
                     
-                    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+                    response = requests.post(f"{base_url}/contacts", json=contact_data, auth=auth)
                     
-                    # Create contact
-                    if not withdrawal.razorpay_contact_id:
-                        contact = client.contact.create({
-                            "name": withdrawal.account_holder_name,
-                            "email": withdrawal.wallet.user.email,
-                            "contact": withdrawal.wallet.user.phone,
-                            "type": "customer"
-                        })
-                        withdrawal.razorpay_contact_id = contact['id']
-                        withdrawal.save()
+                    if response.status_code not in [200, 201]:
+                        raise Exception(f"Contact creation failed: {response.text}")
                     
-                    # Create fund account
-                    if not withdrawal.fund_account_id:
-                        fund_account = client.fund_account.create({
-                            "contact_id": withdrawal.razorpay_contact_id,
-                            "account_type": "bank_account",
-                            "bank_account": {
-                                "name": withdrawal.account_holder_name,
-                                "ifsc": withdrawal.ifsc_code,
-                                "account_number": withdrawal.account_number
-                            }
-                        })
-                        withdrawal.fund_account_id = fund_account['id']
-                        withdrawal.save()
+                    contact = response.json()
+                    withdrawal.razorpay_contact_id = contact['id']
+                    withdrawal.save(update_fields=['razorpay_contact_id'])
                     
-                    # Create payout
-                    payout = client.payout.create({
-                        "account_number": settings.RAZORPAYX_ACCOUNT_NUMBER,
-                        "fund_account_id": withdrawal.fund_account_id,
-                        "amount": int(withdrawal.amount * 100),
-                        "currency": "INR",
-                        "mode": "NEFT",
-                        "purpose": "payout",
-                        "reference_id": str(withdrawal.id),
-                        "narration": f"Drapso Payout {withdrawal.id}"
-                    })
+                
+                # Step 2: Create Fund Account (if not exists)
+                if not withdrawal.fund_account_id:
+                    fund_data = {
+                        "contact_id": withdrawal.razorpay_contact_id,
+                        "account_type": "bank_account",
+                        "bank_account": {
+                            "name": withdrawal.account_holder_name[:100],
+                            "ifsc": withdrawal.ifsc_code,
+                            "account_number": str(withdrawal.account_number)
+                        }
+                    }
                     
-                    withdrawal.razorpay_payout_id = payout['id']
-                    withdrawal.complete()
+                    response = requests.post(f"{base_url}/fund_accounts", json=fund_data, auth=auth)
                     
-                    results.append({
-                        'withdrawal_id': str(withdrawal.id),
-                        'status': 'completed',
-                        'payout_id': payout['id'],
-                        'mode': 'LIVE',
-                        'fee_paid': withdrawal.neft_fee
-                    })
+                    if response.status_code not in [200, 201]:
+                        raise Exception(f"Fund account creation failed: {response.text}")
                     
+                    fund_account = response.json()
+                    withdrawal.fund_account_id = fund_account['id']
+                    withdrawal.save(update_fields=['fund_account_id'])
+                    
+                
+                # Step 3: Create Payout (without idempotency header to avoid conflict)
+                short_id = str(withdrawal.id)[:20]
+                narration = "Payout"
+                
+                payout_data = {
+                    "account_number": str(settings.RAZORPAYX_ACCOUNT_NUMBER),
+                    "fund_account_id": withdrawal.fund_account_id,
+                    "amount": amount_paisa,
+                    "currency": "INR",
+                    "mode": "NEFT",
+                    "purpose": "payout",
+                    "reference_id": str(withdrawal.id) + "_" + str(int(withdrawal.created_at.timestamp())) if hasattr(withdrawal, 'created_at') else str(withdrawal.id),
+                    "narration": narration,
+                    "queue_if_low_balance": True,
+                    "notes": {
+                        "withdrawal_id": str(withdrawal.id),
+                        "user_id": str(withdrawal.wallet.user.id)
+                    }
+                }
+                
+                
+                response = requests.post(f"{base_url}/payouts", json=payout_data, auth=auth)
+                
+                if response.status_code not in [200, 201]:
+                    raise Exception(f"Payout creation failed: {response.text}")
+                
+                payout = response.json()
+                
+                withdrawal.razorpay_payout_id = payout['id']
+                withdrawal.status = "COMPLETED"
+                withdrawal.save(update_fields=["razorpay_payout_id", "status"])
+                
+                results.append({
+                    'withdrawal_id': str(withdrawal.id),
+                    'status': 'processing',
+                    'payout_id': payout['id']
+                })
+                
             except Exception as e:
+                error_msg = str(e)
+                
                 results.append({
                     'withdrawal_id': str(withdrawal.id),
                     'status': 'failed',
-                    'error': str(e)
+                    'error': error_msg,
+                    'amount': str(withdrawal.amount),
+                    'account': withdrawal.account_number,
+                    'ifsc': withdrawal.ifsc_code
                 })
         
         return results

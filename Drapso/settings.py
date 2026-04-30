@@ -77,8 +77,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'accounts.context_processors.user_profile_data',
                 'resellers.context_processors.store_context',
-                "products.context_processors.reseller_store",
-                "orders.context_processors.dynamic_base_template",
+                'general.context_processors.global_settings',
             ],
         },
     },
@@ -93,7 +92,7 @@ WSGI_APPLICATION = 'Drapso.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'db2.sqlite3',
     }
 }
 
@@ -146,10 +145,10 @@ AUTH_USER_MODEL = 'accounts.User'
 AUTHENTICATION_BACKENDS = [
     'accounts.backends.EmailOrUsernameBackend',
 ]
-RAZORPAY_KEY_ID = 'rzp_test_KdiESTDcHPC74B'
-RAZORPAY_KEY_SECRET = 'F8aPdLzdQKLt3RmgTWFcnYBG'
+RAZORPAY_KEY_ID = 'rzp_test_SipGv44QRSqWtJ'
+RAZORPAY_KEY_SECRET = 'KrYQ0wqvkybDSnuNgKGVMRW5'
 RAZORPAY_CURRENCY = 'INR'
-RAZORPAYX_ACCOUNT_NUMBER = '2323232323232323'
+RAZORPAYX_ACCOUNT_NUMBER = '2323230032242076'
 
 SUBSCRIPTION_CURRENCY = "INR"
 
@@ -177,4 +176,9 @@ SHIPROCKET_EMAIL = 'dandugulamanojkumar@gmail.com'
 SHIPROCKET_PASSWORD = 'rGe&NvTK@Xw9e@n&Ltbul1bTL8CIBKiE'
 SHIPROCKET_BASE_URL = 'https://apiv2.shiprocket.in/v1/external'
 SHIPROCKET_WEBHOOK_SECRET = ''
+
+
+
+# settings.py
+MAIN_DOMAIN = "http://127.0.0.1:8000"
 

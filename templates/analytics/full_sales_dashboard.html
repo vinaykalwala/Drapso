@@ -1,195 +1,811 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Sales and Financial Analytics Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
+{% extends "dashboard_base.html" %}
+{% load static %}
 
-<body>
+{% block title %}Sales & Financial Analytics Dashboard{% endblock %}
 
-<h1>📊 Sales and Financial Analytics Dashboard</h1>
-
-<!-- ================= FILTER SECTION ================= -->
-<h2>Filter Sales Data</h2>
-
-<form method="get">
-    <label>Start Date:</label>
-    <input type="date" name="start_date">
-
-    <label>End Date:</label>
-    <input type="date" name="end_date">
-
-    <label>Select Time Period:</label>
-    <select name="filter">
-        <option value="day">Daily Analysis</option>
-        <option value="month">Monthly Analysis</option>
-        <option value="year">Yearly Analysis</option>
-    </select>
-
-    <button type="submit">Apply Filters</button>
-</form>
-
-<hr>
-
-<!-- ================= CORE SALES METRICS ================= -->
-<h2>Overall Sales Performance</h2>
-
-<p><strong>Total Sales Amount:</strong> ₹{{ total_sales }}</p>
-<p><strong>Total Number of Orders:</strong> {{ total_orders }}</p>
-<p><strong>Average Order Value:</strong> ₹{{ avg_order }}</p>
-
-<p>
-<strong>Sales Growth Percentage:</strong>
-<span style="color:{% if growth > 0 %}green{% else %}red{% endif %}">
-    {{ growth }}%
-</span>
-</p>
-
-<hr>
-
-<!-- ================= FINANCIAL METRICS ================= -->
-<h2>Financial Breakdown</h2>
-
-{% if request.user.role == 'reseller' %}
-    <p><strong>Total Profit Earned by You (Reseller):</strong> ₹{{ reseller_profit }}</p>
-{% endif %}
-
-{% if request.user.role == 'wholeseller' %}
-    <p><strong>Total Earnings for You (Wholeseller):</strong> ₹{{ wholeseller_earnings }}</p>
-{% endif %}
-
-{% if request.user.role == 'admin' or request.user.is_superuser %}
-    <p><strong>Total Platform Commission Earned:</strong> ₹{{ platform_revenue }}</p>
-{% endif %}
-
-<p><strong>Total Shipping Charges:</strong> ₹{{ total_shipping }}</p>
-<p><strong>Number of Loss-Making Orders:</strong> {{ loss_orders }}</p>
-
-<hr>
-
-<!-- ================= ORDER STATUS ================= -->
-<h2>Order Status Distribution</h2>
-
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Order Status</th>
-        <th>Number of Orders</th>
-    </tr>
-    {% for s in status_data %}
-    <tr>
-        <td>{{ s.order_status }}</td>
-        <td>{{ s.count }}</td>
-    </tr>
-    {% endfor %}
-</table>
-
-<hr>
-
-<!-- ================= PAYMENT STATUS ================= -->
-<h2>Payment Status Distribution</h2>
-
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Payment Status</th>
-        <th>Number of Orders</th>
-    </tr>
-    {% for p in payment_data %}
-    <tr>
-        <td>{{ p.payment_status }}</td>
-        <td>{{ p.count }}</td>
-    </tr>
-    {% endfor %}
-</table>
-
-<hr>
-
-<!-- ================= TOP RESELLERS (ADMIN ONLY) ================= -->
-{% if request.user.role == 'admin' or request.user.is_superuser %}
-<h2>Top Performing Resellers</h2>
-
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Reseller Name</th>
-        <th>Total Sales Amount</th>
-    </tr>
-    {% for r in reseller_data %}
-    <tr>
-        <td>{{ r.reseller__username }}</td>
-        <td>₹{{ r.total }}</td>
-    </tr>
-    {% endfor %}
-</table>
-{% endif %}
-
-<hr>
-
-<!-- ================= TOP PRODUCTS ================= -->
-<h2>Top Selling Products</h2>
-
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Product Name</th>
-        <th>Total Quantity Sold</th>
-        <th>Total Revenue Generated</th>
-    </tr>
-    {% for p in top_products %}
-    <tr>
-        <td>{{ p.product__name }}</td>
-        <td>{{ p.qty }}</td>
-        <td>₹{{ p.revenue }}</td>
-    </tr>
-    {% endfor %}
-</table>
-
-<hr>
-
-<!-- ================= PEAK HOURS ================= -->
-<h2>Peak Order Times</h2>
-
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Hour of the Day</th>
-        <th>Number of Orders</th>
-    </tr>
-    {% for h in peak_hours %}
-    <tr>
-        <td>{{ h.hour }}:00</td>
-        <td>{{ h.count }}</td>
-    </tr>
-    {% endfor %}
-</table>
-
-<hr>
-
-<!-- ================= SALES TREND CHART ================= -->
-<h2>Sales Trend Over Time</h2>
-
-<canvas id="salesChart"></canvas>
-
-<script>
-const labels = [
-{% for d in sales_data %}
-    "{{ d.period|date:'Y-m-d' }}",
-{% endfor %}
-];
-
-const data = [
-{% for d in sales_data %}
-    {{ d.total_sales|default:0 }},
-{% endfor %}
-];
-
-new Chart(document.getElementById('salesChart'), {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: 'Total Sales Amount Over Time',
-            data: data
-        }]
+{% block content %}
+<style>
+    /* ========================================
+       PERFECT LAYOUT - CARDS WITH BORDERS ONLY
+    ======================================== */
+    
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
     }
-});
-</script>
+    
+    .content {
+        background: #f8fafc;
+        padding: 10px 25px;
+    }
+    
+    /* Top Section - Fixed Width */
+    .top-section {
+        background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+        max-width: 1350px;
+        margin: 0 auto;
+        padding: 30px 32px 50px 32px;
+        border-radius: 16px 16px 0 0;
+    }
+    
+    /* Title Area */
+    .title-area {
+        margin-bottom: 24px;
+    }
+    
+    .title-area h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+    }
+    
+    .title-area p {
+        color: rgba(255,255,255,0.8);
+        margin-top: 6px;
+        font-size: 14px;
+    }
+    
+    /* Filter Bar - White */
+    .filter-bar {
+        background: rgba(255,255,255,0.95);
+        border-radius: 16px;
+        padding: 16px 24px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .filter-input, .filter-select {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 8px 14px;
+        font-size: 13px;
+        background: white;
+    }
+    
+    .btn-primary {
+        background: #3b82f6;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-outline {
+        background: white;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+        padding: 8px 18px;
+        border-radius: 10px;
+        font-size: 13px;
+        cursor: pointer;
+    }
+    
+    /* Cards Section */
+    .cards-section {
+        max-width: 1350px;
+        margin: -25px auto 0 auto;
+    }
+    
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        background: white;
+    }
+    
+    .stat-item {
+        padding: 24px;
+        background: white;
+        position: relative;
+    }
+    
+    .stat-item:not(:last-child) {
+        border-right: 1px solid #e2e8f0;
+    }
+    
+    .stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        margin-bottom: 8px;
+    }
+    
+    .stat-value {
+        font-size: 30px;
+        font-weight: 700;
+        color: #1e293b;
+        line-height: 1.2;
+        margin-bottom: 8px;
+    }
+    
+    .stat-trend {
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        margin-top: 8px;
+    }
+    
+    .trend-up { background: #dcfce7; color: #16a34a; }
+    .trend-down { background: #fee2e2; color: #dc2626; }
+    
+    .badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-block;
+    }
+    .badge-info { background: #dbeafe; color: #2563eb; }
+    .badge-success { background: #dcfce7; color: #16a34a; }
+    .badge-warning { background: #fef3c7; color: #d97706; }
+    .badge-danger { background: #fee2e2; color: #dc2626; }
+    
+    /* Financial Grid */
+    .financial-grid {
+        border: 1px solid #e2e8f0;
+        border-top: none;
+        overflow: hidden;
+        background: white;
+        margin-bottom: 24px;
+    }
+    .financial-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 300px));
+    justify-content: center;
+    gap: 0; /* keep your border style */
+}
+    .financial-item {
+        padding: 24px;
+        position: relative;
+    }
+    
+    .financial-item:not(:last-child) {
+        border-right: 1px solid #e2e8f0;
+    }
+    
+    .financial-item.green { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+    .financial-item.purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
+    .financial-item.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+    .financial-item.orange { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+    .financial-item.red { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+    
+    .financial-value {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    
+    .financial-label {
+        font-size: 12px;
+        opacity: 0.9;
+    }
+    
+    /* Charts Grid */
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        overflow: hidden;
+        background: white;
+        margin-bottom: 24px;
+    }
+    
+    .chart-item {
+        padding: 24px;
+        background: white;
+    }
+    
+    .chart-item:first-child {
+        border-right: 1px solid #e2e8f0;
+    }
+    
+    .chart-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    /* Chart Containers */
+    .chart-container {
+        width: 100%;
+        position: relative;
+    }
+    
+    .chart-container canvas {
+        width: 100% !important;
+        height: 280px !important;
+    }
+    
+    /* Pie Chart Container - Better Visibility */
+    .pie-chart-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 300px;
+    }
+    
+    .pie-chart-container canvas {
+        width: 250px !important;
+        height: 250px !important;
+    }
+    
+    /* Legend Styles for Pie Charts */
+    .pie-legend {
+        margin-top: 15px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: #334155;
+    }
+    
+    .legend-color {
+        width: 10px;
+        height: 10px;
+        border-radius: 10px;
+    }
+    
+    /* Table Card */
+    .table-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        overflow: hidden;
+        background: white;
+        margin-bottom: 24px;
+    }
+    
+    .table-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    .table-wrapper {
+        overflow-x: auto;
+        width: 100%;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 600px;
+    }
+    
+    .data-table th {
+        padding: 14px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+        white-space: nowrap;
+    }
+    
+    .data-table td {
+        padding: 12px 16px;
+        font-size: 13px;
+        color: #334155;
+        border-bottom: 1px solid #f0f2f5;
+        white-space: nowrap;
+    }
+    
+    .data-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .data-table th.text-right,
+    .data-table td.text-right {
+        text-align: right;
+    }
+    
+    /* Progress Bar */
+    .progress {
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        width: 120px;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: #3b82f6;
+        border-radius: 10px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .content { padding: 10px 20px; }
+        .stats-grid, .financial-grid { grid-template-columns: repeat(2, 1fr); }
+        .charts-grid { grid-template-columns: 1fr; }
+        .chart-item:first-child { border-right: none; border-bottom: 1px solid #e2e8f0; }
+        .top-section { padding: 25px 25px 45px 25px; }
+        .pie-chart-container canvas { width: 220px !important; height: 220px !important; }
+    }
+    
+    @media (max-width: 992px) {
+        .stats-grid, .financial-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    
+    @media (max-width: 768px) {
+        .content { padding: 10px 15px; }
+        .stats-grid, .financial-grid { grid-template-columns: 1fr; }
+        .stat-item:not(:last-child) { border-right: none; border-bottom: 1px solid #e2e8f0; }
+        .financial-item:not(:last-child) { border-right: none; border-bottom: 1px solid #e2e8f0; }
+        .charts-grid { grid-template-columns: 1fr; }
+        .filter-bar .flex-between { flex-direction: column; gap: 12px; align-items: stretch; }
+        .filter-bar form > div { flex-direction: column; align-items: stretch; }
+        .filter-input, .filter-select, .btn-primary, .btn-outline { width: 100%; }
+        .top-section { padding: 20px 20px 35px 20px; }
+        .title-area h1 { font-size: 22px; }
+        .stat-value { font-size: 24px; }
+        .financial-value { font-size: 22px; }
+        .data-table th, .data-table td { padding: 10px 12px; }
+        .progress { width: 80px; }
+        .pie-chart-container canvas { width: 200px !important; height: 200px !important; }
+        .pie-chart-container { min-height: 260px; }
+    }
+    
+    @media (max-width: 480px) {
+        .stat-item { padding: 16px; }
+        .financial-item { padding: 16px; }
+        .chart-item { padding: 16px; }
+        .table-header { padding: 15px; }
+        .chart-container canvas { height: 220px !important; }
+        .pie-chart-container canvas { width: 180px !important; height: 180px !important; }
+    }
+    
+    /* Utilities */
+    .flex { display: flex; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .flex-wrap { flex-wrap: wrap; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .mt-2 { margin-top: 8px; }
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    .overflow-auto { overflow-x: auto; }
+</style>
 
-</body>
-</html>
+<div class="content">
+    
+    <!-- Top Section - Fixed Width -->
+    <div class="top-section">
+        <div class="title-area">
+            <h1>📊 Sales & Financial Analytics</h1>
+            <p>Complete insights into your business performance</p>
+        </div>
+        
+        <div class="filter-bar">
+            <form method="get" class="flex justify-between items-center flex-wrap" style="gap: 16px;">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="filter-input">
+                    <span style="color: #94a3b8;">→</span>
+                    <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="filter-input">
+                    <select name="filter" class="filter-select">
+                        <option value="day" {% if request.GET.filter == 'day' %}selected{% endif %}>Daily Analysis</option>
+                        <option value="month" {% if request.GET.filter != 'day' and request.GET.filter != 'year' %}selected{% endif %}>Monthly Analysis</option>
+                        <option value="year" {% if request.GET.filter == 'year' %}selected{% endif %}>Yearly Analysis</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="submit" class="btn-primary"><i class="fas fa-filter"></i> Apply</button>
+                    <a href="." class="btn-outline"><i class="fas fa-sync-alt"></i> Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Cards Section -->
+    <div class="cards-section">
+        
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-icon" style="background: #eef2ff; color: #3b82f6;">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-label">Total Revenue</div>
+                <div class="stat-value">₹{{ total_sales|floatformat:0 }}</div>
+                <span class="badge badge-info">All Orders</span>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-icon" style="background: #dcfce7; color: #22c55e;">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="stat-label">Total Orders</div>
+                <div class="stat-value">{{ total_orders }}</div>
+                <span class="badge badge-success">Completed</span>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-icon" style="background: #fef3c7; color: #f59e0b;">
+                    <i class="fas fa-chart-simple"></i>
+                </div>
+                <div class="stat-label">Avg Order Value</div>
+                <div class="stat-value">₹{{ avg_order|floatformat:0 }}</div>
+                <div class="stat-trend {% if growth > 0 %}trend-up{% else %}trend-down{% endif %}">
+                    <i class="fas {% if growth > 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %}"></i>
+                    {{ growth }}% vs last period
+                </div>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-icon" style="background: #fee2e2; color: #ef4444;">
+                    <i class="fas fa-percent"></i>
+                </div>
+                <div class="stat-label">Growth Rate</div>
+                <div class="stat-value" style="color: {% if growth > 0 %}#16a34a{% else %}#dc2626{% endif %};">
+                    {% if growth > 0 %}+{% endif %}{{ growth }}%
+                </div>
+                <span class="badge {% if growth > 0 %}badge-success{% else %}badge-danger{% endif %}">Period over Period</span>
+            </div>
+        </div>
+        
+        <!-- Financial Grid -->
+        <div class="financial-grid">
+            {% if request.user.role == 'reseller' %}
+            <div class="financial-item green">
+                <i class="fas fa-user-check" style="font-size: 24px; margin-bottom: 12px;"></i>
+                <div class="financial-value">₹{{ reseller_profit|floatformat:0 }}</div>
+                <div class="financial-label">Your Profit (Reseller)</div>
+            </div>
+            {% endif %}
+            
+            {% if request.user.role == 'wholeseller' %}
+            <div class="financial-item purple">
+                <i class="fas fa-warehouse" style="font-size: 24px; margin-bottom: 12px;"></i>
+                <div class="financial-value">₹{{ wholeseller_earnings|floatformat:0 }}</div>
+                <div class="financial-label">Your Earnings (Wholeseller)</div>
+            </div>
+            {% endif %}
+            
+            {% if request.user.role == 'admin' or request.user.is_superuser %}
+            <div class="financial-item blue">
+                <i class="fas fa-building" style="font-size: 24px; margin-bottom: 12px;"></i>
+                <div class="financial-value">₹{{ platform_revenue|floatformat:0 }}</div>
+                <div class="financial-label">Platform Commission</div>
+            </div>
+            {% endif %}
+            
+            <div class="financial-item orange">
+                <i class="fas fa-truck" style="font-size: 24px; margin-bottom: 12px;"></i>
+                <div class="financial-value">₹{{ total_shipping|floatformat:0 }}</div>
+                <div class="financial-label">Shipping Charges</div>
+            </div>
+            
+            <div class="financial-item red">
+                <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 12px;"></i>
+                <div class="financial-value">{{ loss_orders }}</div>
+                <div class="financial-label">Loss Making Orders</div>
+            </div>
+        </div>
+        
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+            <div class="chart-item">
+                <div class="chart-title">
+                    <i class="fas fa-chart-line" style="color: #3b82f6;"></i>
+                    <span>Revenue Trend Over Time</span>
+                    <span class="badge badge-info" style="margin-left: auto;">Trend</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-item">
+                <div class="chart-title">
+                    <i class="fas fa-clock" style="color: #3b82f6;"></i>
+                    <span>Peak Order Hours</span>
+                    <span class="badge badge-warning" style="margin-left: auto;">24hr Format</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="peakChart"></canvas>
+                </div>
+                <div class="progress" style="margin-top: 16px;"><div class="progress-fill" style="width: 65%"></div></div>
+                <p class="text-center" style="font-size: 12px; color: #64748b; margin-top: 12px;">
+                    🔥 Most active: {% for h in peak_hours|slice:":2" %}{{ h.hour }}:00 {% endfor %}
+                </p>
+            </div>
+        </div>
+        
+        <!-- Status Charts - With Better Labels -->
+        <div class="charts-grid">
+            <div class="chart-item">
+                <div class="chart-title">
+                    <i class="fas fa-chart-pie" style="color: #3b82f6;"></i>
+                    <span>Order Status Distribution</span>
+                </div>
+                <div class="pie-chart-container">
+                    <canvas id="orderChart"></canvas>
+                </div>
+                <!-- Custom Legend for Order Status -->
+                <div class="pie-legend" id="orderLegend"></div>
+            </div>
+            
+            <div class="chart-item">
+                <div class="chart-title">
+                    <i class="fas fa-credit-card" style="color: #3b82f6;"></i>
+                    <span>Payment Status Distribution</span>
+                </div>
+                <div class="pie-chart-container">
+                    <canvas id="paymentChart"></canvas>
+                </div>
+                <!-- Custom Legend for Payment Status -->
+                <div class="pie-legend" id="paymentLegend"></div>
+            </div>
+        </div>
+        
+        <!-- Top Resellers Table -->
+        {% if request.user.role == 'admin' or request.user.is_superuser %}
+        <div class="table-card">
+            <div class="table-header">
+                <div class="chart-title" style="margin-bottom: 0;">
+                    <i class="fas fa-trophy" style="color: #eab308;"></i>
+                    <span>Top Performing Resellers</span>
+                </div>
+                <span class="badge badge-success">Leaderboard</span>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">Rank</th>
+                            <th>Reseller Name</th>
+                            <th style="width: 150px;" class="text-right">Total Sales</th>
+                            <th style="width: 200px;">Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in reseller_data %}
+                        <tr>
+                            <td>
+                                {% if forloop.counter == 1 %}🏆 1st
+                                {% elif forloop.counter == 2 %}🥈 2nd
+                                {% elif forloop.counter == 3 %}🥉 3rd
+                                else {{ forloop.counter }}th
+                                {% endif %}
+                            </td>
+                            <td><strong>{{ r.reseller__username }}</strong></td>
+                            <td class="text-right" style="color: #16a34a; font-weight: 600;">₹{{ r.total|floatformat:2 }}</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-fill" style="width: {% widthratio r.total reseller_data.0.total 100 %}%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <td><td colspan="4" class="text-center" style="padding: 40px;">No reseller data available</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Top Products Table -->
+        <div class="table-card">
+            <div class="table-header">
+                <div class="chart-title" style="margin-bottom: 0;">
+                    <i class="fas fa-fire" style="color: #f97316;"></i>
+                    <span>Best Selling Products</span>
+                </div>
+                <span class="badge badge-danger">Top Products</span>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">#</th>
+                            <th>Product Name</th>
+                            <th style="width: 120px;" class="text-right">Quantity</th>
+                            <th style="width: 150px;" class="text-right">Revenue</th>
+                            <th style="width: 200px;">Market Share</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in top_products %}
+                        <tr>
+                            <td>#{{ forloop.counter }}</td>
+                            <td><strong>{{ p.product__name|truncatechars:50 }}</strong></td>
+                            <td class="text-right">{{ p.qty }} units</td>
+                            <td class="text-right" style="color: #16a34a; font-weight: 600;">₹{{ p.revenue|floatformat:2 }}</td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="progress" style="flex: 1;">
+                                        <div class="progress-fill" style="width: {% widthratio p.revenue top_products.0.revenue 100 %}%"></div>
+                                    </div>
+                                    <span style="font-size: 12px; min-width: 40px;">{% widthratio p.revenue top_products.0.revenue 100 %}%</span>
+                                </div>
+                              </td>
+                          </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center" style="padding: 40px;">No product data available</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    function formatCurrency(value) {
+        return '₹' + value.toLocaleString('en-IN');
+    }
+    
+    // Sales Chart
+    const salesLabels = [{% for d in sales_data %}"{{ d.period|date:'M d' }}",{% endfor %}];
+    const salesValues = [{% for d in sales_data %}{{ d.total_sales|default:0 }},{% endfor %}];
+    
+    new Chart(document.getElementById('salesChart'), {
+        type: 'line',
+        data: {
+            labels: salesLabels,
+            datasets: [{
+                data: salesValues,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59,130,246,0.05)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3,
+                pointRadius: 3,
+                pointBackgroundColor: '#3b82f6'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => formatCurrency(ctx.raw) } } },
+            scales: { y: { beginAtZero: true, ticks: { callback: (v) => '₹' + (v/1000).toFixed(0) + 'k' } }, x: { ticks: { maxRotation: 45, autoSkip: true } } }
+        }
+    });
+    
+    // Peak Hours Chart
+    const peakLabels = [{% for h in peak_hours %}"{{ h.hour }}:00",{% endfor %}];
+    const peakValues = [{% for h in peak_hours %}{{ h.count }},{% endfor %}];
+    
+    new Chart(document.getElementById('peakChart'), {
+        type: 'bar',
+        data: {
+            labels: peakLabels,
+            datasets: [{
+                data: peakValues,
+                backgroundColor: '#3b82f6',
+                borderRadius: 6,
+                barPercentage: 0.7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ctx.raw + ' orders' } } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { ticks: { autoSkip: true, maxTicksLimit: 8 } } }
+        }
+    });
+    
+    // Order Status Pie Chart - With Custom Legend
+    const orderLabels = [{% for s in status_data %}"{{ s.order_status }}",{% endfor %}];
+    const orderValues = [{% for s in status_data %}{{ s.count }},{% endfor %}];
+    const orderTotal = orderValues.reduce((a,b) => a + b, 0);
+    const orderColors = ['#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
+    
+    const orderCtx = document.getElementById('orderChart').getContext('2d');
+    new Chart(orderCtx, {
+        type: 'pie',
+        data: {
+            labels: orderLabels,
+            datasets: [{
+                data: orderValues,
+                backgroundColor: orderColors.slice(0, orderLabels.length),
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { 
+                    callbacks: { 
+                        label: (ctx) => `${ctx.label}: ${ctx.raw} orders (${((ctx.raw/orderTotal)*100).toFixed(1)}%)` 
+                    }
+                }
+            }
+        }
+    });
+    
+    // Custom Legend for Order Status
+    const orderLegendHtml = orderLabels.map((label, i) => `
+        <div class="legend-item">
+            <div class="legend-color" style="background: ${orderColors[i]}"></div>
+            <span>${label}: ${orderValues[i]} (${((orderValues[i]/orderTotal)*100).toFixed(1)}%)</span>
+        </div>
+    `).join('');
+    document.getElementById('orderLegend').innerHTML = orderLegendHtml;
+    
+    // Payment Status Doughnut Chart - With Custom Legend
+    const paymentLabels = [{% for p in payment_data %}"{{ p.payment_status }}",{% endfor %}];
+    const paymentValues = [{% for p in payment_data %}{{ p.count }},{% endfor %}];
+    const paymentTotal = paymentValues.reduce((a,b) => a + b, 0);
+    const paymentColors = ['#22c55e', '#f59e0b', '#ef4444'];
+    
+    const paymentCtx = document.getElementById('paymentChart').getContext('2d');
+    new Chart(paymentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: paymentLabels,
+            datasets: [{
+                data: paymentValues,
+                backgroundColor: paymentColors.slice(0, paymentLabels.length),
+                borderWidth: 0,
+                cutout: '60%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { 
+                    callbacks: { 
+                        label: (ctx) => `${ctx.label}: ${ctx.raw} payments (${((ctx.raw/paymentTotal)*100).toFixed(1)}%)` 
+                    }
+                }
+            }
+        }
+    });
+    
+    // Custom Legend for Payment Status
+    const paymentLegendHtml = paymentLabels.map((label, i) => `
+        <div class="legend-item">
+            <div class="legend-color" style="background: ${paymentColors[i]}"></div>
+            <span>${label}: ${paymentValues[i]} (${((paymentValues[i]/paymentTotal)*100).toFixed(1)}%)</span>
+        </div>
+    `).join('');
+    document.getElementById('paymentLegend').innerHTML = paymentLegendHtml;
+</script>
+{% endblock %}

@@ -317,7 +317,7 @@
                                     {% else %}
                                         <label>
                                             {% if field.name == "sku" %}<i class="fas fa-barcode"></i>
-                                            {% elif field.name == "price" %}<i class="fas fa-dollar-sign"></i>
+                                            {% elif field.name == "price" %}<i class="fas fa-rupee-sign"></i>
                                             {% elif field.name == "compare_price" %}<i class="fas fa-tags"></i>
                                             {% elif field.name == "stock" %}<i class="fas fa-boxes"></i>
                                             {% elif field.name == "weight" %}<i class="fas fa-weight-hanging"></i>
@@ -344,7 +344,7 @@
                 <!-- MAIN IMAGE (optional in variant, but add asterisk if required) -->
                 <div class="form-card mb-4">
                     <div class="form-card-header">
-                        <i class="fas fa-camera"></i> Main Image
+                        <i class="fas fa-camera"></i> Main Image *
                         {% if form.main_image.field.required %}<span class="required-asterisk">*</span>{% endif %}
                     </div>
                     <div class="form-card-body">
@@ -383,7 +383,9 @@
                                 <!-- Alt text & Order in equal-width columns (responsive) -->
                                 <div class="row g-3">
                                     <div class="col-12 col-md-6">
-                                        <label class="small fw-semibold mb-1">Alt text</label>
+                                        <label class="small fw-semibold mb-1">Alt text *
+                                                                           
+                                        </label>
                                         {{ f.alt_text }}
                                     </div>
                                     <div class="col-12 col-md-6">
@@ -478,7 +480,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
-                            <label class="small fw-semibold mb-1">Alt text</label>
+                            <label class="small fw-semibold mb-1">Alt text *</label>
                             <input type="text" name="${prefix}-${formCount}-alt_text" class="form-control">
                         </div>
                         <div class="col-12 col-md-6">

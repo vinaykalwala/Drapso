@@ -144,6 +144,7 @@
         border: 1px solid #e0e0ff;
     }
 
+
     .dr-premium-loader span {
         font-size: 10px;
         font-weight: 900;
@@ -369,7 +370,7 @@
                         <p style="background: rgba(0,0,0,0.1); padding: 10px; border-radius: 10px; display: inline-block;">Reason: {{ kyc.rejection_reason }}</p>
                     {% endif %}
                     <br>
-                    <a href="{% url 'wholesellers:submit_kyc' %}" class="btn-premium" style="color: var(--dr-danger) !important;">
+                    <a href="{% url 'wholesellers:submit_kyc' %}" class="btn-premium" style="color: #fff;">
                         Resubmit KYC <i class="fa-solid fa-rotate-left"></i>
                     </a>
                 </div>

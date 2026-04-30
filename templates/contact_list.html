@@ -11,16 +11,18 @@
         padding: 0;
         box-sizing: border-box;
     }
-     .content{
+    
+    .content {
         padding: 10px 0;
-     }
+    }
+    
     body {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         background: linear-gradient(135deg, #eef2ff, #f8fafc);
         min-height: 100vh;
     }
 
-    /* Main Container - Fluid Width */
+    /* Main Container */
     .messages-container {
         width: 100%;
         max-width: 1400px;
@@ -34,25 +36,6 @@
         margin-bottom: clamp(24px, 5vw, 32px);
     }
 
-    .header-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: clamp(6px, 2vw, 10px);
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-        padding: clamp(6px, 2vw, 8px) clamp(16px, 3vw, 20px);
-        border-radius: 60px;
-        font-size: clamp(11px, 3vw, 13px);
-        font-weight: 600;
-        color: #667eea;
-        margin-bottom: clamp(16px, 4vw, 20px);
-        backdrop-filter: blur(4px);
-    }
-
-    .header-badge i {
-        font-size: clamp(12px, 3vw, 14px);
-    }
-
-    /* Title Row */
     .title-row {
         margin-bottom: clamp(20px, 4vw, 28px);
     }
@@ -76,7 +59,7 @@
         color: transparent;
     }
 
-    /* Stats and Search Row - Same Line */
+    /* Stats and Search Row */
     .stats-search-row {
         display: flex;
         justify-content: space-between;
@@ -86,7 +69,7 @@
         margin-bottom: clamp(24px, 5vw, 32px);
     }
 
-    /* Stats Cards Container */
+    /* Stats Card */
     .stats-container {
         display: flex;
         gap: clamp(12px, 3vw, 24px);
@@ -135,10 +118,10 @@
         font-weight: 500;
     }
 
-    /* Search Bar - Inline with Stats */
+    /* Search Bar */
     .search-bar-inline {
         flex: 0 0 auto;
-        min-width: 480px;
+        min-width: 350px;
     }
 
     .search-input-wrapper {
@@ -182,7 +165,7 @@
     .active-search-chip {
         background: white;
         border-radius: clamp(12px, 3vw, 16px);
-        padding: clamp(8px, 2vw, 10px) clamp(16px, 3vw, 20px);
+        padding: clamp(8px, 2vw, 12px) clamp(16px, 3vw, 20px);
         margin-bottom: clamp(16px, 3vw, 20px);
         display: none;
         align-items: center;
@@ -274,65 +257,6 @@
         cursor: pointer;
     }
 
-    /* Mobile Card View */
-    @media (max-width: 640px) {
-        .messages-table {
-            min-width: 100%;
-        }
-        
-        .messages-table thead {
-            display: none;
-        }
-        
-        .messages-table tbody tr {
-            display: block;
-            margin-bottom: 16px;
-            border: 1px solid #e5e7eb;
-            border-radius: 16px;
-            background: white;
-            padding: 16px;
-        }
-        
-        .messages-table tbody tr:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.1);
-        }
-        
-        .messages-table td {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
-            text-align: right;
-            gap: 12px;
-        }
-        
-        .messages-table td:last-child {
-            border-bottom: none;
-        }
-        
-        .messages-table td::before {
-            content: attr(data-label);
-            font-weight: 600;
-            color: #4b5563;
-            text-align: left;
-            flex: 1;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .action-buttons {
-            justify-content: flex-end;
-            flex-direction: row;
-        }
-        
-        .btn-view, .btn-delete {
-            padding: 8px 16px;
-        }
-    }
-
     /* Subject Badges */
     .subject-badge {
         display: inline-flex;
@@ -348,20 +272,6 @@
 
     .subject-badge i {
         font-size: 12px;
-    }
-
-    /* Email Link */
-    .email-link {
-        color: #667eea;
-        text-decoration: none;
-        font-weight: 500;
-        transition: all 0.2s ease;
-        word-break: break-all;
-    }
-
-    .email-link:hover {
-        color: #764ba2;
-        text-decoration: underline;
     }
 
     /* Action Buttons */
@@ -458,74 +368,6 @@
         font-size: clamp(14px, 3.5vw, 15px);
     }
 
-    /* Pagination */
-    .pagination {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: clamp(8px, 2vw, 12px);
-        padding: clamp(20px, 4vw, 28px);
-        border-top: 1px solid #e5e7eb;
-        background: white;
-        flex-wrap: wrap;
-    }
-
-    .pagination-btn {
-        padding: clamp(8px, 2vw, 10px) clamp(14px, 3vw, 20px);
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        background: white;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-weight: 600;
-        font-family: 'Inter', sans-serif;
-        font-size: clamp(13px, 3vw, 14px);
-    }
-
-    .pagination-btn:hover:not(:disabled) {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
-        border-color: transparent;
-        transform: translateY(-2px);
-    }
-
-    .pagination-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .page-numbers {
-        display: flex;
-        gap: clamp(6px, 1.5vw, 10px);
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .page-number {
-        min-width: clamp(36px, 8vw, 40px);
-        height: clamp(36px, 8vw, 40px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-weight: 600;
-        font-family: 'Inter', sans-serif;
-        font-size: clamp(13px, 3vw, 14px);
-    }
-
-    .page-number.active {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-    }
-
-    .page-number:hover:not(.active) {
-        background: #f3f4f6;
-        transform: translateY(-2px);
-    }
-
     /* Animations */
     @keyframes fadeInUp {
         from {
@@ -558,15 +400,62 @@
         background: #764ba2;
     }
 
-    /* Touch-friendly improvements */
-    @media (hover: none) and (pointer: coarse) {
-        .btn-view, .btn-delete, .pagination-btn, .page-number {
-            min-height: 44px;
-            min-width: 44px;
+    /* Mobile Card View */
+    @media (max-width: 640px) {
+        .messages-table {
+            min-width: 100%;
         }
         
-        .search-input-wrapper input {
-            min-height: 48px;
+        .messages-table thead {
+            display: none;
+        }
+        
+        .messages-table tbody tr {
+            display: block;
+            margin-bottom: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            background: white;
+            padding: 16px;
+        }
+        
+        .messages-table tbody tr:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.1);
+        }
+        
+        .messages-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: right;
+            gap: 12px;
+        }
+        
+        .messages-table td:last-child {
+            border-bottom: none;
+        }
+        
+        .messages-table td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #4b5563;
+            text-align: left;
+            flex: 1;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .action-buttons {
+            justify-content: flex-end;
+            flex-direction: row;
+        }
+        
+        .btn-view, .btn-delete {
+            padding: 8px 16px;
         }
     }
 
@@ -579,6 +468,7 @@
         
         .search-bar-inline {
             width: 100%;
+            min-width: 100%;
         }
         
         .messages-header h2 {
@@ -587,6 +477,7 @@
         
         .stats-container {
             width: 100%;
+            justify-content: center;
         }
         
         .stat-card {
@@ -594,111 +485,39 @@
         }
     }
 
-    /* Landscape mode optimization */
-    @media (max-width: 900px) and (orientation: landscape) {
-        body {
-            padding: 10px;
+    /* Touch-friendly improvements */
+    @media (hover: none) and (pointer: coarse) {
+        .btn-view, .btn-delete {
+            min-height: 44px;
+            min-width: 44px;
         }
         
-        .messages-container {
-            padding: 0 12px;
-        }
-        
-        .stats-search-row {
-            flex-direction: row;
-            flex-wrap: wrap;
-        }
-        
-        .search-bar-inline {
-            flex: 1;
+        .search-input-wrapper input {
+            min-height: 48px;
         }
     }
-    /* Default search bar */
-.search-bar-inline{
-    flex: 0 0 auto;
-    min-width: 480px;
-}
-
-.search-input-wrapper{
-    position: relative;
-    width: 100%;
-}
-
-.search-input-wrapper input{
-    width: 100%;
-    padding: 12px 16px 12px 44px;
-    border-radius: 14px;
-    border: 2px solid #e5e7eb;
-    font-size: 14px;
-}
-
-/* Tablet */
-@media (max-width: 992px){
-    .search-bar-inline{
-        min-width: 100%;
-    }
-}
-
-/* Mobile */
-@media (max-width: 768px){
-    .stats-search-row{
-        flex-direction: column;
-        align-items: stretch;
-        gap: 15px;
-    }
-
-    .search-bar-inline{
-        width: 100%;
-        min-width: 100%;
-    }
-
-    .search-input-wrapper input{
-        font-size: 15px;
-        padding: 14px 16px 14px 45px;
-    }
-}
-
-/* Small mobile */
-@media (max-width: 480px){
-    .search-input-wrapper input{
-        padding: 14px 14px 14px 42px;
-        font-size: 14px;
-        border-radius: 12px;
-    }
-}
-
-/* Extra small devices */
-@media (max-width: 360px){
-    .search-input-wrapper input{
-        font-size: 13px;
-        padding: 12px 12px 12px 40px;
-    }
-}
 </style>
 
 <div class="content">
 <div class="messages-container">
     <!-- Header Section -->
     <div class="messages-header">
-        
-        <!-- Badge and Title -->
         <div class="title-row">
             <h2>Contact <span>Messages</span></h2>
         </div>
         
-        <!-- Stats and Search Bar in Same Row -->
+        <!-- Stats and Search Bar -->
         <div class="stats-search-row">
             <div class="stats-container">
                 <div class="stat-card">
                     <i class="fas fa-inbox"></i>
                     <div class="stat-info">
-                        <h4>{{ contacts|length }}</h4>
+                        <h4 id="totalCount">{{ contacts|length }}</h4>
                         <p>Total Messages</p>
                     </div>
                 </div>
             </div>
             
-            <!-- Search Bar - Inline with Stats -->
             <div class="search-bar-inline">
                 <div class="search-input-wrapper">
                     <i class="fas fa-search"></i>
@@ -718,11 +537,10 @@
 
     <!-- Table Container -->
     <div class="table-container">
-        <table class="messages-table" id="messagesTable">
+        <table class="messages-table">
             <thead>
                 <tr>
                     <th><i class="fas fa-user"></i> Name</th>
-                    <!-- <th><i class="fas fa-envelope"></i> Email</th> -->
                     <th><i class="fas fa-tag"></i> Subject</th>
                     <th><i class="fas fa-calendar"></i> Date</th>
                     <th><i class="fas fa-cog"></i> Action</th>
@@ -734,11 +552,6 @@
                     <td data-label="Name">
                         <strong style="color: #1f2937;">{{ contact.name }}</strong>
                     </td>
-                    <!-- <td data-label="Email">
-                        <a href="mailto:{{ contact.email }}" class="email-link">
-                            <i class="fas fa-envelope"></i> {{ contact.email }}
-                        </a>
-                    </td> -->
                     <td data-label="Subject">
                         <span class="subject-badge">
                             <i class="fas fa-comment"></i>
@@ -757,7 +570,7 @@
                                 <i class="fas fa-eye"></i> View
                             </a>
                             <a href="{% url 'contact_delete' contact.id %}" class="btn-delete" 
-                              >
+                               onclick="return confirm('Are you sure you want to delete this message?');">
                                 <i class="fas fa-trash-alt"></i> Delete
                             </a>
                         </div>
@@ -765,7 +578,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5">
+                    <td colspan="4">
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
                             <h3>No Messages Yet</h3>
@@ -776,41 +589,6 @@
                 {% endfor %}
             </tbody>
         </table>
-
-        <!-- Pagination -->
-        {% if contacts.has_other_pages %}
-        <div class="pagination">
-            {% if contacts.has_previous %}
-            <button class="pagination-btn" onclick="goToPage({{ contacts.previous_page_number }})">
-                <i class="fas fa-chevron-left"></i> Previous
-            </button>
-            {% else %}
-            <button class="pagination-btn" disabled>
-                <i class="fas fa-chevron-left"></i> Previous
-            </button>
-            {% endif %}
-
-            <div class="page-numbers">
-                {% for i in contacts.paginator.page_range %}
-                    {% if contacts.number == i %}
-                    <div class="page-number active">{{ i }}</div>
-                    {% else %}
-                    <div class="page-number" onclick="goToPage({{ i }})">{{ i }}</div>
-                    {% endif %}
-                {% endfor %}
-            </div>
-
-            {% if contacts.has_next %}
-            <button class="pagination-btn" onclick="goToPage({{ contacts.next_page_number }})">
-                Next <i class="fas fa-chevron-right"></i>
-            </button>
-            {% else %}
-            <button class="pagination-btn" disabled>
-                Next <i class="fas fa-chevron-right"></i>
-            </button>
-            {% endif %}
-        </div>
-        {% endif %}
     </div>
 </div>
 </div>
@@ -819,35 +597,27 @@
     const searchInput = document.getElementById('searchInput');
     const activeSearchChip = document.getElementById('activeSearchChip');
     const searchTermDisplay = document.getElementById('searchTermDisplay');
+    const totalCountSpan = document.getElementById('totalCount');
 
     // Search functionality
-    if (searchInput) {
-        searchInput.addEventListener('keyup', function() {
-            filterTable();
-            updateActiveSearchChip();
-        });
-    }
-
     function filterTable() {
-        const searchValue = searchInput ? searchInput.value.toLowerCase() : '';
-        
+        const searchValue = searchInput ? searchInput.value.toLowerCase().trim() : '';
         const rows = document.querySelectorAll('#tableBody tr');
         let visibleCount = 0;
         
         rows.forEach(row => {
+            // Skip empty state row
             if (row.querySelector('.empty-state')) return;
             
             const cells = row.querySelectorAll('td');
             if (cells.length === 0) return;
             
             const name = cells[0]?.innerText.toLowerCase() || '';
-            const email = cells[1]?.innerText.toLowerCase() || '';
-            const subject = cells[2]?.innerText.toLowerCase() || '';
+            const subject = cells[1]?.innerText.toLowerCase() || '';
             
             let showRow = true;
             
-            // Search filter
-            if (searchValue && !name.includes(searchValue) && !email.includes(searchValue) && !subject.includes(searchValue)) {
+            if (searchValue && !name.includes(searchValue) && !subject.includes(searchValue)) {
                 showRow = false;
             }
             
@@ -855,16 +625,27 @@
             if (showRow) visibleCount++;
         });
         
-        // Show empty state if no results
+        // Update total count display
+        if (totalCountSpan) {
+            if (searchValue) {
+                totalCountSpan.textContent = visibleCount;
+            } else {
+                totalCountSpan.textContent = '{{ contacts|length }}';
+            }
+        }
+        
+        // Show/hide empty state for search results
         const existingEmptyRow = document.querySelector('#tableBody tr td .empty-state')?.closest('tr');
+        const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none' && !row.querySelector('.empty-state'));
+        
         if (visibleCount === 0 && rows.length > 0 && !existingEmptyRow && searchValue) {
             const emptyRow = document.createElement('tr');
             emptyRow.innerHTML = `
-                <td colspan="5">
+                <td colspan="4">
                     <div class="empty-state">
                         <i class="fas fa-search"></i>
                         <h3>No matching messages</h3>
-                        <p>No results found for "${searchValue}"</p>
+                        <p>No results found for "${escapeHtml(searchValue)}"</p>
                     </div>
                 </td>
             `;
@@ -893,10 +674,11 @@
         }
     }
 
-    function goToPage(pageNumber) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('page', pageNumber);
-        window.location.href = url.toString();
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     // Debounce function for better performance
@@ -912,9 +694,12 @@
         };
     }
 
-    // Apply debounce to search
+    // Initialize event listeners
     if (searchInput) {
-        searchInput.addEventListener('keyup', debounce(() => filterTable(), 300));
+        searchInput.addEventListener('keyup', debounce(() => {
+            filterTable();
+            updateActiveSearchChip();
+        }, 300));
     }
     
     // Initialize

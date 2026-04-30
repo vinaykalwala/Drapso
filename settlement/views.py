@@ -41,19 +41,23 @@ def dashboard(request):
         status__in=['APPROVED', 'COMPLETED'],
         requested_at__gte=one_week_ago
     ).aggregate(total=Sum('amount'))['total'] or 0
-    
+
+    # ✅ ADD THIS LINE (IMPORTANT 🔥)
+    weekly_limit = WithdrawalService.WEEKLY_WITHDRAWAL_LIMIT
+    remaining = max(0, weekly_limit - weekly_withdrawn)
+
     context = {
         'wallet': wallet,
         'recent_transactions': recent_transactions,
         'recent_withdrawals': recent_withdrawals,
         'weekly_withdrawn': weekly_withdrawn,
-        'weekly_limit': WithdrawalService.WEEKLY_WITHDRAWAL_LIMIT,
+        'weekly_limit': weekly_limit,
+        'remaining': remaining,   # ✅ ADD THIS
         'minimum_withdrawal': WithdrawalService.MINIMUM_WITHDRAWAL_AMOUNT,
         'neft_fee': WithdrawalService.get_neft_payout_fee(),
     }
     
     return render(request, 'settlement/dashboard.html', context)
-
 
 @login_required
 def withdrawal_request(request):

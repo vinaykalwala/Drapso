@@ -752,7 +752,7 @@
                 <div class="renew-text">
                     <h3><i class="fas fa-sync-alt"></i> {% if is_expired %}Reactivate with Previous Plan{% else %}Renew Current Plan{% endif %}</h3>
                     <p>{{ renewal_plan.get_name_display|title }} Plan • {{ renewal_plan.get_duration_display }}</p>
-                    <p class="renew-price">${{ renewal_plan.price }}</p>
+                    <p class="renew-price">₹{{ renewal_plan.price }}</p>
                     {% if not is_expired and remaining_days > 0 and remaining_days <= 7 %}
                     <p><i class="fas fa-gift"></i> <strong>Bonus!</strong> Renew now and get <strong>{{ remaining_days }} extra days</strong> added to your new subscription period!</p>
                     {% elif is_expired %}
@@ -760,7 +760,7 @@
                     {% endif %}
                 </div>
                 <a href="{% url 'resellers:renew_subscription' store.id %}" class="btn btn-success">
-                    <i class="fas fa-sync-alt"></i> {% if is_expired %}Reactivate - ${{ renewal_plan.price }}{% else %}Renew Now - ${{ renewal_plan.price }}{% endif %}
+                    <i class="fas fa-sync-alt"></i> {% if is_expired %}Reactivate - ₹{{ renewal_plan.price }}{% else %}Renew Now - ₹{{ renewal_plan.price }}{% endif %}
                 </a>
             </div>
         </div>
@@ -782,10 +782,10 @@
                                 {% endif %}
                                 <div class="plan-simple-header">
                                     <div class="plan-simple-name">{{ plan_info.plan.get_name_display|title }}</div>
-                                    <div class="plan-simple-price">${{ plan_info.upgrade_price }}<small> one-time</small></div>
-                                    <div class="plan-simple-old">Regular: ${{ plan_info.plan.price }}/{{ plan_info.plan.get_duration_display }}</div>
+                                    <div class="plan-simple-price">₹{{ plan_info.upgrade_price }}<small> one-time</small></div>
+                                    <div class="plan-simple-old">Regular: ₹{{ plan_info.plan.price }}/{{ plan_info.plan.get_duration_display }}</div>
                                     {% if plan_info.upgrade_price < plan_info.plan.price %}
-                                    <div class="plan-simple-save">Save ${{ plan_info.plan.price|floatformat:2|add:plan_info.upgrade_price|floatformat:2 }} with prorated upgrade!</div>
+                                    <div class="plan-simple-save">Save ₹{{ plan_info.plan.price|floatformat:2|add:plan_info.upgrade_price|floatformat:2 }} with prorated upgrade!</div>
                                     {% endif %}
                                 </div>
                                 <ul class="plan-simple-features">
@@ -851,7 +851,7 @@ stroke-dasharray="5,5"/>
                             {% endif %}
                             <div class="plan-simple-header">
                                 <div class="plan-simple-name">{{ plan_info.plan.get_name_display|title }}</div>
-                                <div class="plan-simple-price">${{ plan_info.plan.price }}<small>/{{ plan_info.plan.get_duration_display }}</small></div>
+                                <div class="plan-simple-price">₹{{ plan_info.plan.price }}<small>/{{ plan_info.plan.get_duration_display }}</small></div>
                             </div>
                             <ul class="plan-simple-features">
                                 <li><i class="fas fa-check-circle"></i> Max Products: {{ plan_info.plan.multiple_theme_limit }}</li>
