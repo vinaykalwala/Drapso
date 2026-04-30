@@ -315,6 +315,17 @@
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
     }
+    /* Center only second row */
+    .center-row {
+        justify-content: center;
+        grid-template-columns: repeat(3, minmax(220px, 280px));
+    }
+    @media (max-width: 768px) {
+    .center-row {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        justify-content: stretch;
+    }
+}
 </style>
 
 <div class="content">
@@ -364,24 +375,22 @@
             <div class="label">Net to Sellers</div>
             <div class="value">₹{{ summary.net_to_sellers_short }}</div>
         </div>
+    </div>
+    <div class="summary-row center-row">
         <div class="summary-item info">
             <i class="fas fa-university icon"></i>
             <div class="label">NEFT Cost</div>
             <div class="value">₹{{ summary.total_neft_cost|default:0|floatformat:2 }}</div>
         </div>
-    </div>
-
-    <!-- Additional Summary Cards -->
-    <div class="summary-row">
-        <div class="summary-item primary">
+        <div class="summary-item info">
             <i class="fas fa-industry icon"></i>
             <div class="label">To Wholesellers</div>
             <div class="value">₹{{ summary.total_wholeseller|default:0|floatformat:2 }}</div>
         </div>
-        <div class="summary-item success">
+        <div class="summary-item info">
             <i class="fas fa-store-alt icon"></i>
             <div class="label">To Resellers</div>
-            <div class="value">₹{{ summary.total_reseller|default:0|floatformat:2 }}</div>
+            <div class="value">₹{{ summary.total_reseller_short }}</div>
         </div>
     </div>
 
@@ -401,7 +410,9 @@
                         <span class="sr-badge">🚚 SR</span>
                     {% endif %}
                 </div>
-                <div>
+                
+            </div>
+            <div>
                     {% if settlement.status == 'IN_ESCROW' %}
                         <span class="status-badge badge-escrow">⏳ Escrow</span>
                     {% elif settlement.status == 'RELEASED' %}
@@ -412,7 +423,6 @@
                         <span class="status-badge">{{ settlement.status }}</span>
                     {% endif %}
                 </div>
-            </div>
             <div class="card-row">
                 <span class="metric-label">Date</span>
                 <span class="metric-value">{{ settlement.created_at|date:"Y-m-d" }}</span>
