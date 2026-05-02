@@ -292,13 +292,14 @@
                            id="store_name" 
                            class="form-control form-control-lg {% if form.store_name.errors %}is-invalid{% endif %}"
                            value="{{ form.store_name.value|default:'' }}"
-                           placeholder="e.g. my-awesome-shop"
+                           placeholder="e.g. myawesomeshop"
                            required>
                     {% if form.store_name.errors %}
                         <div class="invalid-feedback">
                             {% for error in form.store_name.errors %}{{ error }}{% endfor %}
                         </div>
                     {% endif %}
+                    <small style="color: #ff8686;">Do not use any registered Brand names as store name</small>
                 </div>
 
                 <div class="form-group">

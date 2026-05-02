@@ -662,67 +662,112 @@ class AnalyticsService:
 
     @staticmethod
     def get_product_performance(period_type='monthly', custom_start=None, custom_end=None, user=None):
-        """Get product performance metrics"""
+        """Get product performance metrics (SAFE VERSION)"""
+
         start_date, end_date = AnalyticsService.get_date_range(period_type, custom_start, custom_end)
-        
-        # Base querysets
+
+        # --------------------------
+        # BASE QUERYSETS
+        # --------------------------
         reseller_products = ResellerProduct.objects.all()
         wholeseller_products = WholesellerProduct.objects.all()
-        
+
         if user:
             if user.role == 'wholeseller':
                 wholeseller_products = wholeseller_products.filter(wholeseller=user)
                 reseller_products = reseller_products.filter(source_product__wholeseller=user)
+
             elif user.role == 'reseller':
                 reseller_products = reseller_products.filter(reseller=user)
-        
-        # New products in period
+
+        # --------------------------
+        # NEW PRODUCTS
+        # --------------------------
         new_reseller_products = reseller_products.filter(
-            created_at__date__gte=start_date, 
+            created_at__date__gte=start_date,
             created_at__date__lte=end_date
         )
+
         new_wholeseller_products = wholeseller_products.filter(
-            created_at__date__gte=start_date, 
+            created_at__date__gte=start_date,
             created_at__date__lte=end_date
         )
-        
-        # Stock statistics
-        low_stock_products = reseller_products.filter(
-            stock__lte=F('threshold_limit'), 
-            stock__gt=0, 
-            is_active=True
-        ).count()
-        
-        out_of_stock_products = reseller_products.filter(
-            stock=0, 
-            is_active=True
-        ).count()
-        
-        # Category distribution
+
+        # =====================================================
+        # 🔥 SAFE STOCK CALCULATION (NO ORM ERRORS)
+        # =====================================================
+        def get_stock_counts(qs):
+            low = 0
+            out = 0
+
+            qs = qs.filter(is_active=True)
+
+            for p in qs:
+                # Handle variants safely
+                if hasattr(p, 'variants') and p.variants.exists():
+                    total_stock = sum(v.stock for v in p.variants.all())
+                else:
+                    total_stock = p.stock or 0
+
+                threshold = p.threshold_limit or 0
+
+                if total_stock == 0:
+                    out += 1
+                elif total_stock <= threshold:
+                    low += 1
+
+            return low, out
+
+        # ✅ Apply stock logic
+        reseller_low, reseller_out = get_stock_counts(reseller_products)
+        wholeseller_low, wholeseller_out = get_stock_counts(wholeseller_products)
+
+        # --------------------------
+        # CATEGORY DISTRIBUTION
+        # --------------------------
         category_distribution = reseller_products.filter(
-            is_active=True, 
+            is_active=True,
             category__isnull=False
         ).values('category__name').annotate(
             count=Coalesce(Count('id'), 0)
         ).order_by('-count')[:10]
-        
-        # Variant statistics
+
+        # --------------------------
+        # VARIANT STATS
+        # --------------------------
         total_variants = ResellerProductVariant.objects.filter(
-            product__in=reseller_products, 
+            product__in=reseller_products,
             is_active=True
         ).count()
-        
+
         active_products_count = reseller_products.filter(is_active=True).count()
-        avg_variants = round(total_variants / active_products_count, 2) if active_products_count > 0 else 0
-        
+
+        avg_variants = round(
+            total_variants / active_products_count, 2
+        ) if active_products_count > 0 else 0
+
+        # --------------------------
+        # FINAL RESPONSE
+        # --------------------------
         return {
-            'period': {'start_date': start_date.isoformat(), 'end_date': end_date.isoformat()},
+            'period': {
+                'start_date': start_date.isoformat(),
+                'end_date': end_date.isoformat()
+            },
+
+            # ✅ WHOLESELLER
             'wholeseller_products': {
                 'total': wholeseller_products.count(),
                 'active': wholeseller_products.filter(is_active=True).count(),
                 'new_in_period': new_wholeseller_products.count(),
-                'with_variants': wholeseller_products.filter(variants__isnull=False).distinct().count()
+                'with_variants': wholeseller_products.filter(
+                    variants__isnull=False
+                ).distinct().count(),
+                'low_stock': wholeseller_low,
+                'out_of_stock': wholeseller_out
             },
+
+            # ✅ RESELLER
             'reseller_products': {
                 'total': reseller_products.count(),
                 'active': active_products_count,
@@ -730,16 +775,17 @@ class AnalyticsService:
                 'new_in_period': new_reseller_products.count(),
                 'imported': reseller_products.filter(source_type='imported').count(),
                 'own': reseller_products.filter(source_type='own').count(),
-                'low_stock': low_stock_products,
-                'out_of_stock': out_of_stock_products
+                'low_stock': reseller_low,
+                'out_of_stock': reseller_out
             },
+
             'variants': {
                 'total': total_variants,
                 'avg_per_product': avg_variants
             },
+
             'top_categories': list(category_distribution)
         }
-
     @staticmethod
     def get_store_performance(period_type='monthly', custom_start=None, custom_end=None, reseller_user=None):
         """Get store performance metrics for resellers"""

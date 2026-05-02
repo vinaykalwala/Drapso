@@ -6,9 +6,14 @@ from accounts.models import (
 )
 
 from wholesellers.models import WholesellerKYC
-from products.models import PriceChangeNotification
+from products.models import (
+    PriceChangeNotification,
+    WholesellerProduct,
+    ResellerProduct
+)
 from orders.models import Refund, Order
 from settlement.models import WithdrawalRequest
+from django.db.models import F   # ✅ IMPORTANT
 
 
 def user_profile_data(request):
@@ -22,7 +27,8 @@ def user_profile_data(request):
     pending_refund_requests = 0
     pending_withdrawal_requests = 0
     pending_reseller_orders = 0
-    pending_wholeseller_orders = 0   # 🔥 ADD THIS
+    pending_wholeseller_orders = 0
+    low_stock_count = 0   # ✅ NEW
 
     if request.user.is_authenticated:
 
@@ -42,6 +48,12 @@ def user_profile_data(request):
                 order_status="approved"
             ).count()
 
+            # 🔥 LOW STOCK COUNT (WHOLESELLER)
+            low_stock_count = WholesellerProduct.objects.filter(
+                wholeseller=request.user,
+                stock__lte=F('threshold_limit')
+            ).count()
+
         # ===== RESELLER =====
         elif request.user.role == "reseller":
             profile = ResellerProfile.objects.filter(user=request.user).first()
@@ -57,6 +69,12 @@ def user_profile_data(request):
                 reseller=request.user,
                 order_status="paid",
                 payment_status="success"
+            ).count()
+
+            # 🔥 LOW STOCK COUNT (RESELLER)
+            low_stock_count = ResellerProduct.objects.filter(
+                reseller=request.user,
+                stock__lte=F('threshold_limit')
             ).count()
 
         # ===== ADMIN =====
@@ -78,6 +96,11 @@ def user_profile_data(request):
                 status__iexact="pending"
             ).count()
 
+            # 🔥 LOW STOCK COUNT (ALL PRODUCTS)
+            low_stock_count = WholesellerProduct.objects.filter(
+                stock__lte=F('threshold_limit')
+            ).count()
+
     return {
         "profile": profile,
         "role": role,
@@ -86,5 +109,6 @@ def user_profile_data(request):
         "pending_refund_requests": pending_refund_requests,
         "pending_withdrawal_requests": pending_withdrawal_requests,
         "pending_reseller_orders": pending_reseller_orders,
-        "pending_wholeseller_orders": pending_wholeseller_orders,  # 🔥 IMPORTANT
+        "pending_wholeseller_orders": pending_wholeseller_orders,
+        "low_stock_count": low_stock_count,   # ✅ FINAL
     }

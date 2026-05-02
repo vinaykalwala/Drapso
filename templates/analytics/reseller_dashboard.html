@@ -86,7 +86,7 @@
     /* Tabs */
     .tabs {
         display: flex;
-        gap: 8px;
+        gap: 4px;
         border-bottom: 2px solid #e2e8f0;
         margin-bottom: 24px;
         flex-wrap: wrap;
@@ -386,7 +386,7 @@
             </div>
         </div>
 
-        <!-- Tabs -->
+        <!-- Tabs - UPDATED with Inventory Tab -->
         <div class="tabs">
             <button onclick="switchTab('overview')" class="tab-btn tab-active"><i class="fas fa-chart-line"></i> My Overview</button>
             <button onclick="switchTab('stores')" class="tab-btn tab-inactive"><i class="fas fa-store"></i> My Stores</button>
@@ -394,6 +394,7 @@
             <button onclick="switchTab('sales')" class="tab-btn tab-inactive"><i class="fas fa-chart-bar"></i> My Sales</button>
             <button onclick="switchTab('commissions')" class="tab-btn tab-inactive"><i class="fas fa-percent"></i> Commissions</button>
             <button onclick="switchTab('settlements')" class="tab-btn tab-inactive"><i class="fas fa-hand-holding-usd"></i> My Earnings</button>
+            <button onclick="switchTab('inventory')" class="tab-btn tab-inactive"><i class="fas fa-clipboard-list"></i> Inventory</button>
         </div>
 
         <!-- Dynamic Content -->
@@ -537,7 +538,8 @@
             'products': 'product-performance',
             'sales': 'top-products',
             'commissions': 'settlements',
-            'settlements': 'settlements'
+            'settlements': 'settlements',
+            'inventory': 'product-performance'
         }[currentTab];
     }
 
@@ -560,6 +562,7 @@
             else if (currentTab === 'sales') renderResellerSales(data);
             else if (currentTab === 'commissions') renderResellerCommissions(data);
             else if (currentTab === 'settlements') renderResellerSettlements(data);
+            else if (currentTab === 'inventory') renderResellerInventory(data);
         } catch (error) {
             document.getElementById('tabContent').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error: ${error.message}</p></div>`;
         }
@@ -634,7 +637,7 @@
                 </div>
             </div>
 
-            <!-- Row 2: Revenue Trend (Enhanced) + Revenue Pie Chart -->
+            <!-- Row 2: Revenue Trend + Revenue Pie Chart -->
             <div class="row">
                 <div class="col-2">
                     <div class="chart-card big-chart">
@@ -711,13 +714,12 @@
 
         document.getElementById('tabContent').innerHTML = html;
 
-        // ========== ENHANCED REVENUE TREND CHART ==========
+        // Revenue Trend Chart
         if (revenue.data_points && revenue.data_points.length > 0) {
             const ctx = document.getElementById('revenueChart').getContext('2d');
             const labels = revenue.data_points.map(p => p.date || p.month);
             const values = revenue.data_points.map(p => p.revenue || 0);
 
-            // Create gradient fill
             const gradient = ctx.createLinearGradient(0, 0, 0, 320);
             gradient.addColorStop(0, 'rgba(79, 70, 229, 0.25)');
             gradient.addColorStop(1, 'rgba(79, 70, 229, 0.0)');
@@ -747,10 +749,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
-                    },
+                    interaction: { intersect: false, mode: 'index' },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
@@ -761,43 +760,23 @@
                             borderWidth: 1,
                             cornerRadius: 8,
                             displayColors: false,
-                            callbacks: {
-                                label: (ctx) => `Revenue: ₹${ctx.raw.toLocaleString('en-IN')}`
-                            }
+                            callbacks: { label: (ctx) => `Revenue: ₹${ctx.raw.toLocaleString('en-IN')}` }
                         }
                     },
                     scales: {
-                        x: {
-                            grid: { color: 'rgba(0,0,0,0.03)' },
-                            ticks: { color: '#64748b', font: { size: 11 } }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(0,0,0,0.04)' },
-                            ticks: {
-                                color: '#64748b',
-                                font: { size: 11 },
-                                callback: v => '₹' + (v >= 1000 ? (v/1000).toFixed(1)+'K' : v)
-                            }
-                        }
+                        x: { grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { color: '#64748b', font: { size: 11 } } },
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: '#64748b', font: { size: 11 }, callback: v => '₹' + (v >= 1000 ? (v/1000).toFixed(1)+'K' : v) } }
                     }
                 }
             });
         }
 
-        // Revenue Pie Chart (Payout, Commission, Gateway)
+        // Revenue Pie Chart
         if (payout > 0 || commission > 0 || gateway > 0) {
             charts.revenuePie = new Chart(document.getElementById('revenuePie'), {
                 type: 'pie',
-                data: {
-                    labels: ['Your Payout', 'Commission (5%)', 'Gateway (2%)'],
-                    datasets: [{ data: [payout, commission, gateway], backgroundColor: ['#22c55e', '#4f46e5', '#f59e0b'], borderWidth: 0 }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }
-                }
+                data: { labels: ['Your Payout', 'Commission (5%)', 'Gateway (2%)'], datasets: [{ data: [payout, commission, gateway], backgroundColor: ['#22c55e', '#4f46e5', '#f59e0b'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
             });
         }
 
@@ -805,15 +784,8 @@
         if (commission > 0 || gateway > 0 || payout > 0) {
             charts.expenseDonut = new Chart(document.getElementById('expenseDonut'), {
                 type: 'doughnut',
-                data: {
-                    labels: ['Commission', 'Gateway Fees', 'Your Payout'],
-                    datasets: [{ data: [commission, gateway, payout], backgroundColor: ['#4f46e5', '#f59e0b', '#22c55e'], borderWidth: 0, cutout: '55%' }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }
-                }
+                data: { labels: ['Commission', 'Gateway Fees', 'Your Payout'], datasets: [{ data: [commission, gateway, payout], backgroundColor: ['#4f46e5', '#f59e0b', '#22c55e'], borderWidth: 0, cutout: '55%' }] },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
             });
         }
 
@@ -841,7 +813,7 @@
         `).join('') || '<div class="empty-state"><i class="fas fa-box-open"></i><p>No products sold yet</p></div>';
     }
 
-    // ==================== STORES (REDESIGNED) ====================
+    // ==================== STORES ====================
     function renderResellerStores(data) {
         const stores = data.store_performance || [];
         const totalStores = stores.length;
@@ -914,7 +886,7 @@
         document.getElementById('tabContent').innerHTML = html;
     }
 
-    // ==================== PRODUCTS (REDESIGNED) ====================
+    // ==================== PRODUCTS ====================
     function renderResellerProducts(data) {
         const p = data.reseller_products || {};
         const total = p.total || 0;
@@ -978,7 +950,7 @@
         document.getElementById('tabContent').innerHTML = html;
     }
 
-    // ==================== SALES (REDESIGNED, CHARTS UNCHANGED) ====================
+    // ==================== SALES ====================
     function renderResellerSales(data) {
         const products = data.products || [];
         const totalRev = products.reduce((s, p) => s + (p.total_revenue || 0), 0);
@@ -1069,7 +1041,7 @@
         });
     }
 
-    // ==================== COMMISSIONS (REDESIGNED) ====================
+    // ==================== COMMISSIONS ====================
     function renderResellerCommissions(data) {
         const s = data.settlements || {};
         const totalCommission = s.total_settled_amount || 0;
@@ -1108,7 +1080,7 @@
         document.getElementById('tabContent').innerHTML = html;
     }
 
-    // ==================== SETTLEMENTS (REDESIGNED) ====================
+    // ==================== SETTLEMENTS ====================
     function renderResellerSettlements(data) {
         const w = data.wallet_balance || {};
         const s = data.settlements || {};
@@ -1177,6 +1149,176 @@
             </div>
         `;
         document.getElementById('tabContent').innerHTML = html;
+    }
+
+    // ==================== INVENTORY TAB - NEWLY ADDED ====================
+    function renderResellerInventory(data) {
+        const p = data.reseller_products || {};
+        
+        const totalProducts = p.total || 0;
+        const activeProducts = p.active || 0;
+        const lowStockCount = p.low_stock || 0;
+        const outOfStockCount = p.out_of_stock || 0;
+        
+        const totalAtRisk = lowStockCount + outOfStockCount;
+        const healthPercent = totalProducts > 0 ? ((totalProducts - totalAtRisk) / totalProducts) * 100 : 100;
+        
+        if (totalProducts === 0) {
+            document.getElementById('tabContent').innerHTML = `
+                <div class="empty-state" style="margin: 40px 0;">
+                    <i class="fas fa-box-open"></i>
+                    <p>No products in your inventory</p>
+                    <p style="font-size: 12px; margin-top: 8px;">Start adding products to see inventory analytics</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const html = `
+            <!-- Inventory Stats Row -->
+            <div class="row mb-4">
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4f46e5, #4338ca); color: white; text-align: center;">
+                        <i class="fas fa-boxes" style="font-size: 2rem; margin-bottom: 12px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Total Products</p>
+                        <p style="font-size: 30px; font-weight: 800;">${formatNumber(totalProducts)}</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white; text-align: center;">
+                        <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 12px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Active Products</p>
+                        <p style="font-size: 30px; font-weight: 800;">${formatNumber(activeProducts)}</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; text-align: center;">
+                        <i class="fas fa-chart-line" style="font-size: 2rem; margin-bottom: 12px;"></i>
+                        <p style="font-size: 13px; opacity: 0.9;">Inventory Health</p>
+                        <p style="font-size: 30px; font-weight: 800;">${Math.round(healthPercent)}%</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stock Alerts Row -->
+            <div class="row">
+                <div class="col">
+                    <div class="stat-card">
+                        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">
+                            <i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i> Stock Alerts
+                        </h3>
+                        <div class="row">
+                            <div class="col">
+                                <div style="background: #fef2f2; padding: 20px; border-radius: 16px; text-align: center;">
+                                    <i class="fas fa-exclamation-circle" style="font-size: 32px; color: #dc2626;"></i>
+                                    <p style="margin-top: 12px; font-weight: 600;">Low Stock Products</p>
+                                    <p style="font-size: 36px; font-weight: 700; color: #dc2626;">${lowStockCount}</p>
+                                    <p style="font-size: 11px; color: #64748b;">Below threshold limit</p>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div style="background: #fff7ed; padding: 20px; border-radius: 16px; text-align: center;">
+                                    <i class="fas fa-ban" style="font-size: 32px; color: #ea580c;"></i>
+                                    <p style="margin-top: 12px; font-weight: 600;">Out of Stock Products</p>
+                                    <p style="font-size: 36px; font-weight: 700; color: #ea580c;">${outOfStockCount}</p>
+                                    <p style="font-size: 11px; color: #64748b;">Currently unavailable</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${(lowStockCount > 0 || outOfStockCount > 0) ? 
+                            `<div style="background: #fef2f2; padding: 14px; border-radius: 12px; margin-top: 16px; border-left: 4px solid #dc2626;">
+                                <i class="fas fa-bell" style="color: #dc2626;"></i> 
+                                <strong>⚠️ Action Required:</strong> 
+                                ${lowStockCount > 0 ? `${lowStockCount} products low on stock. ` : ''}
+                                ${outOfStockCount > 0 ? `${outOfStockCount} products out of stock.` : ''}
+                                Update your inventory to avoid losing sales.
+                            </div>` : 
+                            `<div style="background: #f0fdf4; padding: 14px; border-radius: 12px; margin-top: 16px; border-left: 4px solid #22c55e;">
+                                <i class="fas fa-check-circle" style="color: #22c55e;"></i> 
+                                <strong>✓ All Good!</strong> Your inventory levels are healthy. No low stock or out of stock items.
+                            </div>`
+                        }
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-card">
+                        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">
+                            <i class="fas fa-chart-bar" style="color: #4f46e5;"></i> Stock Status Distribution
+                        </h3>
+                        <canvas id="stockStatusChart" style="height: 250px; width: 100%;"></canvas>
+                        <div class="mt-3" style="background: #f8fafc; padding: 12px; border-radius: 12px;">
+                            <div class="flex-between" style="margin-bottom: 8px;">
+                                <span style="font-size: 12px;">✅ Healthy Stock:</span>
+                                <span style="font-weight: 600; color: #22c55e;">${formatNumber(totalProducts - lowStockCount - outOfStockCount)}</span>
+                            </div>
+                            <div class="flex-between" style="margin-bottom: 8px;">
+                                <span style="font-size: 12px;">⚠️ Low Stock Alert:</span>
+                                <span style="font-weight: 600; color: #dc2626;">${formatNumber(lowStockCount)}</span>
+                            </div>
+                            <div class="flex-between">
+                                <span style="font-size: 12px;">❌ Out of Stock:</span>
+                                <span style="font-weight: 600; color: #ea580c;">${formatNumber(outOfStockCount)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pro Tip -->
+            <div class="chart-card">
+                <div style="background: #fef3c7; border-radius: 14px; padding: 20px; border-left: 4px solid #d97706; display: flex; gap: 16px; align-items: center;">
+                    <i class="fas fa-lightbulb" style="font-size: 2rem; color: #d97706;"></i>
+                    <div>
+                        <strong style="font-size: 16px;">💡 Pro Tip:</strong>
+                        <p style="margin-top: 4px;">Keep your inventory healthy by restocking products when they reach 20-30% of threshold. Out-of-stock products can lead to lost sales opportunities!</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('tabContent').innerHTML = html;
+        
+        // Draw Stock Status Bar Chart
+        const healthyCount = totalProducts - lowStockCount - outOfStockCount;
+        charts.stockStatusChart = new Chart(document.getElementById('stockStatusChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Healthy Stock', 'Low Stock', 'Out of Stock'],
+                datasets: [{
+                    label: 'Number of Products',
+                    data: [healthyCount, lowStockCount, outOfStockCount],
+                    backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+                    borderRadius: 8,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { 
+                        callbacks: { 
+                            label: (ctx) => {
+                                const value = ctx.raw;
+                                const total = healthyCount + lowStockCount + outOfStockCount;
+                                const percent = total > 0 ? (value / total * 100).toFixed(1) : 0;
+                                return `${value} products (${percent}%)`;
+                            }
+                        } 
+                    }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        ticks: { stepSize: 1 },
+                        title: { display: true, text: 'Number of Products' }
+                    },
+                    x: { title: { display: true, text: 'Stock Status' } }
+                }
+            }
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => { loadTabContent(); });

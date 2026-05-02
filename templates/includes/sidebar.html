@@ -682,10 +682,17 @@
                 {% endif %}
             </a>
             </a>
-            <a href="{% url 'products:low_stock_alerts' %}">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                Low stock Alert
-            </a>
+          <a href="{% url 'products:low_stock_alerts' %}">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    Low stock Alert
+
+    {% if low_stock_count > 0 %}
+    <span class="menu-badge">
+        {{ low_stock_count }}
+    </span>
+    {% endif %}
+</a>
+</a>
 
             <a href="{% url 'accounts:bank_accounts' %}">
                 <i class="fa-solid fa-building-columns"></i>
@@ -764,9 +771,15 @@
 
             </a>
             <a href="{% url 'products:low_stock_alerts' %}">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                Low stock Alert
-            </a>
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    Low stock Alert
+
+    {% if low_stock_count > 0 %}
+    <span class="menu-badge">
+        {{ low_stock_count }}
+    </span>
+    {% endif %}
+</a>
             <a href="{% url 'accounts:bank_accounts' %}">
                 <i class="fa-solid fa-building-columns"></i>
                 Bank Details

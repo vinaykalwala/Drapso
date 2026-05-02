@@ -5,6 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from decimal import Decimal
 from django.utils import timezone
+from django.db.models import Q
 
 from .models import (
     WholesellerProduct,
@@ -112,93 +113,168 @@ def notify_resellers_on_product_price_change(sender, instance, created, **kwargs
             
             notification_type = 'product_price_increase' if is_increase else 'product_price_decrease'
             
-            # Prevent duplicate notifications (within last 5 minutes)
-            recent_exists = PriceChangeNotification.objects.filter(
+            # FIXED: Check for duplicate notification with SAME price change only
+            # Allow new notifications if price changed again
+            recent_duplicate = PriceChangeNotification.objects.filter(
                 reseller=rp.reseller,
                 reseller_product=rp,
+                notification_type=notification_type,
+                old_price=old_discounted,  # Same old price
+                new_price=new_discounted,   # Same new price
                 created_at__gte=timezone.now() - timezone.timedelta(minutes=5)
             ).exists()
             
-            if recent_exists:
-                print(f"📢 Skipping duplicate notification for {rp.name}")
+            # Also check if there's an unactioned notification for this product
+            # If yes, update it instead of creating new one
+            existing_unactioned = PriceChangeNotification.objects.filter(
+                reseller=rp.reseller,
+                reseller_product=rp,
+                is_actioned=False
+            ).order_by('-created_at').first()
+            
+            if recent_duplicate:
+                print(f"📢 Skipping duplicate notification for {rp.name} (same price change already notified)")
                 continue
             
-            # Create detailed message
-            if is_increase:
-                message = (
-                    f"⚠️ PRICE INCREASE from Wholeseller\n\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                    f"📦 Product: {instance.name}\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-                    f"💰 Wholeseller Price Change:\n"
-                    f"   • Original Price: ₹{old_price} → ₹{instance.price}\n"
-                    f"   • Discount: {old_discount or 0}% → {instance.discount_percentage}%\n"
-                    f"   • Your Cost (after discount): ₹{old_discounted} → ₹{new_discounted}\n\n"
-                    f"💼 Your Margin: ₹{rp.margin_rupees}\n\n"
-                    f"💵 Your Current Selling Price: ₹{rp.selling_price}\n"
-                    f"💰 New Proposed Selling Price: ₹{new_selling}\n"
-                    f"📈 Increase: +₹{diff}\n\n"
-                    f"⚠️ Your price has NOT been updated automatically.\n"
-                    f"👉 Action Required: Review and sync this price change from your dashboard.\n"
-                    f"❌ If you ignore, you will continue selling at ₹{rp.selling_price} but pay ₹{new_discounted} to wholeseller (LOSS of ₹{diff} per unit)!\n\n"
-                    f"🔗 Review here: /products/reseller/store/{rp.store.id}/price-notifications/"
-                )
+            # If there's an unactioned notification, update it instead of creating new
+            if existing_unactioned:
+                print(f"📢 Updating existing unactioned notification {existing_unactioned.id} for {rp.name}")
+                existing_unactioned.old_price = old_discounted
+                existing_unactioned.new_price = new_discounted
+                existing_unactioned.old_selling_price = old_selling
+                existing_unactioned.new_selling_price = new_selling
+                existing_unactioned.notification_type = notification_type
+                
+                # Update message
+                if is_increase:
+                    message = (
+                        f"⚠️ PRICE INCREASE from Wholeseller (UPDATED)\n\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"📦 Product: {instance.name}\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                        f"💰 Wholeseller Price Change:\n"
+                        f"   • Original Price: ₹{old_price} → ₹{instance.price}\n"
+                        f"   • Discount: {old_discount or 0}% → {instance.discount_percentage}%\n"
+                        f"   • Your Cost (after discount): ₹{old_discounted} → ₹{new_discounted}\n\n"
+                        f"💼 Your Margin: ₹{rp.margin_rupees}\n\n"
+                        f"💵 Your Current Selling Price: ₹{rp.selling_price}\n"
+                        f"💰 New Proposed Selling Price: ₹{new_selling}\n"
+                        f"📈 Increase: +₹{diff}\n\n"
+                        f"⚠️ Your price has NOT been updated automatically.\n"
+                        f"👉 Action Required: Review and sync this price change from your dashboard.\n\n"
+                        f"🔗 Review here: /products/reseller/store/{rp.store.id}/price-notifications/"
+                    )
+                else:
+                    message = (
+                        f"📉 PRICE DECREASE from Wholeseller (UPDATED) 🎉\n\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"📦 Product: {instance.name}\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                        f"💰 Wholeseller Price Change:\n"
+                        f"   • Original Price: ₹{old_price} → ₹{instance.price}\n"
+                        f"   • Discount: {old_discount or 0}% → {instance.discount_percentage}%\n"
+                        f"   • Your Cost (after discount): ₹{old_discounted} → ₹{new_discounted}\n\n"
+                        f"💼 Your Margin: ₹{rp.margin_rupees} (unchanged)\n\n"
+                        f"💵 Your Current Selling Price: ₹{rp.selling_price}\n"
+                        f"💰 New Proposed Selling Price: ₹{new_selling}\n"
+                        f"📉 Decrease: -₹{abs(diff)}\n\n"
+                        f"🎯 Opportunity: You can now reduce price or increase profit margin!\n\n"
+                        f"👉 Review and sync this price change from your dashboard.\n\n"
+                        f"🔗 Review here: /products/reseller/store/{rp.store.id}/price-notifications/"
+                    )
+                
+                existing_unactioned.message = message
+                existing_unactioned.created_at = timezone.now()  # Refresh timestamp
+                existing_unactioned.save()
+                
+                # Send email for updated notification
+                try:
+                    send_mail(
+                        subject=f"{'⚠️ Price Increase Alert (UPDATED)' if is_increase else '📉 Price Decrease Opportunity (UPDATED)'}: {instance.name}",
+                        message=message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[rp.reseller.email],
+                        fail_silently=False,
+                    )
+                    print(f"📧 Updated email sent to {rp.reseller.email}")
+                except Exception as e:
+                    print(f"❌ Email failed for {rp.reseller.email}: {e}")
+                
             else:
-                message = (
-                    f"📉 PRICE DECREASE from Wholeseller 🎉\n\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                    f"📦 Product: {instance.name}\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-                    f"💰 Wholeseller Price Change:\n"
-                    f"   • Original Price: ₹{old_price} → ₹{instance.price}\n"
-                    f"   • Discount: {old_discount or 0}% → {instance.discount_percentage}%\n"
-                    f"   • Your Cost (after discount): ₹{old_discounted} → ₹{new_discounted}\n\n"
-                    f"💼 Your Margin: ₹{rp.margin_rupees} (unchanged)\n\n"
-                    f"💵 Your Current Selling Price: ₹{rp.selling_price}\n"
-                    f"💰 New Proposed Selling Price: ₹{new_selling}\n"
-                    f"📉 Decrease: -₹{abs(diff)}\n\n"
-                    f"🎯 Opportunity: You can now:\n"
-                    f"   • Sync price to reduce selling price and attract more customers, OR\n"
-                    f"   • Keep current price and increase your profit margin by ₹{abs(diff)} per unit!\n\n"
-                    f"👉 Review and sync this price change from your dashboard.\n\n"
-                    f"🔗 Review here: /products/reseller/store/{rp.store.id}/price-notifications/"
+                # Create new notification
+                if is_increase:
+                    message = (
+                        f"⚠️ PRICE INCREASE from Wholeseller\n\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"📦 Product: {instance.name}\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                        f"💰 Wholeseller Price Change:\n"
+                        f"   • Original Price: ₹{old_price} → ₹{instance.price}\n"
+                        f"   • Discount: {old_discount or 0}% → {instance.discount_percentage}%\n"
+                        f"   • Your Cost (after discount): ₹{old_discounted} → ₹{new_discounted}\n\n"
+                        f"💼 Your Margin: ₹{rp.margin_rupees}\n\n"
+                        f"💵 Your Current Selling Price: ₹{rp.selling_price}\n"
+                        f"💰 New Proposed Selling Price: ₹{new_selling}\n"
+                        f"📈 Increase: +₹{diff}\n\n"
+                        f"⚠️ Your price has NOT been updated automatically.\n"
+                        f"👉 Action Required: Review and sync this price change from your dashboard.\n\n"
+                        f"🔗 Review here: /products/reseller/store/{rp.store.id}/price-notifications/"
+                    )
+                else:
+                    message = (
+                        f"📉 PRICE DECREASE from Wholeseller 🎉\n\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"📦 Product: {instance.name}\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                        f"💰 Wholeseller Price Change:\n"
+                        f"   • Original Price: ₹{old_price} → ₹{instance.price}\n"
+                        f"   • Discount: {old_discount or 0}% → {instance.discount_percentage}%\n"
+                        f"   • Your Cost (after discount): ₹{old_discounted} → ₹{new_discounted}\n\n"
+                        f"💼 Your Margin: ₹{rp.margin_rupees} (unchanged)\n\n"
+                        f"💵 Your Current Selling Price: ₹{rp.selling_price}\n"
+                        f"💰 New Proposed Selling Price: ₹{new_selling}\n"
+                        f"📉 Decrease: -₹{abs(diff)}\n\n"
+                        f"🎯 Opportunity: You can now:\n"
+                        f"   • Sync price to reduce selling price and attract more customers, OR\n"
+                        f"   • Keep current price and increase your profit margin by ₹{abs(diff)} per unit!\n\n"
+                        f"👉 Review and sync this price change from your dashboard.\n\n"
+                        f"🔗 Review here: /products/reseller/store/{rp.store.id}/price-notifications/"
+                    )
+                
+                # Create notification ONLY - DO NOT update the reseller product
+                notification = PriceChangeNotification.objects.create(
+                    reseller=rp.reseller,
+                    store=rp.store,
+                    reseller_product=rp,
+                    notification_type=notification_type,
+                    old_price=old_discounted,
+                    new_price=new_discounted,
+                    old_selling_price=old_selling,
+                    new_selling_price=new_selling,
+                    message=message,
                 )
+                
+                print(f"📢 Created notification {notification.id} for reseller {rp.reseller.email}")
+                print(f"   ⚠️ Reseller product {rp.name} price NOT updated - pending review")
+                
+                # Send email notification
+                try:
+                    send_mail(
+                        subject=f"{'⚠️ Price Increase Alert' if is_increase else '📉 Price Decrease Opportunity'}: {instance.name}",
+                        message=message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[rp.reseller.email],
+                        fail_silently=False,
+                    )
+                    print(f"📧 Email sent to {rp.reseller.email}")
+                except Exception as e:
+                    print(f"❌ Email failed for {rp.reseller.email}: {e}")
             
-            # Create notification ONLY - DO NOT update the reseller product
-            notification = PriceChangeNotification.objects.create(
-                reseller=rp.reseller,
-                store=rp.store,
-                reseller_product=rp,
-                notification_type=notification_type,
-                old_price=old_discounted,
-                new_price=new_discounted,
-                old_selling_price=old_selling,
-                new_selling_price=new_selling,
-                message=message,
-            )
-            
-            print(f"📢 Created notification {notification.id} for reseller {rp.reseller.email}")
-            print(f"   ⚠️ Reseller product {rp.name} price NOT updated - pending review")
-            
-            # Update ONLY the price_status and notification time, NOT the source_price
+            # Update ONLY the price_status and notification time
             ResellerProduct.objects.filter(pk=rp.pk).update(
                 price_status='price_increased' if is_increase else 'price_decreased',
                 price_change_notified_at=timezone.now()
-                # DO NOT update source_price or last_known_source_price
             )
-            
-            # Send email notification
-            try:
-                send_mail(
-                    subject=f"{'⚠️ Price Increase Alert' if is_increase else '📉 Price Decrease Opportunity'}: {instance.name}",
-                    message=message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[rp.reseller.email],
-                    fail_silently=False,
-                )
-                print(f"📧 Email sent to {rp.reseller.email}")
-            except Exception as e:
-                print(f"❌ Email failed for {rp.reseller.email}: {e}")
     
     except Exception as e:
         print(f"❌ Error in signal: {e}")
@@ -272,88 +348,161 @@ def notify_resellers_on_variant_price_change(sender, instance, created, **kwargs
             is_increase = new_selling > old_selling
             notification_type = 'variant_price_increase' if is_increase else 'variant_price_decrease'
             
-            # Prevent duplicate notifications (within last 5 minutes)
-            recent_exists = PriceChangeNotification.objects.filter(
+            # FIXED: Check for duplicate with SAME price change
+            recent_duplicate = PriceChangeNotification.objects.filter(
                 reseller=rp.reseller,
-                reseller_variant=rv,
-                created_at__gte=timezone.now() - timezone.timedelta(minutes=5)
-            ).exists()
-            
-            if recent_exists:
-                print(f"📢 Skipping duplicate notification for variant {rv.variant_name}")
-                continue
-            
-            # Create detailed message
-            if is_increase:
-                message = (
-                    f"⚠️ VARIANT PRICE INCREASE from Wholeseller\n\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                    f"📦 Product: {rp.name}\n"
-                    f"🔖 Variant: {rv.variant_name}\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-                    f"💰 Wholeseller Price Change:\n"
-                    f"   • Original Price: ₹{old_price} → ₹{instance.price}\n"
-                    f"   • Discount: {old_discount or 0}% → {instance.discount_percentage}%\n"
-                    f"   • Your Cost (after discount): ₹{old_discounted} → ₹{new_discounted}\n\n"
-                    f"💼 Your Margin: ₹{rv.margin_rupees}\n\n"
-                    f"💵 Your Current Selling Price: ₹{rv.selling_price}\n"
-                    f"💰 New Proposed Selling Price: ₹{new_selling}\n"
-                    f"📈 Increase: +₹{new_selling - old_selling}\n\n"
-                    f"⚠️ Your price has NOT been updated automatically.\n"
-                    f"👉 Action Required: Review and sync this price change from your dashboard.\n\n"
-                    f"🔗 Review here: /products/reseller/store/{rp.store.id}/price-notifications/"
-                )
-            else:
-                message = (
-                    f"📉 VARIANT PRICE DECREASE from Wholeseller 🎉\n\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                    f"📦 Product: {rp.name}\n"
-                    f"🔖 Variant: {rv.variant_name}\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-                    f"💰 Wholeseller Price Change:\n"
-                    f"   • Original Price: ₹{old_price} → ₹{instance.price}\n"
-                    f"   • Discount: {old_discount or 0}% → {instance.discount_percentage}%\n"
-                    f"   • Your Cost (after discount): ₹{old_discounted} → ₹{new_discounted}\n\n"
-                    f"💼 Your Margin: ₹{rv.margin_rupees} (unchanged)\n\n"
-                    f"💵 Your Current Selling Price: ₹{rv.selling_price}\n"
-                    f"💰 New Proposed Selling Price: ₹{new_selling}\n"
-                    f"📉 Decrease: -₹{old_selling - new_selling}\n\n"
-                    f"🎯 Opportunity: You can now:\n"
-                    f"   • Sync price to reduce selling price and attract more customers, OR\n"
-                    f"   • Keep current price and increase your profit margin!\n\n"
-                    f"👉 Review and sync this price change from your dashboard.\n\n"
-                    f"🔗 Review here: /products/reseller/store/{rp.store.id}/price-notifications/"
-                )
-            
-            # Create notification ONLY - DO NOT update the reseller variant
-            notification = PriceChangeNotification.objects.create(
-                reseller=rp.reseller,
-                store=rp.store,
-                reseller_product=rp,
                 reseller_variant=rv,
                 notification_type=notification_type,
                 old_price=old_discounted,
                 new_price=new_discounted,
-                old_selling_price=old_selling,
-                new_selling_price=new_selling,
-                message=message,
-            )
+                created_at__gte=timezone.now() - timezone.timedelta(minutes=5)
+            ).exists()
             
-            print(f"📢 Created variant notification {notification.id} for reseller {rp.reseller.email}")
-            print(f"   ⚠️ Reseller variant {rv.variant_name} price NOT updated - pending review")
+            # Check for existing unactioned notification
+            existing_unactioned = PriceChangeNotification.objects.filter(
+                reseller=rp.reseller,
+                reseller_variant=rv,
+                is_actioned=False
+            ).order_by('-created_at').first()
             
-            # Send email notification
-            try:
-                send_mail(
-                    subject=f"{'⚠️ Price Increase Alert' if is_increase else '📉 Price Decrease Opportunity'}: {rp.name} - {rv.variant_name}",
+            if recent_duplicate:
+                print(f"📢 Skipping duplicate notification for variant {rv.variant_name}")
+                continue
+            
+            if existing_unactioned:
+                # Update existing notification
+                print(f"📢 Updating existing unactioned notification for variant {rv.variant_name}")
+                existing_unactioned.old_price = old_discounted
+                existing_unactioned.new_price = new_discounted
+                existing_unactioned.old_selling_price = old_selling
+                existing_unactioned.new_selling_price = new_selling
+                existing_unactioned.notification_type = notification_type
+                
+                if is_increase:
+                    message = (
+                        f"⚠️ VARIANT PRICE INCREASE from Wholeseller (UPDATED)\n\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"📦 Product: {rp.name}\n"
+                        f"🔖 Variant: {rv.variant_name}\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                        f"💰 Wholeseller Price Change:\n"
+                        f"   • Original Price: ₹{old_price} → ₹{instance.price}\n"
+                        f"   • Discount: {old_discount or 0}% → {instance.discount_percentage}%\n"
+                        f"   • Your Cost (after discount): ₹{old_discounted} → ₹{new_discounted}\n\n"
+                        f"💼 Your Margin: ₹{rv.margin_rupees}\n\n"
+                        f"💵 Your Current Selling Price: ₹{rv.selling_price}\n"
+                        f"💰 New Proposed Selling Price: ₹{new_selling}\n"
+                        f"📈 Increase: +₹{new_selling - old_selling}\n\n"
+                        f"⚠️ Your price has NOT been updated automatically.\n"
+                        f"👉 Action Required: Review and sync this price change from your dashboard.\n\n"
+                        f"🔗 Review here: /products/reseller/store/{rp.store.id}/price-notifications/"
+                    )
+                else:
+                    message = (
+                        f"📉 VARIANT PRICE DECREASE from Wholeseller (UPDATED) 🎉\n\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"📦 Product: {rp.name}\n"
+                        f"🔖 Variant: {rv.variant_name}\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                        f"💰 Wholeseller Price Change:\n"
+                        f"   • Original Price: ₹{old_price} → ₹{instance.price}\n"
+                        f"   • Discount: {old_discount or 0}% → {instance.discount_percentage}%\n"
+                        f"   • Your Cost (after discount): ₹{old_discounted} → ₹{new_discounted}\n\n"
+                        f"💼 Your Margin: ₹{rv.margin_rupees} (unchanged)\n\n"
+                        f"💵 Your Current Selling Price: ₹{rv.selling_price}\n"
+                        f"💰 New Proposed Selling Price: ₹{new_selling}\n"
+                        f"📉 Decrease: -₹{old_selling - new_selling}\n\n"
+                        f"🎯 Opportunity: You can now reduce price or increase profit margin!\n\n"
+                        f"👉 Review and sync this price change from your dashboard.\n\n"
+                        f"🔗 Review here: /products/reseller/store/{rp.store.id}/price-notifications/"
+                    )
+                
+                existing_unactioned.message = message
+                existing_unactioned.created_at = timezone.now()
+                existing_unactioned.save()
+                
+                # Send email
+                try:
+                    send_mail(
+                        subject=f"{'⚠️ Price Increase Alert (UPDATED)' if is_increase else '📉 Price Decrease Opportunity (UPDATED)'}: {rp.name} - {rv.variant_name}",
+                        message=message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[rp.reseller.email],
+                        fail_silently=False,
+                    )
+                except Exception as e:
+                    print(f"❌ Email failed for {rp.reseller.email}: {e}")
+            
+            else:
+                # Create new notification
+                if is_increase:
+                    message = (
+                        f"⚠️ VARIANT PRICE INCREASE from Wholeseller\n\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"📦 Product: {rp.name}\n"
+                        f"🔖 Variant: {rv.variant_name}\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                        f"💰 Wholeseller Price Change:\n"
+                        f"   • Original Price: ₹{old_price} → ₹{instance.price}\n"
+                        f"   • Discount: {old_discount or 0}% → {instance.discount_percentage}%\n"
+                        f"   • Your Cost (after discount): ₹{old_discounted} → ₹{new_discounted}\n\n"
+                        f"💼 Your Margin: ₹{rv.margin_rupees}\n\n"
+                        f"💵 Your Current Selling Price: ₹{rv.selling_price}\n"
+                        f"💰 New Proposed Selling Price: ₹{new_selling}\n"
+                        f"📈 Increase: +₹{new_selling - old_selling}\n\n"
+                        f"⚠️ Your price has NOT been updated automatically.\n"
+                        f"👉 Action Required: Review and sync this price change from your dashboard.\n\n"
+                        f"🔗 Review here: /products/reseller/store/{rp.store.id}/price-notifications/"
+                    )
+                else:
+                    message = (
+                        f"📉 VARIANT PRICE DECREASE from Wholeseller 🎉\n\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"📦 Product: {rp.name}\n"
+                        f"🔖 Variant: {rv.variant_name}\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                        f"💰 Wholeseller Price Change:\n"
+                        f"   • Original Price: ₹{old_price} → ₹{instance.price}\n"
+                        f"   • Discount: {old_discount or 0}% → {instance.discount_percentage}%\n"
+                        f"   • Your Cost (after discount): ₹{old_discounted} → ₹{new_discounted}\n\n"
+                        f"💼 Your Margin: ₹{rv.margin_rupees} (unchanged)\n\n"
+                        f"💵 Your Current Selling Price: ₹{rv.selling_price}\n"
+                        f"💰 New Proposed Selling Price: ₹{new_selling}\n"
+                        f"📉 Decrease: -₹{old_selling - new_selling}\n\n"
+                        f"🎯 Opportunity: You can now:\n"
+                        f"   • Sync price to reduce selling price and attract more customers, OR\n"
+                        f"   • Keep current price and increase your profit margin!\n\n"
+                        f"👉 Review and sync this price change from your dashboard.\n\n"
+                        f"🔗 Review here: /products/reseller/store/{rp.store.id}/price-notifications/"
+                    )
+                
+                notification = PriceChangeNotification.objects.create(
+                    reseller=rp.reseller,
+                    store=rp.store,
+                    reseller_product=rp,
+                    reseller_variant=rv,
+                    notification_type=notification_type,
+                    old_price=old_discounted,
+                    new_price=new_discounted,
+                    old_selling_price=old_selling,
+                    new_selling_price=new_selling,
                     message=message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[rp.reseller.email],
-                    fail_silently=False,
                 )
-                print(f"📧 Email sent to {rp.reseller.email}")
-            except Exception as e:
-                print(f"❌ Email failed for {rp.reseller.email}: {e}")
+                
+                print(f"📢 Created variant notification {notification.id} for reseller {rp.reseller.email}")
+                
+                # Send email notification
+                try:
+                    send_mail(
+                        subject=f"{'⚠️ Price Increase Alert' if is_increase else '📉 Price Decrease Opportunity'}: {rp.name} - {rv.variant_name}",
+                        message=message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[rp.reseller.email],
+                        fail_silently=False,
+                    )
+                    print(f"📧 Email sent to {rp.reseller.email}")
+                except Exception as e:
+                    print(f"❌ Email failed for {rp.reseller.email}: {e}")
     
     except Exception as e:
         print(f"❌ Error in variant signal: {e}")

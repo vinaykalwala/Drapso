@@ -1069,7 +1069,7 @@
 
     // ==================== INVENTORY TAB ====================
     function renderInventory(data) {
-        const p = data.reseller_products || {};
+        const p = data.wholeseller_products || {};
         const low = p.low_stock || 0;
         const out = p.out_of_stock || 0;
         const health = Math.max(0, 100 - (low + out));
