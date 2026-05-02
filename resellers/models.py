@@ -46,13 +46,13 @@ class SubscriptionPlan(models.Model):
     def get_price_display(self):
         """Safe method to display price"""
         try:
-            return f"${self.price:.2f}"
+            return f"₹{self.price:.2f}"
         except:
             return "0.00"
     
     def __str__(self):
         try:
-            return f"{self.get_name_display()} - {self.get_duration_display()} (${self.price})"
+            return f"{self.get_name_display()} - {self.get_duration_display()} (₹{self.price})"
         except:
             return f"{self.get_name_display()} - {self.get_duration_display()}"
 

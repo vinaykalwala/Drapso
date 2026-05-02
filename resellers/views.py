@@ -1430,7 +1430,7 @@ Your store "{store.store_name}" has been upgraded!
 📊 Upgrade Details:
 • Old Plan: {old_plan_name}
 • New Plan: {new_plan.get_name_display().title()} ({new_plan.get_duration_display()})
-• Amount Paid: ${transaction.amount}
+• Amount Paid: ₹{transaction.amount}
 
 ✅ Your {existing_products_count} products have been preserved!
 
@@ -1449,7 +1449,7 @@ Your store "{store.store_name}" subscription has been renewed!
 
 📊 Renewal Details:
 • Plan: {new_plan.get_name_display().title()} ({new_plan.get_duration_display()})
-• Amount Paid: ${transaction.amount}
+• Amount Paid: ₹{transaction.amount}
 • New Expiry Date: {new_expiry}{extra_days_msg}
 
 ✅ Your {existing_products_count} products have been preserved!
@@ -1542,7 +1542,7 @@ Your store "{store.store_name}" has been reactivated!
 📊 Subscription Details:
 • Previous Plan: {old_plan_name}
 • New Plan: {new_plan.get_name_display().title()} ({new_plan.get_duration_display()})
-• Amount Paid: ${transaction.amount}
+• Amount Paid: ₹{transaction.amount}
 • New Expiry Date: {store.subscription_end.strftime('%B %d, %Y') if store.subscription_end else 'Lifetime'}
 
 ✅ IMPORTANT: Your {existing_products_count} products have been preserved!
