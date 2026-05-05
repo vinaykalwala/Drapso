@@ -335,7 +335,7 @@ class WithdrawalService:
     """Handles withdrawal requests with admin approval - NEFT only"""
     
     MINIMUM_WITHDRAWAL_AMOUNT = 1000
-    WEEKLY_WITHDRAWAL_LIMIT = 10000
+    WEEKLY_WITHDRAWAL_LIMIT = 50000
     
     @classmethod
     def get_neft_payout_fee(cls):
