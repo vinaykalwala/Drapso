@@ -244,8 +244,7 @@ Drapso
 {% endif %}
 
 <button class="btn btn-mobile">
-Start Selling
-</button>
+<a href="{% url 'accounts:wholeseller_signup' %}" class="login-mobile" style="color: #ffffff;">Start Selling</a></button>
 
 </div>
 
@@ -265,8 +264,9 @@ Start Selling
 
 {% endif %}
 
-<button class="btn">Start Selling</button>
-
+<a href="{% url 'accounts:wholeseller_signup' %}" class="btn" style="text-decoration: none;">
+    Start Selling
+</a>
 <div class="menu-toggle" onclick="toggleMenu()">☰</div>
 
 </div>
