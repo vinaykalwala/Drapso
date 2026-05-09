@@ -260,18 +260,33 @@ class Store(models.Model):
     
     def get_full_url(self, request=None):
         """Generate full store URL dynamically"""
+        
         if not self.subdomain:
             return "#"
-        
+
         if request:
             host = request.get_host().split(':')[0]
+
+            # Remove www if present
+            if host.startswith("www."):
+                host = host.replace("www.", "", 1)
+
             host_parts = host.split('.')
+
+            # If already accessing from a subdomain
             if len(host_parts) >= 3:
-                base_domain = '.'.join(host_parts[1:])
-                return f"https://{self.subdomain}.{base_domain}"
+                # Example:
+                # fashion.drapso.com -> drapso.com
+                # www.drapso.com -> drapso.com
+                base_domain = '.'.join(host_parts[-2:])
             else:
-                return f"https://{self.subdomain}.{host}"
-        return f"https://{self.subdomain}.example.com"
+                # Example:
+                # drapso.com
+                base_domain = host
+
+            return f"https://{self.subdomain}.{base_domain}"
+
+        return f"https://{self.subdomain}.drapso.com"
     
     def get_max_products(self):
         """Calculate max products based on theme and plan"""
