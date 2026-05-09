@@ -388,14 +388,27 @@
 <script>
     const storeNameInput = document.getElementById('store_name');
     const previewUrlSpan = document.getElementById('url-preview');
-    const domain = window.location.hostname;
-    
+
+    // Remove www from domain
+    let domain = window.location.hostname;
+
+    if (domain.startsWith('www.')) {
+        domain = domain.replace('www.', '');
+    }
+
     function updatePreview() {
-        let storeName = storeNameInput.value.toLowerCase();
-        // Clean URL characters
-        storeName = storeName.replace(/[^a-z0-9-]/g, '');
+
+        let storeName = storeNameInput.value.toLowerCase().trim();
+
+        // Replace spaces with hyphens first
         storeName = storeName.replace(/\s+/g, '-');
-        
+
+        // Remove invalid characters
+        storeName = storeName.replace(/[^a-z0-9-]/g, '');
+
+        // Remove multiple hyphens
+        storeName = storeName.replace(/-+/g, '-');
+
         if (storeName) {
             previewUrlSpan.innerHTML = storeName + '.' + domain;
             previewUrlSpan.style.color = '#4f46e5';
@@ -406,10 +419,11 @@
             previewUrlSpan.style.fontWeight = 'normal';
         }
     }
-    
+
     if (storeNameInput) {
         storeNameInput.addEventListener('input', updatePreview);
-        // Run on load to handle prepopulated data
+
+        // Run on page load
         updatePreview();
     }
 </script>
