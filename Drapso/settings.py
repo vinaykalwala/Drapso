@@ -23,10 +23,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-vqvxd4d@jphz6o_p0)s$zq90tlh^d%er-2b$s3p483jk=7$8bi'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    '.drapso.com',
+    'www.drapso.com',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.drapso.com',
+    'https://www.drapso.com',
+]
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 MAX_UPLOAD_SIZE = 5242880
@@ -86,16 +94,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Drapso.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db2.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'Manojkumar6614$drapso-db',
+        'USER': 'Manojkumar6614',
+        'PASSWORD': 'Manoj@2026',
+        'HOST': 'Manojkumar6614.mysql.pythonanywhere-services.com',
+        'PORT': '3306',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -160,8 +168,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'projecttestmail02@gmail.com'
-EMAIL_HOST_PASSWORD = 'iizo uksz ngai kyir '
+EMAIL_HOST_USER = 'mkdrapso@gmail.com'
+EMAIL_HOST_PASSWORD = 'aeer vmzd cbnr lpeo'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 CACHES = {
@@ -180,5 +188,5 @@ SHIPROCKET_WEBHOOK_SECRET = ''
 
 
 # settings.py
-MAIN_DOMAIN = "http://127.0.0.1:8000"
+MAIN_DOMAIN = "https://drapso.com"
 
