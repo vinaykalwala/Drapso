@@ -1,14 +1,17 @@
+# settlement/views.py
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from django.db.models import Sum, Q
 from decimal import Decimal
-from .models import Wallet, WithdrawalRequest, WalletTransaction, OrderSettlement
+from .models import Wallet, WithdrawalRequest, WalletTransaction, OrderSettlement, ManualPayoutRecord, PayoutBankAccount
 from .services import WithdrawalService, DrapsoSettlementService
-from .forms import WithdrawalRequestForm, AdminWithdrawalActionForm, DateRangeForm
+from .forms import WithdrawalRequestForm, AdminWithdrawalActionForm, DateRangeForm, ManualPayoutForm, PayoutBankAccountForm
 from accounts.models import BankAccount
+import csv
 
 
 def is_admin(user):
@@ -42,7 +45,6 @@ def dashboard(request):
         requested_at__gte=one_week_ago
     ).aggregate(total=Sum('amount'))['total'] or 0
 
-    # ✅ ADD THIS LINE (IMPORTANT 🔥)
     weekly_limit = WithdrawalService.WEEKLY_WITHDRAWAL_LIMIT
     remaining = max(0, weekly_limit - weekly_withdrawn)
 
@@ -52,12 +54,13 @@ def dashboard(request):
         'recent_withdrawals': recent_withdrawals,
         'weekly_withdrawn': weekly_withdrawn,
         'weekly_limit': weekly_limit,
-        'remaining': remaining,   # ✅ ADD THIS
+        'remaining': remaining,
         'minimum_withdrawal': WithdrawalService.MINIMUM_WITHDRAWAL_AMOUNT,
         'neft_fee': WithdrawalService.get_neft_payout_fee(),
     }
     
     return render(request, 'settlement/dashboard.html', context)
+
 
 @login_required
 def withdrawal_request(request):
@@ -158,6 +161,11 @@ def admin_withdrawal_detail(request, withdrawal_id):
     """Admin view for withdrawal request details and action"""
     withdrawal = get_object_or_404(WithdrawalRequest.objects.select_related('wallet__user', 'bank_account'), id=withdrawal_id)
     
+    # Get manual payout record if exists
+    manual_payout = None
+    if hasattr(withdrawal, 'manual_payout'):
+        manual_payout = withdrawal.manual_payout
+    
     if request.method == 'POST':
         form = AdminWithdrawalActionForm(request.POST)
         
@@ -183,6 +191,7 @@ def admin_withdrawal_detail(request, withdrawal_id):
     context = {
         'withdrawal': withdrawal,
         'form': form,
+        'manual_payout': manual_payout,
     }
     
     return render(request, 'settlement/admin/withdrawal_detail.html', context)
@@ -190,19 +199,147 @@ def admin_withdrawal_detail(request, withdrawal_id):
 
 @login_required
 @user_passes_test(is_admin)
+def admin_record_manual_payout(request, withdrawal_id):
+    """Form for admin to record manual payout"""
+    withdrawal = get_object_or_404(
+        WithdrawalRequest.objects.select_related('wallet__user'), 
+        id=withdrawal_id
+    )
+    
+    # Only allow for APPROVED withdrawals
+    if withdrawal.status != 'APPROVED':
+        messages.error(request, f"Cannot record payout. Current status: {withdrawal.status}")
+        return redirect('settlement:admin_withdrawal_detail', withdrawal_id=withdrawal_id)
+    
+    # Check if already paid
+    if hasattr(withdrawal, 'manual_payout'):
+        messages.warning(request, 'This withdrawal already has a payout record.')
+        return redirect('settlement:admin_withdrawal_detail', withdrawal_id=withdrawal_id)
+    
+    if request.method == 'POST':
+        form = ManualPayoutForm(request.POST, request.FILES, withdrawal=withdrawal)
+        
+        if form.is_valid():
+            try:
+                payment_proof = request.FILES.get('payment_proof')
+                
+                manual_record = WithdrawalService.admin_complete_manual_payout(
+                    withdrawal_id=withdrawal_id,
+                    payment_mode=form.cleaned_data['payment_mode'],
+                    transaction_id=form.cleaned_data['transaction_id'],
+                    amount_paid=form.cleaned_data['amount_paid'],
+                    payment_proof=payment_proof,
+                    processed_by=request.user,
+                    notes=form.cleaned_data['processing_notes']
+                )
+                
+                messages.success(
+                    request, 
+                    f'✅ Payout recorded! Seller receives ₹{manual_record.seller_amount} (full requested amount). '
+                    f'Platform paid ₹{manual_record.platform_fee_paid} NEFT fee.'
+                )
+                return redirect('settlement:admin_withdrawal_requests')
+                
+            except ValueError as e:
+                messages.error(request, str(e))
+    else:
+        expected_amount = withdrawal.amount + withdrawal.neft_fee
+        form = ManualPayoutForm(withdrawal=withdrawal, initial={'amount_paid': expected_amount})
+    
+    context = {
+        'withdrawal': withdrawal,
+        'form': form,
+        'bank_accounts': PayoutBankAccount.objects.filter(is_active=True),
+        'expected_amount': withdrawal.amount + withdrawal.neft_fee,
+    }
+    
+    return render(request, 'settlement/admin/record_manual_payout.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_cancel_approved_withdrawal(request, withdrawal_id):
+    """Cancel approved withdrawal before payout"""
+    withdrawal = get_object_or_404(WithdrawalRequest, id=withdrawal_id)
+    
+    if withdrawal.status != 'APPROVED':
+        messages.error(request, f"Cannot cancel withdrawal with status: {withdrawal.status}")
+        return redirect('settlement:admin_withdrawal_detail', withdrawal_id=withdrawal_id)
+    
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '')
+        
+        if not reason:
+            messages.error(request, 'Please provide a reason for cancellation')
+            return redirect('settlement:admin_withdrawal_detail', withdrawal_id=withdrawal_id)
+        
+        try:
+            WithdrawalService.admin_cancel_approved_withdrawal(
+                withdrawal_id=withdrawal_id,
+                reason=reason,
+                admin_user=request.user
+            )
+            messages.success(request, f'Withdrawal #{withdrawal_id} cancelled. Funds returned to wallet.')
+        except ValueError as e:
+            messages.error(request, str(e))
+    
+    return redirect('settlement:admin_withdrawal_detail', withdrawal_id=withdrawal_id)
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_payout_bank_accounts(request):
+    """Manage company bank accounts for payouts"""
+    accounts = PayoutBankAccount.objects.all()
+    
+    if request.method == 'POST':
+        form = PayoutBankAccountForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Bank account added successfully.')
+            return redirect('settlement:admin_payout_bank_accounts')
+    else:
+        form = PayoutBankAccountForm()
+    
+    context = {
+        'accounts': accounts,
+        'form': form,
+    }
+    
+    return render(request, 'settlement/admin/payout_bank_accounts.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_payout_bank_account_delete(request, account_id):
+    """Delete a payout bank account"""
+    account = get_object_or_404(PayoutBankAccount, id=account_id)
+    
+    if account.is_primary:
+        messages.error(request, 'Cannot delete primary bank account. Set another account as primary first.')
+    else:
+        account.delete()
+        messages.success(request, 'Bank account deleted successfully.')
+    
+    return redirect('settlement:admin_payout_bank_accounts')
+
+
+@login_required
+@user_passes_test(is_admin)
 def admin_settlement_report(request):
     """Admin view for settlement reports with CSV export"""
-    from django.http import HttpResponse
-    import csv
     
     form = DateRangeForm(request.GET or None)
     
     settlements = OrderSettlement.objects.select_related('order').all()
     
     if form.is_valid() and form.cleaned_data:
-        start_date = form.cleaned_data['start_date']
-        end_date = form.cleaned_data['end_date']
-        settlements = settlements.filter(created_at__date__gte=start_date, created_at__date__lte=end_date)
+        start_date = form.cleaned_data.get('start_date')
+        end_date = form.cleaned_data.get('end_date')
+        if start_date:
+            settlements = settlements.filter(created_at__date__gte=start_date)
+        if end_date:
+            settlements = settlements.filter(created_at__date__lte=end_date)
     
     # Summary statistics
     total_settled = settlements.aggregate(
@@ -213,6 +350,7 @@ def admin_settlement_report(request):
         total_reseller=Sum('reseller_amount'),
         total_neft_cost=Sum('neft_settlement_cost'),
     )
+    
     def format_k(value):
         try:
             value = float(value or 0)
@@ -222,13 +360,9 @@ def admin_settlement_report(request):
         except:
             return value
 
-    # ✅ Calculate net to sellers
     net_to_sellers = (total_settled.get('total_wholeseller') or 0) + (total_settled.get('total_reseller') or 0)
-
-    # ✅ Add formatted values
     total_settled['total_order_value_short'] = format_k(total_settled.get('total_order_value'))
     total_settled['net_to_sellers_short'] = format_k(net_to_sellers)
-    # ✅ NEW: To Resellers
     total_settled['total_reseller_short'] = format_k(total_settled.get('total_reseller'))
     
     # Check for CSV export
@@ -238,25 +372,13 @@ def admin_settlement_report(request):
         
         writer = csv.writer(response)
         
-        # Write headers
         writer.writerow([
-            'Order ID', 
-            'Shiprocket ID',
-            'Date', 
-            'Order Total', 
-            'Delivery Charges', 
-            'Razorpay Fee',
-            'Drapso Commission', 
-            'NEFT Cost', 
-            'Wholeseller Amount',
-            'Reseller Amount', 
-            'Status',
-            'Created At'
+            'Order ID', 'Shiprocket ID', 'Date', 'Order Total', 'Delivery Charges', 
+            'Razorpay Fee', 'Drapso Commission', 'NEFT Cost', 'Wholeseller Amount',
+            'Reseller Amount', 'Status', 'Created At'
         ])
         
-        # Write data rows with null handling
         for settlement in settlements:
-            # Handle date formatting safely
             created_at_date = ""
             created_at_datetime = ""
             
@@ -288,7 +410,70 @@ def admin_settlement_report(request):
     }
     
     return render(request, 'settlement/admin/settlement_report.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_platform_earnings(request):
+    """
+    Detailed view for Drapso platform revenue with strictly separated 
+    Commission, Shipping, and Gateway metrics.
+    """
+    form = DateRangeForm(request.GET or None)
     
+    # Base queryset
+    settlements = OrderSettlement.objects.select_related('order', 'order__reseller').all()
+    
+    # Apply date filters
+    if form.is_valid():
+        start_date = form.cleaned_data.get('start_date')
+        end_date = form.cleaned_data.get('end_date')
+        if start_date:
+            settlements = settlements.filter(created_at__date__gte=start_date)
+        if end_date:
+            settlements = settlements.filter(created_at__date__lte=end_date)
+    
+    # 1. Aggregate the distinct buckets
+    stats_raw = settlements.aggregate(
+        total_revenue=Sum('order_total'),
+        total_commissions=Sum('drapso_commission'),
+        total_gateway_fees=Sum('razorpay_fee'),
+        total_shipping=Sum('delivery_charges'),
+        total_neft_buffer=Sum('neft_settlement_cost'),
+    )
+
+    # 2. Extract values with fallbacks to 0
+    total_revenue = stats_raw.get('total_revenue') or Decimal('0')
+    gross_commission = stats_raw.get('total_commissions') or Decimal('0')
+    gateway_fees_paid = stats_raw.get('total_gateway_fees') or Decimal('0')
+    total_shipping = stats_raw.get('total_shipping') or Decimal('0')
+    neft_buffer = stats_raw.get('total_neft_buffer') or Decimal('0')
+
+    # 3. Simple Profit Logic
+    payout_fee_data = WithdrawalService.get_neft_payout_fee()
+    fee_per_payout = Decimal(str(payout_fee_data.get('total', 2.36)))
+    estimated_payout_costs = settlements.count() * fee_per_payout
+    
+    net_platform_profit = (gross_commission + neft_buffer) - estimated_payout_costs
+
+    context = {
+        'form': form,
+        'settlements': settlements.order_by('-created_at'),
+        'total_orders': settlements.count(),
+        'stats': {
+            'total_revenue': total_revenue,
+            'gross_commission': gross_commission,
+            'total_shipping': total_shipping,
+            'gateway_fees_paid': gateway_fees_paid,
+            'neft_buffer_collected': neft_buffer,
+            'estimated_payout_costs': estimated_payout_costs,
+        },
+        'net_platform_profit': net_platform_profit,
+    }
+    
+    return render(request, 'settlement/admin/platform_earnings.html', context)
+
+
 @login_required
 def api_wallet_balance(request):
     """API endpoint for wallet balance"""
@@ -320,64 +505,86 @@ def api_bank_accounts(request):
         ]
     })
 
+
 @login_required
 @user_passes_test(is_admin)
-def admin_platform_earnings(request):
-    """
-    Detailed view for Drapso platform revenue with strictly separated 
-    Commission, Shipping, and Gateway metrics.
-    """
+def admin_manual_payouts_report(request):
+    """Report view for all manual payouts"""
+    payouts = ManualPayoutRecord.objects.select_related('withdrawal__wallet__user', 'processed_by').all()
+    
+    # Filter by date range
     form = DateRangeForm(request.GET or None)
-    
-    # Base queryset
-    settlements = OrderSettlement.objects.select_related('order', 'order__reseller').all()
-    
-    # Apply date filters
-    if form.is_valid():
+    if form.is_valid() and form.cleaned_data:
         start_date = form.cleaned_data.get('start_date')
         end_date = form.cleaned_data.get('end_date')
         if start_date:
-            settlements = settlements.filter(created_at__date__gte=start_date)
+            payouts = payouts.filter(transaction_date__date__gte=start_date)
         if end_date:
-            settlements = settlements.filter(created_at__date__lte=end_date)
+            payouts = payouts.filter(transaction_date__date__lte=end_date)
     
-    # 1. Aggregate the distinct buckets
-    stats_raw = settlements.aggregate(
-        total_revenue=Sum('order_total'),
-        total_commissions=Sum('drapso_commission'),      # Pure 5%
-        total_gateway_fees=Sum('razorpay_fee'),          # Gateway loss
-        total_shipping=Sum('delivery_charges'),          # Shipping pass-through
-        total_neft_buffer=Sum('neft_settlement_cost'),   # Payout buffer
+    # Summary statistics
+    summary = payouts.aggregate(
+        total_paid=Sum('total_platform_cost'),
+        total_fees=Sum('platform_fee_paid'),
+        total_net=Sum('seller_amount'),
+        total_count=Sum('id')
     )
-
-    # 2. Extract values with fallbacks to 0
-    total_revenue = stats_raw.get('total_revenue') or Decimal('0')
-    gross_commission = stats_raw.get('total_commissions') or Decimal('0')
-    gateway_fees_paid = stats_raw.get('total_gateway_fees') or Decimal('0')
-    total_shipping = stats_raw.get('total_shipping') or Decimal('0')
-    neft_buffer = stats_raw.get('total_neft_buffer') or Decimal('0')
-
-    # 3. Simple Profit Logic: 
-    # Net Profit = (Commissions + Buffer) - (Actual Cost to Pay Out)
-    payout_fee_data = WithdrawalService.get_neft_payout_fee()
-    fee_per_payout = Decimal(str(payout_fee_data.get('total', 2.36)))
-    estimated_payout_costs = settlements.count() * fee_per_payout
     
-    net_platform_profit = (gross_commission + neft_buffer) - estimated_payout_costs
-
     context = {
         'form': form,
-        'settlements': settlements.order_by('-created_at'),
-        'total_orders': settlements.count(),
-        'stats': {
-            'total_revenue': total_revenue,
-            'gross_commission': gross_commission,
-            'total_shipping': total_shipping,
-            'gateway_fees_paid': gateway_fees_paid,
-            'neft_buffer_collected': neft_buffer,
-            'estimated_payout_costs': estimated_payout_costs,
-        },
-        'net_platform_profit': net_platform_profit,
+        'payouts': payouts,
+        'summary': summary,
     }
     
-    return render(request, 'settlement/admin/platform_earnings.html', context)
+    return render(request, 'settlement/admin/manual_payouts_report.html', context)
+
+# settlement/views.py - Add this new view
+
+@login_required
+def my_payouts(request):
+    """
+    View for sellers to see their payouts (withdrawals) processed by admin
+    """
+    wallet, created = Wallet.objects.get_or_create(user=request.user)
+    
+    # Get all withdrawal requests for this user
+    withdrawals = WithdrawalRequest.objects.filter(wallet=wallet).order_by('-requested_at')
+    
+    # Filter by status if provided
+    status_filter = request.GET.get('status')
+    if status_filter:
+        withdrawals = withdrawals.filter(status=status_filter)
+    
+    # Get summary statistics
+    total_withdrawn = withdrawals.filter(status='COMPLETED').aggregate(
+        total=Sum('amount')
+    )['total'] or Decimal('0')
+    
+    total_pending = withdrawals.filter(status='PENDING').aggregate(
+        total=Sum('amount')
+    )['total'] or Decimal('0')
+    
+    total_approved = withdrawals.filter(status='APPROVED').aggregate(
+        total=Sum('amount')
+    )['total'] or Decimal('0')
+    
+    total_rejected = withdrawals.filter(status='REJECTED').aggregate(
+        total=Sum('amount')
+    )['total'] or Decimal('0')
+    
+    # Get recent payouts (last 5 completed)
+    recent_payouts = withdrawals.filter(status='COMPLETED')[:5]
+    
+    context = {
+        'wallet': wallet,
+        'withdrawals': withdrawals,
+        'status_filter': status_filter,
+        'status_choices': WithdrawalRequest.WITHDRAWAL_STATUS,
+        'total_withdrawn': total_withdrawn,
+        'total_pending': total_pending,
+        'total_approved': total_approved,
+        'total_rejected': total_rejected,
+        'recent_payouts': recent_payouts,
+    }
+    
+    return render(request, 'settlement/my_payouts.html', context)

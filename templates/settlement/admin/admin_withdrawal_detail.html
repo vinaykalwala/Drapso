@@ -1,0 +1,129 @@
+<!-- Add this section to your existing admin_withdrawal_detail.html -->
+
+{% if withdrawal.status == 'APPROVED' %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Manual Payout Actions</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    This withdrawal has been approved. You can now:
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <a href="{% url 'settlement:admin_record_manual_payout' withdrawal.id %}" 
+                           class="btn btn-success btn-block">
+                            <i class="fas fa-hand-holding-usd"></i> Record Manual Payout
+                        </a>
+                        <p class="text-muted mt-2">
+                            Use this after you have manually transferred money to the seller
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-warning btn-block" data-toggle="modal" data-target="#cancelModal">
+                            <i class="fas fa-times-circle"></i> Cancel & Return Funds
+                        </button>
+                        <p class="text-muted mt-2">
+                            Cancel this withdrawal and return funds to seller's wallet
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Withdrawal</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <form method="post" action="{% url 'settlement:admin_cancel_withdrawal' withdrawal.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>Are you sure you want to cancel this withdrawal?</p>
+                    <div class="form-group">
+                        <label>Reason for cancellation:</label>
+                        <textarea name="reason" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <p class="text-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        This will return ₹{{ withdrawal.amount|floatformat:2 }} to the seller's wallet.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-warning">Confirm Cancellation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if withdrawal.status == 'COMPLETED' and manual_payout %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Manual Payout Details</h4>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Payment Mode</th>
+                        <td>{{ manual_payout.get_payment_mode_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <td><code>{{ manual_payout.transaction_id|default:"N/A" }}</code></td>
+                    </tr>
+                    <tr>
+                        <th>Amount Paid</th>
+                        <td>₹{{ manual_payout.amount_paid|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <th>Fee Deducted</th>
+                        <td>₹{{ manual_payout.neft_fee_deducted|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <th>Net Amount</th>
+                        <td>₹{{ manual_payout.net_amount|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <th>Payment Date</th>
+                        <td>{{ manual_payout.transaction_date|date:"d M Y h:i A" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Processed By</th>
+                        <td>{{ manual_payout.processed_by.username|default:"System" }}</td>
+                    </tr>
+                    {% if manual_payout.payment_proof %}
+                    <tr>
+                        <th>Payment Proof</th>
+                        <td>
+                            <a href="{{ manual_payout.payment_proof.url }}" target="_blank" class="btn btn-sm btn-info">
+                                <i class="fas fa-download"></i> View Proof
+                            </a>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% if manual_payout.processing_notes %}
+                    <tr>
+                        <th>Notes</th>
+                        <td>{{ manual_payout.processing_notes }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
