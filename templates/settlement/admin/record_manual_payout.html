@@ -1,0 +1,127 @@
+<!-- settlement/templates/settlement/admin/record_manual_payout.html -->
+
+{% load static %}
+
+{% block title %}Record Manual Payout | Admin{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">
+                            <i class="fas fa-hand-holding-usd"></i> Record Manual Payout
+                        </h4>
+                        <p class="card-category">
+                            Withdrawal Request #{{ withdrawal.id|slice:":8" }} - {{ withdrawal.wallet.user.username }}
+                        </p>
+                    </div>
+                    <div class="card-body">
+                        <!-- Withdrawal Details Summary -->
+                        <div class="alert alert-info">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Seller Requested Amount:</strong> 
+                                    <h4 class="text-success">₹{{ withdrawal.amount|floatformat:2 }}</h4>
+                                    <small>This is what seller receives in their bank account</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>NEFT Fee (Platform Bears):</strong> 
+                                    <h4 class="text-warning">+ ₹{{ withdrawal.neft_fee|floatformat:2 }}</h4>
+                                    <small>Platform pays this fee to the bank</small>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <strong>Total Platform Cost:</strong> 
+                                    <h3>₹{{ withdrawal.amount|add:withdrawal.neft_fee|floatformat:2 }}</h3>
+                                    <small>Amount to transfer from platform bank account</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Beneficiary Details -->
+                        <div class="alert alert-secondary">
+                            <strong><i class="fas fa-university"></i> Beneficiary Bank Details:</strong><br>
+                            {{ withdrawal.account_holder_name }}<br>
+                            {{ withdrawal.bank_name }} - {{ withdrawal.account_number }}<br>
+                            IFSC: {{ withdrawal.ifsc_code }}
+                        </div>
+
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            <div class="form-group">
+                                <label for="{{ form.payment_mode.id_for_label }}">Payment Mode *</label>
+                                {{ form.payment_mode }}
+                                <small class="form-text text-muted">Select how you paid the seller</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.transaction_id.id_for_label }}">Transaction ID / UTR</label>
+                                {{ form.transaction_id }}
+                                <small class="form-text text-muted">
+                                    Required for NEFT/IMPS/RTGS. For UPI, enter the reference number.
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.amount_paid.id_for_label }}">Total Amount Paid (from platform account) *</label>
+                                {{ form.amount_paid }}
+                                <small class="form-text text-muted">
+                                    Must be exactly: ₹{{ withdrawal.amount|floatformat:2 }} (seller amount) + 
+                                    ₹{{ withdrawal.neft_fee|floatformat:2 }} (NEFT fee) = 
+                                    <strong class="text-primary">₹{{ withdrawal.amount|add:withdrawal.neft_fee|floatformat:2 }}</strong>
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.payment_proof.id_for_label }}">Payment Proof</label>
+                                {{ form.payment_proof }}
+                                <small class="form-text text-muted">
+                                    Upload bank receipt screenshot, UPI screenshot, or cheque image (PDF/Image)
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.processing_notes.id_for_label }}">Processing Notes</label>
+                                {{ form.processing_notes }}
+                                <small class="form-text text-muted">
+                                    Any additional information about this payout (internal use only)
+                                </small>
+                            </div>
+
+                            <div class="form-group text-center mt-4">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-check-circle"></i> Confirm & Complete Payout
+                                </button>
+                                <a href="{% url 'settlement:admin_withdrawal_detail' withdrawal.id %}" 
+                                   class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                        </form>
+
+                        <div class="alert alert-warning mt-4">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Important Notes:</strong> 
+                            <ul class="mt-2">
+                                <li>Seller receives <strong class="text-success">₹{{ withdrawal.amount|floatformat:2 }}</strong> (full requested amount)</li>
+                                <li>Platform pays <strong class="text-warning">₹{{ withdrawal.neft_fee|floatformat:2 }}</strong> as NEFT fee</li>
+                                <li>Total to transfer from platform account: <strong class="text-primary">₹{{ withdrawal.amount|add:withdrawal.neft_fee|floatformat:2 }}</strong></li>
+                                <li>Only click "Confirm" AFTER you have actually transferred the money</li>
+                                <li>The seller's wallet will be debited by ₹{{ withdrawal.amount|floatformat:2 }} after confirmation</li>
+                                <li>Upload payment proof for audit trail</li>
+                                <li>This action cannot be undone</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

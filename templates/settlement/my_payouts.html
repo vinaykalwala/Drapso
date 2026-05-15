@@ -1,0 +1,587 @@
+<!-- settlement/templates/settlement/my_payouts.html -->
+
+{% extends "dashboard_base.html" %}
+{% load static %}
+
+{% block title %}My Payouts | Seller Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    /* Modern Payout Page Styles */
+    .payout-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 40px 30px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        color: white;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .stat-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+    
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    
+    .stat-value.success {
+        color: #28a745;
+    }
+    
+    .stat-value.warning {
+        color: #ffc107;
+    }
+    
+    .stat-value.info {
+        color: #17a2b8;
+    }
+    
+    .stat-value.danger {
+        color: #dc3545;
+    }
+    
+    .filter-bar {
+        background: white;
+        padding: 15px 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .filter-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .filter-btn {
+        padding: 8px 20px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.3s;
+        border: 2px solid #e0e0e0;
+        background: white;
+        color: #6c757d;
+    }
+    
+    .filter-btn:hover, .filter-btn.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: transparent;
+        text-decoration: none;
+    }
+    
+    .payout-table {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .payout-table table {
+        width: 100%;
+        margin-bottom: 0;
+    }
+    
+    .payout-table th {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        font-weight: 600;
+        color: #495057;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .payout-table td {
+        padding: 15px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        width: fit-content;
+    }
+    
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-approved {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .status-cancelled {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+    
+    .amount-positive {
+        color: #28a745;
+        font-weight: 700;
+    }
+    
+    .amount-negative {
+        color: #dc3545;
+        font-weight: 700;
+    }
+    
+    .view-details-btn {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        background: #e7f3ff;
+        color: #0066cc;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    
+    .view-details-btn:hover {
+        background: #0066cc;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .proof-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        background: #28a745;
+        color: white;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        text-decoration: none;
+    }
+    
+    .proof-link:hover {
+        background: #218838;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+    
+    .empty-state h4 {
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
+    
+    .empty-state p {
+        color: #adb5bd;
+    }
+    
+    @media (max-width: 768px) {
+        .payout-hero {
+            padding: 25px 20px;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .stat-value {
+            font-size: 1.3rem;
+        }
+        
+        .payout-table {
+            overflow-x: auto;
+        }
+        
+        .payout-table table {
+            min-width: 600px;
+        }
+        
+        .filter-buttons {
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="content">
+    <div class="container-fluid">
+        <!-- Hero Section -->
+        <div class="payout-hero">
+            <h2><i class="fas fa-history"></i> My Payout History</h2>
+            <p class="mb-0">Track all your withdrawal requests and payment status</p>
+        </div>
+        
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                </div>
+                <div class="stat-label">Total Withdrawn</div>
+                <div class="stat-value success">₹{{ total_withdrawn|floatformat:2 }}</div>
+                <small>Successfully paid</small>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-hourglass-half" style="color: #ffc107;"></i>
+                </div>
+                <div class="stat-label">Pending Approval</div>
+                <div class="stat-value warning">₹{{ total_pending|floatformat:2 }}</div>
+                <small>Awaiting admin review</small>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-thumbs-up" style="color: #17a2b8;"></i>
+                </div>
+                <div class="stat-label">Approved</div>
+                <div class="stat-value info">₹{{ total_approved|floatformat:2 }}</div>
+                <small>Ready for payout</small>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-times-circle" style="color: #dc3545;"></i>
+                </div>
+                <div class="stat-label">Rejected/Cancelled</div>
+                <div class="stat-value danger">₹{{ total_rejected|floatformat:2 }}</div>
+                <small>Not processed</small>
+            </div>
+        </div>
+        
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="filter-buttons">
+                <a href="?status=" class="filter-btn {% if not status_filter %}active{% endif %}">
+                    <i class="fas fa-list"></i> All
+                </a>
+                {% for status_code, status_label in status_choices %}
+                <a href="?status={{ status_code }}" class="filter-btn {% if status_filter == status_code %}active{% endif %}">
+                    {% if status_code == 'PENDING' %}
+                        <i class="fas fa-hourglass-half"></i>
+                    {% elif status_code == 'APPROVED' %}
+                        <i class="fas fa-thumbs-up"></i>
+                    {% elif status_code == 'COMPLETED' %}
+                        <i class="fas fa-check-circle"></i>
+                    {% elif status_code == 'REJECTED' %}
+                        <i class="fas fa-times-circle"></i>
+                    {% elif status_code == 'CANCELLED' %}
+                        <i class="fas fa-ban"></i>
+                    {% endif %}
+                    {{ status_label }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Payouts Table -->
+        <div class="payout-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Request Date</th>
+                        <th>Completion Date</th>
+                        <th>Payment Mode</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for withdrawal in withdrawals %}
+                    <tr>
+                        <td>
+                            <code>#{{ withdrawal.id|slice:":8" }}</code>
+                        </td>
+                        <td class="amount-positive">₹{{ withdrawal.amount|floatformat:2 }}</td>
+                        <td>
+                            {% if withdrawal.status == 'PENDING' %}
+                                <span class="status-badge status-pending">
+                                    <i class="fas fa-hourglass-half"></i> Pending
+                                </span>
+                            {% elif withdrawal.status == 'APPROVED' %}
+                                <span class="status-badge status-approved">
+                                    <i class="fas fa-thumbs-up"></i> Approved
+                                </span>
+                            {% elif withdrawal.status == 'COMPLETED' %}
+                                <span class="status-badge status-completed">
+                                    <i class="fas fa-check-circle"></i> Completed
+                                </span>
+                            {% elif withdrawal.status == 'REJECTED' %}
+                                <span class="status-badge status-rejected">
+                                    <i class="fas fa-times-circle"></i> Rejected
+                                </span>
+                            {% elif withdrawal.status == 'CANCELLED' %}
+                                <span class="status-badge status-cancelled">
+                                    <i class="fas fa-ban"></i> Cancelled
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ withdrawal.requested_at|date:"d M Y" }}<br>
+                            <small>{{ withdrawal.requested_at|date:"h:i A" }}</small>
+                        </td>
+                        <td>
+                            {% if withdrawal.completed_at %}
+                                {{ withdrawal.completed_at|date:"d M Y" }}<br>
+                                <small>{{ withdrawal.completed_at|date:"h:i A" }}</small>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if withdrawal.manual_payout %}
+                                <span class="badge badge-info">
+                                    <i class="fas fa-money-bill-wave"></i> 
+                                    {{ withdrawal.manual_payout.get_payment_mode_display }}
+                                </span>
+                                {% if withdrawal.manual_payout.payment_proof %}
+                                    <a href="{{ withdrawal.manual_payout.payment_proof.url }}" 
+                                       target="_blank" 
+                                       class="proof-link">
+                                        <i class="fas fa-download"></i> Proof
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button type="button" 
+                                    class="view-details-btn" 
+                                    data-toggle="modal" 
+                                    data-target="#payoutModal{{ withdrawal.id }}">
+                                <i class="fas fa-eye"></i> View Details
+                            </button>
+                        </td>
+                    </tr>
+                    
+                    <!-- Modal for Payout Details -->
+                    <div class="modal fade" id="payoutModal{{ withdrawal.id }}" tabindex="-1" role="dialog">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        <i class="fas fa-receipt"></i> 
+                                        Payout Details - #{{ withdrawal.id|slice:":8" }}
+                                    </h5>
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h6><i class="fas fa-info-circle"></i> Request Information</h6>
+                                                    <hr>
+                                                    <p><strong>Amount Requested:</strong> ₹{{ withdrawal.amount|floatformat:2 }}</p>
+                                                    <p><strong>Status:</strong> 
+                                                        {% if withdrawal.status == 'PENDING' %}
+                                                            <span class="badge badge-warning">Pending</span>
+                                                        {% elif withdrawal.status == 'APPROVED' %}
+                                                            <span class="badge badge-info">Approved</span>
+                                                        {% elif withdrawal.status == 'COMPLETED' %}
+                                                            <span class="badge badge-success">Completed</span>
+                                                        {% elif withdrawal.status == 'REJECTED' %}
+                                                            <span class="badge badge-danger">Rejected</span>
+                                                        {% endif %}
+                                                    </p>
+                                                    <p><strong>Request Date:</strong> {{ withdrawal.requested_at|date:"d M Y h:i A" }}</p>
+                                                    {% if withdrawal.approved_at %}
+                                                    <p><strong>Approved Date:</strong> {{ withdrawal.approved_at|date:"d M Y h:i A" }}</p>
+                                                    {% endif %}
+                                                    {% if withdrawal.completed_at %}
+                                                    <p><strong>Completed Date:</strong> {{ withdrawal.completed_at|date:"d M Y h:i A" }}</p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h6><i class="fas fa-university"></i> Bank Account</h6>
+                                                    <hr>
+                                                    <p><strong>Account Holder:</strong> {{ withdrawal.account_holder_name }}</p>
+                                                    <p><strong>Bank Name:</strong> {{ withdrawal.bank_name }}</p>
+                                                    <p><strong>Account Number:</strong> {{ withdrawal.account_number }}</p>
+                                                    <p><strong>IFSC Code:</strong> {{ withdrawal.ifsc_code }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if withdrawal.manual_payout %}
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h6><i class="fas fa-hand-holding-usd"></i> Payout Details</h6>
+                                                    <hr>
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <p><strong>Payment Mode:</strong><br>
+                                                            {{ withdrawal.manual_payout.get_payment_mode_display }}</p>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <p><strong>Transaction ID:</strong><br>
+                                                            <code>{{ withdrawal.manual_payout.transaction_id|default:"N/A" }}</code></p>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <p><strong>Payment Date:</strong><br>
+                                                            {{ withdrawal.manual_payout.transaction_date|date:"d M Y h:i A" }}</p>
+                                                        </div>
+                                                    </div>
+                                                    {% if withdrawal.manual_payout.processing_notes %}
+                                                    <p><strong>Notes:</strong><br>
+                                                    {{ withdrawal.manual_payout.processing_notes }}</p>
+                                                    {% endif %}
+                                                    {% if withdrawal.manual_payout.payment_proof %}
+                                                    <a href="{{ withdrawal.manual_payout.payment_proof.url }}" 
+                                                       target="_blank" 
+                                                       class="btn btn-sm btn-success">
+                                                        <i class="fas fa-download"></i> Download Payment Proof
+                                                    </a>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if withdrawal.rejection_reason %}
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <div class="alert alert-danger">
+                                                <strong><i class="fas fa-exclamation-triangle"></i> Rejection Reason:</strong><br>
+                                                {{ withdrawal.rejection_reason }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <h4>No Payout Requests Found</h4>
+                                <p>You haven't requested any withdrawals yet.</p>
+                                <a href="{% url 'settlement:withdrawal_request' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Request Withdrawal
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Recent Payouts Section (if any) -->
+        {% if recent_payouts %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="fas fa-clock"></i> Recent Payouts</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for payout in recent_payouts %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-success">
+                            <div class="card-body">
+                                <h6 class="card-title">₹{{ payout.amount|floatformat:2 }}</h6>
+                                <p class="card-text text-muted small">
+                                    <i class="fas fa-calendar"></i> {{ payout.completed_at|date:"d M Y" }}<br>
+                                    {% if payout.manual_payout %}
+                                    <i class="fas fa-credit-card"></i> {{ payout.manual_payout.get_payment_mode_display }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Include Bootstrap JS for modals -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    // Optional: Add any custom JavaScript here
+    $(document).ready(function() {
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+    });
+</script>
+{% endblock %}

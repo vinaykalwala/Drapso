@@ -1,8 +1,17 @@
 from django.shortcuts import render
 
 def home(request):
-    return render(request, 'home.html')
 
+    # Handle store subdomains
+    if getattr(request, 'is_store_request', False):
+
+        from resellers.views import store_frontend
+
+        return store_frontend(request)
+
+    # Main website homepage
+    return render(request, 'home.html')
+    
 def privacy_policy(request):
     return render(request, 'privacy_policy.html')
 

@@ -479,6 +479,52 @@
         color: white;
     }
     
+    /* Manual Payout Buttons */
+    .manual-payout-group {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .btn-manual-payout {
+        flex: 1;
+        padding: 14px;
+        border-radius: 16px;
+        border: none;
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.25s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        text-decoration: none;
+    }
+    
+    .btn-manual-payout.success {
+        background: var(--success);
+        color: white;
+    }
+    
+    .btn-manual-payout.warning {
+        background: var(--warning);
+        color: white;
+    }
+    
+    .btn-manual-payout.danger {
+        background: var(--danger);
+        color: white;
+    }
+    
+    .btn-manual-payout:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.05);
+        text-decoration: none;
+        color: white;
+    }
+    
     /* Form */
     .form-field {
         margin-bottom: 20px;
@@ -560,6 +606,51 @@
         border-left-color: var(--success);
     }
     
+    .info-alert-modern.warning {
+        background: var(--warning-light);
+        border-left-color: var(--warning);
+    }
+    
+    /* Manual Payout Details Table */
+    .payout-details-table {
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .payout-details-table td {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    
+    .payout-details-table td:first-child {
+        font-weight: 600;
+        color: var(--gray-600);
+        width: 40%;
+    }
+    
+    .payout-details-table td:last-child {
+        color: var(--gray-800);
+    }
+    
+    .proof-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        background: var(--primary-soft);
+        color: var(--primary);
+        border-radius: 12px;
+        text-decoration: none;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .proof-link:hover {
+        background: var(--primary);
+        color: white;
+        text-decoration: none;
+    }
+    
     /* Back Link */
     .back-link-modern {
         display: inline-flex;
@@ -633,12 +724,30 @@
             flex-direction: column;
             gap: 10px;
         }
+        .manual-payout-group {
+            flex-direction: column;
+        }
         .card-header-premium,
         .card-body-premium {
             padding: 16px 20px;
         }
         .stats-4-grid {
             gap: 10px;
+        }
+        .main-content-wrapper {
+            padding: 0 14px 30px 14px;
+        }
+        .two-column-flex {
+            align-items: center;
+        }
+        .left-scrollable,
+        .right-fixed {
+            width: 100%;
+            max-width: 100%;
+        }
+        .card-modern,
+        .action-card {
+            width: 100%;
         }
     }
     
@@ -669,29 +778,6 @@
     .card-modern, .action-card, .stat-card-glass {
         animation: fadeUp 0.35s ease-out forwards;
     }
-    @media (max-width: 768px) {
-
-    .main-content-wrapper {
-        padding: 0 14px 30px 14px;   /* reduce side padding */
-    }
-
-    .two-column-flex {
-        flex-direction: column;
-        align-items: center;   /* 🔥 CENTER EVERYTHING */
-    }
-
-    .left-scrollable,
-    .right-fixed {
-        width: 100%;
-        max-width: 100%;
-    }
-
-    .card-modern,
-    .action-card {
-        width: 100%;
-    }
-
-}
 </style>
 
 <div class="content">
@@ -738,6 +824,8 @@
                             <span style="color: #34d399;">Completed</span>
                         {% elif withdrawal.status == 'REJECTED' %}
                             <span style="color: #f87171;">Rejected</span>
+                        {% elif withdrawal.status == 'CANCELLED' %}
+                            <span style="color: #f87171;">Cancelled</span>
                         {% endif %}
                     </div>
                 </div>
@@ -805,12 +893,12 @@
                             <span class="info-value amount">₹{{ withdrawal.amount|floatformat:2 }}</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">NEFT Fee</span>
+                            <span class="info-label">NEFT Fee (Platform Pays)</span>
                             <span class="info-value" style="color: var(--warning);">+ ₹{{ withdrawal.neft_fee|floatformat:2 }}</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">Fee Bearer</span>
-                            <span class="info-value">Drapso Platform</span>
+                            <span class="info-label">Total Cost to Platform</span>
+                            <span class="info-value" style="color: var(--danger);">₹{{ withdrawal.amount|add:withdrawal.neft_fee|floatformat:2 }}</span>
                         </div>
                         {% if withdrawal.razorpay_payout_id %}
                         <div class="info-row">
@@ -853,6 +941,69 @@
                         </div>
                     </div>
                 </div>
+
+                {% if manual_payout %}
+                <!-- Manual Payout Record Card -->
+                <div class="card-modern">
+                    <div class="card-header-premium">
+                        <i class="fas fa-receipt"></i>
+                        <div>
+                            <h3>Manual Payout Record</h3>
+                            <p>Payment transaction details</p>
+                        </div>
+                    </div>
+                    <div class="card-body-premium">
+                        <table class="payout-details-table">
+                            <tr>
+                                <td>Payment Mode</td>
+                                <td><strong>{{ manual_payout.get_payment_mode_display }}</strong></td>
+                            </tr>
+                            {% if manual_payout.transaction_id %}
+                            <tr>
+                                <td>Transaction ID / UTR</td>
+                                <td><code>{{ manual_payout.transaction_id }}</code></td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td>Amount Paid</td>
+                                <td>₹{{ manual_payout.amount_paid|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td>Fee Deducted</td>
+                                <td>₹{{ manual_payout.neft_fee_deducted|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td>Net Amount to Seller</td>
+                                <td><strong class="amount">₹{{ manual_payout.net_amount|floatformat:2 }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Payment Date</td>
+                                <td>{{ manual_payout.transaction_date|date:"d M Y h:i A" }}</td>
+                            </tr>
+                            <tr>
+                                <td>Processed By</td>
+                                <td>{{ manual_payout.processed_by.username|default:"System" }}</td>
+                            </tr>
+                            {% if manual_payout.processing_notes %}
+                            <tr>
+                                <td>Notes</td>
+                                <td><small>{{ manual_payout.processing_notes }}</small></td>
+                            </tr>
+                            {% endif %}
+                            {% if manual_payout.payment_proof %}
+                            <tr>
+                                <td>Payment Proof</td>
+                                <td>
+                                    <a href="{{ manual_payout.payment_proof.url }}" target="_blank" class="proof-link">
+                                        <i class="fas fa-download"></i> View Document
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
             </div>
             
             <!-- RIGHT COLUMN - FIXED (4 cards) -->
@@ -930,21 +1081,77 @@
                         </form>
                     </div>
                 </div>
+                
                 {% elif withdrawal.status == 'APPROVED' %}
                 <div class="action-card">
                     <div class="action-header-gradient" style="background: linear-gradient(135deg, var(--success), #059669);">
                         <h3><i class="fas fa-check-circle"></i> Request Approved</h3>
-                        <p>This withdrawal has been approved</p>
+                        <p>Ready for manual payout processing</p>
                     </div>
                     <div class="action-body">
-                        <div class="info-alert-modern">
-                            <p><strong>✓ Approval Confirmed</strong> This withdrawal has been approved and is being processed.</p>
+                        <div class="info-alert-modern warning">
+                            <p><strong>✓ Approved & Ready for Payout</strong></p>
+                            <p style="margin-top: 8px; font-size: 0.85rem;">This withdrawal has been approved. You can now:</p>
+                            <ul style="margin-top: 12px; padding-left: 20px;">
+                                <li>Make the payment manually via NEFT/IMPS/UPI</li>
+                                <li>Record the transaction details below</li>
+                                <li>Upload payment proof for audit</li>
+                            </ul>
                             {% if withdrawal.approved_at %}
                             <p style="margin-top: 10px; font-size: 0.75rem;">Approved on: {{ withdrawal.approved_at|date:"F d, Y · h:i A" }}</p>
                             {% endif %}
                         </div>
+                        
+                        <!-- Manual Payout Actions -->
+                        <div class="manual-payout-group">
+                            <a href="{% url 'settlement:admin_record_manual_payout' withdrawal.id %}" 
+                               class="btn-manual-payout success">
+                                <i class="fas fa-hand-holding-usd"></i> Record Manual Payout
+                            </a>
+                            <button type="button" class="btn-manual-payout warning" data-toggle="modal" data-target="#cancelModal">
+                                <i class="fas fa-times-circle"></i> Cancel & Return Funds
+                            </button>
+                        </div>
+                        
+                        <div class="info-alert-modern" style="margin-top: 15px; background: #fef3c7;">
+                            <small>
+                                <i class="fas fa-info-circle"></i> 
+                                <strong>Important:</strong> Only record payout AFTER you have actually transferred the money to the seller's bank account.
+                            </small>
+                        </div>
                     </div>
                 </div>
+                
+                <!-- Cancel Modal -->
+                <div class="modal fade" id="cancelModal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Cancel Withdrawal</h5>
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            </div>
+                            <form method="post" action="{% url 'settlement:admin_cancel_withdrawal' withdrawal.id %}">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    <p>Are you sure you want to cancel this withdrawal?</p>
+                                    <div class="form-group">
+                                        <label>Reason for cancellation:</label>
+                                        <textarea name="reason" class="form-control" rows="3" required></textarea>
+                                    </div>
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        This will return ₹{{ withdrawal.amount|floatformat:2 }} to the seller's wallet.
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-warning">Confirm Cancellation</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
                 {% elif withdrawal.status == 'COMPLETED' %}
                 <div class="action-card">
                     <div class="action-header-gradient" style="background: linear-gradient(135deg, var(--success), #059669);">
@@ -953,16 +1160,23 @@
                     </div>
                     <div class="action-body">
                         <div class="info-alert-modern completed">
-                            <p><strong>✅ Payout Successful</strong> Funds transferred to seller's bank account.</p>
+                            <p><strong>✅ Payout Successful</strong></p>
+                            <p style="margin-top: 8px;">Funds transferred to seller's bank account.</p>
                             {% if withdrawal.completed_at %}
                             <p style="margin-top: 10px; font-size: 0.75rem;">Completed on: {{ withdrawal.completed_at|date:"F d, Y · h:i A" }}</p>
                             {% endif %}
-                            {% if withdrawal.razorpay_payout_id %}
-                            <p style="margin-top: 10px; font-size: 0.7rem;"><strong>TX ID:</strong> {{ withdrawal.razorpay_payout_id }}</p>
+                            {% if manual_payout %}
+                            <hr style="margin: 15px 0;">
+                            <p><strong>Payment Mode:</strong> {{ manual_payout.get_payment_mode_display }}</p>
+                            {% if manual_payout.transaction_id %}
+                            <p><strong>Transaction ID:</strong> <code>{{ manual_payout.transaction_id }}</code></p>
+                            {% endif %}
+                            <p><strong>Processed By:</strong> {{ manual_payout.processed_by.username|default:"System" }}</p>
                             {% endif %}
                         </div>
                     </div>
                 </div>
+                
                 {% elif withdrawal.status == 'REJECTED' %}
                 <div class="action-card">
                     <div class="action-header-gradient" style="background: linear-gradient(135deg, var(--danger), #dc2626);">
@@ -975,6 +1189,23 @@
                             <p style="margin-top: 8px;"><strong>Reason:</strong> {{ withdrawal.rejection_reason }}</p>
                             {% if withdrawal.admin_notes %}
                             <p style="margin-top: 8px; font-size: 0.75rem;"><strong>Internal Notes:</strong> {{ withdrawal.admin_notes }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                {% elif withdrawal.status == 'CANCELLED' %}
+                <div class="action-card">
+                    <div class="action-header-gradient" style="background: linear-gradient(135deg, var(--warning), #d97706);">
+                        <h3><i class="fas fa-ban"></i> Withdrawal Cancelled</h3>
+                        <p>This request was cancelled</p>
+                    </div>
+                    <div class="action-body">
+                        <div class="info-alert-modern warning">
+                            <p><strong>⚠️ Withdrawal Cancelled</strong></p>
+                            <p style="margin-top: 8px;">Funds have been returned to the seller's wallet.</p>
+                            {% if withdrawal.admin_notes %}
+                            <p style="margin-top: 10px; font-size: 0.75rem;"><strong>Reason:</strong> {{ withdrawal.admin_notes }}</p>
                             {% endif %}
                         </div>
                     </div>
@@ -1038,4 +1269,11 @@
         });
     }
 </script>
+
+<!-- Include Bootstrap JS for modal (if not already included) -->
+{% if withdrawal.status == 'APPROVED' %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+{% endif %}
+
 {% endblock %}

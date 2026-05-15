@@ -11,18 +11,12 @@ import re
 from requests.auth import HTTPBasicAuth
 import requests
 
-# Set up logger
 logger = logging.getLogger(__name__)
+
 
 class DrapsoSettlementService:
     """
-    CORRECTED Settlement process for Drapso
-    
-    Process Flow:
-    1. Traces the Reseller product back to the Wholesaler's source product.
-    2. Retrieves the wholesaler's 'discounted_price' as the protected base.
-    3. Deducts all platform fees (Razorpay, Drapso, NEFT) and Shipping from the 
-       reseller's markup/margin.
+    Settlement process for Drapso
     """
     
     # Fee structure
@@ -33,9 +27,9 @@ class DrapsoSettlementService:
     
     @classmethod
     def calculate_settlement(cls, order):
-        """
-        Calculate complete settlement breakdown using product lineage.
-        """
+        """Calculate complete settlement breakdown using product lineage."""
+        from decimal import Decimal
+        
         # Get values from order
         customer_payment = Decimal(str(order.total_amount))
         delivery_charges = order.actual_shipping_cost or Decimal('0')
@@ -96,6 +90,9 @@ class DrapsoSettlementService:
             wholeseller_amount = Decimal('0')
             reseller_amount = customer_payment - total_deductions
             
+            if reseller_amount < 0:
+                reseller_amount = Decimal('0')
+            
             sellers_payout = {
                 'wholeseller': {'amount': 0, 'note': 'N/A'},
                 'reseller': {'amount': round(reseller_amount, 2), 'note': 'Full amount minus fees'}
@@ -118,11 +115,8 @@ class DrapsoSettlementService:
     @classmethod
     @transaction.atomic
     def process_order_payment(cls, order):
-        """
-        Process order payment and create settlement records.
-        Credits Drapso commission to the Superuser wallet.
-        """
-        from .models import OrderSettlement, Wallet
+        """Process order payment and create settlement records."""
+        from .models import OrderSettlement, Wallet, WalletTransaction
         from accounts.models import User
         
         settlement_data = cls.calculate_settlement(order)
@@ -160,7 +154,6 @@ class DrapsoSettlementService:
             )
         
         # 4. Update Platform Commission (Sent to Superuser)
-        # Find the first superuser in the system
         platform_owner = User.objects.filter(is_superuser=True).first()
         
         if platform_owner:
@@ -172,8 +165,7 @@ class DrapsoSettlementService:
             plat_wallet.total_credited += comm
             plat_wallet.save()
             
-            # Optional: Create a transaction record for the platform owner
-            from .models import WalletTransaction
+            # Create a transaction record for the platform owner
             WalletTransaction.objects.create(
                 wallet=plat_wallet,
                 amount=comm,
@@ -182,22 +174,17 @@ class DrapsoSettlementService:
                 balance_after=plat_wallet.available_balance,
                 order_id=order.order_id
             )
-        else:
-            pass
+        
         return settlement_data, settlement
 
     @classmethod
     def recalculate_after_shipping(cls, order):
-        """
-        Recalculate settlement once actual shipping is known from Shiprocket.
-        Adjusts Escrow balances and records Transaction History.
-        """
+        """Recalculate settlement once actual shipping is known."""
         from .models import OrderSettlement, Wallet, WalletTransaction
         from django.db import transaction
 
         with transaction.atomic():
             try:
-                # Lock the settlement record
                 settlement = OrderSettlement.objects.select_for_update().get(order=order)
             except OrderSettlement.DoesNotExist:
                 return None
@@ -231,7 +218,6 @@ class DrapsoSettlementService:
                 wh_wallet.escrow_balance += wh_diff
                 wh_wallet.save()
                 
-                # Fixed to match your model fields exactly
                 WalletTransaction.objects.create(
                     wallet=wh_wallet,
                     transaction_type='ESCROW_CREDIT', 
@@ -251,7 +237,6 @@ class DrapsoSettlementService:
                 res_wallet.escrow_balance += res_diff
                 res_wallet.save()
 
-                # Fixed to match your model fields exactly
                 WalletTransaction.objects.create(
                     wallet=res_wallet,
                     transaction_type='ESCROW_CREDIT',
@@ -285,12 +270,9 @@ class DrapsoSettlementService:
     @classmethod
     @transaction.atomic
     def release_eligible_settlements(cls):
-        """
-        Releases funds from escrow to available balance.
-        Returns a structured dictionary for the management command.
-        """
+        """Release funds from escrow to available balance."""
         from .models import OrderSettlement
-        # select_related avoids separate DB hits for every order record
+        
         settlements = OrderSettlement.objects.filter(status='IN_ESCROW').select_related('order')
         
         results = []
@@ -302,7 +284,6 @@ class DrapsoSettlementService:
             
             if eligible:
                 try:
-                    # Logic inside the model that moves balance from escrow to available
                     s.release_to_wallets() 
                     released_count += 1
                     results.append({
@@ -317,7 +298,6 @@ class DrapsoSettlementService:
                         'error': str(e)
                     })
             else:
-                # If order exists but is still in the 3-day buffer or has a return
                 results.append({
                     'order_id': s.order.order_id, 
                     'status': 'pending', 
@@ -331,21 +311,22 @@ class DrapsoSettlementService:
             'total_processed': len(results)
         }
 
+
 class WithdrawalService:
-    """Handles withdrawal requests with admin approval - NEFT only"""
+    """Handles withdrawal requests with manual payout processing"""
     
     MINIMUM_WITHDRAWAL_AMOUNT = 1000
     WEEKLY_WITHDRAWAL_LIMIT = 50000
     
     @classmethod
     def get_neft_payout_fee(cls):
-        """Calculate total NEFT payout fee with GST"""
+        """Calculate total NEFT payout fee with GST (borne by platform)"""
         fee = Decimal('2.00')
         gst = fee * Decimal('0.18')
         return {
             'fee': float(fee),
             'gst': float(gst),
-            'total': float(fee + gst)
+            'total': float(fee + gst)  # Platform pays this
         }
     
     @classmethod
@@ -376,7 +357,7 @@ class WithdrawalService:
     @classmethod
     @transaction.atomic
     def create_withdrawal_request(cls, wallet, amount, bank_account):
-        """Create a withdrawal request using BankAccount FK"""
+        """Create a withdrawal request - seller requests exact amount they want"""
         from .models import WithdrawalRequest
         
         if bank_account.user != wallet.user:
@@ -389,25 +370,28 @@ class WithdrawalService:
         if not is_eligible:
             raise ValueError(message)
         
-        neft_fee = cls.get_neft_payout_fee()
+        neft_fee_data = cls.get_neft_payout_fee()
+        neft_fee = Decimal(str(neft_fee_data['total']))
         
         withdrawal = WithdrawalRequest.objects.create(
             wallet=wallet,
-            amount=amount,
+            amount=amount,  # This is what seller receives
             bank_account=bank_account,
             account_holder_name=bank_account.account_holder_name,
             account_number=bank_account.account_number,
             ifsc_code=bank_account.ifsc_code,
             bank_name=bank_account.bank_name,
             upi_id=bank_account.upi_id or '',
-            neft_fee=neft_fee['total'],
-            neft_fee_breakdown=neft_fee,
+            neft_fee=neft_fee,  # Fee borne by platform
+            platform_payout_cost=amount + neft_fee,  # Total platform cost
+            neft_fee_breakdown=neft_fee_data,
             status='PENDING'
         )
         
+        # Hold the exact amount seller requested from their wallet
         wallet.hold_for_withdrawal(
             amount=amount,
-            description=f"Withdrawal request #{withdrawal.id} - pending admin approval (NEFT payout)",
+            description=f"Withdrawal request #{withdrawal.id} - pending admin approval",
             withdrawal_id=str(withdrawal.id)
         )
         
@@ -450,8 +434,93 @@ class WithdrawalService:
         return withdrawal
     
     @classmethod
-    def process_approved_payouts(cls, test_mode=False):
+    @transaction.atomic
+    def admin_complete_manual_payout(cls, withdrawal_id, payment_mode, transaction_id, 
+                                     amount_paid, payment_proof=None, processed_by=None, 
+                                     notes=''):
+        """
+        Complete withdrawal with manual payout record
+        amount_paid should be the TOTAL amount platform paid (seller amount + NEFT fee)
+        Seller receives their requested amount in full
+        """
+        from .models import WithdrawalRequest, ManualPayoutRecord
+        from django.utils import timezone
+        
+        withdrawal = WithdrawalRequest.objects.select_for_update().get(id=withdrawal_id)
+        
+        if withdrawal.status != 'APPROVED':
+            raise ValueError(f"Cannot process manual payout. Status: {withdrawal.status}")
+        
+        # Calculate amounts
+        seller_gets = withdrawal.amount  # What seller requested (they get this full amount)
+        platform_fee = withdrawal.neft_fee  # Fee borne by platform
+        total_platform_cost = seller_gets + platform_fee  # What platform actually pays
+        
+        # Validate amount paid matches total platform cost
+        if Decimal(str(amount_paid)) != total_platform_cost:
+            raise ValueError(
+                f"Amount paid (₹{amount_paid}) must equal total platform cost: "
+                f"₹{seller_gets} (seller amount) + ₹{platform_fee} (NEFT fee) = ₹{total_platform_cost}"
+            )
+        
+        # Create manual payout record
+        manual_record = ManualPayoutRecord.objects.create(
+            withdrawal=withdrawal,
+            payment_mode=payment_mode,
+            transaction_id=transaction_id,
+            transaction_date=timezone.now(),
+            seller_amount=seller_gets,
+            platform_fee_paid=platform_fee,
+            total_platform_cost=total_platform_cost,
+            beneficiary_name=withdrawal.account_holder_name,
+            beneficiary_account=withdrawal.account_number,
+            beneficiary_ifsc=withdrawal.ifsc_code,
+            beneficiary_bank=withdrawal.bank_name,
+            payment_proof=payment_proof,
+            processed_by=processed_by,
+            status='COMPLETED',
+            processing_notes=notes
+        )
+        
+        # Update withdrawal status
+        withdrawal.status = 'COMPLETED'
+        withdrawal.completed_at = timezone.now()
+        withdrawal.save()
+        
+        # Complete wallet transaction - deduct the seller's requested amount
+        withdrawal.wallet.complete_withdrawal(
+            amount=seller_gets,
+            description=f"Manual {payment_mode} payout completed - Ref: {transaction_id} (Platform paid ₹{platform_fee} fee)",
+            withdrawal_id=str(withdrawal.id)
+        )
+        
+        return manual_record
+    
+    @classmethod
+    @transaction.atomic
+    def admin_cancel_approved_withdrawal(cls, withdrawal_id, reason, admin_user=None):
+        """Cancel approved withdrawal and return funds"""
         from .models import WithdrawalRequest
+        
+        withdrawal = WithdrawalRequest.objects.select_for_update().get(id=withdrawal_id)
+        
+        if withdrawal.status != 'APPROVED':
+            raise ValueError(f"Cannot cancel. Status: {withdrawal.status}")
+        
+        withdrawal.cancel(reason, admin_user)
+        return withdrawal
+    
+    # Keep RazorpayX method as optional (if PAYOUT_MODE == 'RAZORPAYX')
+    @classmethod
+    def process_approved_payouts(cls, test_mode=False):
+        """Process approved payouts via RazorpayX (if enabled)"""
+        from django.conf import settings
+        from .models import WithdrawalRequest
+        
+        # If manual mode is enabled, don't process automatically
+        if getattr(settings, 'PAYOUT_MODE', 'MANUAL') == 'MANUAL':
+            logger.info("Manual payout mode enabled. Skipping auto-processing.")
+            return [{'status': 'skipped', 'reason': 'Manual payout mode'}]
         
         approved_withdrawals = WithdrawalRequest.objects.filter(status='APPROVED')
         results = []
@@ -533,7 +602,7 @@ class WithdrawalService:
                     withdrawal.save(update_fields=['fund_account_id'])
                     
                 
-                # Step 3: Create Payout (without idempotency header to avoid conflict)
+                # Step 3: Create Payout
                 short_id = str(withdrawal.id)[:20]
                 narration = "Payout"
                 
@@ -552,7 +621,6 @@ class WithdrawalService:
                         "user_id": str(withdrawal.wallet.user.id)
                     }
                 }
-                
                 
                 response = requests.post(f"{base_url}/payouts", json=payout_data, auth=auth)
                 
