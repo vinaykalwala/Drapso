@@ -669,6 +669,269 @@
     }
     
     /* ============================================
+       NEW: CANCEL REQUEST SECTION - MODERN & RESPONSIVE
+       Redesigned with elegant modal and clear reversal info
+    ============================================ */
+    
+    /* Cancel Trigger Button */
+    .cancel-trigger-btn {
+        width: 100%;
+        padding: 14px;
+        border-radius: 16px;
+        border: 2px solid var(--danger);
+        background: transparent;
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.25s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        color: var(--danger);
+        margin-top: 16px;
+    }
+    
+    .cancel-trigger-btn:hover {
+        background: var(--danger);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(239, 68, 68, 0.25);
+    }
+    
+  .cancel-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 20px 12px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    z-index: 10000;
+
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.cancel-modal-overlay.active {
+    display: flex;
+}
+
+.cancel-modal-container {
+    max-width: 520px;
+    width: 100%;
+    margin: auto;
+    border-radius: 24px;
+    background-color:#fff;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+    
+    .cancel-modal-overlay.active {
+        display: flex;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .cancel-modal-container::-webkit-scrollbar {
+    width: 4px;
+}
+
+.cancel-modal-container::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+@media (max-height: 700px) {
+    .cancel-modal-overlay {
+        align-items: flex-start;
+    }
+
+    .cancel-modal-container {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+}
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .cancel-modal-header {
+        background: linear-gradient(135deg, #dc2626, #ef4444);
+        padding: 24px 28px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cancel-modal-header::before {
+        content: '';
+        position: absolute;
+        top: -30px;
+        right: -30px;
+        width: 120px;
+        height: 120px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .cancel-modal-header h3 {
+        margin: 0;
+        font-size: 1.4rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .cancel-modal-header h3 i {
+        font-size: 1.5rem;
+        background: rgba(255,255,255,0.2);
+        padding: 8px;
+        border-radius: 16px;
+    }
+    
+    .cancel-modal-header p {
+        margin: 10px 0 0 0;
+        font-size: 0.75rem;
+        opacity: 0.85;
+    }
+    
+    .cancel-modal-body {
+        padding: 28px;
+    }
+    
+    .refund-alert {
+        background: var(--warning-light);
+        border-radius: 20px;
+        padding: 18px;
+        margin-bottom: 24px;
+        border-left: 4px solid var(--warning);
+    }
+    
+    .refund-alert .amount-highlight {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--warning);
+        margin: 8px 0 4px;
+    }
+    
+    .refund-alert .small-note {
+        font-size: 0.7rem;
+        color: var(--gray-600);
+        margin-top: 8px;
+    }
+    
+    .form-group-modern {
+        margin-bottom: 24px;
+    }
+    
+    .form-group-modern label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--gray-600);
+        display: block;
+        margin-bottom: 10px;
+        letter-spacing: 0.5px;
+    }
+    
+    .form-group-modern label i {
+        margin-right: 6px;
+    }
+    
+    .form-group-modern textarea {
+        width: 100%;
+        padding: 14px 16px;
+        border: 1.5px solid var(--gray-200);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-family: inherit;
+        resize: vertical;
+        transition: all 0.2s;
+    }
+    
+    .form-group-modern textarea:focus {
+        outline: none;
+        border-color: var(--danger);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+    
+    .cancel-modal-footer {
+        padding: 20px 28px 28px;
+        display: flex;
+        gap: 14px;
+        border-top: 1px solid var(--gray-100);
+    }
+    
+    .btn-cancel-modal {
+        flex: 1;
+        padding: 14px;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .btn-cancel-modal.secondary {
+        background: var(--gray-100);
+        color: var(--gray-700);
+    }
+    
+    .btn-cancel-modal.secondary:hover {
+        background: var(--gray-200);
+        transform: translateY(-1px);
+    }
+    
+    .btn-cancel-modal.danger {
+        background: linear-gradient(135deg, #dc2626, #ef4444);
+        color: white;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+    
+    .btn-cancel-modal.danger:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.05);
+        box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+    }
+    
+    /* For already cancelled/completed states - info card */
+    .cancelled-info-card {
+        background: linear-gradient(135deg, #fef3c7, #fffbeb);
+        border-radius: 20px;
+        padding: 20px;
+        margin-top: 20px;
+        border: 1px solid #fde68a;
+    }
+    
+    .cancelled-info-card .title {
+        font-weight: 800;
+        color: #b45309;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    /* ============================================
        MOBILE RESPONSIVE
     ============================================ */
     @media (max-width: 1000px) {
@@ -692,7 +955,6 @@
     }
     
     @media (max-width: 768px) {
-        /* Mobile: Labels above values (stacked) */
         .info-row {
             flex-direction: column;
             align-items: flex-start;
@@ -749,6 +1011,24 @@
         .action-card {
             width: 100%;
         }
+        
+        .cancel-modal-container {
+            width: 95%;
+            margin: 16px;
+        }
+        
+        .cancel-modal-header h3 {
+            font-size: 1.2rem;
+        }
+        
+        .cancel-modal-footer {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .refund-alert .amount-highlight {
+            font-size: 1.1rem;
+        }
     }
     
     @media (max-width: 500px) {
@@ -777,6 +1057,11 @@
     
     .card-modern, .action-card, .stat-card-glass {
         animation: fadeUp 0.35s ease-out forwards;
+    }
+      @media (max-width: 900px) {
+        .content{
+            margin-top: 60px;
+        }
     }
 </style>
 
@@ -1094,7 +1379,7 @@
                             <p style="margin-top: 8px; font-size: 0.85rem;">This withdrawal has been approved. You can now:</p>
                             <ul style="margin-top: 12px; padding-left: 20px;">
                                 <li>Make the payment manually via NEFT/IMPS/UPI</li>
-                                <li>Record the transaction details below</li>
+                                <li>Record the transaction details</li>
                                 <li>Upload payment proof for audit</li>
                             </ul>
                             {% if withdrawal.approved_at %}
@@ -1108,46 +1393,18 @@
                                class="btn-manual-payout success">
                                 <i class="fas fa-hand-holding-usd"></i> Record Manual Payout
                             </a>
-                            <button type="button" class="btn-manual-payout warning" data-toggle="modal" data-target="#cancelModal">
-                                <i class="fas fa-times-circle"></i> Cancel & Return Funds
-                            </button>
                         </div>
+                        
+                        <!-- NEW: Cancel Request Trigger Button (Modern & Responsive) -->
+                        <button type="button" class="cancel-trigger-btn" id="openCancelModalBtn">
+                            <i class="fas fa-ban"></i> Cancel & Return Funds
+                        </button>
                         
                         <div class="info-alert-modern" style="margin-top: 15px; background: #fef3c7;">
                             <small>
                                 <i class="fas fa-info-circle"></i> 
-                                <strong>Important:</strong> Only record payout AFTER you have actually transferred the money to the seller's bank account.
+                                <strong>Important:</strong> Cancelling will return ₹{{ withdrawal.amount|floatformat:2 }} to the seller's wallet.
                             </small>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Cancel Modal -->
-                <div class="modal fade" id="cancelModal" tabindex="-1" role="dialog">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Cancel Withdrawal</h5>
-                                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            </div>
-                            <form method="post" action="{% url 'settlement:admin_cancel_withdrawal' withdrawal.id %}">
-                                {% csrf_token %}
-                                <div class="modal-body">
-                                    <p>Are you sure you want to cancel this withdrawal?</p>
-                                    <div class="form-group">
-                                        <label>Reason for cancellation:</label>
-                                        <textarea name="reason" class="form-control" rows="3" required></textarea>
-                                    </div>
-                                    <div class="alert alert-warning">
-                                        <i class="fas fa-exclamation-triangle"></i>
-                                        This will return ₹{{ withdrawal.amount|floatformat:2 }} to the seller's wallet.
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                    <button type="submit" class="btn btn-warning">Confirm Cancellation</button>
-                                </div>
-                            </form>
                         </div>
                     </div>
                 </div>
@@ -1221,8 +1478,52 @@
     </div>
 </div>
 
+<!-- ============================================ -->
+<!-- NEW: MODERN CANCEL REQUEST MODAL (Responsive) -->
+<!-- ============================================ -->
+<div id="cancelModal" class="cancel-modal-overlay">
+    <div class="cancel-modal-container">
+        <div class="cancel-modal-header">
+            <h3>
+                <i class="fas fa-exclamation-triangle"></i>
+                Cancel Withdrawal Request
+            </h3>
+            <p>This action will reverse the funds to seller's wallet</p>
+        </div>
+        <form method="post" action="{% url 'settlement:admin_cancel_withdrawal' withdrawal.id %}" id="cancelForm">
+            {% csrf_token %}
+            <div class="cancel-modal-body">
+                <div class="refund-alert">
+                    <i class="fas fa-undo-alt"></i> Fund Reversal Summary
+                    <div class="amount-highlight">₹{{ withdrawal.amount|floatformat:2 }}</div>
+                    <div>will be returned to seller's available balance</div>
+                    <div class="small-note">
+                        <i class="fas fa-clock"></i> This action is irreversible and will mark this request as CANCELLED.
+                    </div>
+                </div>
+                
+                <div class="form-group-modern">
+                    <label><i class="fas fa-comment-dots"></i> Cancellation Reason <span style="color: var(--danger);">*</span></label>
+                    <textarea name="reason" rows="3" placeholder="Please explain why this withdrawal is being cancelled..." required></textarea>
+                    <small style="display: block; margin-top: 8px; font-size: 0.65rem; color: var(--gray-500);">
+                        <i class="fas fa-info-circle"></i> This reason will be recorded for audit and may be shared with the seller.
+                    </small>
+                </div>
+            </div>
+            <div class="cancel-modal-footer">
+                <button type="button" class="btn-cancel-modal secondary" id="closeCancelModalBtn">
+                    <i class="fas fa-arrow-left"></i> Go Back
+                </button>
+                <button type="submit" class="btn-cancel-modal danger">
+                    <i class="fas fa-ban"></i> Confirm Cancellation
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
-    // Decision toggle functionality
+    // Decision toggle functionality (for PENDING state)
     const approveBtn = document.getElementById('approveBtn');
     const rejectBtn = document.getElementById('rejectBtn');
     const rejectionSection = document.getElementById('rejectionSection');
@@ -1253,7 +1554,7 @@
         setApprove();
     }
     
-    // Form validation
+    // Form validation for PENDING state
     const form = document.getElementById('adminActionForm');
     if (form) {
         form.addEventListener('submit', function(e) {
@@ -1268,7 +1569,62 @@
             }
         });
     }
+    
+    // ============================================
+    // NEW: CANCEL MODAL FUNCTIONALITY - Smooth & Responsive
+    // ============================================
+    const cancelModal = document.getElementById('cancelModal');
+    const openCancelBtn = document.getElementById('openCancelModalBtn');
+    const closeCancelBtn = document.getElementById('closeCancelModalBtn');
+    
+    if (openCancelBtn && cancelModal) {
+        // Open modal
+        openCancelBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            cancelModal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scroll
+        });
+        
+        // Close modal function
+        function closeModal() {
+            cancelModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // Close on button click
+        if (closeCancelBtn) {
+            closeCancelBtn.addEventListener('click', closeModal);
+        }
+        
+        // Close on overlay click (background)
+        cancelModal.addEventListener('click', function(e) {
+            if (e.target === cancelModal) {
+                closeModal();
+            }
+        });
+        
+        // Close on ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && cancelModal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+    }
+    
+    // Cancel form validation
+    const cancelForm = document.getElementById('cancelForm');
+    if (cancelForm) {
+        cancelForm.addEventListener('submit', function(e) {
+            const reasonTextarea = cancelForm.querySelector('textarea[name="reason"]');
+            if (!reasonTextarea.value.trim()) {
+                e.preventDefault();
+                alert('Please provide a cancellation reason.');
+                reasonTextarea.focus();
+            }
+        });
+    }
 </script>
+
 
 <!-- Include Bootstrap JS for modal (if not already included) -->
 {% if withdrawal.status == 'APPROVED' %}

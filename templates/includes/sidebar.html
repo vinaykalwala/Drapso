@@ -670,6 +670,12 @@
                 <i class="fa-solid fa-bag-shopping"></i>
                 Orders
             </a>
+            <li class="nav-item">
+    <a class="nav-link" href="{% url 'settlement:my_payouts' %}">
+        <i class="fas fa-history"></i>
+        <span>My Payouts</span>
+    </a>
+</li>
          
             <a href="{% url 'orders:wholeseller_orders' %}">
                 <i class="fa-solid fa-box"></i>
@@ -730,7 +736,12 @@
                 Orders
             </a>
           
-
+             <li class="nav-item">
+    <a class="nav-link" href="{% url 'settlement:my_payouts' %}">
+        <i class="fas fa-history"></i>
+        <span>My Payouts</span>
+    </a>
+</li>
 
             {% if store and store.id %}
             <a href="{% url 'products:reseller_product_list' store.id %}">
